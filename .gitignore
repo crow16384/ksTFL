@@ -6,7 +6,6 @@
 
 # Generated documentation
 man/*.Rd
-NAMESPACE
 docs/
 
 # Build outputs
