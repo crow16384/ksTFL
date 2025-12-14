@@ -1,0 +1,19 @@
+Package: ksTFL
+Type: Package
+Title: ksTFL Framework
+Version: 0.1.0
+Authors@R: person("Igor", "Aleschenkov", email = "igor.aleschenkov@keystatsolutions.com", role = c("aut", "cre"))
+Maintainer: Igor Aleschenkov <igor.aleschenkov@keystatsolutions.com>
+Description: Library provides framework for generation of clinical TFLs. The purpose is to provide functionality t prepare metadatf that describes TFL and pass this metadata together with data to the python code to generate final docx documnet with styles.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+	cli,
+	checkmate,
+	jsonlite,
+	purrr,
+	rlang,
+	tidyselect
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.2

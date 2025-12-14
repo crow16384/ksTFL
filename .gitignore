@@ -1,0 +1,50 @@
+# R package build artifacts
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# Generated documentation
+man/*.Rd
+NAMESPACE
+docs/
+
+# Build outputs
+*.tar.gz
+*.zip
+*.dll
+*.so
+*.dylib
+src/*.o
+src/*.a
+.deps/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+.tmp/
+*.bak
+
+# R development files
+.Rbuildignore
+.Rinstignore
+
+# Package cache
+.Rdata
+.Rhistory
+
+# Coverage reports
+coverage/
+.coverage
+
+# Testing
+tests/testthat/test-results/
