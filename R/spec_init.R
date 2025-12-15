@@ -59,6 +59,7 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
     }
     spec$document$docType <- docType
     spec$document$hasData <- FALSE
+    class(spec) <- "TFL_spec"
     return(spec)
   }
   

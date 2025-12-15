@@ -19,7 +19,7 @@ capture_cli_message <- function(expr) {
 
 test_that(".auto_id generates unique IDs", {
   # Test internal function indirectly through public API
-  spec1 <- tfl_init() |>
+  spec1 <- tfl_init(docType = "Figure") |>
     add_style(s_font())  # Auto-generates ID
   
   spec2 <- spec1 |>
@@ -31,7 +31,7 @@ test_that(".auto_id generates unique IDs", {
 
 test_that(".auto_id handles NULL existing_list", {
   # This is tested indirectly through add_style with NULL styles
-  spec <- tfl_init()
+  spec <- tfl_init(docType = "Figure")
   
   # First call to add_style with auto-generated ID on empty styles
   spec <- add_style(spec, s_font())
@@ -41,15 +41,15 @@ test_that(".auto_id handles NULL existing_list", {
 
 test_that(".auto_stub_order generates sequential numbers", {
   spec <- tfl_init(data = mtcars, docType = "Table") |>
-    add_stub_column("cyl") |>
-    add_stub_column("vs")
+    add_stub_column("cyl", label = "Cyl") |>
+    add_stub_column("vs", label = "Vs")
   
   expect_true(length(spec$stubColumns) >= 1)
 })
 
 test_that("Validation rejects invalid pattern in spacing", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("bad",
         s_spacing(before = "invalid_unit")
       ),
@@ -59,7 +59,7 @@ test_that("Validation rejects invalid pattern in spacing", {
 
 test_that("Validation rejects non-numeric line_spacing", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("bad",
         s_spacing(line_spacing = "1.5")  # Should be numeric
       ),
@@ -69,7 +69,7 @@ test_that("Validation rejects non-numeric line_spacing", {
 
 test_that("Validation checks alignment values", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("bad",
         s_paragraph(alignment = "diagonal")
       ),
@@ -79,7 +79,7 @@ test_that("Validation checks alignment values", {
 
 test_that("Validation rejects invalid font size format", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("bad",
         s_font(font_size = "14")  # Missing unit
       ),
@@ -124,7 +124,7 @@ test_that("Column extraction fails with non-existent column", {
 
 test_that(".validate_params rejects unknown schema types", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("bad_style",
         list() # Not a valid modifier
       ),
@@ -134,7 +134,7 @@ test_that(".validate_params rejects unknown schema types", {
 
 test_that(".validate_enum provides clear error for invalid choice", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("test",
         s_paragraph(alignment = "invalid_alignment")
       ),
@@ -144,7 +144,7 @@ test_that(".validate_enum provides clear error for invalid choice", {
 
 test_that(".validate_pattern provides column context in errors", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("test",
         s_spacing(before = "notaunit")
       ),
@@ -154,7 +154,7 @@ test_that(".validate_pattern provides column context in errors", {
 
 test_that("Multiple validation errors accumulated", {
   expect_error(
-    tfl_init() |>
+    tfl_init(docType = "Figure") |>
       add_style("test",
         s_font(bold = "invalid", font_size = "14")  # Multiple issues
       ),
@@ -217,7 +217,7 @@ test_that("spec object maintains consistency across operations", {
 })
 
 test_that("Pipeline operations preserve spec structure", {
-  spec1 <- tfl_init()
+  spec1 <- tfl_init(docType = "Figure")
   spec2 <- spec1 |> add_style("s1", s_font())
   spec3 <- spec2 |> add_style("s2", s_font())
   
@@ -226,3 +226,6 @@ test_that("Pipeline operations preserve spec structure", {
   expect_true(length(spec2$attribs$styles) == 1)
   expect_true(length(spec3$attribs$styles) == 2)
 })
+
+
+

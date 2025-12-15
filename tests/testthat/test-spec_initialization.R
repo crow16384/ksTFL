@@ -1,13 +1,14 @@
 # Tests for TFL Spec Initialization Functions
 # Tests tfl_init(), .fill_spec_defaults(), .get_col_label(), .get_data_format()
 
-test_that("tfl_init creates default Table spec with no arguments", {
-  spec <- tfl_init()
+test_that("tfl_init creates default Figure spec with no arguments", {
+  spec <- tfl_init(docType = "Figure")
   
   expect_s3_class(spec, "TFL_spec")
   expect_true(is.list(spec))
   expect_true(!is.null(spec$document))
   expect_true(!is.null(spec$attribs))
+  expect_equal(spec$document$docType, "Figure")
 })
 
 test_that("tfl_init accepts valid docType values", {
@@ -83,7 +84,7 @@ test_that("tfl_init with empty data frame creates appropriate spec", {
 })
 
 test_that("tfl_init initializes all required top-level structures", {
-  spec <- tfl_init()
+  spec <- tfl_init(docType = "Figure")
   
   expect_true(!is.null(spec$document))
   expect_true(!is.null(spec$attribs))
