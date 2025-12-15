@@ -17,8 +17,7 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
 
   #initialize empty spec structure
   spec <- .const_emty_spec
-  class(spec) <- "TFL_spec"
-
+  
   spec <- .fill_spec_defaults(spec)
 
   docType <- match.arg(docType, c('Table', 'Listing', 'Figure'))
@@ -33,6 +32,7 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
   # For Table and Listing, data is required
   checkmate::assert_data_frame(data, .var.name = "data")
   
+  eval_env <- .create_data_env(data, funcs = .env_func_list)
   # Capture cols expression without evaluating it
   cols_quo <- enquo(cols)
   
@@ -66,33 +66,20 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
     )
   }
   
-   
-  # Initialize base TFL spec structure
-  spec <- list(
-    # Document properties
-    document = list(
-      docType = docType,
-      hasData = hasData
-    ),
-    
-    # Attributes (styling, templates)
-    attribs = list(
-      documentStyle = list(
-        docTemplate = "KeyStat_default",
-        styleOverrideID = NULL
-      ),
-      styles = list(),
-      docFormat = "docx"
-    ),
-    
-    # Column definitions
-    columns = columns,
-    
-    # Metadata (internal, not exported to JSON)
-    .metadata = list(
-      report_cols = data_cols
-    )
+
+  spec$document <- list(
+    docType = docType,
+    hasData = hasData
   )
+
+  spec$columns <- columns
+
+  spec$.metadata <- list(
+    report_cols = data_cols,
+    data_env = eval_env
+  )
+
+  
   
   # Add optional docPrefix if provided
   if (!is.null(docPrefix)) {
@@ -100,6 +87,7 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
     spec$document$docPrefix <- docPrefix
   }
 
+  class(spec) <- "TFL_spec"
   spec
 }
 
@@ -115,7 +103,7 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
 #' @keywords internal
 .fill_spec_defaults <- function(spec) {
   
-  settings <- get_settings()
+  settings <- tfl_get_settings()
   
   # Ensure required top-level structure exists
   if (is.null(spec$document)) {
@@ -155,7 +143,7 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
                    "styleRows", "titles", "subtitles", "footnotes", "bodyText")
   for (key in schema_keys) {
     if (is.null(spec[[key]])) {
-      spec[[key]] <- NULL  # Explicitly null for optional fields
+      spec[[key]] <- list()  # Explicitly null for optional fields
     }
   }
   

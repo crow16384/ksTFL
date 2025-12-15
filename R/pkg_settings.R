@@ -56,7 +56,7 @@ class(.options_env$defaults) <- "TFL_options"
 #'
 #' @return A named list representing the current ksTFL settings.
 #' @export
-get_settings <- function() {
+tfl_get_settings <- function() {
   return(.options_env$settings)
 }
 
@@ -65,7 +65,7 @@ get_settings <- function() {
 #' @param name Name of the setting to fetch.
 #' @return The value associated with `name`.
 #' @export
-get_setting <- function(name) {
+tfl_get_setting <- function(name) {
   if (!name %in% names(.options_env$settings)) {
     stop("Unknown setting: ", name)
   }
@@ -77,7 +77,7 @@ get_setting <- function(name) {
 #' @param ... Named arguments corresponding to ksTFL settings.
 #' @return The updated settings list, returned invisibly.
 #' @export
-set_settings <- function(...) {
+tfl_set_settings <- function(...) {
     ##!TODO: validate settings, e.g., check types, allowed values, etc., plus check that some options like headers/footers are lists and requires special handling, 
     ##      e.g. setting using wrapper functions to add/remove headers/footers
   new_settings <- list(...)
@@ -99,7 +99,7 @@ set_settings <- function(...) {
 #'
 #' @return The defaults list, returned invisibly.
 #' @export
-reset_settings <- function() {
+tfl_reset_settings <- function() {
   .options_env$settings <- .options_env$defaults
   invisible(.options_env$settings)
 }

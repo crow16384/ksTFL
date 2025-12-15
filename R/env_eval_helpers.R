@@ -1,14 +1,25 @@
-##initialize a working envir where we can evaluate pre-defined expressions on the data
-## data - data.frame to include in the environment
-## funcs - named list of functions to include in the environment (these functions will be evaluated in the created environment first)
-## @internal
-##examples:
-## with(menv, row_number())
-## with(menv, first(cyl))
-## with(menv, eval_tidy(quote(cyl+am), env = `__mask__`))
-## with(menv, eval_tidy(quote(row_number() %% 2), env = `__mask__`))
-## exp <- expr(firstOf(cyl)); with(menv, eval(!!exp)) #eval is internal env function helper
-
+#' Create a Data Evaluation Environment
+#'
+#' Initialize a working environment where expressions can be evaluated in the context
+#' of a data frame. The environment includes the data and a set of helper functions
+#' that can reference data columns and custom functions.
+#'
+#' @param data A data frame to include in the environment
+#' @param funcs A named list of functions to include in the environment. These functions
+#'   will be evaluated in the created environment with access to `__data__` and `__mask__`.
+#'
+#' @return An environment containing:
+#'   - All functions from `funcs`
+#'   - The raw data as `__data__`
+#'   - A data mask as `__mask__` for tidyverse-style evaluation
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   menv <- .create_data_env(mtcars, list())
+#'   with(menv, row_number())
+#'   with(menv, eval_tidy(quote(cyl + am), env = `__mask__`))
+#' }
 .create_data_env <- function(data, funcs) {
   # Create a "top-level" environment that contains:
   #  - all functions in `funcs`
@@ -51,12 +62,32 @@
 
 
 
-## helper Function to return the data column names/order as named vector using the tidyselect functionality.
-## example: .get_data_columns(mtcars, everything())
-## example: .get_data_columns(mtcars, c(cyl, mpg))
-## example: .get_data_columns(mtcars, cyl, mpg, gear)
-## example: .get_data_columns(mtcars, my_cols)  # where my_cols is a variable in the calling environment
-## @internal
+#' Get Selected Data Column Indices
+#'
+#' Helper function to return the data column names/order as a named vector using
+#' tidyselect functionality. Supports tidyverse selection syntax (e.g., `everything()`,
+#' `c()`, named expressions).
+#'
+#' @param .data A data frame to select columns from
+#' @param ... Column selection expressions (tidyselect syntax)
+#' @param .selenv Environment for evaluating column expressions (default: calling environment)
+#' @param .strict Logical. If `TRUE` (default), require exact column matches
+#'
+#' @return A named integer vector with column indices, where names are column names
+#'
+#' @details
+#' Supports:
+#' - `everything()` - all columns
+#' - `c(col1, col2)` - specific columns
+#' - Character vectors via external variables
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .get_data_columns(mtcars, everything())
+#'   .get_data_columns(mtcars, c(cyl, mpg))
+#'   .get_data_columns(mtcars, cyl, mpg, gear)
+#' }
 .get_data_columns <- function(.data, ..., .selenv = NULL, .strict = TRUE) {
   dots <- enquos(..., .named = FALSE)
   
@@ -105,20 +136,47 @@
   )
 }
 
-## return only the names of the selected data columns
-## @internal
-## example: .get_data_column_names(mtcars, everything())
+#' Get Selected Data Column Names
+#'
+#' Extract the names of columns selected using tidyselect syntax.
+#'
+#' @param .data A data frame to select columns from
+#' @param ... Column selection expressions (tidyselect syntax)
+#' @param .selenv Environment for evaluating column expressions (default: calling environment)
+#' @param .strict Logical. If `TRUE` (default), require exact column matches
+#'
+#' @return A character vector of column names
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .get_data_column_names(mtcars, everything())
+#'   .get_data_column_names(mtcars, c(cyl, mpg))
+#' }
 .get_data_column_names <- function(.data, ..., .selenv=NULL, .strict=T) {
   col_indices <- .get_data_columns(.data, ..., .selenv = .selenv, .strict = .strict)
   names(col_indices)
 }
 
-## function to evaluate expression in the data env
-##@internal
-## example:
-## .env_eval(cyl+am)
-## exp <- expr(firstOf(cyl)); .env_eval(!!exp)
-.env_eval <- function(expr, env=menv) {
+#' Evaluate Expression in Data Environment
+#'
+#' Evaluate an expression within a data environment, with access to data columns
+#' and helper functions.
+#'
+#' @param expr An expression to evaluate (will be quoted)
+#' @param env An environment object (default: `spec$.metadata$data_env`).
+#'   Must contain `__mask__` for tidyverse-style evaluation.
+#'
+#' @return The result of evaluating `expr` in the data environment
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .env_eval(cyl + am)
+#'   exp <- expr(firstOf(cyl))
+#'   .env_eval(!!exp)
+#' }
+.env_eval <- function(expr, env=spec$.metadata$data_env) {
   expr <- enexpr(expr)
   eval_tidy(expr, env = env$`__mask__`)
 }
@@ -128,11 +186,24 @@
 # Below are internal functions that will be embedded into the working env to have preceedence over other functions
 ############################################################################
 
-##functions that attached to data env. returns the logical vector with TRUE at each first change of values of provided variables
-##@internal
-##example:
-##.env_eval(firstOf(cyl))
-##.env_eval(firstOf(cyl, am))
+#' Find First Occurrence of Changed Values
+#'
+#' Returns a logical vector indicating the first row of each distinct combination
+#' of values in the specified columns.
+#'
+#' @param ... Column names (unquoted or as character vector)
+#' @param data The data frame to evaluate (default: `__data__` from environment)
+#'
+#' @return A logical vector with `TRUE` at the first row of each value change,
+#'   and `TRUE` for the first row. Returns logical(0) for empty data,
+#'   and `TRUE` for single-row data.
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .env_eval(firstOf(cyl))
+#'   .env_eval(firstOf(cyl, am))
+#' }
 .eval_firstOf <- function(..., data=`__data__`) {
   cols <- get_names(...)
   # Extract columns
@@ -160,11 +231,24 @@
   unname(c(TRUE, diff_flag))
 }
 
-##functions that attached to data env. returns the logical vector with TRUE at each last change of values of provided variables
-##@internal
-##example:
-##.env_eval(lastOf(cyl))
-##.env_eval(lastOf(cyl, am))
+#' Find Last Occurrence of Changed Values
+#'
+#' Returns a logical vector indicating the last row of each distinct combination
+#' of values in the specified columns.
+#'
+#' @param ... Column names (unquoted or as character vector)
+#' @param data The data frame to evaluate (default: `__data__` from environment)
+#'
+#' @return A logical vector with `TRUE` at the last row of each value change,
+#'   and `TRUE` for the last row. Returns logical(0) for empty data,
+#'   and `TRUE` for single-row data.
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .env_eval(lastOf(cyl))
+#'   .env_eval(lastOf(cyl, am))
+#' }
 .eval_lastOf <- function(..., data=`__data__`) {
   cols <- get_names(...)
   # Extract columns
@@ -192,42 +276,106 @@
   unname(c(diff_flag, TRUE))
 }
 
-##functions that attached to data env. returns the names of the selected data columns
-##@internal
-##example:
-##.env_eval(get_names(cyl, am)) - return c("cyl", "am")
+#' Get Names of Selected Columns in Environment
+#'
+#' Returns the names of the selected data columns using tidyselect syntax.
+#' This function is designed to be called within a data evaluation environment.
+#'
+#' @param ... Column selection expressions (tidyselect syntax)
+#' @param .data The data frame to select from (default: `__data__` from environment)
+#' @param .selenv Environment for evaluating column expressions (default: calling environment)
+#' @param .strict Logical. If `TRUE` (default), require exact column matches
+#'
+#' @return A character vector of selected column names
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .env_eval(get_names(cyl, am))  # Returns c("cyl", "am")
+#' }
 .eval_get_names <- function(..., .data=`__data__`, .selenv=NULL, .strict=T) {
    names(.get_data_columns(.data, ..., .selenv = .selenv, .strict = .strict))
   }
 
-##functions that attached to data env. returns the row numbers of the data
-##@internal
-##example:
-##.env_eval(row_numbers()) - return c(1,2,3,...,nrow(data))
+#' Get Row Numbers in Environment
+#'
+#' Returns a sequence of row numbers for the data in the evaluation environment.
+#'
+#' @param .data The data frame (default: `__data__` from environment)
+#'
+#' @return An integer vector of row numbers from 1 to nrow(.data)
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .env_eval(row_numbers())  # Returns c(1, 2, 3, ..., nrow(data))
+#' }
 .eval_row_numbers <- function(.data=`__data__`) {
   seq_len(nrow(.data))
 }
 
-##functions that attached to data env. returns logical vector with TRUE at every nth row
-##@internal
-##example:
-##.env_eval(every_nth(3)) - return logical vector with TRUE at every 3rd row
+#' Select Every Nth Row
+#'
+#' Returns a logical vector with `TRUE` at every nth row.
+#'
+#' @param n Integer. The interval for selecting rows.
+#'
+#' @return A logical vector with `TRUE` at every nth row
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   .env_eval(every_nth(3))  # Returns logical vector TRUE at rows 1, 4, 7, 10, ...
+#' }
 .eval_every_nth <- function(n) {
-  ((row_numbers() - 1) %% n) == 0
+  ((row_number() - 1) %% n) == 0
 }
 
-##function to evaluate expression in the data env
-##@internal
-##example:
-## with(menv, eval(cyl+am))
+#' Evaluate Expression in Data Mask
+#'
+#' Evaluate an expression using tidyverse-style data masking within the
+#' evaluation environment.
+#'
+#' @param expr An expression to evaluate (will be quoted)
+#'
+#' @return The result of evaluating `expr` in the data mask environment
+#'
+#' @details
+#' This function uses the `__mask__` object from the evaluation environment,
+#' which provides tidyverse-style data masking for column reference.
+#'
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'   with(menv, eval(cyl + am))
+#' }
 .eval_in_env <- function(expr) {
   expr <- enexpr(expr)
 
   eval_tidy(expr, env = `__mask__`)  # evaluate each in the data mask
 }
 
-##list of functions to be included in the data env
-##@internal
+#' Helper Functions for Data Environment Evaluation
+#'
+#' A list of functions that are embedded into the data evaluation environment.
+#' These functions have special access to `__data__` and `__mask__` and take
+#' precedence over other functions in the evaluation context.
+#'
+#' Available functions:
+#' \describe{
+#'   \item{`firstOf(...)`}{Returns logical vector marking first occurrence of each value combination}
+#'   \item{`lastOf(...)`}{Returns logical vector marking last occurrence of each value combination}
+#'   \item{`get_names(...)`}{Returns character vector of selected column names}
+#'   \item{`row_number()`}{Returns integer vector of row numbers}
+#'   \item{`every_nth(n)`}{Returns logical vector for every nth row}
+#'   \item{`eval(expr)`}{Evaluate expression with tidyverse data masking}
+#' }
+#'
+#' @keywords internal
+#' @details
+#' These functions are designed to be called from within a data evaluation environment
+#' created by `.create_data_env()` or accessed via `.env_eval()`.
+#'
 .env_func_list <- list(
   firstOf    = .eval_firstOf,
   lastOf     = .eval_lastOf,

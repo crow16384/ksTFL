@@ -133,8 +133,8 @@
 # PART 2: SCHEMA VALIDATION
 # ============================================================
 
-# Cache for schema properties
-.tfl_schema_cache <- NULL
+# Cache environment for schema properties
+.schema_cache_env <- new.env(parent = emptyenv())
 
 #' Get allowed properties for a schema path
 #' 
@@ -143,8 +143,8 @@
 #' @keywords internal
 .get_allowed_properties <- function(type) {
   # Initialize cache if not exists
-  if (is.null(.tfl_schema_cache)) {
-    .tfl_schema_cache <<- list(
+  if (!exists("cache", envir = .schema_cache_env)) {
+    assign("cache", list(
       font = c("font_name", "font_size", "bold", "italic", "underline", "color", "highlight"),
       paragraph = c("alignment", "spacing", "indents", "word_style"),
       spacing = c("before", "after", "line_spacing"),
@@ -163,10 +163,10 @@
                    "contentWidth", "bodyTitles", "bodyFootnotes", "hasData", 
                    "bodySubtitles", "outFileName"),
       text_group = c("text", "styleRef", "order")
-    )
+    ), envir = .schema_cache_env)
   }
   
-  .tfl_schema_cache[[type]] %||% character(0)
+  get("cache", envir = .schema_cache_env)[[type]] %||% character(0)
 }
 
 #' Validate parameters against allowed schema properties
@@ -982,45 +982,6 @@ c_format <- function(type, format = NULL, missings = NULL,
 # PART 5: EXPORTED CONTEXT FUNCTIONS
 # ============================================================
 
-#' Create a new TFL specification object
-#' 
-#' @param schema Optional JSON schema for validation
-#' 
-#' @return A new TFL spec object
-#' @export
-#' 
-#' @examples
-#' # Create an empty specification
-#' spec <- tfl_spec()
-#' 
-#' # Create with a schema for validation
-#' # spec <- tfl_spec(schema = "path/to/schema.json")
-tfl_spec <- function(schema = NULL) {
-  spec <- list(
-    attribs = list(
-      documentStyle = list(),
-      styles = list(),
-      docFormat = "docx"
-    ),
-    document = list(),
-    headers = list(),
-    footers = list(),
-    dataRef = NULL,
-    stubColumns = list(),
-    columns = list(),
-    styleRows = NULL,
-    titles = list(),
-    subtitles = list(),
-    footnotes = list(),
-    bodyText = list(),
-    .metadata = list(
-      schema = schema
-    )
-  )
-  
-  structure(spec, class = "TFL_spec")
-}
-
 
 #' Add or update a style definition
 #' 
@@ -1609,14 +1570,13 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' @param ... Character vectors of styling rules
 #' 
 #' @return Updated spec object
-#' @export
 #' 
 #' @examples
 #' \dontrun{
 #' spec <- tfl_spec() |>
 #'   add_style_row("bold", "normal", "bold")
 #' }
-add_style_row <- function(spec, ...) {
+.add_style_row <- function(spec, ...) {
   assert_class(spec, "TFL_spec")
   
   spec$styleRows <- spec$styleRows %||% character()
@@ -1633,14 +1593,13 @@ add_style_row <- function(spec, ...) {
 #' @param ... Character vectors of file paths
 #' 
 #' @return Updated spec object
-#' @export
 #' 
 #' @examples
 #' \dontrun{
 #' spec <- tfl_spec() |>
 #'   add_data_ref("demographics_data.json", "safety_data.json")
 #' }
-add_data_ref <- function(spec, ...) {
+.add_data_ref <- function(spec, ...) {
   assert_class(spec, "TFL_spec")
   
   spec$dataRef <- spec$dataRef %||% character()
@@ -1772,7 +1731,6 @@ set_document_style <- function(spec, docTemplate = NULL, styleOverrideID = NULL)
 #' @param spec TFL spec object
 #' @param verbose Whether to show validation details
 #' @return Logical indicating if all checks passed
-#' @export
 #' 
 #' @examples
 #' \dontrun{
