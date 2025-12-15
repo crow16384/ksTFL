@@ -44,14 +44,20 @@
 #' until a non-existent ID is found.
 #'
 #' @param prefix Character. Prefix for the ID (e.g., "style_")
-#' @param existing_list List. List of existing objects (uses names as existing IDs)
+#' @param existing_list List. List of existing objects (uses names as existing IDs).
+#'   NULL is treated as an empty list.
 #'
 #' @return Character. Unique identifier in format "<prefix><number>"
 #'
 #' @keywords internal
 .auto_id <- function(prefix, existing_list) {
+  # Handle NULL as empty list
+  if (is.null(existing_list)) {
+    existing_list <- list()
+  }
+  
   if (!is.list(existing_list)) {
-    cli_abort("Internal error: existing_list must be a list in {.fn .auto_id}")
+    cli_abort("Internal error: existing_list must be a list or NULL in {.fn .auto_id}")
   }
   
   n <- length(existing_list) + 1L
