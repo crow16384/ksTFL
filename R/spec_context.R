@@ -13,11 +13,21 @@
 # PART 1: CORE UTILITIES
 # ============================================================
 
-#' Recursive merge with last-win strategy
-#' 
-#' @param x First object to merge
-#' @param y Second object to merge (last wins)
-#' @return Merged object
+#' Recursively Merge Two Objects (Last-Win Strategy)
+#'
+#' Merges two objects with the second taking precedence in case of conflicts.
+#' Handles NULL values and recursive list merging.
+#'
+#' @param x First object (list or NULL)
+#' @param y Second object (list or NULL). Takes precedence in merge.
+#'
+#' @return Merged object where conflicts favor `y` values
+#'
+#' @details
+#' - If either object is NULL, returns the non-NULL one
+#' - If both are lists, uses `modifyList()` to recursively merge
+#' - Otherwise, `y` completely replaces `x` (last wins)
+#'
 #' @keywords internal
 .merge_recursive <- function(x, y) {
   if (is.null(x)) return(y)
@@ -28,34 +38,56 @@
   y  # Last wins
 }
 
-#' Auto-generate ID
-#' 
-#' @param prefix Prefix for the ID
-#' @param existing_list List of existing IDs
-#' @return Unique ID
+#' Auto-Generate Unique Identifier
+#'
+#' Generates a unique ID with a given prefix by appending an incrementing number
+#' until a non-existent ID is found.
+#'
+#' @param prefix Character. Prefix for the ID (e.g., "style_")
+#' @param existing_list List. List of existing objects (uses names as existing IDs)
+#'
+#' @return Character. Unique identifier in format "<prefix><number>"
+#'
 #' @keywords internal
 .auto_id <- function(prefix, existing_list) {
-  n <- length(existing_list) + 1
-  repeat {
+  if (!is.list(existing_list)) {
+    cli_abort("Internal error: existing_list must be a list in {.fn .auto_id}")
+  }
+  
+  n <- length(existing_list) + 1L
+  max_attempts <- 10000
+  
+  for (attempt in seq_len(max_attempts)) {
     id <- paste0(prefix, n)
     if (!id %in% names(existing_list)) return(id)
-    n <- n + 1
+    n <- n + 1L
   }
+  
+  cli_abort("Failed to generate unique ID after {max_attempts} attempts with prefix {.str {prefix}}")
 }
 
-#' Auto-generate stub order
-#' 
-#' @param existing_stubs List of existing stub columns
-#' @return Next available stub order
+#' Auto-Generate Next Stub Order
+#'
+#' Calculates the next available stub column order number based on existing stubs.
+#'
+#' @param existing_stubs List. List of existing stub column specifications
+#'
+#' @return Integer. Next available stub order (minimum 1)
+#'
 #' @keywords internal
 .auto_stub_order <- function(existing_stubs) {
   if (length(existing_stubs) == 0) {
     return(1L)
   }
   
-  existing_orders <- sapply(existing_stubs, function(x) x$stubOrder)
+  existing_orders <- sapply(existing_stubs, function(x) x$stubOrder, USE.NAMES = FALSE)
+  
   if (length(existing_orders) == 0) {
     return(1L)
+  }
+  
+  if (any(!is.numeric(existing_orders))) {
+    cli_abort("Internal error: all stubOrder values must be numeric in {.fn .auto_stub_order}")
   }
   
   max(existing_orders, na.rm = TRUE) + 1L
@@ -169,14 +201,33 @@
   get("cache", envir = .schema_cache_env)[[type]] %||% character(0)
 }
 
-#' Validate parameters against allowed schema properties
-#' 
-#' @param params Named list of parameters
-#' @param type Type of schema element
-#' @param fn_name Name of the function being validated
+#' Validate Parameters Against Allowed Schema Properties
+#'
+#' Checks that all provided parameters exist in the allowed properties for a schema element.
+#' Generates detailed error messages with suggestions if invalid parameters are found.
+#'
+#' @param params Named list of parameters to validate
+#' @param type Character. Type of schema element (e.g., "font", "paragraph", "column")
+#' @param fn_name Character. Name of the function calling this validation (for error messages)
+#'
+#' @return Invisibly NULL if validation passes. Aborts with error if invalid parameters found.
+#'
 #' @keywords internal
 .validate_params <- function(params, type, fn_name) {
+  if (!is.list(params)) {
+    cli_abort("{.arg params} must be a list in {.fn {fn_name}}")
+  }
+  
+  if (!is.character(type) || length(type) != 1) {
+    cli_abort("Internal error: {.arg type} must be a single character string in {.fn {fn_name}}")
+  }
+  
   allowed <- .get_allowed_properties(type)
+  
+  if (length(allowed) == 0) {
+    cli_abort("Unknown schema type {.str {type}} in {.fn {fn_name}}")
+  }
+  
   provided <- names(params)
   invalid <- setdiff(provided, allowed)
   
@@ -187,15 +238,30 @@
       i = paste("Allowed:", paste0("{.arg ", allowed, "}", collapse = ", "))
     ))
   }
+  
+  invisible(NULL)
 }
 
-#' Validate required parameters
-#' 
-#' @param params Named list of parameters
+#' Validate Required Parameters
+#'
+#' Checks that all required parameters are present in the provided parameter list.
+#'
+#' @param params Named list of parameters  
 #' @param required_fields Character vector of required field names
-#' @param fn_name Name of the function being validated
+#' @param fn_name Character. Name of the function calling this validation
+#'
+#' @return Invisibly NULL if validation passes. Aborts with error if required fields missing.
+#'
 #' @keywords internal
 .validate_required <- function(params, required_fields, fn_name) {
+  if (!is.list(params)) {
+    cli_abort("{.arg params} must be a list in {.fn {fn_name}}")
+  }
+  
+  if (!is.character(required_fields) || length(required_fields) == 0) {
+    cli_abort("Internal error: {.arg required_fields} must be a non-empty character vector")
+  }
+  
   missing <- setdiff(required_fields, names(params))
   if (length(missing) > 0) {
     cli_abort(c(
@@ -203,60 +269,101 @@
       x = paste0("{.arg ", missing, "}", collapse = ", ")
     ))
   }
+  
+  invisible(NULL)
 }
 
-#' Validate enum value
-#' 
-#' @param value Value to validate
-#' @param allowed Allowed values
-#' @param param_name Name of the parameter
-#' @param fn_name Name of the function
+#' Validate Enum Value
+#'
+#' Checks that a value belongs to a set of allowed enumeration values.
+#'
+#' @param value The value to validate (can be NULL, which is allowed)
+#' @param allowed Character vector of allowed values
+#' @param param_name Character. Name of the parameter (for error messages)
+#' @param fn_name Character. Name of the function being validated
+#'
+#' @return Invisibly NULL. Aborts with error if value not in allowed set.
+#'
 #' @keywords internal
 .validate_enum <- function(value, allowed, param_name, fn_name) {
-  if (!is.null(value) && !value %in% allowed) {
+  if (is.null(value)) {
+    return(invisible(NULL))
+  }
+  
+  if (!is.character(allowed) || length(allowed) == 0) {
+    cli_abort("Internal error: {.arg allowed} must be non-empty character vector")
+  }
+  
+  if (!value %in% allowed) {
     cli_abort(c(
       "Invalid value for {.arg {param_name}} in {.fn {fn_name}}:",
-      x = paste0("Got:  '", value, "'"),
-      i = paste("Allowed:", paste(allowed, collapse = ", "))
+      x = paste0("Got: {.str {value}}"),
+      i = paste("Allowed:", paste("{.str {allowed}}", collapse = ", "))
     ))
   }
+  
+  invisible(NULL)
 }
 
-#' Validate pattern
-#' 
-#' @param value Value to validate
-#' @param pattern Regex pattern
-#' @param param_name Name of the parameter
-#' @param fn_name Name of the function
-#' @param description Optional description of expected format
+#' Validate Pattern Match
+#'
+#' Checks that a value matches a regular expression pattern. Useful for validating
+#' format strings and codes.
+#'
+#' @param value Character value to validate (can be NULL)
+#' @param pattern Character. Regular expression pattern
+#' @param param_name Character. Name of the parameter (for error messages)
+#' @param fn_name Character. Name of the function being validated
+#' @param description Character. Optional description of expected format
+#'
+#' @return Invisibly NULL. Aborts with error if value doesn't match pattern.
+#'
 #' @keywords internal
 .validate_pattern <- function(value, pattern, param_name, fn_name, description = NULL) {
-  if (!is.null(value) && !grepl(pattern, value)) {
+  if (is.null(value)) {
+    return(invisible(NULL))
+  }
+  
+  if (!is.character(value) || length(value) != 1) {
+    cli_abort("{.arg {param_name}} must be a single character string in {.fn {fn_name}}")
+  }
+  
+  if (!is.character(pattern) || length(pattern) != 1) {
+    cli_abort("Internal error: {.arg pattern} must be a single character string")
+  }
+  
+  if (!grepl(pattern, value)) {
     msg <- c(
       "Invalid format for {.arg {param_name}} in {.fn {fn_name}}:",
-      x = paste0("Got: '", value, "'")
+      x = paste0("Got: {.str {value}}")
     )
     if (!is.null(description)) {
       msg <- c(msg, i = description)
     }
     cli_abort(msg)
   }
+  
+  invisible(NULL)
 }
 
 # ============================================================
 # PART 3: REUSABLE SPEC BUILDERS (Internal, can be reused)
 # ============================================================
 
-#' Internal font specification builder
-#' 
-#' @param font_name Font family name
-#' @param font_size Font size with units
-#' @param bold Whether text is bold
-#' @param italic Whether text is italic
-#' @param underline Whether text is underlined
-#' @param color Text color as hex
-#' @param highlight Background highlight color as hex
-#' @return Font specification list
+#' Internal Font Specification Builder
+#'
+#' Constructs and validates a font specification list.
+#'
+#' @param font_name Character. Font family name (Arial, Courier New, Times New Roman, Calibri)
+#' @param font_size Character. Font size with units (e.g., "12pt")
+#' @param bold Logical. Whether text should be bold
+#' @param italic Logical. Whether text should be italic
+#' @param underline Logical. Whether text should be underlined
+#' @param color Character. Text color as hex code (e.g., "#000000")
+#' @param highlight Character. Background highlight color as hex code
+#'
+#' @return List with validated font properties (NULL values excluded)
+#'
 #' @keywords internal
 .font_spec <- function(font_name = NULL, font_size = NULL, bold = NULL, 
                        italic = NULL, underline = NULL, color = NULL, 
@@ -264,55 +371,81 @@
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
   
-  # Validate enum
+  # Validate font_name enum
   if (!is.null(font_name)) {
     .validate_enum(font_name, 
                    c("Arial", "Courier New", "Times New Roman", "Calibri"),
-                   "font_name", "font_spec")
+                   "font_name", ".font_spec")
   }
   
-  # Validate patterns
+  # Validate font_size pattern (e.g., "12pt", "11.5pt")
   if (!is.null(font_size)) {
     .validate_pattern(font_size, "^[0-9]+(\\.[0-9]+)?pt$", 
-                      "font_size", "font_spec", "Must be like '12pt'")
+                      "font_size", ".font_spec", "Must be like '12pt'")
   }
   
+  # Validate hex color codes
   if (!is.null(color)) {
     .validate_pattern(color, "^#[0-9A-Fa-f]{6}$", 
-                      "color", "font_spec", "Must be hex like '#000000'")
+                      "color", ".font_spec", "Must be hex like '#000000'")
   }
   
   if (!is.null(highlight)) {
     .validate_pattern(highlight, "^#[0-9A-Fa-f]{6}$", 
-                      "highlight", "font_spec", "Must be hex like '#FFFF00'")
+                      "highlight", ".font_spec", "Must be hex like '#FFFF00'")
+  }
+  
+  # Validate logical flags
+  if (!is.null(bold) && !is.logical(bold)) {
+    cli_abort("{.arg bold} must be logical (TRUE/FALSE) in {.fn .font_spec}")
+  }
+  if (!is.null(italic) && !is.logical(italic)) {
+    cli_abort("{.arg italic} must be logical (TRUE/FALSE) in {.fn .font_spec}")
+  }
+  if (!is.null(underline) && !is.logical(underline)) {
+    cli_abort("{.arg underline} must be logical (TRUE/FALSE) in {.fn .font_spec}")
   }
   
   params
 }
 
-#' Internal spacing specification builder
-#' 
-#' @param before Space before paragraph
-#' @param after Space after paragraph
-#' @param line_spacing Line spacing multiplier
-#' @return Spacing specification list
+#' Internal Spacing Specification Builder
+#'
+#' Constructs and validates spacing parameters for paragraphs.
+#'
+#' @param before Character. Space before paragraph (e.g., "12pt")
+#' @param after Character. Space after paragraph (e.g., "6pt")
+#' @param line_spacing Numeric. Line spacing multiplier (minimum 1)
+#'
+#' @return List with validated spacing properties (NULL values excluded)
+#'
 #' @keywords internal
 .spacing_spec <- function(before = NULL, after = NULL, line_spacing = NULL) {
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
   
+  # Validate spacing values
   if (!is.null(before)) {
-    .validate_pattern(before, "^[0-9]+(\\.[0-9]+)?pt$", 
-                      "before", "spacing_spec")
+    .validate_pattern(before, "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$", 
+                      "before", ".spacing_spec", "Must be like '12pt', '10mm'")
   }
   
   if (!is.null(after)) {
-    .validate_pattern(after, "^[0-9]+(\\.[0-9]+)?pt$", 
-                      "after", "spacing_spec")
+    .validate_pattern(after, "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$", 
+                      "after", ".spacing_spec", "Must be like '6pt', '10mm'")
   }
   
-  if (!is.null(line_spacing) && line_spacing < 1) {
-    cli_abort("{.arg line_spacing} must be >= 1 in spacing_spec")
+  # Validate line_spacing as numeric >= 1
+  if (!is.null(line_spacing)) {
+    if (!is.numeric(line_spacing) || length(line_spacing) != 1) {
+      cli_abort("{.arg line_spacing} must be a single numeric value in {.fn .spacing_spec}")
+    }
+    if (line_spacing < 1) {
+      cli_abort(c(
+        "{.arg line_spacing} must be >= 1 in {.fn .spacing_spec}:",
+        x = paste("Got:", line_spacing)
+      ))
+    }
   }
   
   params
