@@ -1,6 +1,8 @@
+
+## Initial empty spec structure
 .const_emty_spec <-  list(
-      attribs     = list(),
       document    = list(),
+      attribs     = list(),
       headers     = list(),
       footers     = list(),
       dataRef     = list(),
@@ -11,6 +13,8 @@
       subtitles   = list(),
       footnotes   = list(),
       bodyText    = list(),
-    .metadata     = list(context_stack = character())
+    .metadata     = list()
   )
+
+
 
