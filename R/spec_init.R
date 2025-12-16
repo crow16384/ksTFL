@@ -1,19 +1,17 @@
-
-.data_env <- new.env(parent = emptyenv())
-
 #' Initialize a TFL Specification Object
 #'
 #' Creates and initializes a TFL (Tables, Figures, Listings) specification object
 #' for building structured clinical reports. The spec object serves as a container
 #' for document metadata, column definitions, styles, and content.
 #'
-#' @param data A data frame to build the table/listing from. Required when `docType`
-#'   is "Table" or "Listing", otherwise must be NULL.
-#' @param docType Character. Document type: one of "Table", "Listing", or "Figure".
+#' @param data A data frame to build the table from. Required when `docType`
+#'   is "Table", otherwise must be NULL.
+#' @param docType Character. Document type: one of "Table", "Text", or "Figure".
 #'   Defaults to "Table".
 #' @param cols Tidyselect expression indicating which columns from `data` to include
 #'   in the spec. Defaults to `everything()` (all columns).
 #' @param docPrefix Optional character string to prefix the document title (e.g., "Table 14.1")
+#' @param id Unused parameter (reserved for future use).
 #'
 #' @return A TFL_spec object ready for further modification with functions like
 #'   `add_style()`, `define_cols()`, `add_title()`, etc.
@@ -39,36 +37,62 @@
 #'   # Select specific columns
 #'   spec <- tfl_init(mtcars, docType = "Table", cols = c(cyl, mpg, hp))
 #' }
-tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType = 'Table') {
+tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL, docType = "Table") {
   
   # Validate docType
-  docType <- match.arg(docType, c('Table', 'Listing', 'Figure'))
+  docType <- match.arg(docType, c("Table", "Text", "Figure"))
   
   # Initialize empty spec with defaults
   spec <- .const_emty_spec
   spec <- .fill_spec_defaults(spec)
   
   # Handle Figure docType (no data required)
-  if (docType == 'Figure') {
+  if (docType == "Figure") {
+    if (is.null(data) || (!is.character(data) && length(data) != 1L)) {
+      cli_abort(c(
+        "Document type `Figure` requires path to the figure file:",
+        x = "data argument is missing or invalid",
+        i = "Provide file path in data argument (e.g., data = 'path/to/figure.png')"
+      ))
+    }
+    if (!.is_readable_file(data)) {
+      cli_abort(c(
+        "Document type `Figure` requires a readable file path:",
+        x = "Provided data {.val {data}} is not a valid file path or is not readable"
+      ))
+    }
+
+    spec$document$docType <- docType
+    spec$document$hasData <- FALSE
+    spec$document$columns <- NULL
+    spec$document$stubColumns <- NULL
+    spec$document$dataRef <- list(data)
+    class(spec) <- c("TFL_spec", "TFL_figure_spec")
+    return(spec)
+  }
+  
+  if (docType == "Text") {
     if (!is.null(data)) {
       cli_abort(c(
-        "Document type {.str Figure} does not accept data:",
-        x = "Provide data = NULL when docType = {.str Figure}",
-        i = "Figures are display-only documents without tabular data"
+        "Document type `Text` does not accept data:",
+        x = "Provide data = NULL when docType = {.str Text}",
+        i = "Text documents are narrative-only without tabular data"
       ))
     }
     spec$document$docType <- docType
     spec$document$hasData <- FALSE
-    class(spec) <- "TFL_spec"
+    spec$document$stubColumns <- NULL
+    spec$document$columns <- NULL
+    class(spec) <- c("TFL_spec", "TFL_text_spec")
     return(spec)
   }
   
-  # For Table and Listing, data is required
+  # For Table docType, data is required
   if (is.null(data)) {
     cli_abort(c(
       "Document type {.str {docType}} requires a data frame:",
-      x = "Provide data argument (a data.frame object)",
-      i = "Use docType = {.str Figure} if no data is needed"
+      x = "Provide a data.frame object via the data argument",
+      i = "Use docType = {.str Figure} or {.str Text} if no data is needed"
     ))
   }
   
@@ -80,46 +104,26 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
   # Capture and evaluate column selection
   cols_quo <- enquo(cols)
   data_cols <- .get_data_column_names(data, !!cols_quo)
-  
-  # Validate column names
+  # Validate selected column names are unique
   checkmate::assert_names(data_cols, type = "unique", .var.name = "selected columns")
   
-  # Detect hasData based on number of rows
-  hasData <- nrow(data) > 0L
+  # Detect whether data has rows
+  has_data <- nrow(data) > 0L
   
   # Initialize column specifications with auto-detected properties
-  columns <- list()
-  for (var in seq_along(data_cols)) {
-    col_name <- data_cols[var]
-    col_vector <- data[[col_name]]
-    
-    # Validate column extraction
-    if (is.null(col_vector)) {
-      cli_abort(c(
-        "Failed to extract column {.str {col_name}} from data frame:",
-        x = "Column selection may be invalid"
-      ))
-    }
-    
-    columns[[col_name]] <- list(
-      colOrder      = var,
-      label         = .get_col_label(col_vector) %||% col_name,
-      isVisible     = TRUE,
-      isID          = FALSE,
-      isGrouping    = FALSE,
-      isPaging      = FALSE,
-      labelStyleRef = NULL,
-      isColBreak    = FALSE,
-      dedupe        = FALSE,
-      blankAfter    = FALSE,
-      format        = .get_data_format(col_vector, col_name) %||% NULL
-    )
+  if(length(data_cols) > 0) columns <- .init_column_specs(data, data_cols) else {
+    columns <- list()
+    cli_abort(c(
+      "No columns selected for the table:",
+      x = "The column selection expression returned zero columns",
+      i = "Ensure that the data frame has columns and the selection is valid"
+    ))
   }
   
   # Set document properties
   spec$document <- list(
     docType = docType,
-    hasData = hasData
+    hasData = has_data
   )
   
   spec$columns <- columns
@@ -136,8 +140,52 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
     spec$document$docPrefix <- docPrefix
   }
   
-  class(spec) <- "TFL_spec"
+  class(spec) <- c("TFL_spec", "TFL_table_spec")
   spec
+}
+
+#' Initialize Column Specifications from Data
+#'
+#' Creates initial column specification list with auto-detected properties for each
+#' data column. Assigns default values and retrieves format specifications.
+#'
+#' @param data A data frame to extract columns from
+#' @param data_cols Character vector of column names to initialize
+#'
+#' @return List of column specifications, keyed by column name
+#'
+#' @keywords internal
+.init_column_specs <- function(data, data_cols) {
+  columns <- list()
+  
+  for (col_idx in seq_along(data_cols)) {
+    col_name <- data_cols[col_idx]
+    col_vector <- data[[col_name]]
+    
+    # Validate column extraction
+    if (is.null(col_vector)) {
+      cli_abort(c(
+        "Failed to extract column {.str {col_name}} from data frame:",
+        x = "Column selection may be invalid"
+      ))
+    }
+    
+    columns[[col_name]] <- list(
+      colOrder      = col_idx,
+      label         = .get_col_label(col_vector) %||% col_name,
+      isVisible     = TRUE,
+      isID          = FALSE,
+      isGrouping    = FALSE,
+      isPaging      = FALSE,
+      labelStyleRef = NULL,
+      isColBreak    = FALSE,
+      dedupe        = FALSE,
+      blankAfter    = FALSE,
+      format        = .get_data_format(col_vector, col_name) %||% NULL
+    )
+  }
+  
+  columns
 }
 
 #' Fill Specification with Schema-Compliant Defaults
@@ -188,11 +236,10 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
     spec$document$contentWidth <- settings$content_width
   }
   
-  # Populate attribs.documentStyle if not set
+  # Initialize documentStyle structure if needed
   if (is.null(spec$attribs$documentStyle)) {
-    spec$attribs$documentStyle <- list()
-  }
-  if (is.null(spec$attribs$documentStyle$docTemplate)) {
+    spec$attribs$documentStyle <- list(docTemplate = settings$doc_style_template)
+  } else if (is.null(spec$attribs$documentStyle$docTemplate)) {
     spec$attribs$documentStyle$docTemplate <- settings$doc_style_template
   }
   
@@ -285,51 +332,88 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
   
   col_class <- class(col)[1L]
   col_label <- if (!is.null(col_name) && nchar(col_name) > 0L) {
-    paste0(" {.str ", col_name, "}")
+    paste0(col_name)
   } else {
     ""
   }
   
-  # Integer type: use %d format for whole numbers
-  if (col_class == "integer") {
-    return(.col_format_spec(type = "numeric", format = "%d"))
-  }
-  
-  # Double/numeric type: use %.1f for decimal precision
-  if (col_class %in% c("numeric", "double")) {
-    return(.col_format_spec(type = "numeric", format = "%.1f"))
-  }
-  
-  # Character type: no specific format needed
-  if (col_class == "character") {
-    return(.col_format_spec(type = "string", format = NULL))
-  }
-  
-  # Date/time types: convert to ISO string with user notice
-  if (col_class %in% c("Date", "POSIXct", "POSIXlt")) {
-    cli_warn(
-      "Column{col_label} has class {.cls {col_class}} and will be ",
-      "converted to ISO 8601 date/time string format in output."
-    )
-    return(.col_format_spec(type = "string", format = NULL))
-  }
-  
-  # Try to coerce unknown types to character
+  switch(col_class,
+    "integer" = {
+      # Integer type: use %d format for whole numbers
+      .col_format_spec(type = "numeric", format = "%d")
+    },
+    "numeric" =,
+    "double" = {
+      # Numeric/double type: use %.1f for decimal precision
+      .col_format_spec(type = "numeric", format = "%.1f")
+    },
+    "character" = {
+      # Character type: no specific format needed
+      .col_format_spec(type = "string", format = NULL)
+    },
+    "Date" =,
+    "POSIXct" =,
+    "POSIXlt" = {
+      # Date/time types: convert to ISO string with user notice
+      cli_warn(
+        "Column {.str {col_label}} has class {.cls {col_class}} and will be converted to ISO 8601 date/time {.cls string} format in output."
+      )
+      .col_format_spec(type = "string", format = NULL)
+    },
+    # Default: Try to coerce unknown types to character
+    {
+      .coerce_unknown_type(col, col_name, col_class, col_label)
+    }
+  )
+}
+
+#' Coerce Unknown Column Type to String Format
+#'
+#' Attempts to coerce a column of unknown type to character format, with
+#' warnings and error handling for problematic types.
+#'
+#' @param col The data column to coerce
+#' @param col_name Character name of the column
+#' @param col_class Character class of the column
+#' @param col_label Formatted label string for error messages
+#'
+#' @return Format specification list for string type
+#'
+#' @keywords internal
+.coerce_unknown_type <- function(col, col_name, col_class, col_label) {
+  call <- caller_env()
   tryCatch(
     {
-      # Test coercibility on first element
-      test_val <- as.character(col[1L])
+      # Test coercibility on first non-NA element
+      test_idx <- which(!is.na(col))[1L]
+      if (!is.na(test_idx)) {
+        test_element <- col[[test_idx]]
+        
+        # Check if element is scalar or atomic (not a list or composite structure)
+        if (!is.atomic(test_element) || length(test_element) > 1L) {
+          cli_abort(
+            c(
+              "Cannot format column {.str {col_label}} with class {.cls {col_class}}:",
+              x = "Values in this column are not scalar or atomic",
+              i = "Supported types: integer, numeric, character, Date, POSIXct, POSIXlt",
+              i = "Please convert the column to a supported type before use"
+            ),
+            call = expr(tfl_init())
+          )
+        }
+        
+        test_char <- as.character(test_element)
+      }
       
       cli_warn(
-        "Column{col_label} has unsupported class {.cls {col_class}}. ",
-        "Converting to string format."
+        "Column {.str {col_label}} has unsupported class {.cls {col_class}}. Converting to {.cls string} format."
       )
-      return(.col_format_spec(type = "string", format = NULL))
+      .col_format_spec(type = "string", format = NULL)
     },
     error = function(e) {
       cli_abort(
         c(
-          "Cannot format column{col_label} with class {.cls {col_class}}:",
+          "Cannot format column {.str {col_label}} with class {.cls {col_class}}:",
           x = "This type cannot be coerced to character or numeric",
           i = "Supported types: integer, numeric, character, Date, POSIXct, POSIXlt",
           i = "Please convert the column to a supported type before use"
@@ -337,4 +421,22 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
       )
     }
   )
+}
+
+#' Check if Input is a Readable File Path
+#'
+#' Validates that input is a character string pointing to an existing,
+#' readable file (not a directory).
+#'
+#' @param x The object to check
+#'
+#' @return Logical TRUE if valid file path, FALSE otherwise
+#'
+#' @keywords internal
+.is_readable_file <- function(x) {
+  is.character(x) &&
+    length(x) == 1L &&
+    file.exists(x) &&
+    !dir.exists(x) &&
+    file.access(x, 4) == 0
 }
