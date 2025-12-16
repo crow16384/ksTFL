@@ -193,6 +193,7 @@
       border = c("color", "width", "line_style"),
       page = c("size", "orientation", "margins"),
       margins = c("top", "bottom", "left", "right", "header", "footer"),
+      documentStyle = c("docTemplate", "page"),
       col_format = c("type", "format", "missings", "colWidth", "valueStyleRef"),
       column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging",
                  "labelStyleRef", ".isColBreak", "dedupe", "blankAfter", "format"),
@@ -468,15 +469,18 @@
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
   
-  pattern <- "^-?[0-9]+(\\.[0-9]+)?mm$"
+  pattern <- "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
   if (!is.null(left)) {
-    .validate_pattern(left, pattern, "left", "indents_spec")
+    .validate_pattern(left, pattern, "left", "indents_spec",
+                      "Must be like '10mm', '0.5in', '2.54cm', or '36pt'")
   }
   if (!is.null(right)) {
-    .validate_pattern(right, pattern, "right", "indents_spec")
+    .validate_pattern(right, pattern, "right", "indents_spec",
+                      "Must be like '10mm', '0.5in', '2.54cm', or '36pt'")
   }
   if (!is.null(first_line)) {
-    .validate_pattern(first_line, pattern, "first_line", "indents_spec")
+    .validate_pattern(first_line, pattern, "first_line", "indents_spec",
+                      "Must be like '10mm', '0.5in', '2.54cm', or '36pt' (negative for hanging indent)")
   }
   
   params
@@ -609,8 +613,9 @@
   }
   
   if (!is.null(row_height)) {
-    .validate_pattern(row_height, "^([0-9]+(\\.[0-9]+)?mm)|(auto)$", 
-                      "row_height", "table_style_spec")
+    .validate_pattern(row_height, "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm))|(auto)$", 
+                      "row_height", "table_style_spec",
+                      "Must be like '12pt', '0.5in', '1.27cm', '12.7mm', or 'auto'")
     params$row_height <- row_height
   }
   
@@ -647,10 +652,10 @@
 .margins_spec <- function(top, bottom, left, right, header, footer) {
   params <- as.list(environment())
   
-  pattern <- "^[0-9]+(\\.[0-9]+)?(mm|cm|in|pt)$"
+  pattern <- "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
   for (margin in names(params)) {
     .validate_pattern(params[[margin]], pattern, margin, "margins_spec",
-                      "Must be like '25mm', '2.5cm', '1in', or '72pt'")
+                      "Must be like '1in', '2.54cm', '25.4mm', or '72pt'")
   }
   
   params
@@ -696,9 +701,9 @@
   if (!is.null(missings)) params$missings <- missings
   
   if (!is.null(colWidth)) {
-    .validate_pattern(colWidth, "^\\d+(\\.\\d+)?(in|cm|%)$", 
+    .validate_pattern(colWidth, "^\\d+(\\.\\d+)?(%|in|cm)$", 
                       "colWidth", "col_format_spec",
-                      "Must be like '2in', '5cm', or '20%'")
+                      "Must be like '20%', '2in', or '5cm'")
     params$colWidth <- colWidth
   }
   
@@ -1036,7 +1041,7 @@ s_margins <- function(top, bottom, left, right, header, footer) {
 
 #' Define page settings
 #' 
-#' This function can only be used inside \code{\link{add_style}}.
+#' This function can only be used inside \code{\link{set_document_style}}.
 #' 
 #' @param size Page size: "A4", "A3", "Letter", "Legal", "Executive"
 #' @param orientation Page orientation: "portrait" or "landscape"
@@ -1048,8 +1053,9 @@ s_margins <- function(top, bottom, left, right, header, footer) {
 #' @examples
 #' \dontrun{
 #' spec <- tfl_spec() |>
-#'   add_style("page_override",
-#'     s_page(
+#'   set_document_style(
+#'     docTemplate = "KeyStat_default",
+#'     page = s_page(
 #'       size = "A4",
 #'       orientation = "landscape",
 #'       margins = s_margins(
@@ -1061,7 +1067,7 @@ s_margins <- function(top, bottom, left, right, header, footer) {
 #'   )
 #' }
 s_page <- function(size = "A4", orientation = "landscape", margins) {
-  .assert_context(c("add_style"), "s_page")
+  .assert_context(c("set_document_style"), "s_page")
   
   # Set context for nested functions
   .set_context(parent.frame(), "s_page")
@@ -1076,7 +1082,7 @@ s_page <- function(size = "A4", orientation = "landscape", margins) {
   
   spec <- .page_spec(size = size, orientation = orientation, margins = margins)
   .validate_params(spec, "page", "s_page")
-  structure(spec, class = c("tfl_page", "tfl_style_modifier"))
+  structure(spec, class = c("tfl_page", "tfl_document_modifier"))
 }
 
 #' Define column format
@@ -1132,7 +1138,6 @@ c_format <- function(type, format = NULL, missings = NULL,
 #'   \item \code{\link{s_font}} - Font properties
 #'   \item \code{\link{s_paragraph}} - Paragraph formatting
 #'   \item \code{\link{s_table_style}} - Table cell styling
-#'   \item \code{\link{s_page}} - Page settings
 #' }
 #' 
 #' @param spec TFL spec object
@@ -1181,7 +1186,7 @@ add_style <- function(spec, id = NULL, ...) {
       cli_abort(c(
         "Invalid modifier in {.fn add_style}",
         x = "All arguments must be style modifiers",
-        i = "Use: {.fn s_font}, {.fn s_paragraph}, {.fn s_table_style}, or {.fn s_page}"
+        i = "Use: {.fn s_font}, {.fn s_paragraph}, or {.fn s_table_style}"
       ))
     }
     
@@ -1191,7 +1196,6 @@ add_style <- function(spec, id = NULL, ...) {
                    tfl_font = "font",
                    tfl_paragraph = "paragraph",
                    tfl_table_style = "table_style",
-                   tfl_page = "page",
                    NULL)
     
     if (is.null(path)) {
@@ -1215,9 +1219,6 @@ add_style <- function(spec, id = NULL, ...) {
           .validate_params(payload$borders[[side]], "border", paste0("add_style$table_style.borders$", side))
         }
       }
-    }
-    if (path == "page" && !is.null(payload$margins)) {
-      .validate_params(payload$margins, "margins", "add_style$page.margins")
     }
     
     # Merge with last-win
@@ -1810,7 +1811,9 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
   .validate_params(params, "document", "set_document")
   
   if (!is.null(contentWidth)) {
-    .validate_pattern(contentWidth, "^\\d+(%|cm|in)$", "contentWidth", "set_document")
+    .validate_pattern(contentWidth, "^\\d+(\\.\\d+)?(%|in|cm)$", 
+                      "contentWidth", "set_document",
+                      "Must be like '100%', '6.5in', or '16.51cm'")
   }
   
   # Merge with last-win
@@ -1825,7 +1828,7 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
 #' 
 #' @param spec TFL spec object
 #' @param docTemplate Name of predefined document template
-#' @param styleOverrideID ID of style definition that overrides page settings
+#' @param page Page settings object created with \code{\link{s_page}} or a list with keys: size, orientation, margins
 #' 
 #' @return Updated spec object
 #' @export
@@ -1835,17 +1838,53 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
 #' spec <- tfl_spec() |>
 #'   set_document_style(
 #'     docTemplate = "KeyStat_default",
-#'     styleOverrideID = "page_override"
+#'     page = s_page(
+#'       size = "A4",
+#'       orientation = "landscape",
+#'       margins = s_margins(
+#'         top = "25mm", bottom = "25mm",
+#'         left = "20mm", right = "20mm",
+#'         header = "12mm", footer = "12mm"
+#'       )
+#'     )
 #'   )
 #' }
-set_document_style <- function(spec, docTemplate = NULL, styleOverrideID = NULL) {
+set_document_style <- function(spec, docTemplate = NULL, page = NULL) {
   assert_class(spec, "TFL_spec")
   
-  params <- list(
-    docTemplate = docTemplate,
-    styleOverrideID = styleOverrideID
-  )
-  params <- params[!sapply(params, is.null)]
+  # Set context in the calling environment
+  .set_context(parent.frame(), "set_document_style")
+  on.exit(.clear_context(parent.frame()))
+  
+  params <- list()
+  
+  if (!is.null(docTemplate)) {
+    params$docTemplate <- docTemplate
+  }
+  
+  if (!is.null(page)) {
+    # Extract nested specs
+    if (inherits(page, "tfl_page")) {
+      page <- unclass(page)
+    } else if (is.list(page)) {
+      .validate_params(page, "page", "set_document_style")
+    } else {
+      cli_abort(c(
+        "{.fn set_document_style} requires {.arg page} created by {.fn s_page} or a list with keys: ",
+        paste0("{.arg ", .get_allowed_properties("page"), "}", collapse = ", ")
+      ))
+    }
+    
+    # Validate nested shapes
+    if (!is.null(page$margins)) {
+      .validate_params(page$margins, "margins", "set_document_style$page.margins")
+    }
+    
+    params$page <- page
+  }
+  
+  # Validate params against schema
+  .validate_params(params, "documentStyle", "set_document_style")
   
   spec$attribs$documentStyle <- .merge_recursive(spec$attribs$documentStyle, params)
   
@@ -2004,14 +2043,11 @@ preview_spec <- function(spec, max_levels = 3) {
                                           ifelse(spec$document$hasData, "Yes", "No")), "\n")
   
   # Page settings summary
-  page_styles <- names(spec$attribs$styles)[sapply(spec$attribs$styles, function(s) !is.null(s$page))]
-  if (length(page_styles) > 0) {
-    cat(cli::col_blue("Page styles: "), length(page_styles), "\n")
-    for (sid in page_styles[1:min(length(page_styles), 3)]) {
-      pg <- spec$attribs$styles[[sid]]$page
-      cat("  - ", sid, ": size=", pg$size %||% "<default>", 
-          ", orientation=", pg$orientation %||% "<default>", "\n", sep = "")
-    }
+  if (!is.null(spec$attribs$documentStyle$page)) {
+    pg <- spec$attribs$documentStyle$page
+    cat(cli::col_blue("Page settings: "), 
+        "size=", pg$size %||% "<default>", 
+        ", orientation=", pg$orientation %||% "<default>", "\n", sep = "")
   }
   
   # Titles

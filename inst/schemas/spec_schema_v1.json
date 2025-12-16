@@ -26,12 +26,115 @@
                                     "description": "Name of the predefined document template",
                                     "default": "KeyStat_default"
                                 },
-                                "styleOverrideID": {
-                                    "type": [
-                                        "null",
-                                        "string"
-                                    ],
-                                    "description": "ID of the style definition that overrides document page settings"
+                                "page": {
+                                    "type": "object",
+                                    "title": "Page Settings",
+                                    "description": "Document page configuration including size, orientation, and margins",
+                                    "properties": {
+                                        "size": {
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "title": "Page Size",
+                                            "description": "Standard paper size for the document",
+                                            "default": "A4",
+                                            "enum": [
+                                                "A4",
+                                                "A3",
+                                                "Letter",
+                                                "Legal",
+                                                "Executive"
+                                            ]
+                                        },
+                                        "orientation": {
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "title": "Page Orientation",
+                                            "description": "Page layout direction",
+                                            "default": "landscape",
+                                            "enum": [
+                                                "portrait",
+                                                "landscape"
+                                            ]
+                                        },
+                                        "margins": {
+                                            "type": "object",
+                                            "title": "Page Margins",
+                                            "description": "Margin measurements for all sides of the page",
+                                            "properties": {
+                                                "top": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Top Margin",
+                                                    "description": "Distance from top edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "bottom": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Bottom Margin",
+                                                    "description": "Distance from bottom edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "left": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Left Margin",
+                                                    "description": "Distance from left edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "right": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Right Margin",
+                                                    "description": "Distance from right edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "header": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Header Margin",
+                                                    "description": "Distance from top edge of page to header content (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "footer": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Footer Margin",
+                                                    "description": "Distance from bottom edge of page to footer content (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                }
+                                            },
+                                            "required": [
+                                                "top",
+                                                "bottom",
+                                                "left",
+                                                "right",
+                                                "header",
+                                                "footer"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "size",
+                                        "orientation",
+                                        "margins"
+                                    ]
                                 }
                             }
                         },
@@ -67,18 +170,24 @@
                                                                 "null",
                                                                 "string"
                                                             ],
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
+                                                            "description": "Space before paragraph (Word typically uses points)",
+                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$"
                                                         },
                                                         "after": {
                                                             "type": [
                                                                 "null",
                                                                 "string"
                                                             ],
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
+                                                            "description": "Space after paragraph (Word typically uses points)",
+                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$"
                                                         },
                                                         "line_spacing": {
-                                                            "type": "number",
-                                                            "minimum": 1
+                                                            "type": [
+                                                                "null",
+                                                                "number"
+                                                            ],
+                                                            "minimum": 1,
+                                                            "description": "Line spacing multiplier (e.g., 1.5 for 1.5x spacing)"
                                                         }
                                                     }
                                                 },
@@ -91,24 +200,24 @@
                                                                 "null",
                                                                 "string"
                                                             ],
-                                                            "description": "Left indent",
-                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?mm$"
+                                                            "description": "Left indent (Word typically uses inches or centimeters)",
+                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
                                                         },
                                                         "right": {
                                                             "type": [
                                                                 "null",
                                                                 "string"
                                                             ],
-                                                            "description": "Right indent",
-                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?mm$"
+                                                            "description": "Right indent (Word typically uses inches or centimeters)",
+                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
                                                         },
                                                         "first_line": {
                                                             "type": [
                                                                 "null",
                                                                 "string"
                                                             ],
-                                                            "description": "First line indent (negative for hanging indent)",
-                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?mm$"
+                                                            "description": "First line indent (negative for hanging indent). Word typically uses inches or centimeters",
+                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
                                                         }
                                                     }
                                                 },
@@ -150,6 +259,7 @@
                                                         "null",
                                                         "string"
                                                     ],
+                                                    "description": "Font size in points (Word standard unit)",
                                                     "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
                                                 },
                                                 "bold": {
@@ -197,9 +307,9 @@
                                                         "string"
                                                     ],
                                                     "title": "Row Height",
-                                                    "description": "Height of the table row",
+                                                    "description": "Height of the table row (Word typically uses points)",
                                                     "default": "auto",
-                                                    "pattern": "^([0-9]+(\\.[0-9]+)?mm)|(auto)$"
+                                                    "pattern": "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm))|(auto)$"
                                                 },
                                                 "vertical_alignment": {
                                                     "type": [
@@ -241,116 +351,6 @@
                                                     }
                                                 }
                                             }
-                                        },
-                                        "page": {
-                                            "type": "object",
-                                            "title": "Page Settings",
-                                            "description": "Document page configuration including size, orientation, and margins",
-                                            "properties": {
-                                                "size": {
-                                                    "type": [
-                                                        "null",
-                                                        "string"
-                                                    ],
-                                                    "title": "Page Size",
-                                                    "description": "Standard paper size for the document",
-                                                    "default": "A4",
-                                                    "enum": [
-                                                        "A4",
-                                                        "A3",
-                                                        "Letter",
-                                                        "Legal",
-                                                        "Executive"
-                                                    ]
-                                                },
-                                                "orientation": {
-                                                    "type": [
-                                                        "null",
-                                                        "string"
-                                                    ],
-                                                    "title": "Page Orientation",
-                                                    "description": "Page layout direction",
-                                                    "default": "landscape",
-                                                    "enum": [
-                                                        "portrait",
-                                                        "landscape"
-                                                    ]
-                                                },
-                                                "margins": {
-                                                    "type": "object",
-                                                    "title": "Page Margins",
-                                                    "description": "Margin measurements for all sides of the page",
-                                                    "properties": {
-                                                        "top": {
-                                                            "type": [
-                                                                "null",
-                                                                "string"
-                                                            ],
-                                                            "title": "Top Margin",
-                                                            "description": "Distance from top edge of page to main content area",
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(mm|cm|in|pt)$"
-                                                        },
-                                                        "bottom": {
-                                                            "type": [
-                                                                "null",
-                                                                "string"
-                                                            ],
-                                                            "title": "Bottom Margin",
-                                                            "description": "Distance from bottom edge of page to main content area",
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(mm|cm|in|pt)$"
-                                                        },
-                                                        "left": {
-                                                            "type": [
-                                                                "null",
-                                                                "string"
-                                                            ],
-                                                            "title": "Left Margin",
-                                                            "description": "Distance from left edge of page to main content area",
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(mm|cm|in|pt)$"
-                                                        },
-                                                        "right": {
-                                                            "type": [
-                                                                "null",
-                                                                "string"
-                                                            ],
-                                                            "title": "Right Margin",
-                                                            "description": "Distance from right edge of page to main content area",
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(mm|cm|in|pt)$"
-                                                        },
-                                                        "header": {
-                                                            "type": [
-                                                                "null",
-                                                                "string"
-                                                            ],
-                                                            "title": "Header Margin",
-                                                            "description": "Distance from top edge of page to header content",
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(mm|cm|in|pt)$"
-                                                        },
-                                                        "footer": {
-                                                            "type": [
-                                                                "null",
-                                                                "string"
-                                                            ],
-                                                            "title": "Footer Margin",
-                                                            "description": "Distance from bottom edge of page to footer content",
-                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(mm|cm|in|pt)$"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "top",
-                                                        "bottom",
-                                                        "left",
-                                                        "right",
-                                                        "header",
-                                                        "footer"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "size",
-                                                "orientation",
-                                                "margins"
-                                            ]
                                         }
                                     }
                                 }
@@ -385,7 +385,7 @@
                                 "null",
                                 "string"
                             ],
-                            "description": "Output prefix and  number according to SAP",
+                            "description": "Output prefix and number according to SAP",
                             "examples": [
                                 "16.1",
                                 "Listing 16.1",
@@ -398,13 +398,17 @@
                             "default": true
                         },
                         "docOrder": {
-                            "type": "number",
-                            "description": "Defines the order of the output (e.g. when outputs are combined to a single document)"
+                            "type": [
+                                "null",
+                                "integer"
+                            ],
+                            "description": "Defines the order of the output (e.g. when outputs are combined to a single document)",
+                            "minimum": 0
                         },
                         "isContinues": {
                             "type": "boolean",
-                            "title": "Is table continues or has a page brakes",
-                            "description": "Yes if page brakes should be ignored"
+                            "title": "Is table continues or has page breaks",
+                            "description": "Yes if page breaks should be ignored"
                         },
                         "contentWidth": {
                             "type": [
@@ -412,8 +416,8 @@
                                 "string"
                             ],
                             "title": "Width of the doc Content",
-                            "description": "Defines the width of the content, e.g. the desired width of the Table or Image",
-                            "pattern": "^\\d+(%|cm|in)$"
+                            "description": "Defines the width of the content, e.g. the desired width of the Table or Image (Word typically uses percentage, inches, or centimeters)",
+                            "pattern": "^\\d+(\\.\\d+)?(%|in|cm)$"
                         },
                         "bodyTitles": {
                             "type": "boolean",
@@ -429,7 +433,7 @@
                         "hasData": {
                             "type": "boolean",
                             "title": "Is document has any data to report",
-                            "description": "When it set to false we assume that table/listing has to data row (empty), it that case we can provide the placeHolder text to print instead of writing empty table with no rows"
+                            "description": "When it set to false we assume that table/listing has no data rows (empty), in that case we can provide the placeholder text to print instead of writing empty table with no rows"
                         },
                         "bodySubtitles": {
                             "type": "boolean",
@@ -442,7 +446,7 @@
                                 "null",
                                 "string"
                             ],
-                            "description": "Clinical report type"
+                            "description": "Output file name for the document"
                         }
                     },
                     "required": [
@@ -527,7 +531,8 @@
                                     "description": "Style ID to be applied to stub label"
                                 },
                                 "stubOrder": {
-                                    "type": "integer"
+                                    "type": "integer",
+                                    "minimum": 0
                                 }
                             },
                             "required": [
@@ -551,7 +556,8 @@
                             "properties": {
                                 "colOrder": {
                                     "type": "integer",
-                                    "description": "Position of column in the data"
+                                    "description": "Position of column in the data",
+                                    "minimum": 0
                                 },
                                 "label": {
                                     "type": [
@@ -589,7 +595,7 @@
                                         "boolean",
                                         "null"
                                     ],
-                                    "description": "Specify if column defines the page brakes",
+                                    "description": "Specify if column defines the page breaks",
                                     "default": false
                                 },
                                 "labelStyleRef": {
@@ -649,8 +655,12 @@
                                             "description": "Defines how to report missing values in numeric columns"
                                         },
                                         "colWidth": {
-                                            "type": "string",
-                                            "pattern": "^\\d+(.\\d+)?(in|cm|%)$"
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "description": "Column width (Word typically uses percentage, inches, or centimeters)",
+                                            "pattern": "^\\d+(\\.\\d+)?(%|in|cm)$"
                                         },
                                         "valueStyleRef": {
                                             "type": [
@@ -697,7 +707,8 @@
                                         "type": "string",
                                         "title": "Titles",
                                         "description": "Array of strings that represents the titles. When reported they should be concatenated using soft line break to represent one paragraph of text"
-                                    }
+                                    },
+                                    "minItems": 1
                                 },
                                 "styleRef": {
                                     "type": "string",
@@ -705,9 +716,14 @@
                                 },
                                 "order": {
                                     "type": "integer",
-                                    "description": "Order of the title group"
+                                    "description": "Order of the title group",
+                                    "minimum": 0
                                 }
-                            }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
                         }
                     }
                 },
@@ -728,7 +744,8 @@
                                         "type": "string",
                                         "title": "Titles",
                                         "description": "Array of strings that represents the titles. When reported they should be concatenated using soft line break to represent one paragraph of text"
-                                    }
+                                    },
+                                    "minItems": 1
                                 },
                                 "styleRef": {
                                     "type": "string",
@@ -736,9 +753,14 @@
                                 },
                                 "order": {
                                     "type": "integer",
-                                    "description": "Order of the title group"
+                                    "description": "Order of the title group",
+                                    "minimum": 0
                                 }
-                            }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
                         }
                     }
                 },
@@ -759,7 +781,8 @@
                                         "type": "string",
                                         "title": "Titles",
                                         "description": "Array of strings that represents the titles. When reported they should be concatenated using soft line break to represent one paragraph of text"
-                                    }
+                                    },
+                                    "minItems": 1
                                 },
                                 "styleRef": {
                                     "type": "string",
@@ -767,9 +790,14 @@
                                 },
                                 "order": {
                                     "type": "integer",
-                                    "description": "Order of the title group"
+                                    "description": "Order of the title group",
+                                    "minimum": 0
                                 }
-                            }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
                         }
                     }
                 },
@@ -789,8 +817,9 @@
                                     "items": {
                                         "type": "string",
                                         "title": "Titles",
-                                        "description": "Set of string to be reported in one paragraph"
-                                    }
+                                        "description": "Set of strings to be reported in one paragraph"
+                                    },
+                                    "minItems": 1
                                 },
                                 "styleRef": {
                                     "type": "string",
@@ -798,9 +827,14 @@
                                 },
                                 "order": {
                                     "type": "integer",
-                                    "description": "Order of the title group"
+                                    "description": "Order of the title group",
+                                    "minimum": 0
                                 }
-                            }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
                         }
                     }
                 }
@@ -828,6 +862,7 @@
                         "null",
                         "string"
                     ],
+                    "description": "Border width in points (Word standard unit)",
                     "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
                 },
                 "line_style": {
