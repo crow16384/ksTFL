@@ -8,10 +8,10 @@
 
 # Initialize default settings
 .options_env$defaults <- list(
-    spec_schema_file = "spec_schema_v0.json",
+    spec_schema_file = "spec_schema_v1.json",
     style_schema_file = "styles_schema_v0.json",
     row_style_schema_file = "row_styles_schema_v0.json",
-    font = "Arial",
+    font = "Courier New",
     page_size = "A4",
     page_orientation = "landscape",
     doc_style_template = "KeyStat_default",
