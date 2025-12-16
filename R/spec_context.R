@@ -182,27 +182,7 @@
 .get_allowed_properties <- function(type) {
   # Initialize cache if not exists
   if (!exists("cache", envir = .schema_cache_env)) {
-    assign("cache", list(
-      font = c("font_name", "font_size", "bold", "italic", "underline", "color", "highlight"),
-      paragraph = c("alignment", "spacing", "indents", "word_style"),
-      spacing = c("before", "after", "line_spacing"),
-      indents = c("left", "right", "first_line"),
-      table_style = c("background_color", "row_height", "vertical_alignment", 
-                      "text_orientation", "borders"),
-      borders = c("top", "bottom", "left", "right"),
-      border = c("color", "width", "line_style"),
-      page = c("size", "orientation", "margins"),
-      margins = c("top", "bottom", "left", "right", "header", "footer"),
-      documentStyle = c("docTemplate", "page"),
-      col_format = c("type", "format", "missings", "colWidth", "valueStyleRef"),
-      column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging",
-                 "labelStyleRef", ".isColBreak", "dedupe", "blankAfter", "format"),
-      stub_column = c("label", "cols", "labelStyleRef", "stubOrder"),
-      document = c("docType", "docPrefix", "glueNumType", "docOrder", "isContinues",
-                   "contentWidth", "bodyTitles", "bodyFootnotes", "hasData", 
-                   "bodySubtitles", "outFileName"),
-      text_group = c("text", "styleRef", "order")
-    ), envir = .schema_cache_env)
+    assign("cache", .const_schema_properties, envir = .schema_cache_env)
   }
   
   get("cache", envir = .schema_cache_env)[[type]] %||% character(0)
@@ -353,6 +333,95 @@
   invisible(NULL)
 }
 
+#' Validate Color Value
+#'
+#' Checks that a color value is either a valid hex code or a predefined color name.
+#' Color names are case-insensitive.
+#'
+#' @param value Character value to validate (can be NULL)
+#' @param param_name Character. Name of the parameter (for error messages)
+#' @param fn_name Character. Name of the function being validated
+#' @param description Character. Optional description of expected format
+#'
+#' @return Invisibly NULL. Aborts with error if value doesn't match pattern or isn't a valid color name.
+#'
+#' @keywords internal
+.validate_color <- function(value, param_name, fn_name, description = NULL) {
+  if (is.null(value)) {
+    return(invisible(NULL))
+  }
+  
+  if (!is.character(value) || length(value) != 1) {
+    cli_abort("{.arg {param_name}} must be a single character string in {.fn {fn_name}}")
+  }
+  
+  # Check if it's a hex code
+  if (grepl(.const_pattern_hex_color, value)) {
+    return(invisible(NULL))
+  }
+  
+  color_names <- names(.const_color_hex_map)
+  
+  # Check if it's a predefined color name (case-insensitive)
+  if (tolower(value) %in% tolower(color_names)) {
+    return(invisible(NULL))
+  }
+  
+  # If we get here, it's invalid
+  msg <- c(
+    "Invalid color value for {.arg {param_name}} in {.fn {fn_name}}:",
+    x = paste0("Got: {.str {value}}"),
+    i = "Must be a hex code (e.g., '#FF0000') or a predefined color name",
+    i = paste("Predefined colors:", paste(color_names[1:min(15, length(color_names))], collapse = ", "), "...")
+  )
+  if (!is.null(description)) {
+    msg <- c(msg, i = description)
+  }
+  cli_abort(msg)
+}
+
+#' Normalize Color Value to Hex Code
+#'
+#' Converts a color value to hex code format for storage in the spec.
+#' If the value is a color name, converts it to the corresponding hex code.
+#' If the value is already a hex code, returns it unchanged.
+#' If the value is NULL, returns NULL.
+#'
+#' @param color Character. Color value as hex code or color name (case-insensitive)
+#'
+#' @return Character. Hex code color value (e.g., "#FF0000"), or NULL if input is NULL
+#'
+#' @details
+#' This function should be called on color values before storing them in the spec
+#' to ensure consistent hex code storage regardless of input format.
+#'
+#' @keywords internal
+.normalize_color <- function(color) {
+  if (is.null(color)) {
+    return(NULL)
+  }
+  
+  # Check if it's already a hex code
+  if (grepl(.const_pattern_hex_color, color)) {
+    return(color)
+  }
+  
+  # Try to match as color name (case-insensitive)
+  color_lower <- tolower(color)
+  color_idx <- match(color_lower, tolower(names(.const_color_hex_map)))
+  
+  if (!is.na(color_idx)) {
+    return(.const_color_hex_map[[color_idx]])
+  }
+  
+  # Should not reach here if validation was done before calling this
+  cli_abort(c(
+    "Invalid color value {.str {color}} in {.fn .normalize_color}:",
+    i = "This should have been caught by .validate_color() validation"
+  ))
+}
+
+
 # ============================================================
 # PART 3: REUSABLE SPEC BUILDERS (Internal, can be reused)
 # ============================================================
@@ -366,8 +435,8 @@
 #' @param bold Logical. Whether text should be bold
 #' @param italic Logical. Whether text should be italic
 #' @param underline Logical. Whether text should be underlined
-#' @param color Character. Text color as hex code (e.g., "#000000")
-#' @param highlight Character. Background highlight color as hex code
+#' @param color Character. Text color as hex code (e.g., "#000000") or color name (e.g., "red", "blue")
+#' @param highlight Character. Background highlight color as hex code or color name
 #'
 #' @return List with validated font properties (NULL values excluded)
 #'
@@ -380,26 +449,26 @@
   
   # Validate font_name enum
   if (!is.null(font_name)) {
-    .validate_enum(font_name, 
-                   c("Arial", "Courier New", "Times New Roman", "Calibri"),
-                   "font_name", ".font_spec")
+    .validate_enum(font_name, .const_font_names, "font_name", ".font_spec")
   }
   
   # Validate font_size pattern (e.g., "12pt", "11.5pt")
   if (!is.null(font_size)) {
-    .validate_pattern(font_size, "^[0-9]+(\\.[0-9]+)?pt$", 
+    .validate_pattern(font_size, .const_pattern_font_size, 
                       "font_size", ".font_spec", "Must be like '12pt'")
   }
   
-  # Validate hex color codes
+  # Validate and normalize color values (hex codes or color names)
   if (!is.null(color)) {
-    .validate_pattern(color, "^#[0-9A-Fa-f]{6}$", 
-                      "color", ".font_spec", "Must be hex like '#000000'")
+    .validate_color(color, "color", ".font_spec", 
+                    "Must be hex code (e.g., '#000000') or color name (e.g., 'red', 'blue')")
+    params$color <- .normalize_color(color)
   }
   
   if (!is.null(highlight)) {
-    .validate_pattern(highlight, "^#[0-9A-Fa-f]{6}$", 
-                      "highlight", ".font_spec", "Must be hex like '#FFFF00'")
+    .validate_color(highlight, "highlight", ".font_spec",
+                    "Must be hex code (e.g., '#FFFF00') or color name (e.g., 'yellow', 'red')")
+    params$highlight <- .normalize_color(highlight)
   }
   
   # Validate logical flags
@@ -433,12 +502,12 @@
   
   # Validate spacing values
   if (!is.null(before)) {
-    .validate_pattern(before, "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$", 
+    .validate_pattern(before, .const_pattern_spacing, 
                       "before", ".spacing_spec", "Must be like '12pt', '10mm'")
   }
   
   if (!is.null(after)) {
-    .validate_pattern(after, "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$", 
+    .validate_pattern(after, .const_pattern_spacing, 
                       "after", ".spacing_spec", "Must be like '6pt', '10mm'")
   }
   
@@ -447,9 +516,9 @@
     if (!is.numeric(line_spacing) || length(line_spacing) != 1) {
       cli_abort("{.arg line_spacing} must be a single numeric value in {.fn .spacing_spec}")
     }
-    if (line_spacing < 1) {
+    if (line_spacing < .const_min_line_spacing) {
       cli_abort(c(
-        "{.arg line_spacing} must be >= 1 in {.fn .spacing_spec}:",
+        "{.arg line_spacing} must be >= {.const_min_line_spacing} in {.fn .spacing_spec}:",
         x = paste("Got:", line_spacing)
       ))
     }
@@ -469,17 +538,16 @@
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
   
-  pattern <- "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
   if (!is.null(left)) {
-    .validate_pattern(left, pattern, "left", "indents_spec",
+    .validate_pattern(left, .const_pattern_indents, "left", "indents_spec",
                       "Must be like '10mm', '0.5in', '2.54cm', or '36pt'")
   }
   if (!is.null(right)) {
-    .validate_pattern(right, pattern, "right", "indents_spec",
+    .validate_pattern(right, .const_pattern_indents, "right", "indents_spec",
                       "Must be like '10mm', '0.5in', '2.54cm', or '36pt'")
   }
   if (!is.null(first_line)) {
-    .validate_pattern(first_line, pattern, "first_line", "indents_spec",
+    .validate_pattern(first_line, .const_pattern_indents, "first_line", "indents_spec",
                       "Must be like '10mm', '0.5in', '2.54cm', or '36pt' (negative for hanging indent)")
   }
   
@@ -499,17 +567,12 @@
   params <- list()
   
   if (!is.null(alignment)) {
-    .validate_enum(alignment, 
-                   c("left", "right", "center", "justify", "distributed"),
-                   "alignment", "paragraph_spec")
+    .validate_enum(alignment, .const_alignment_values, "alignment", "paragraph_spec")
     params$alignment <- alignment
   }
   
   if (!is.null(word_style)) {
-    .validate_enum(word_style,
-                   c("Normal", "Heading 1", "Heading 2", "Title", "Subtitle", 
-                     "No Spacing", "Strong", "Quote", "Intense Quote"),
-                   "word_style", "paragraph_spec")
+    .validate_enum(word_style, .const_word_styles, "word_style", "paragraph_spec")
     params$word_style <- word_style
   }
   
@@ -547,7 +610,7 @@
 
 #' Internal border specification builder
 #' 
-#' @param color Border color as hex
+#' @param color Border color as hex code or color name
 #' @param width Border width
 #' @param line_style Line style
 #' @return Border specification list
@@ -557,17 +620,17 @@
   params <- params[!sapply(params, is.null)]
   
   if (!is.null(color)) {
-    .validate_pattern(color, "^#[0-9A-Fa-f]{6}$", "color", "border_spec")
+    .validate_color(color, "color", "border_spec",
+                    "Must be hex code (e.g., '#000000') or color name (e.g., 'black', 'red')")
+    params$color <- .normalize_color(color)
   }
   
   if (!is.null(width)) {
-    .validate_pattern(width, "^[0-9]+(\\.[0-9]+)?pt$", "width", "border_spec")
+    .validate_pattern(width, .const_pattern_border_width, "width", "border_spec")
   }
   
   if (!is.null(line_style)) {
-    .validate_enum(line_style,
-                   c("single", "double", "dashed", "dotted", "thick", "none"),
-                   "line_style", "border_spec")
+    .validate_enum(line_style, .const_line_styles, "line_style", "border_spec")
   }
   
   params
@@ -607,27 +670,26 @@
   params <- list()
   
   if (!is.null(background_color)) {
-    .validate_pattern(background_color, "^#[0-9A-Fa-f]{6}$", 
-                      "background_color", "table_style_spec")
-    params$background_color <- background_color
+    .validate_color(background_color, "background_color", "table_style_spec",
+                    "Must be hex code (e.g., '#D9D9D9') or color name (e.g., 'gray', 'lightblue')")
+    params$background_color <- .normalize_color(background_color)
   }
   
   if (!is.null(row_height)) {
-    .validate_pattern(row_height, "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm))|(auto)$", 
+    .validate_pattern(row_height, .const_pattern_row_height, 
                       "row_height", "table_style_spec",
                       "Must be like '12pt', '0.5in', '1.27cm', '12.7mm', or 'auto'")
     params$row_height <- row_height
   }
   
   if (!is.null(vertical_alignment)) {
-    .validate_enum(vertical_alignment, c("top", "center", "bottom"),
+    .validate_enum(vertical_alignment, .const_vertical_alignment,
                    "vertical_alignment", "table_style_spec")
     params$vertical_alignment <- vertical_alignment
   }
   
   if (!is.null(text_orientation)) {
-    .validate_enum(text_orientation, 
-                   c("horizontal", "vertical_90", "vertical_270"),
+    .validate_enum(text_orientation, .const_text_orientation,
                    "text_orientation", "table_style_spec")
     params$text_orientation <- text_orientation
   }
@@ -652,9 +714,8 @@
 .margins_spec <- function(top, bottom, left, right, header, footer) {
   params <- as.list(environment())
   
-  pattern <- "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
   for (margin in names(params)) {
-    .validate_pattern(params[[margin]], pattern, margin, "margins_spec",
+    .validate_pattern(params[[margin]], .const_pattern_margins, margin, "margins_spec",
                       "Must be like '1in', '2.54cm', '25.4mm', or '72pt'")
   }
   
@@ -668,11 +729,11 @@
 #' @param margins Margins specification
 #' @return Page specification list
 #' @keywords internal
-.page_spec <- function(size = "A4", orientation = "landscape", margins) {
-  .validate_enum(size, c("A4", "A3", "Letter", "Legal", "Executive"), 
-                 "size", "page_spec")
-  .validate_enum(orientation, c("portrait", "landscape"), 
-                 "orientation", "page_spec")
+.page_spec <- function(size = .const_default_page_size, 
+                       orientation = .const_default_page_orientation, 
+                       margins) {
+  .validate_enum(size, .const_page_sizes, "size", "page_spec")
+  .validate_enum(orientation, .const_page_orientations, "orientation", "page_spec")
   
   # Validate margins keys if a raw list is passed
   if (is.list(margins)) {
@@ -693,7 +754,7 @@
 #' @keywords internal
 .col_format_spec <- function(type, format = NULL, missings = NULL, 
                              colWidth = NULL, valueStyleRef = NULL) {
-  .validate_enum(type, c("string", "numeric"), "type", "col_format_spec")
+  .validate_enum(type, .const_column_types, "type", "col_format_spec")
   
   params <- list(type = type)
   
@@ -701,7 +762,7 @@
   if (!is.null(missings)) params$missings <- missings
   
   if (!is.null(colWidth)) {
-    .validate_pattern(colWidth, "^\\d+(\\.\\d+)?(%|in|cm)$", 
+    .validate_pattern(colWidth, .const_pattern_col_width, 
                       "colWidth", "col_format_spec",
                       "Must be like '20%', '2in', or '5cm'")
     params$colWidth <- colWidth
@@ -726,8 +787,8 @@
 #' @param bold Logical, whether text is bold
 #' @param italic Logical, whether text is italic
 #' @param underline Logical, whether text is underlined
-#' @param color Text color as hex, e.g. "#000000"
-#' @param highlight Background highlight color as hex, e.g. "#FFFF00"
+#' @param color Text color as hex (e.g., "#000000") or color name (e.g., "red", "blue")
+#' @param highlight Background highlight color as hex (e.g., "#FFFF00") or color name (e.g., "yellow")
 #' 
 #' @return A font specification object (for internal use)
 #' @export
@@ -861,7 +922,7 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
 #' 
 #' This function can only be used inside \code{\link{s_borders}}.
 #' 
-#' @param color Border color as hex, e.g. "#000000"
+#' @param color Border color as hex (e.g., "#000000") or color name (e.g., "black", "red")
 #' @param width Border width, e.g. "1pt"
 #' @param line_style Line style: "single", "double", "dashed", "dotted", "thick", "none"
 #' 
@@ -928,7 +989,7 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
   .validate_params(spec, "borders", "s_borders")
   
   # Validate nested border shapes if present
-  for (side in c("top", "bottom", "left", "right")) {
+  for (side in .const_border_sides) {
     if (!is.null(spec[[side]])) {
       .validate_params(spec[[side]], "border", paste0("s_borders$", side))
     }
@@ -941,7 +1002,7 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
 #' 
 #' This function can only be used inside \code{\link{add_style}}.
 #' 
-#' @param background_color Cell background color as hex
+#' @param background_color Cell background color as hex code or color name
 #' @param row_height Row height, e.g. "15mm" or "auto"
 #' @param vertical_alignment Vertical alignment: "top", "center", "bottom"
 #' @param text_orientation Text orientation: "horizontal", "vertical_90", "vertical_270"
@@ -988,7 +1049,7 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
   .validate_params(spec, "table_style", "s_table_style")
   if (!is.null(spec$borders)) {
     .validate_params(spec$borders, "borders", "s_table_style$borders")
-    for (side in c("top", "bottom", "left", "right")) {
+    for (side in .const_border_sides) {
       if (!is.null(spec$borders[[side]])) {
         .validate_params(spec$borders[[side]], "border", paste0("s_table_style$borders$", side))
       }
@@ -1066,7 +1127,9 @@ s_margins <- function(top, bottom, left, right, header, footer) {
 #'     )
 #'   )
 #' }
-s_page <- function(size = "A4", orientation = "landscape", margins) {
+s_page <- function(size = .const_default_page_size, 
+                   orientation = .const_default_page_orientation, 
+                   margins) {
   .assert_context(c("set_document_style"), "s_page")
   
   # Set context for nested functions
@@ -1090,7 +1153,7 @@ s_page <- function(size = "A4", orientation = "landscape", margins) {
 #' This function can only be used inside \code{\link{define_cols}}.
 #' 
 #' @param type Data type: "string" or "numeric"
-#' @param format Format string for numeric data (sprintf style), default "%d"
+#' @param format Format string for numeric data (sprintf style), default is \code{.const_default_numeric_format}
 #' @param missings How to display missing values in numeric columns
 #' @param colWidth Column width, e.g. "2in", "5cm", "20%"
 #' @param valueStyleRef Style reference for cell values
@@ -1128,7 +1191,72 @@ c_format <- function(type, format = NULL, missings = NULL,
 # ============================================================
 
 
+#' Process Style Modifier and Return Path
+#' 
+#' Generic helper to extract path and payload from a style modifier object.
+#' This allows style modifiers to be reused across different spec classes.
+#' 
+#' @param modifier Style modifier object (e.g., tfl_font, tfl_paragraph)
+#' @return List with `path` (character) and `payload` (list)
+#' @keywords internal
+.process_style_modifier <- function(modifier) {
+  if (!inherits(modifier, "tfl_style_modifier")) {
+    cli_abort(c(
+      "Invalid style modifier",
+      x = "Modifier must inherit from 'tfl_style_modifier'",
+      i = "Use: {.fn s_font}, {.fn s_paragraph}, or {.fn s_table_style}"
+    ))
+  }
+  
+  modifier_class <- class(modifier)[1]
+  path <- .const_modifier_paths[[modifier_class]]
+  
+  if (is.null(path)) {
+    cli_abort("Unknown modifier class: {modifier_class}")
+  }
+  
+  payload <- unclass(modifier)
+  
+  list(path = path, payload = payload)
+}
+
+#' Validate Style Modifier Payload
+#' 
+#' Validates a style modifier payload against schema and nested structures.
+#' This can be reused by different spec class implementations.
+#' 
+#' @param path Character. Target path (e.g., "font", "paragraph")
+#' @param payload List. Modifier payload to validate
+#' @param fn_name Character. Function name for error messages
+#' @keywords internal
+.validate_style_payload <- function(path, payload, fn_name = "add_style") {
+  # Validate payload against schema cache before merging
+  .validate_params(payload, path, fn_name)
+  
+  # Validate nested shapes as needed
+  if (path == "paragraph") {
+    if (!is.null(payload$spacing)) {
+      .validate_params(payload$spacing, "spacing", paste0(fn_name, "$paragraph.spacing"))
+    }
+    if (!is.null(payload$indents)) {
+      .validate_params(payload$indents, "indents", paste0(fn_name, "$paragraph.indents"))
+    }
+  }
+  if (path == "table_style" && !is.null(payload$borders)) {
+    .validate_params(payload$borders, "borders", paste0(fn_name, "$table_style.borders"))
+    for (side in .const_border_sides) {
+      if (!is.null(payload$borders[[side]])) {
+        .validate_params(payload$borders[[side]], "border", 
+                        paste0(fn_name, "$table_style.borders$", side))
+      }
+    }
+  }
+}
+
 #' Add or update a style definition
+#' 
+#' Generic function to add or update style definitions. Dispatches to class-specific
+#' methods, allowing different spec classes to implement their own style handling.
 #' 
 #' Define styling for various document elements. Multiple calls to the same
 #' modifier function will merge with last-win strategy.
@@ -1140,7 +1268,7 @@ c_format <- function(type, format = NULL, missings = NULL,
 #'   \item \code{\link{s_table_style}} - Table cell styling
 #' }
 #' 
-#' @param spec TFL spec object
+#' @param spec Spec object (dispatches on class)
 #' @param id Style identifier (auto-generated if NULL)
 #' @param ... Style modifiers created with s_* functions
 #' 
@@ -1161,6 +1289,17 @@ c_format <- function(type, format = NULL, missings = NULL,
 #'   )
 #' }
 add_style <- function(spec, id = NULL, ...) {
+  UseMethod("add_style", spec)
+}
+
+#' Add or update a style definition for TFL_spec
+#' 
+#' @param spec TFL_spec object
+#' @param id Style identifier (auto-generated if NULL)
+#' @param ... Style modifiers created with s_* functions
+#' @return Updated spec object
+#' @export
+add_style.TFL_spec <- function(spec, id = NULL, ...) {
   assert_class(spec, "TFL_spec")
   
   # Auto-generate ID if needed
@@ -1182,44 +1321,13 @@ add_style <- function(spec, id = NULL, ...) {
   
   # Process each modifier
   for (mod in modifiers) {
-    if (!inherits(mod, "tfl_style_modifier")) {
-      cli_abort(c(
-        "Invalid modifier in {.fn add_style}",
-        x = "All arguments must be style modifiers",
-        i = "Use: {.fn s_font}, {.fn s_paragraph}, or {.fn s_table_style}"
-      ))
-    }
+    # Extract path and payload using reusable helper
+    mod_info <- .process_style_modifier(mod)
+    path <- mod_info$path
+    payload <- mod_info$payload
     
-    # Determine target path
-    modifier_class <- class(mod)[1]
-    path <- switch(modifier_class,
-                   tfl_font = "font",
-                   tfl_paragraph = "paragraph",
-                   tfl_table_style = "table_style",
-                   NULL)
-    
-    if (is.null(path)) {
-      cli_abort("Unknown modifier class: {modifier_class}")
-    }
-    
-    # Payload to merge
-    payload <- unclass(mod)
-    
-    # Validate payload against schema cache before merging
-    .validate_params(payload, path, "add_style")
-    # Validate nested shapes as needed
-    if (path == "paragraph") {
-      if (!is.null(payload$spacing)) .validate_params(payload$spacing, "spacing", "add_style$paragraph.spacing")
-      if (!is.null(payload$indents)) .validate_params(payload$indents, "indents", "add_style$paragraph.indents")
-    }
-    if (path == "table_style" && !is.null(payload$borders)) {
-      .validate_params(payload$borders, "borders", "add_style$table_style.borders")
-      for (side in c("top", "bottom", "left", "right")) {
-        if (!is.null(payload$borders[[side]])) {
-          .validate_params(payload$borders[[side]], "border", paste0("add_style$table_style.borders$", side))
-        }
-      }
-    }
+    # Validate using reusable helper
+    .validate_style_payload(path, payload, "add_style")
     
     # Merge with last-win
     current <- spec$attribs$styles[[id]][[path]]
@@ -1227,6 +1335,20 @@ add_style <- function(spec, id = NULL, ...) {
   }
   
   spec
+}
+
+#' Default method for add_style
+#' 
+#' @param spec Spec object
+#' @param id Style identifier
+#' @param ... Style modifiers
+#' @return Error if no method found
+#' @export
+add_style.default <- function(spec, id = NULL, ...) {
+  cli_abort(c(
+    "No method for {.fn add_style} for class {.cls {class(spec)[1]}}",
+    i = "Style modifiers can be reused, but {.fn add_style} must be implemented for each spec class"
+  ))
 }
 
 #' Define or modify column properties
@@ -1305,9 +1427,9 @@ define_cols <- function(spec, cols, ...,
   missing_cols <- setdiff(cols, names(spec$columns))
   if (length(missing_cols) > 0) {
     cli_abort(c(
-      "Column{?s} not found in {.fn define_cols}:",
+      "Some columns specified in {.fn define_cols} not found in report definition:",
       x = paste(missing_cols, collapse = ", "),
-      i = "Use {.fn tfl_init} to initialize spec from data first"
+      i = "Ensure the table was initialized with correct columns set"
     ))
   }
   
@@ -1524,10 +1646,14 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 
 #' Add body text
 #' 
-#' Add body text (e.g., when no data to display). Multiple calls add multiple text groups.
-#' Calling with the same ID merges with last-win strategy.
+#' Add body text (e.g., when no data to display)
 #' 
-#' @param spec TFL spec object
+#' Generic function to add body text. Dispatches to class-specific methods,
+#' allowing different spec classes to implement their own body text handling.
+#' 
+#' Multiple calls add multiple text groups. Calling with the same ID merges with last-win strategy.
+#' 
+#' @param spec Spec object (dispatches on class)
 #' @param text Character vector of body text lines
 #' @param id Body text identifier (auto-generated if NULL)
 #' @param styleRef Style reference for body text
@@ -1543,6 +1669,19 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #'   add_body_text("No data available for the specified criteria")
 #' }
 add_body_text <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
+  UseMethod("add_body_text")
+}
+
+#' Add body text for TFL_spec
+#' 
+#' @param spec TFL_spec object
+#' @param text Character vector of body text lines
+#' @param id Body text identifier (auto-generated if NULL)
+#' @param styleRef Style reference for body text
+#' @param order Order of body text group (auto-assigned if NULL)
+#' @return Updated spec object
+#' @export
+add_body_text.TFL_spec <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
   
   if (is.null(id)) {
@@ -1566,12 +1705,49 @@ add_body_text <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) 
   spec
 }
 
+#' Add body text for TFL_options
+#' 
+#' Note: TFL_options doesn't have bodyText structure, so this method is not implemented.
+#' Body text is typically added to individual spec objects, not global options.
+#' 
+#' @param spec TFL_options object
+#' @param text Character vector of body text lines
+#' @param id Body text identifier
+#' @param styleRef Style reference for body text
+#' @param order Order of body text group
+#' @return Error message
+#' @export
+add_body_text.TFL_options <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
+  cli_abort(c(
+    "{.fn add_body_text} is not applicable to {.cls TFL_options}",
+    i = "Body text should be added to individual {.cls TFL_spec} objects, not global options"
+  ))
+}
+
+#' Default method for add_body_text
+#' 
+#' @param spec Spec object
+#' @param text Character vector of body text lines
+#' @param id Body text identifier
+#' @param styleRef Style reference
+#' @param order Order
+#' @return Error if no method found
+#' @export
+add_body_text.default <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
+  cli_abort(c(
+    "No method for {.fn add_body_text} for class {.cls {class(spec)[1]}}",
+    i = "Implement {.fn add_body_text.{class(spec)[1]}} to add body text support"
+  ))
+}
+
 #' Add a header row
 #' 
-#' Add a header row to the specification. Each call adds a new header row.
-#' Per schema, headers are arrays of arrays (each call = one row).
+#' Generic function to add header rows. Dispatches to class-specific methods,
+#' allowing headers to be added to both spec objects and global options.
 #' 
-#' @param spec TFL spec object
+#' Each call adds a new header row. Per schema, headers are arrays of arrays (each call = one row).
+#' 
+#' @param spec Spec object (dispatches on class)
 #' @param ... Up to 3 character strings (left, center, right)
 #' 
 #' @return Updated spec object
@@ -1579,31 +1755,87 @@ add_body_text <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) 
 #' 
 #' @examples
 #' \dontrun{
+#' # Add to a spec object
 #' spec <- tfl_spec() |>
 #'   add_header("Study ABC-123", "CONFIDENTIAL", "Page {PAGE}") |>
 #'   add_header("Protocol v2.0", "", "Date: {DATE}")
+#' 
+#' # Add to global options
+#' options <- tfl_get_settings()
+#' options <- add_header(options, "Study ABC-123", "CONFIDENTIAL", "Page {PAGE}")
 #' }
 add_header <- function(spec, ...) {
+  UseMethod("add_header")
+}
+
+#' Add a header row for TFL_spec
+#' 
+#' @param spec TFL_spec object
+#' @param ... Up to 3 character strings (left, center, right)
+#' @return Updated spec object
+#' @export
+add_header.TFL_spec <- function(spec, ...) {
   assert_class(spec, "TFL_spec")
   
   header_parts <- as.character(c(...))
   
-  if (length(header_parts) > 3) {
-    cli_abort("{.fn add_header} accepts maximum 3 parts (left, center, right)")
+  if (length(header_parts) > .const_max_header_footer_parts) {
+    cli_abort("{.fn add_header} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
   }
   
   # Add as new row
-  spec$headers <- c(spec$headers, list(header_parts))
+  spec$headers <- c(spec$headers %||% list(), list(header_parts))
   
   spec
 }
 
+#' Add a header row for TFL_options
+#' 
+#' Adds a header row to the global TFL options, which can be used as defaults
+#' for all spec objects.
+#' 
+#' @param spec TFL_options object
+#' @param ... Up to 3 character strings (left, center, right)
+#' @return Updated options object
+#' @export
+add_header.TFL_options <- function(spec, ...) {
+  if (!inherits(spec, "TFL_options")) {
+    cli_abort("Object must be of class 'TFL_options'")
+  }
+  
+  header_parts <- as.character(c(...))
+  
+  if (length(header_parts) > .const_max_header_footer_parts) {
+    cli_abort("{.fn add_header} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+  }
+  
+  # Add as new row to headers list
+  spec$headers <- c(spec$headers %||% list(), list(header_parts))
+  
+  spec
+}
+
+#' Default method for add_header
+#' 
+#' @param spec Spec object
+#' @param ... Header parts
+#' @return Error if no method found
+#' @export
+add_header.default <- function(spec, ...) {
+  cli_abort(c(
+    "No method for {.fn add_header} for class {.cls {class(spec)[1]}}",
+    i = "Implement {.fn add_header.{class(spec)[1]}} to add header support"
+  ))
+}
+
 #' Add a footer row
 #' 
-#' Add a footer row to the specification. Each call adds a new footer row.
-#' Per schema, footers are arrays of arrays (each call = one row).
+#' Generic function to add footer rows. Dispatches to class-specific methods,
+#' allowing footers to be added to both spec objects and global options.
 #' 
-#' @param spec TFL spec object
+#' Each call adds a new footer row. Per schema, footers are arrays of arrays (each call = one row).
+#' 
+#' @param spec Spec object (dispatches on class)
 #' @param ... Up to 3 character strings (left, center, right)
 #' 
 #' @return Updated spec object
@@ -1611,23 +1843,77 @@ add_header <- function(spec, ...) {
 #' 
 #' @examples
 #' \dontrun{
+#' # Add to a spec object
 #' spec <- tfl_spec() |>
 #'   add_footer("Company Name", "", "Page {PAGE} of {NUMPAGES}") |>
 #'   add_footer("", "Confidential", "")
+#' 
+#' # Add to global options
+#' options <- tfl_get_settings()
+#' options <- add_footer(options, "Company Name", "", "Page {PAGE} of {NUMPAGES}")
 #' }
 add_footer <- function(spec, ...) {
+  UseMethod("add_footer")
+}
+
+#' Add a footer row for TFL_spec
+#' 
+#' @param spec TFL_spec object
+#' @param ... Up to 3 character strings (left, center, right)
+#' @return Updated spec object
+#' @export
+add_footer.TFL_spec <- function(spec, ...) {
   assert_class(spec, "TFL_spec")
   
   footer_parts <- as.character(c(...))
   
-  if (length(footer_parts) > 3) {
-    cli_abort("{.fn add_footer} accepts maximum 3 parts (left, center, right)")
+  if (length(footer_parts) > .const_max_header_footer_parts) {
+    cli_abort("{.fn add_footer} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
   }
   
   # Add as new row
-  spec$footers <- c(spec$footers, list(footer_parts))
+  spec$footers <- c(spec$footers %||% list(), list(footer_parts))
   
   spec
+}
+
+#' Add a footer row for TFL_options
+#' 
+#' Adds a footer row to the global TFL options, which can be used as defaults
+#' for all spec objects.
+#' 
+#' @param spec TFL_options object
+#' @param ... Up to 3 character strings (left, center, right)
+#' @return Updated options object
+#' @export
+add_footer.TFL_options <- function(spec, ...) {
+  if (!inherits(spec, "TFL_options")) {
+    cli_abort("Object must be of class 'TFL_options'")
+  }
+  
+  footer_parts <- as.character(c(...))
+  
+  if (length(footer_parts) > .const_max_header_footer_parts) {
+    cli_abort("{.fn add_footer} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+  }
+  
+  # Add as new row to footers list
+  spec$footers <- c(spec$footers %||% list(), list(footer_parts))
+  
+  spec
+}
+
+#' Default method for add_footer
+#' 
+#' @param spec Spec object
+#' @param ... Footer parts
+#' @return Error if no method found
+#' @export
+add_footer.default <- function(spec, ...) {
+  cli_abort(c(
+    "No method for {.fn add_footer} for class {.cls {class(spec)[1]}}",
+    i = "Implement {.fn add_footer.{class(spec)[1]}} to add footer support"
+  ))
 }
 
 #' Add stub (spanning) column definition
@@ -1811,7 +2097,7 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
   .validate_params(params, "document", "set_document")
   
   if (!is.null(contentWidth)) {
-    .validate_pattern(contentWidth, "^\\d+(\\.\\d+)?(%|in|cm)$", 
+    .validate_pattern(contentWidth, .const_pattern_content_width, 
                       "contentWidth", "set_document",
                       "Must be like '100%', '6.5in', or '16.51cm'")
   }

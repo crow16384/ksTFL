@@ -140,7 +140,8 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     spec$document$docPrefix <- docPrefix
   }
   
-  class(spec) <- c("TFL_spec", "TFL_table_spec")
+  #class(spec) <- c("TFL_spec", "TFL_table_spec")
+  class(spec) <- "TFL_spec"
   spec
 }
 

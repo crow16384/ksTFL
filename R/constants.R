@@ -54,18 +54,6 @@
 #' Border sides (used for iterating over borders)
 .const_border_sides <- c("top", "bottom", "left", "right")
 
-#' Predefined color names (case-insensitive)
-#' 
-#' Common color names that can be used instead of hex codes.
-#' These match standard CSS/HTML color names.
-#' Includes grayscale colors: grey10 (10%), grey20 (20%), ... grey90 (90%)
-.const_color_names <- c("black", "white", "red", "green", "blue", "yellow", 
-                       "orange", "purple", "pink", "brown", "gray", "grey",
-                       "cyan", "magenta", "navy", "teal", "lime", "maroon",
-                       "olive", "silver", "gold", "coral", "salmon", "turquoise",
-                       "violet", "indigo", "khaki", "lavender", "plum", "tan",
-                       "grey10", "grey20", "grey30", "grey40", "grey60", 
-                       "grey70", "grey80", "grey90")
 
 #' Color name to hex code mapping
 #' 
@@ -109,7 +97,15 @@
   grey60 = "#999999",
   grey70 = "#B3B3B3",
   grey80 = "#CCCCCC",
-  grey90 = "#E6E6E6"
+  grey90 = "#E6E6E6",
+  gray10 = "#191919",
+  gray20 = "#333333",
+  gray30 = "#4D4D4D",
+  gray40 = "#666666",
+  gray60 = "#999999",
+  gray70 = "#B3B3B3",
+  gray80 = "#CCCCCC",
+  gray90 = "#E6E6E6"
 )
 
 # ============================================================
