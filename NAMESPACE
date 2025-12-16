@@ -26,10 +26,8 @@ export(
   # Column format function
   c_format,
   
-  # Style context manipulation (generic and methods)
+  # Style context manipulation (generic)
   add_style,
-  add_style.TFL_spec,
-  add_style.default,
   
   # Column definition
   define_cols,
@@ -39,22 +37,14 @@ export(
   add_subtitle,
   add_footnote,
   
-  # Body text functions (generic and methods)
+  # Body text functions (generic)
   add_body_text,
-  add_body_text.TFL_spec,
-  add_body_text.TFL_options,
-  add_body_text.default,
   
-  # Header functions (generic and methods)
+  # Header functions (generic)
   add_header,
-  add_header.TFL_spec,
-  add_header.default,
   
-  # Footer functions (generic and methods)
+  # Footer functions (generic)
   add_footer,
-  add_footer.TFL_spec,
-  add_footer.TFL_options,
-  add_footer.default,
   
   # Stub column definition
   add_stub_column,
@@ -72,3 +62,22 @@ export(
   tfl_set_settings,
   tfl_reset_settings
 )
+
+# S3 method registrations for add_style
+S3method(add_style, TFL_spec)
+S3method(add_style, default)
+
+# S3 method registrations for add_body_text
+S3method(add_body_text, TFL_spec)
+S3method(add_body_text, TFL_options)
+S3method(add_body_text, default)
+
+# S3 method registrations for add_header
+S3method(add_header, TFL_spec)
+S3method(add_header, TFL_options)
+S3method(add_header, default)
+
+# S3 method registrations for add_footer
+S3method(add_footer, TFL_spec)
+S3method(add_footer, TFL_options)
+S3method(add_footer, default)
