@@ -9,6 +9,9 @@ importFrom(utils, packageVersion, modifyList)
 
 # Export only public functions (those marked with @export in documentation)
 export(
+  # Initialization function
+  tfl_init,
+  
   # Style modifier functions
   s_font,
   s_spacing,
@@ -23,18 +26,45 @@ export(
   # Column format function
   c_format,
   
-  # Context manipulation functions
+  # Style context manipulation (generic and methods)
   add_style,
+  add_style.TFL_spec,
+  add_style.default,
+  
+  # Column definition
   define_cols,
+  
+  # Content functions (title, subtitle, footnote)
   add_title,
   add_subtitle,
   add_footnote,
+  
+  # Body text functions (generic and methods)
   add_body_text,
+  add_body_text.TFL_spec,
+  add_body_text.TFL_options,
+  add_body_text.default,
+  
+  # Header functions (generic and methods)
   add_header,
+  add_header.TFL_spec,
+  add_header.default,
+  
+  # Footer functions (generic and methods)
   add_footer,
+  add_footer.TFL_spec,
+  add_footer.TFL_options,
+  add_footer.default,
+  
+  # Stub column definition
   add_stub_column,
+  
+  # Document configuration
   set_document,
   set_document_style,
+  
+  # Specification preview
+  preview_spec,
   
   # Package settings functions
   tfl_get_settings,
