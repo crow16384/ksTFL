@@ -1290,12 +1290,14 @@ add_style <- function(spec, id = NULL, ...) {
 #'     c_format(colWidth = "15%")  # Merges with format, keeping type and format
 #'   )
 #' }
-define_cols <- function(spec, cols, 
-                        colOrder = NULL, label = NULL, isID = NULL, 
+define_cols <- function(spec, cols, ..., 
+                        label = NULL, isID = NULL, 
                         isVisible = NULL, isGrouping = NULL, isPaging = NULL,
                         labelStyleRef = NULL, .isColBreak = NULL, dedupe = NULL,
-                        blankAfter = NULL, ...) {
+                        blankAfter = NULL) {
   assert_class(spec, "TFL_spec")
+  cols <- enquos(cols)
+  cols <- .get_data_column_names(spec$.metadata$data_env$`__data__`, !!!cols)
   assert_character(cols, min.len = 1)
   
   # Check that all cols exist
@@ -1313,10 +1315,10 @@ define_cols <- function(spec, cols,
   on.exit(.clear_context(parent.frame()))
   
   # Collect parameters
-  param_names <- c("colOrder", "label", "isID", "isVisible", "isGrouping", 
+  param_names <- c("label", "isID", "isVisible", "isGrouping", 
                    "isPaging", "labelStyleRef", ".isColBreak", "dedupe", "blankAfter")
   params_list <- list(
-    colOrder = colOrder, label = label, isID = isID, isVisible = isVisible,
+     label = label, isID = isID, isVisible = isVisible,
     isGrouping = isGrouping, isPaging = isPaging, labelStyleRef = labelStyleRef,
     .isColBreak = .isColBreak, dedupe = dedupe, blankAfter = blankAfter
   )
@@ -1782,15 +1784,8 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
                          bodySubtitles = NULL, outFileName = NULL) {
   assert_class(spec, "TFL_spec")
   
-  # Validate that required fields are set
-  if (is.null(docType)) {
-    cli_warn(c(
-      "Document type not specified in {.fn set_document}",
-      i = "Use docType = 'Table', 'Listing', or 'Figure'"
-    ))
-  }
   
-  if (is.null(hasData)) {
+  if (is.null(hasData) & is.null(spec$document$hasData)) {
     cli_warn(c(
       "hasData not specified in {.fn set_document}",
       i = "Set hasData = TRUE if there is data to report, FALSE otherwise"
@@ -1798,7 +1793,6 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
   }
   
   params <- list(
-    docType = docType,
     docPrefix = docPrefix,
     glueNumType = glueNumType,
     docOrder = docOrder,
@@ -1814,10 +1808,6 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
   
   # Validate
   .validate_params(params, "document", "set_document")
-  
-  if (!is.null(docType)) {
-    .validate_enum(docType, c("Table", "Listing", "Figure"), "docType", "set_document")
-  }
   
   if (!is.null(contentWidth)) {
     .validate_pattern(contentWidth, "^\\d+(%|cm|in)$", "contentWidth", "set_document")

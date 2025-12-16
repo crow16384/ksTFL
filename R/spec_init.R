@@ -102,17 +102,17 @@ tfl_init <- function(data = NULL, docPrefix = NULL, cols = everything(), docType
     }
     
     columns[[col_name]] <- list(
-      colOrder = var,
-      label = .get_col_label(col_vector) %||% col_name,
-      isVisible = TRUE,
-      isID = FALSE,
-      isGrouping = FALSE,
-      isPaging = FALSE,
+      colOrder      = var,
+      label         = .get_col_label(col_vector) %||% col_name,
+      isVisible     = TRUE,
+      isID          = FALSE,
+      isGrouping    = FALSE,
+      isPaging      = FALSE,
       labelStyleRef = NULL,
-      isColBreak = FALSE,
-      dedupe = FALSE,
-      blankAfter = FALSE,
-      format = .get_data_format(col_vector, col_name) %||% NULL
+      isColBreak    = FALSE,
+      dedupe        = FALSE,
+      blankAfter    = FALSE,
+      format        = .get_data_format(col_vector, col_name) %||% NULL
     )
   }
   
