@@ -92,7 +92,10 @@
   dots <- enquos(..., .named = FALSE)
   
   if (length(dots) == 0) {
-    stop("No column expressions provided.", call. = FALSE)
+    cli_abort(c(
+      "No column expressions provided in {.fn .get_data_columns}",
+      i = "Provide column selection expressions (e.g., everything(), c(col1, col2))"
+    ))
   }
   
   .selenv <- .selenv %||% caller_env()
@@ -131,7 +134,10 @@
       strict = .strict
     ),
     error = function(e) {
-      stop("Invalid column selection:\n", conditionMessage(e), call. = FALSE)
+      cli_abort(c(
+        "Invalid column selection:",
+        x = conditionMessage(e)
+      ))
     }
   )
 }
@@ -186,6 +192,35 @@
 # Below are internal functions that will be embedded into the working env to have preceedence over other functions
 ############################################################################
 
+# Internal helper to compute change flags for adjacent rows
+.eval_change_of <- function(which = c("first", "last"), ..., data = `__data__`) {
+  which <- match.arg(which)
+  cols <- get_names(...)
+  # Extract columns
+  m <- data[cols]
+
+  if (nrow(m) == 0) return(logical(0))  # empty df
+  if (nrow(m) == 1) return(TRUE)        # single row
+
+  prev <- m[-nrow(m), , drop = FALSE]
+  curr <- m[-1, , drop = FALSE]
+
+  diff_flag <- apply(
+    cbind(prev, curr),
+    1,
+    function(row) {
+      p <- row[1:(length(row)/2)]
+      c <- row[(length(row)/2 + 1):length(row)]
+      any(is.na(p) | is.na(c) | p != c)
+    }
+  )
+
+  if (which == "first") {
+    return(unname(c(TRUE, diff_flag)))
+  }
+  unname(c(diff_flag, TRUE))
+}
+
 #' Find First Occurrence of Changed Values
 #'
 #' Returns a logical vector indicating the first row of each distinct combination
@@ -205,30 +240,7 @@
 #'   .env_eval(firstOf(cyl, am))
 #' }
 .eval_firstOf <- function(..., data=`__data__`) {
-  cols <- get_names(...)
-  # Extract columns
-  m <- data[cols]
-  
-  if (nrow(m) == 0) return(logical(0))  # empty df
-  
-  if (nrow(m) == 1) return(TRUE)        # single row
-  
-  # Compare consecutive rows
-  prev <- m[-nrow(m), , drop = FALSE]
-  curr <- m[-1, , drop = FALSE]
-  
-  # Logical vector: TRUE if any column differs OR NA appears
-  diff_flag <- apply(
-    cbind(prev, curr),
-    1,
-    function(row) {
-      p <- row[1:(length(row)/2)]
-      c <- row[(length(row)/2 + 1):length(row)]
-      any(is.na(p) | is.na(c) | p != c)
-    }
-  )
-  
-  unname(c(TRUE, diff_flag))
+  .eval_change_of("first", ..., data = data)
 }
 
 #' Find Last Occurrence of Changed Values
@@ -250,30 +262,7 @@
 #'   .env_eval(lastOf(cyl, am))
 #' }
 .eval_lastOf <- function(..., data=`__data__`) {
-  cols <- get_names(...)
-  # Extract columns
-  m <- data[cols]
-  
-  if (nrow(m) == 0) return(logical(0))  # empty df
-  
-  if (nrow(m) == 1) return(TRUE)        # single row
-  
-  # Compare consecutive rows
-  prev <- m[-nrow(m), , drop = FALSE]
-  curr <- m[-1, , drop = FALSE]
-  
-  # Logical vector: TRUE if any column differs OR NA appears
-  diff_flag <- apply(
-    cbind(prev, curr),
-    1,
-    function(row) {
-      p <- row[1:(length(row)/2)]
-      c <- row[(length(row)/2 + 1):length(row)]
-      any(is.na(p) | is.na(c) | p != c)
-    }
-  )
-
-  unname(c(diff_flag, TRUE))
+  .eval_change_of("last", ..., data = data)
 }
 
 #' Get Names of Selected Columns in Environment

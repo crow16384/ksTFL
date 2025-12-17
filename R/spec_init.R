@@ -43,7 +43,7 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
   docType <- match.arg(docType, c("Table", "Text", "Figure"))
   
   # Initialize empty spec with defaults
-  spec <- .const_emty_spec
+  spec <- .const_empty_spec
   spec <- .fill_spec_defaults(spec)
   
   # Handle Figure docType (no data required)
@@ -179,7 +179,7 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
       isGrouping    = FALSE,
       isPaging      = FALSE,
       labelStyleRef = NULL,
-      isColBreak    = FALSE,
+      .isColBreak   = FALSE,
       dedupe        = FALSE,
       blankAfter    = FALSE,
       format        = .get_data_format(col_vector, col_name) %||% NULL
@@ -244,10 +244,13 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     spec$attribs$documentStyle$docTemplate <- settings$doc_style_template
   }
   
+  if (is.null(spec$attribs$styles)) {
+    spec$attribs$styles <- settings$styles
+  }
+
   # Initialize other schema properties as empty lists if not present
   schema_keys <- c("headers", "footers", "dataRef", "stubColumns", "columns", 
-                   "styleRows", "titles", "subtitles", "footnotes", "bodyText",
-                   "styles")
+                   "styleRows", "titles", "subtitles", "footnotes", "bodyText")
   for (key in schema_keys) {
     if (is.null(spec[[key]])) {
       spec[[key]] <- list()

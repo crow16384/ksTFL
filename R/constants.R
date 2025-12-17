@@ -1,6 +1,6 @@
 
 ## Initial empty spec structure
-.const_emty_spec <-  list(
+.const_empty_spec <-  list(
       document    = list(),
       attribs     = list(),
       headers     = list(),
@@ -222,4 +222,4 @@
 #' Style schema file name
 .const_style_schema_file = "styles_schema_v0.json"
 #' Row style schema file name
-.const_row_style_schema_file = "row_styles_schema_v0.json"
+.const_row_style_schema_file = "row_style_actions_schema_v0.json"

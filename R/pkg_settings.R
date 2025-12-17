@@ -37,7 +37,7 @@
             order = .const_default_bodytext_order
         )
     ),
-    styles = list(),
+    styles = list(), ## to implement in the similar way as add_bodytext() for tfl_set_options
     
     
     # Validation -- to be implemented later if required:
@@ -69,7 +69,11 @@ tfl_get_options <- function() {
 #' @export
 tfl_get_option <- function(name) {
   if (!name %in% names(.options_env$settings)) {
-    stop("Unknown option: ", name)
+    cli_abort(c(
+      "Unknown option {.arg name} in {.fn tfl_get_option}",
+      x = paste0("Unknown option: ", name),
+      i = "Use tfl_get_options() to list available option names"
+    ))
   }
   return(.options_env$settings[[name]])
 }

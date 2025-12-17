@@ -772,7 +772,10 @@ tfl_page <- function(size = .const_default_page_size,
       # Validate margins keys if a raw list is passed
       .validate_params(margins, "margins", "tfl_page")
     } else {
-      stop("margins must be created with s_margins() or be a list with keys: top, bottom, left, right")
+      cli_abort(c(
+      "{.arg margins} must be created with {.fn s_margins} or be a list with keys: top, bottom, left, right",
+      i = "Use s_margins() to create a validated margins object"
+    ))
     }
   }
   
@@ -2915,72 +2918,75 @@ preview_spec <- function(spec, max_levels = 3) {
   if (!inherits(spec, "TFL_spec")) {
     cli_abort("Object must be of class 'TFL_spec'")
   }
-  
-  cat(cli::rule("TFL Specification Preview", line = 2), "\n")
-  cat(cli::col_blue("Document Type: "), spec$document$docType %||% "<not set>", "\n")
-  cat(cli::col_blue("Has Data: "), ifelse(is.null(spec$document$hasData), "<not set>", 
-                                          ifelse(spec$document$hasData, "Yes", "No")), "\n")
-  
+
+  cli::rule("TFL Specification Preview", line = 2)
+  # Also emit a plain text title to ensure it is captured in all environments/tests
+  cli::cli_text("{.strong TFL Specification Preview}")
+  cli::cli_text("{.strong Document Type:} {spec$document$docType %||% '<not set>'}")
+  cli::cli_text("{.strong Has Data:} {ifelse(is.null(spec$document$hasData), '<not set>', ifelse(spec$document$hasData, 'Yes', 'No'))}")
+
   # Page settings summary
   if (!is.null(spec$attribs$documentStyle$page)) {
     pg <- spec$attribs$documentStyle$page
-    cat(cli::col_blue("Page settings: "), 
-        "size=", pg$size %||% "<default>", 
-        ", orientation=", pg$orientation %||% "<default>", "\n", sep = "")
+    cli::cli_text("{.strong Page settings:} size={pg$size %||% '<default>'}, orientation={pg$orientation %||% '<default>'}")
   }
-  
+
   # Titles
   if (length(spec$titles) > 0) {
-    cat(cli::col_blue("Titles:\n"))
-    for (i in seq_along(spec$titles)) {
-      title <- spec$titles[[i]]
-      cat("  [", title$order, "] ", paste(title$text, collapse = " "), 
-          if (!is.null(title$styleRef)) paste0(" [style: ", title$styleRef, "]") else "", "\n")
+    cli::cli_text("{.strong Titles:}")
+    cli::cli_ul()
+    for (title in spec$titles) {
+      txt <- paste(title$text, collapse = " ")
+      style <- if (!is.null(title$styleRef)) paste0(" [style: ", title$styleRef, "]") else ""
+      cli::cli_li("[{title$order}] {txt}{style}")
     }
+    cli::cli_end()
   }
-  
+
   # Columns
   if (length(spec$columns) > 0) {
-    cat(cli::col_blue("Columns: "), length(spec$columns), "\n")
+    cli::cli_text("{.strong Columns:} {length(spec$columns)}")
     n_show <- min(5, length(spec$columns))
     cols <- names(spec$columns)[1:n_show]
-    cat("  ", paste(cols, collapse = ", "), 
-        if (length(spec$columns) > 5) " ..." else "", "\n")
+    cli::cli_text("  {paste(cols, collapse = ', ')}{if (length(spec$columns) > 5) ' ...' else ''}")
   }
-  
+
   # Styles overview
   if (length(spec$attribs$styles) > 0) {
-    cat(cli::col_blue("Styles defined: "), length(spec$attribs$styles), "\n")
+    cli::cli_text("{.strong Styles defined:} {length(spec$attribs$styles)}")
+    cli::cli_ul()
     n_show <- min(5, length(spec$attribs$styles))
     for (sid in names(spec$attribs$styles)[1:n_show]) {
       st <- spec$attribs$styles[[sid]]
       keys <- names(st)
-      cat("  - ", sid, " (", paste(keys, collapse = ", "), ")\n", sep = "")
+      cli::cli_li("{sid} ({paste(keys, collapse = ', ')})")
     }
+    cli::cli_end()
   }
-  
+
   # Stub Columns
   if (length(spec$stubColumns) > 0) {
-    cat(cli::col_blue("Stub Columns: "), length(spec$stubColumns), "\n")
+    cli::cli_text("{.strong Stub Columns:} {length(spec$stubColumns)}")
+    cli::cli_ul()
     for (stub_id in names(spec$stubColumns)) {
       stub <- spec$stubColumns[[stub_id]]
-      cat("  [", stub$stubOrder, "] ", stub$label, 
-          " (", length(stub$cols), " columns)", "\n")
+      cli::cli_li("[{stub$stubOrder}] {stub$label} ({length(stub$cols)} columns)")
     }
+    cli::cli_end()
   }
-  
+
   # Headers/Footers samples
   if (length(spec$headers) > 0) {
-    cat(cli::col_blue("Headers: "), length(spec$headers), " row(s)\n", sep = "")
+    cli::cli_text("{.strong Headers:} {length(spec$headers)} row(s)")
     sample_h <- spec$headers[[1]]
-    cat("  Sample: ", paste(sample_h, collapse = " | "), "\n", sep = "")
+    cli::cli_text("  Sample: {paste(sample_h, collapse = ' | ')}")
   }
   if (length(spec$footers) > 0) {
-    cat(cli::col_blue("Footers: "), length(spec$footers), " row(s)\n", sep = "")
+    cli::cli_text("{.strong Footers:} {length(spec$footers)} row(s)")
     sample_f <- spec$footers[[1]]
-    cat("  Sample: ", paste(sample_f, collapse = " | "), "\n", sep = "")
+    cli::cli_text("  Sample: {paste(sample_f, collapse = ' | ')}")
   }
-  
+
   invisible(spec)
 }
 
