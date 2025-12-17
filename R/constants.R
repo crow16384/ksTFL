@@ -208,4 +208,18 @@
 #' Maximum number of header/footer parts
 .const_max_header_footer_parts <- 3L
 
+#' Default body text message (when no data available)
+.const_default_bodytext <- "No data to report"
 
+#' Body text default ID prefix (for global defaults)
+.const_bodytext_default_id_prefix <- "__default"
+
+#' Order value for default body text (appears last)
+.const_default_bodytext_order <- 999L
+
+#' Schema file names
+.const_spec_schema_file = "spec_schema_v1.json"
+#' Style schema file name
+.const_style_schema_file = "styles_schema_v0.json"
+#' Row style schema file name
+.const_row_style_schema_file = "row_styles_schema_v0.json"

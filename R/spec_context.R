@@ -1905,11 +1905,37 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #'   set_document(docType = "Table", hasData = FALSE) |>
 #'   add_body_text("No data available for the specified criteria", styleRef = c("error_style", "bold"))
 #' }
-add_body_text <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
+add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
+  # Settings context: spec is NOT a TFL_spec or TFL_options object
+  # This happens when called as add_body_text("Some text") in tfl_set_options()
+  if (!inherits(spec, c("TFL_spec", "TFL_options"))) {
+    # If spec is provided as first arg (not NULL), treat it as text
+    if (!is.null(spec) && is.null(text)) {
+      text <- spec
+      spec <- NULL
+    }
+    
+    # Return special object that tfl_set_options() can detect
+    # Do NOT include spec in the returned object to avoid duplicate parameters
+    return(structure(
+      list(
+        text = text,
+        id = id,
+        styleRef = styleRef,
+        order = order
+      ),
+      class = c("tfl_bodytext_setting", "list")
+    ))
+  }
+  
+  # Spec/options context: use S3 dispatch
   UseMethod("add_body_text")
 }
 
 #' Add body text for TFL_spec
+#' 
+#' When adding body text to a spec that has default body text entries (IDs starting with __default_),
+#' they are automatically removed to avoid mixing defaults with user-defined content.
 #' 
 #' @param spec TFL_spec object
 #' @param text Character vector of body text lines
@@ -1918,8 +1944,20 @@ add_body_text <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) 
 #' @param order Order of body text group (auto-assigned if NULL)
 #' @return Updated spec object
 #' @export
-add_body_text.TFL_spec <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
-  assert_class(spec, "TFL_spec")
+add_body_text.TFL_spec <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
+  # Accept both TFL_spec objects and plain lists (for use in .fill_spec_defaults)
+  if (!inherits(spec, c("TFL_spec", "list"))) {
+    cli_abort("{.arg spec} must be a TFL_spec or list")
+  }
+  
+  # Auto-remove default body text entries when user adds custom content
+  if (!is.null(text)) {
+    default_ids <- grep(paste0("^", .const_bodytext_default_id_prefix, "_"), 
+                       names(spec$bodyText), value = TRUE)
+    for (default_id in default_ids) {
+      spec$bodyText[[default_id]] <- NULL
+    }
+  }
   
   if (is.null(id)) {
     id <- .auto_id("body_", spec$bodyText)
@@ -1944,21 +1982,71 @@ add_body_text.TFL_spec <- function(spec, text, id = NULL, styleRef = NULL, order
 
 #' Add body text for TFL_options
 #' 
-#' Note: TFL_options doesn't have bodyText structure, so this method is not implemented.
-#' Body text is typically added to individual spec objects, not global options.
+#' When adding body text to TFL options (global settings), automatically removes any existing
+#' default body text entries (__default_NNN) and starts adding new ones from __default_002 onwards.
 #' 
 #' @param spec TFL_options object
 #' @param text Character vector of body text lines
-#' @param id Body text identifier
+#' @param id Body text identifier (auto-generated as __default_NNN if NULL)
 #' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
-#' @param order Order of body text group
-#' @return Error message
+#' @param order Order of body text group (auto-assigned if NULL)
+#' @return Updated options object
 #' @export
-add_body_text.TFL_options <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
-  cli_abort(c(
-    "{.fn add_body_text} is not applicable to {.cls TFL_options}",
-    i = "Body text should be added to individual {.cls TFL_spec} objects, not global options"
-  ))
+add_body_text.TFL_options <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
+  if (!inherits(spec, "TFL_options")) {
+    cli_abort("Object must be of class 'TFL_options'")
+  }
+  
+  # When user sets custom bodyText in options, remove all existing defaults
+  # BUT first capture the max number to generate next sequential ID
+  if (!is.null(text)) {
+    default_ids <- grep(paste0("^", .const_bodytext_default_id_prefix, "_"), 
+                       names(spec$bodyText), value = TRUE)
+    
+    # Find the max number BEFORE removal
+    if (length(default_ids) > 0) {
+      numbers <- as.numeric(gsub(paste0(.const_bodytext_default_id_prefix, "_"), "", default_ids))
+      max_number <- max(numbers, na.rm = TRUE)
+    } else {
+      max_number <- 0
+    }
+    
+    # Remove all defaults
+    for (default_id in default_ids) {
+      spec$bodyText[[default_id]] <- NULL
+    }
+  }
+  
+  # Auto-generate ID using __default_NNN pattern if NULL
+  if (is.null(id)) {
+    if (!is.null(text) && exists("max_number") && max_number > 0) {
+      # User added custom text: generate next sequential ID
+      next_num <- max_number + 1
+      id <- sprintf("%s_%03d", .const_bodytext_default_id_prefix, next_num)
+    } else {
+      # No user text or no existing defaults: use the helper
+      id <- .generate_default_bodytext_id(spec$bodyText)
+    }
+  }
+  
+  if (is.null(order)) {
+    order <- .const_default_bodytext_order
+  }
+  
+  new_data <- list(
+    text = as.character(text),
+    styleRef = styleRef,
+    order = as.integer(order)
+  )
+  new_data <- new_data[!sapply(new_data, is.null)]
+  
+  if (!is.null(text)) {
+    .validate_params(new_data, "text_group", "add_body_text")
+  }
+  
+  spec$bodyText[[id]] <- .merge_recursive(spec$bodyText[[id]], new_data)
+  
+  spec
 }
 
 #' Default method for add_body_text
@@ -1970,7 +2058,7 @@ add_body_text.TFL_options <- function(spec, text, id = NULL, styleRef = NULL, or
 #' @param order Order
 #' @return Error if no method found
 #' @export
-add_body_text.default <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
+add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
   cli_abort(c(
     "No method for {.fn add_body_text} for class {.cls {class(spec)[1]}}",
     i = "Implement {.fn add_body_text.{class(spec)[1]}} to add body text support"
@@ -2001,7 +2089,25 @@ add_body_text.default <- function(spec, text, id = NULL, styleRef = NULL, order 
 #' options <- tfl_get_settings()
 #' options <- add_header(options, "Study ABC-123", "CONFIDENTIAL", "Page {PAGE}")
 #' }
-add_header <- function(spec, ...) {
+add_header <- function(spec = NULL, ..., level = NULL) {
+  # Settings context: spec is NOT a TFL_spec or TFL_options object
+  # This happens when called as add_header(c("text1", "text2")) without explicit spec
+  if (!inherits(spec, c("TFL_spec", "TFL_options"))) {
+    # Capture all content arguments (spec becomes first positional arg, then ...)
+    content_args <- list(...)
+    if (!is.null(spec)) {
+      content_args <- c(list(spec), content_args)
+    }
+    
+    # Return special object that tfl_set_options() can detect and process
+    return(structure(
+      content_args,
+      class = c("tfl_header_setting", "list"),
+      level = level
+    ))
+  }
+  
+  # Spec context: spec IS a TFL_spec or TFL_options object
   UseMethod("add_header")
 }
 
@@ -2009,15 +2115,33 @@ add_header <- function(spec, ...) {
 #' 
 #' @param spec TFL_spec object
 #' @param ... Up to 3 character strings (left, center, right)
+#' @param level Optional numeric index. If provided, replaces header at that row. If NULL, appends next row.
 #' @return Updated spec object
 #' @export
-add_header.TFL_spec <- function(spec, ...) {
-  assert_class(spec, "TFL_spec")
+add_header.TFL_spec <- function(spec, ..., level = NULL) {
+  # Accept both TFL_spec objects and plain lists (for use in .fill_spec_defaults)
+  if (!inherits(spec, c("TFL_spec", "list"))) {
+    cli_abort("{.arg spec} must be a TFL_spec or list")
+  }
   
   header_parts <- as.character(c(...))
   
   if (length(header_parts) > .const_max_header_footer_parts) {
     cli_abort("{.fn add_header} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+  }
+  
+  # Handle level parameter
+  if (!is.null(level)) {
+    # Try to replace at specific level
+    checkmate::assert_number(level, lower = 1, finite = TRUE)
+    level <- as.integer(level)
+    
+    # Only replace if level exists
+    if (level <= length(spec$headers)) {
+      spec$headers[[level]] <- header_parts
+      return(spec)
+    }
+    # Otherwise ignore and treat as append
   }
   
   # Add as new row
@@ -2033,9 +2157,10 @@ add_header.TFL_spec <- function(spec, ...) {
 #' 
 #' @param spec TFL_options object
 #' @param ... Up to 3 character strings (left, center, right)
+#' @param level Optional numeric index. If provided, replaces header at that row. If NULL, appends next row.
 #' @return Updated options object
 #' @export
-add_header.TFL_options <- function(spec, ...) {
+add_header.TFL_options <- function(spec, ..., level = NULL) {
   if (!inherits(spec, "TFL_options")) {
     cli_abort("Object must be of class 'TFL_options'")
   }
@@ -2044,6 +2169,19 @@ add_header.TFL_options <- function(spec, ...) {
   
   if (length(header_parts) > .const_max_header_footer_parts) {
     cli_abort("{.fn add_header} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+  }
+  
+  # Handle level parameter
+  if (!is.null(level)) {
+    checkmate::assert_number(level, lower = 1, finite = TRUE)
+    level <- as.integer(level)
+    
+    # Only replace if level exists
+    if (level <= length(spec$headers)) {
+      spec$headers[[level]] <- header_parts
+      return(spec)
+    }
+    # Otherwise ignore and treat as append
   }
   
   # Add as new row to headers list
@@ -2074,6 +2212,7 @@ add_header.default <- function(spec, ...) {
 #' 
 #' @param spec Spec object (dispatches on class)
 #' @param ... Up to 3 character strings (left, center, right)
+#' @param level Optional numeric index. If provided, replaces footer at that row. If NULL, appends next row.
 #' 
 #' @return Updated spec object
 #' @export
@@ -2089,7 +2228,24 @@ add_header.default <- function(spec, ...) {
 #' options <- tfl_get_settings()
 #' options <- add_footer(options, "Company Name", "", "Page {PAGE} of {NUMPAGES}")
 #' }
-add_footer <- function(spec, ...) {
+add_footer <- function(spec = NULL, ..., level = NULL) {
+  # Settings context: spec is NOT a TFL_spec or TFL_options object
+  if (!inherits(spec, c("TFL_spec", "TFL_options"))) {
+    # Capture all content arguments (spec becomes first positional arg, then ...)
+    content_args <- list(...)
+    if (!is.null(spec)) {
+      content_args <- c(list(spec), content_args)
+    }
+    
+    # Return special object that tfl_set_options() can detect and process
+    return(structure(
+      content_args,
+      class = c("tfl_footer_setting", "list"),
+      level = level
+    ))
+  }
+  
+  # Spec context: spec IS a TFL_spec or TFL_options object
   UseMethod("add_footer")
 }
 
@@ -2097,15 +2253,32 @@ add_footer <- function(spec, ...) {
 #' 
 #' @param spec TFL_spec object
 #' @param ... Up to 3 character strings (left, center, right)
+#' @param level Optional numeric index. If provided, replaces footer at that row. If NULL, appends next row.
 #' @return Updated spec object
 #' @export
-add_footer.TFL_spec <- function(spec, ...) {
-  assert_class(spec, "TFL_spec")
+add_footer.TFL_spec <- function(spec, ..., level = NULL) {
+  # Accept both TFL_spec objects and plain lists (for use in .fill_spec_defaults)
+  if (!inherits(spec, c("TFL_spec", "list"))) {
+    cli_abort("{.arg spec} must be a TFL_spec or list")
+  }
   
   footer_parts <- as.character(c(...))
   
   if (length(footer_parts) > .const_max_header_footer_parts) {
     cli_abort("{.fn add_footer} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+  }
+  
+  # Handle level parameter
+  if (!is.null(level)) {
+    checkmate::assert_number(level, lower = 1, finite = TRUE)
+    level <- as.integer(level)
+    
+    # Only replace if level exists
+    if (level <= length(spec$footers)) {
+      spec$footers[[level]] <- footer_parts
+      return(spec)
+    }
+    # Otherwise ignore and treat as append
   }
   
   # Add as new row
@@ -2121,9 +2294,10 @@ add_footer.TFL_spec <- function(spec, ...) {
 #' 
 #' @param spec TFL_options object
 #' @param ... Up to 3 character strings (left, center, right)
+#' @param level Optional numeric index. If provided, replaces footer at that row. If NULL, appends next row.
 #' @return Updated options object
 #' @export
-add_footer.TFL_options <- function(spec, ...) {
+add_footer.TFL_options <- function(spec, ..., level = NULL) {
   if (!inherits(spec, "TFL_options")) {
     cli_abort("Object must be of class 'TFL_options'")
   }
@@ -2134,6 +2308,18 @@ add_footer.TFL_options <- function(spec, ...) {
     cli_abort("{.fn add_footer} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
   }
   
+  # Handle level parameter
+  if (!is.null(level)) {
+    checkmate::assert_number(level, lower = 1, finite = TRUE)
+    level <- as.integer(level)
+    
+    # Only replace if level exists
+    if (level <= length(spec$footers)) {
+      spec$footers[[level]] <- footer_parts
+      return(spec)
+    }
+    # Otherwise ignore and treat as append
+  }
   # Add as new row to footers list
   spec$footers <- c(spec$footers %||% list(), list(footer_parts))
   

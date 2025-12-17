@@ -67,7 +67,7 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     spec$document$columns <- NULL
     spec$document$stubColumns <- NULL
     spec$document$dataRef <- list(data)
-    class(spec) <- c("TFL_spec", "TFL_figure_spec")
+    class(spec) <- "TFL_spec"
     return(spec)
   }
   
@@ -83,7 +83,7 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     spec$document$hasData <- FALSE
     spec$document$stubColumns <- NULL
     spec$document$columns <- NULL
-    class(spec) <- c("TFL_spec", "TFL_text_spec")
+    class(spec) <- "TFL_spec"
     return(spec)
   }
   
@@ -254,7 +254,74 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     }
   }
   
+  # Apply settings to spec
+  # Apply headers from settings
+  if (length(settings$headers) > 0) {
+    for (i in seq_along(settings$headers)) {
+      header_obj <- settings$headers[[i]]
+      # Build call arguments: spec + all header properties
+      call_args <- c(list(spec = spec), header_obj)
+      spec <- do.call("add_header.TFL_spec", call_args)
+    }
+  }
+  
+  # Apply footers from settings
+  if (length(settings$footers) > 0) {
+    for (i in seq_along(settings$footers)) {
+      footer_obj <- settings$footers[[i]]
+      # Build call arguments: spec + all footer properties
+      call_args <- c(list(spec = spec), footer_obj)
+      spec <- do.call("add_footer.TFL_spec", call_args)
+    }
+  }
+  
+  # Apply bodyText from settings (including defaults)
+  if (length(settings$bodyText) > 0) {
+    for (body_id in names(settings$bodyText)) {
+      body_obj <- settings$bodyText[[body_id]]
+      # Extract properties from body object
+      spec <- add_body_text.TFL_spec(
+        spec = spec,
+        text = body_obj$text,
+        id = body_id,
+        styleRef = body_obj$styleRef,
+        order = body_obj$order
+      )
+    }
+  }
+  
   invisible(spec)
+}
+
+#' Generate Default Body Text ID
+#'
+#' Creates unique IDs for default body text entries using the __default_NNN pattern.
+#' Used internally to track which body text entries are defaults vs user-defined.
+#'
+#' @param existing_entries List of existing body text entries (to find next available ID)
+#'
+#' @return Character string like "__default_001", "__default_002", etc.
+#'
+#' @keywords internal
+.generate_default_bodytext_id <- function(existing_entries = NULL) {
+  # Find all existing default IDs
+  default_ids <- if (!is.null(existing_entries)) {
+    grep(paste0("^", .const_bodytext_default_id_prefix, "_"), 
+         names(existing_entries), value = TRUE)
+  } else {
+    character(0)
+  }
+  
+  # Extract numeric suffixes and find max
+  if (length(default_ids) > 0) {
+    numbers <- as.numeric(gsub(paste0(.const_bodytext_default_id_prefix, "_"), "", default_ids))
+    next_num <- max(numbers, na.rm = TRUE) + 1
+  } else {
+    next_num <- 1
+  }
+  
+  # Format with leading zeros
+  sprintf("%s_%03d", .const_bodytext_default_id_prefix, next_num)
 }
 
 #' Extract Column Display Label
