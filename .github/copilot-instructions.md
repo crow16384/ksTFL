@@ -146,6 +146,72 @@ Follow the pattern of exported functions like `tfl_init()`:
 - **Column extraction**: Use `[[` not `[` to get atomic vector, not single-element list
 - **Coercion validation**: Always check `is.atomic()` before `as.character()` on unknown types. better to use checkmate where possible.
 
+## Context-Based Function Nesting (CRITICAL)
+The package uses `.assert_context()` and `.set_context()` for enforcing proper function call hierarchy. **This is essential to understand:**
+
+### Function Nesting Rules (from spec_context.R):
+1. **`add_style(spec, id, ...)`** - Top-level style definition
+   - ✓ Can contain: `s_font()`, `s_paragraph()`, `s_table_style()`
+   - ✗ Cannot contain: `s_borders()` directly (must be inside `s_table_style()`)
+
+2. **`s_font()`** - Direct child of `add_style()`
+   - Parameters: `font_name`, `font_size`, `bold`, `italic`, `underline`, `color`, `highlight`
+   - ✓ `add_style(spec, s_font(...))`
+
+3. **`s_table_style()`** - Direct child of `add_style()`
+   - Parameters: `background_color`, `row_height`, `vertical_alignment`, `text_orientation`, `borders`
+   - ✓ `add_style(spec, s_table_style(borders = s_borders(...)))`
+   - ✗ `add_style(spec, s_table_style(...), s_borders(...))` - s_borders() must be inside s_table_style()
+
+4. **`s_borders()`** - MUST be child of `s_table_style()`
+   - Each side takes: `top = s_border(...)`, `bottom = s_border(...)`, `left = s_border(...)`, `right = s_border(...)`
+   - ✗ `add_style(spec, s_borders(...))` - ERROR: can only be used inside s_table_style()
+
+5. **`s_border()` (singular)** - Individual border for one side
+   - Parameters: `color` (hex), `width` (e.g., "1pt"), `line_style` (e.g., "single", "double", "dashed", "dotted", "thick", "none")
+   - ✓ `s_borders(top = s_border(width = "1pt", line_style = "single"))`
+
+6. **`s_paragraph()`** - Direct child of `add_style()`
+   - Can contain: `spacing = s_spacing(...)`, `indents = s_indents(...)`
+   - ✓ `add_style(spec, s_paragraph(spacing = s_spacing(...), indents = s_indents(...)))`
+
+7. **`s_spacing()`, `s_indents()`** - MUST be inside `s_paragraph()`
+   - ✗ `add_style(spec, s_spacing(...))` - ERROR
+   - ✓ `add_style(spec, s_paragraph(spacing = s_spacing(...)))`
+
+8. **`c_format()`** - Can ONLY be used inside `define_cols()`
+   - Parameters: `type` ("string" or "numeric"), `format` (sprintf format), `missings`, `colWidth`, `valueStyleRef`
+   - ✓ `define_cols(spec, col, c_format(type = "numeric", format = "0.00"))`
+   - ✗ `add_style(spec, c_format(...))` - ERROR
+
+## Settings/Options Management (CRITICAL)
+- **Naming**: Use "options" terminology: `tfl_set_options()`, `tfl_get_options()`, `tfl_get_option()`, `tfl_reset_options()`
+- **Replace behavior**: When `tfl_set_options()` is called with `add_header()` or `add_footer()`, it **REPLACES** previous headers/footers, not accumulate
+  - ✓ First call: `tfl_set_options(add_header(c("A", "B", "C")))`
+  - ✓ Second call: `tfl_set_options(add_header(c("X", "Y", "Z")))` - Replaces with X/Y/Z, previous A/B/C are gone
+- **Page margins**: Must use `s_margins()` with proper units OR valid list keys, NOT raw unitless numbers
+  - ✗ `margins = list(top = 1.0, bottom = 1.0)` - ERROR: need units
+  - ✓ `margins = list(top = "1.0in", bottom = "1.0in", left = "0.75in", right = "0.75in")`
+
+## Column Selection with tidyselect (CRITICAL)
+`define_cols()` uses `enquos()` for tidyselect support. **Always use `c()` for multiple columns:**
+- ✗ `define_cols(spec, col1, col2, label = "...")` - ERROR: object 'col2' not found
+- ✓ `define_cols(spec, c(col1, col2), label = "...")` - CORRECT
+- ✓ `define_cols(spec, col1, label = "...")` - CORRECT (single column)
+
+## tfl_init() Parameter Patterns (CRITICAL)
+Three document types with different parameter requirements:
+```r
+# TABLE: Requires data frame
+tfl_init(data = data_frame, cols = everything(), docType = "Table", id = "t01s01")
+
+# FIGURE: Requires file path string
+tfl_init(data = "path/to/figure.png", docType = "Figure", id = "f01s01")
+
+# TEXT: Requires NULL for data
+tfl_init(data = NULL, docType = "Text", id = "txt01")
+```
+
 ## Code updates
 - do not try to run R code - R is not installed on the given machine. Ask user to run code suggested by you and give you console output if needed
 - do not commit to git - user will ask you to do so if needed

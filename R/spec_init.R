@@ -210,7 +210,7 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     cli_abort("{.arg spec} must be a list in {.fn .fill_spec_defaults}")
   }
   
-  settings <- tfl_get_settings()
+  settings <- tfl_get_options()
   
   # Ensure required top-level structure exists
   if (is.null(spec$document)) {

@@ -54,22 +54,22 @@ class(.options_env$defaults) <- "TFL_options"
 # Initialize current settings to defaults
 .options_env$settings <- .options_env$defaults
 
-#' Return the active package settings
+#' Return the active package options
 #'
-#' @return A named list representing the current ksTFL settings.
+#' @return A named list representing the current ksTFL options.
 #' @export
-tfl_get_settings <- function() {
+tfl_get_options <- function() {
   return(.options_env$settings)
 }
 
-#' Retrieve a single package setting
+#' Retrieve a single package option
 #'
-#' @param name Name of the setting to fetch.
+#' @param name Name of the option to fetch.
 #' @return The value associated with `name`.
 #' @export
-tfl_get_setting <- function(name) {
+tfl_get_option <- function(name) {
   if (!name %in% names(.options_env$settings)) {
-    stop("Unknown setting: ", name)
+    stop("Unknown option: ", name)
   }
   return(.options_env$settings[[name]])
 }
@@ -95,6 +95,8 @@ tfl_set_options <- function(...) {
     
     # Check if this is a detected setting object (has special class)
     if (inherits(arg, "tfl_header_setting")) {
+      # REPLACE mode for headers - clear previous headers first
+      .options_env$settings$headers <- list()
       # Route to add_header.TFL_options()
       # arg is a list of positional arguments (the header parts)
       # Extract level attribute
@@ -105,6 +107,8 @@ tfl_set_options <- function(...) {
         c(list(spec = .options_env$settings, level = level), arg)
       )
     } else if (inherits(arg, "tfl_footer_setting")) {
+      # REPLACE mode for footers - clear previous footers first
+      .options_env$settings$footers <- list()
       # Route to add_footer.TFL_options()
       # arg is a list of positional arguments (the footer parts)
       level <- attr(arg, "level")
@@ -149,18 +153,11 @@ tfl_set_options <- function(...) {
   invisible(.options_env$settings)
 }
 
-#' @rdname tfl_set_options
-#' @export
-tfl_set_settings <- function(...) {
-  # Backwards compatibility wrapper
-  tfl_set_options(...)
-}
-
-#' Reset settings to their defaults
+#' Reset options to their defaults
 #'
 #' @return The defaults list, returned invisibly.
 #' @export
-tfl_reset_settings <- function() {
+tfl_reset_options <- function() {
   .options_env$settings <- .options_env$defaults
   invisible(.options_env$settings)
 }

@@ -731,10 +731,12 @@
 #'
 #' Creates a page settings object for use with `tfl_set_options()` to configure 
 #' default page properties (size, orientation, margins) for the TFL document.
+#' Margins should be specified using `s_margins()` for proper validation.
 #'
-#' @param size Page size: "A4", "Letter", "Legal", "Tabloid", etc.
+#' @param size Page size: "A4", "A3", "Letter", "Legal", "Executive"
 #' @param orientation Page orientation: "portrait" or "landscape"
-#' @param margins Optional list with keys: top, bottom, left, right (in inches)
+#' @param margins Optional margins specification created with `s_margins()` or a list
+#'   with keys: top, bottom, left, right (with units, e.g., "1.0in", "25mm")
 #'
 #' @return Page settings list that can be passed to `tfl_set_options(page = ...)`
 #'
@@ -743,11 +745,14 @@
 #' # Set default page to Letter size, landscape orientation
 #' tfl_set_options(page = tfl_page(size = "Letter", orientation = "landscape"))
 #'
-#' # Set page with custom margins
+#' # Set page with custom margins using s_margins()
 #' tfl_set_options(page = tfl_page(
 #'   size = "A4",
 #'   orientation = "portrait",
-#'   margins = list(top = 1.0, bottom = 1.0, left = 0.75, right = 0.75)
+#'   margins = s_margins(
+#'     top = "1.0in", bottom = "1.0in",
+#'     left = "0.75in", right = "0.75in"
+#'   )
 #' ))
 #' }
 #'
@@ -758,9 +763,17 @@ tfl_page <- function(size = .const_default_page_size,
   .validate_enum(size, .const_page_sizes, "size", "tfl_page")
   .validate_enum(orientation, .const_page_orientations, "orientation", "tfl_page")
   
-  # Validate margins keys if provided
-  if (!is.null(margins) && is.list(margins)) {
-    .validate_params(margins, "margins", "tfl_page")
+  # Process margins if provided
+  if (!is.null(margins)) {
+    # If margins came from s_margins(), remove the class wrapper
+    if (inherits(margins, "tfl_margins")) {
+      margins <- unclass(margins)
+    } else if (is.list(margins)) {
+      # Validate margins keys if a raw list is passed
+      .validate_params(margins, "margins", "tfl_page")
+    } else {
+      stop("margins must be created with s_margins() or be a list with keys: top, bottom, left, right")
+    }
   }
   
   list(size = size, orientation = orientation, margins = margins)
@@ -2131,7 +2144,7 @@ add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL,
 #'   add_header("Protocol v2.0", "", "Date: {DATE}")
 #' 
 #' # Add to global options
-#' options <- tfl_get_settings()
+#' options <- tfl_get_options()
 #' options <- add_header(options, "Study ABC-123", "CONFIDENTIAL", "Page {PAGE}")
 #' }
 add_header <- function(spec = NULL, ..., level = NULL) {
@@ -2270,7 +2283,7 @@ add_header.default <- function(spec, ...) {
 #'   add_footer("", "Confidential", "")
 #' 
 #' # Add to global options
-#' options <- tfl_get_settings()
+#' options <- tfl_get_options()
 #' options <- add_footer(options, "Company Name", "", "Page {PAGE} of {NUMPAGES}")
 #' }
 add_footer <- function(spec = NULL, ..., level = NULL) {

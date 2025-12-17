@@ -9,13 +9,13 @@ setup_package <- function() {
   
   # Ensure clean state
   if (exists("tfl_reset_settings", mode = "function")) {
-    tfl_reset_settings()
+    tfl_reset_options()
   }
 }
 
 # Reset settings after each test file
 teardown_package <- function() {
   if (exists("tfl_reset_settings", mode = "function")) {
-    tfl_reset_settings()
+    tfl_reset_options()
   }
 }

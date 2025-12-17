@@ -59,11 +59,11 @@ export(
   # Specification preview
   preview_spec,
   
-  # Package settings functions
-  tfl_get_settings,
-  tfl_get_setting,
-  tfl_set_settings,
-  tfl_reset_settings
+  # Package options functions
+  tfl_get_options,
+  tfl_get_option,
+  tfl_set_options,
+  tfl_reset_options
 )
 
 # S3 method registrations for add_style
