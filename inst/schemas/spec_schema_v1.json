@@ -526,9 +526,12 @@
                                 "labelStyleRef": {
                                     "type": [
                                         "null",
-                                        "string"
+                                        "array"
                                     ],
-                                    "description": "Style ID to be applied to stub label"
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs to be applied to stub label"
                                 },
                                 "stubOrder": {
                                     "type": "integer",
@@ -601,9 +604,12 @@
                                 "labelStyleRef": {
                                     "type": [
                                         "null",
-                                        "string"
+                                        "array"
                                     ],
-                                    "description": "ID of the defined style to be applied to the column label"
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "IDs of the defined styles to be applied to the column label"
                                 },
                                 "isColBreak": {
                                     "type": [
@@ -665,8 +671,11 @@
                                         "valueStyleRef": {
                                             "type": [
                                                 "null",
-                                                "string"
-                                            ]
+                                                "array"
+                                            ],
+                                            "items": {
+                                                "type": "string"
+                                            }
                                         }
                                     },
                                     "required": [
@@ -711,8 +720,14 @@
                                     "minItems": 1
                                 },
                                 "styleRef": {
-                                    "type": "string",
-                                    "description": "Reference to style id that defines the styling of a text"
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
                                 },
                                 "order": {
                                     "type": "integer",
@@ -748,8 +763,14 @@
                                     "minItems": 1
                                 },
                                 "styleRef": {
-                                    "type": "string",
-                                    "description": "Reference to style id that defines the styling of a text"
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
                                 },
                                 "order": {
                                     "type": "integer",
@@ -785,8 +806,14 @@
                                     "minItems": 1
                                 },
                                 "styleRef": {
-                                    "type": "string",
-                                    "description": "Reference to style id that defines the styling of a text"
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
                                 },
                                 "order": {
                                     "type": "integer",
@@ -822,8 +849,14 @@
                                     "minItems": 1
                                 },
                                 "styleRef": {
-                                    "type": "string",
-                                    "description": "Reference to style id that defines the styling of a text"
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
                                 },
                                 "order": {
                                     "type": "integer",

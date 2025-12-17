@@ -8,8 +8,8 @@
 ### Core Spec Structure
 The heart of ksTFL is the spec object (`TFL_spec`), initialized by `tfl_init()` and defined in [constants.R](R/constants.R). It contains:
 - `document`: metadata (docType, hasData, titles, footers, etc.)
-- `columns`: column definitions with formats and labels
-- `styleRows`, `styles`: styling specifications
+- `columns`: column definitions with formats and labels. columns are auto-detected for Tables from data frame input.
+- `styleRows`, `styles`: styling specifications. `styleRows` is still TO DO.
 - `titles`, `subtitles`, `footnotes`, `bodyText`: content layers
 - `.metadata`: internal state (report_cols, data_env)
 
@@ -19,7 +19,7 @@ The heart of ksTFL is the spec object (`TFL_spec`), initialized by `tfl_init()` 
 - **Figure**: Requires file path to image, minimal metadata
 
 ### DocType Validation Pattern
-Each docType has explicit validation in `tfl_init()` (lines 48-95 in [spec_init.R](R/spec_init.R)):
+Each docType has explicit validation in `tfl_init()`:
 - **Figure**: Must validate file readability with `.is_readable_file()`
 - **Text**: Must reject non-NULL data argument
 - **Table**: Must validate data.frame and column selection
@@ -33,7 +33,15 @@ When building a Table, `tfl_init()` extracts and formats each column:
 .get_data_format(col, col_name)      # Auto-detects type and format
 .get_col_label(col)                  # Retrieves label attribute
 ```
-**Pattern**: Use `switch(col_class, ...)` not multiple if statements for type dispatch.
+**Pattern**: 
+Use `switch(.., ...)` not multiple if statements for type dispatch.
+Use `useMethod` for S3 dispatch if needed.
+Use checkmate for validation (e.g., `assert_data_frame()`, `assert_names()`).
+Use cli for warnings/errors and formatted messages. Provide detailed messages to end-users using cli
+When anything needs to be defined as constants, define in [constants.R](R/constants.R).
+When any functions changes from exported to internal, rename with `.` prefix and add `@keywords internal` in roxygen. Also remove from NAMESPACE.
+When any functions became exported, add `@export` in roxygen and add to NAMESPACE. (consider S3method export derictive if S3 method).
+Write detailed Roxygen documentation for all exported functions, including parameters, return values, examples, and details.
 
 ### 2. Type Coercion for Unknown Classes
 When a column class isn't recognized:
@@ -44,9 +52,11 @@ When a column class isn't recognized:
 
 ### 3. Schema-Based Configuration
 Settings stored in [pkg_settings.R](R/pkg_settings.R) in `.options_env$defaults`:
-- `spec_schema_file`: Currently "spec_schema_v1.json" (in `inst/schemas/`)
-- `style_schema_file`, `row_style_schema_file`: Define allowed properties
+- `spec_schema`: Currently "spec_schema_v1.json" (in `inst/schemas/`)
+-  `row_style_schema`: Define allowed properties for rowStyles (still TO DO)
+- `styles_schema`: Define allowed properties for style templates referenced by name in docTemplate of the spec (still TO DO)
 - Default values cascade to spec during `tfl_init()` via `.fill_spec_defaults()`
+- export and validation of the spec schema is handled in `spec_serializer.R` (still TO DO)
 
 ### 4. Error Messages with cli Package
 Use `cli_abort()` and `cli_warn()` (not base R stop/warning):
@@ -65,10 +75,19 @@ All internal functions start with `.` (e.g., `.init_column_specs`, `.fill_spec_d
 - Are NOT exported in NAMESPACE
 - Handle specific sub-tasks (kept separate from main logic)
 
+### 6. spec metadata
+Internal metedata stored in `spec$.metadata` (this should not be serialized to json on export):
+- `report_cols`: Tracks which data columns are included in the report (after tidyselect filtering). Important thing: tfl_init() copies the whole data frame to spec$.metadata$data_env so all the columns can be referenced by styleRows conditional formating, but only columns that were defined in cols= argument should appear in spec$columns/ report_cols and only for these columns user should be able to define formatting/stylings
+- `data_env`: An environment that holds a copy of the input data frame and embedded functions for internal reference (e.g., styleRows conditional formatting). This prevents unnecessary data duplication in the spec object. the data_env has three layers:
+  - functions layer: holds embedded functions (e.g., `.get_column_data()`) - functions have access to data layer and another functions in the same layer
+  - data layer (spec$.metadata$data_env$`__data__`): holds the input data frame copied from tfl_init() argument
+  - mask layer (spec$.metadata$data_env$`__mask__`): tidyselect mask environment for column filtering (created during tfl_init() processing)
+Any conditions that will be implemented later in styleRows will be evaluated in the context of data_env so they can access the data columns directly. `.env_eval()` helper function is provided to evaluate expressions in the data_env context.
+-  the data_env holds a shadow copy of the data. We must not mutate it. Any evaluations with data should be done outside or on-the-fly.
+
 ## Code Quality Standards
 
-### Naming Conventions
-- **Variables**: `snake_case` (e.g., `has_data`, not `hasData`)
+### Naming Conventions:
 - **Column iterator**: Use `col_idx`, not `var` or `i`
 - **Quotes**: Double quotes throughout (not single)
 - **Numeric suffixes**: Use `1L` not `1` for type safety
@@ -76,13 +95,14 @@ All internal functions start with `.` (e.g., `.init_column_specs`, `.fill_spec_d
 ### Validation Approach
 - Use `checkmate::` for argument validation (e.g., `assert_data_frame()`, `assert_names()`)
 - Always specify `.var.name` parameter for clear error messages
-- Validate **early** before processing (see `tfl_init()` lines 48-100)
+- Validate **early** before processing/mutating data
 
 ### Roxygen Documentation
 - Use markdown in roxygen: `@param data A data frame...` with backticks for code
 - Include `@details` for complex logic
 - Provide `@examples` with `\dontrun{}` for external dependencies
 - Mark internal functions: `@keywords internal`
+- Include `\itemize` roxygen lists for multiple points where function uses dots argument
 
 ## Testing & Loading
 
@@ -97,13 +117,11 @@ Tests in `tests/testthat/` use standard testthat patterns. Key test scenarios:
 - Column selection via tidyselect expressions
 - Type detection and format assignment
 - Error conditions (invalid data, missing files, etc.)
+- correctness of the modified spec object after each operation
+- test all function parameters and their combinations where applicable
+- try to identify edge cases (e.g., empty data frames, all-NA columns, incorrect user inputs)
 
 ## Common Tasks
-
-### Adding a New Column Format
-1. Update `.get_data_format()` switch statement (spec_init.R:333-365)
-2. Add new case with appropriate type ("numeric" or "string") and format
-3. Test with both valid and edge cases (NA values, empty columns)
 
 ### Updating Schema Constraints
 1. Modify `inst/schemas/spec_schema_v1.json`
@@ -118,7 +136,7 @@ Follow the pattern of exported functions like `tfl_init()`:
 - Use `cli_abort()` for errors
 
 ## Integration Points
-- **Python backend**: Receives serialized spec (via `spec_serializer.R`) as JSON
+- **Python backend**: Receives serialized spec and data (via `spec_serializer.R`) as JSON - still TO DO
 - **External data**: tidyselect for column filtering, data frame input
 - **Dependencies**: cli (messages), checkmate (validation), rlang (quoting), tidyselect (column selection)
 
@@ -126,4 +144,11 @@ Follow the pattern of exported functions like `tfl_init()`:
 - **Pipe placeholder `_`**: Reserved in R 4.1+, don't use as variable name
 - **Switch statement**: No `.default` option—use unnamed block `{ }` for defaults
 - **Column extraction**: Use `[[` not `[` to get atomic vector, not single-element list
-- **Coercion validation**: Always check `is.atomic()` before `as.character()` on unknown types
+- **Coercion validation**: Always check `is.atomic()` before `as.character()` on unknown types. better to use checkmate where possible.
+
+## Code updates
+- do not try to run R code - R is not installed on the given machine. Ask user to run code suggested by you and give you console output if needed
+- do not commit to git - user will ask you to do so if needed
+- when commiting check the diff of all modified files and write short but meaningful commit messages
+
+

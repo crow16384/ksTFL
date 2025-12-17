@@ -749,7 +749,7 @@
 #' @param format Format string
 #' @param missings Missing value handling
 #' @param colWidth Column width
-#' @param valueStyleRef Style reference
+#' @param valueStyleRef Character vector of style IDs for cell values
 #' @return Column format specification list
 #' @keywords internal
 .col_format_spec <- function(type, format = NULL, missings = NULL, 
@@ -1148,6 +1148,109 @@ s_page <- function(size = .const_default_page_size,
   structure(spec, class = c("tfl_page", "tfl_document_modifier"))
 }
 
+#' Combine Multiple Style Names
+#' 
+#' Helper function to explicitly group multiple style names together for assignment to a single element.
+#' Useful with \code{\link{define_cols}} when mapping different styles to different columns.
+#' 
+#' @param ... Character strings representing style names to combine
+#' 
+#' @return A character vector of style names
+#' @export
+#' 
+#' @examples
+#' \dontrun{
+#' # All columns get both styles
+#' spec <- tfl_init(data) |>
+#'   define_cols(c("age", "sex"),
+#'     labelStyleRef = f_combine("label_style", "emphasis")
+#'   )
+#' 
+#' # Different styles for different columns
+#' spec <- tfl_init(data) |>
+#'   define_cols(c("age", "sex"),
+#'     labelStyleRef = c(
+#'       f_combine("age_label_style", "numeric_emphasis"),
+#'       f_combine("sex_label_style", "categorical_emphasis")
+#'     )
+#'   )
+#' }
+f_combine <- function(...) {
+  styles <- list(...)
+  
+  # Ensure all arguments are character strings
+  for (i in seq_along(styles)) {
+    if (!is.character(styles[[i]]) || length(styles[[i]]) != 1) {
+      cli_abort(c(
+        "{.fn f_combine} requires character string arguments",
+        x = "Argument {i} is not a single character string",
+        i = "Use: {.fn f_combine}('style1', 'style2', ...)"
+      ))
+    }
+  }
+  
+  # Return as character vector
+  as.character(styles)
+}
+
+#' Resolve Style References for Multiple Columns
+#' 
+#' Internal helper to handle style reference assignment with recycling or mapping.
+#' Supports both single values (recycled to all columns) and lists of f_combine() results
+#' (one-to-one mapping).
+#' 
+#' @param style_refs Raw style reference input (character, list, or NULL)
+#' @param num_cols Number of columns to apply to
+#' @param param_name Name of parameter (for error messages)
+#' 
+#' @return List of length num_cols, each element a character vector of styles or NULL
+#' @keywords internal
+.resolve_style_refs <- function(style_refs, num_cols, param_name) {
+  if (is.null(style_refs)) {
+    return(rep(list(NULL), num_cols))
+  }
+  
+  # Case 1: Single character string - recycle to all columns
+  if (is.character(style_refs) && length(style_refs) == 1) {
+    return(rep(list(style_refs), num_cols))
+  }
+  
+  # Case 2: Character vector from f_combine() - recycle to all columns
+  if (is.character(style_refs) && length(style_refs) > 1) {
+    return(rep(list(style_refs), num_cols))
+  }
+  
+  # Case 3: List of f_combine() results - one-to-one mapping
+  if (is.list(style_refs)) {
+    if (length(style_refs) != num_cols) {
+      cli_abort(c(
+        "Length mismatch in {.arg {param_name}}",
+        x = "Expected {num_cols} mappings, got {length(style_refs)}",
+        i = "Use {.fn f_combine}() for each column, or provide single value to recycle"
+      ))
+    }
+    
+    # Validate each element is character vector or NULL
+    for (i in seq_along(style_refs)) {
+      if (!is.null(style_refs[[i]]) && !is.character(style_refs[[i]])) {
+        cli_abort(c(
+          "Invalid element in {.arg {param_name}} list",
+          x = "Element {i} is not a character vector or NULL",
+          i = "Each element should be result of {.fn f_combine}() or a string"
+        ))
+      }
+    }
+    
+    return(style_refs)
+  }
+  
+  cli_abort(c(
+    "Invalid type for {.arg {param_name}}",
+    x = "Must be character string, character vector, or list of {.fn f_combine}() results",
+    i = "Got: {typeof(style_refs)}"
+  ))
+}
+
 #' Define column format
 #' 
 #' This function can only be used inside \code{\link{define_cols}}.
@@ -1156,7 +1259,7 @@ s_page <- function(size = .const_default_page_size,
 #' @param format Format string for numeric data (sprintf style), default is \code{.const_default_numeric_format}
 #' @param missings How to display missing values in numeric columns
 #' @param colWidth Column width, e.g. "2in", "5cm", "20%"
-#' @param valueStyleRef Style reference for cell values
+#' @param valueStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' 
 #' @return A column format specification object
 #' @export
@@ -1166,7 +1269,8 @@ s_page <- function(size = .const_default_page_size,
 #' spec <- tfl_init(data) |>
 #'   define_cols("age",
 #'     label = "Age (years)",
-#'     c_format(type = "numeric", format = "%.1f", colWidth = "10%")
+#'     c_format(type = "numeric", format = "%.1f", colWidth = "10%", 
+#'              valueStyleRef = c("numeric_style", "right_align"))
 #'   )
 #' }
 c_format <- function(type, format = NULL, missings = NULL, 
@@ -1351,6 +1455,86 @@ add_style.default <- function(spec, id = NULL, ...) {
   ))
 }
 
+#' Combine multiple style names for explicit grouping
+#' 
+#' Helper function to group multiple style names together for explicit application 
+#' to columns or elements. Useful when using \code{\link{define_cols}} or other 
+#' functions with multiple columns and you want to either:
+#' \itemize{
+#'   \item Recycle the same group of styles to all columns: 
+#'         \code{labelStyleRef = f_combine("style1", "style2")}
+#'   \item Create explicit one-to-one mappings:
+#'         \code{labelStyleRef = c(f_combine("s1", "s2"), f_combine("s3"), "style4")}
+#' }
+#' 
+#' @param ... Character strings representing style names to combine
+#' 
+#' @return Object of class "tfl_style_combine" (character vector with special class)
+#' @export
+#' 
+#' @examples
+#' # Combine styles for recycling to all columns
+#' styles <- f_combine("label_style", "emphasis", "bold")
+#' 
+#' # Use in define_cols for one-to-one mapping
+#' spec <- tfl_init(data) |>
+#'   define_cols(c("id", "age"),
+#'     labelStyleRef = c(
+#'       f_combine("id_label", "key"),
+#'       f_combine("numeric_label")
+#'     )
+#'   )
+f_combine <- function(...) {
+  styles <- list(...)
+  
+  # Validate each argument is a single character string
+  for (i in seq_along(styles)) {
+    if (!is.character(styles[[i]]) || length(styles[[i]]) != 1) {
+      cli_abort(c(
+        "Argument {i} to {.fn f_combine} must be a single character string",
+        i = "Got: {.cls {class(styles[[i]])[1]}} with length {length(styles[[i]])}"
+      ))
+    }
+  }
+  
+  # Return as character vector with special class to track it as a combined group
+  result <- as.character(styles)
+  class(result) <- c("tfl_style_combine", "character")
+  result
+}
+
+#' S3 method for c() with tfl_style_combine objects
+#' 
+#' When combining tfl_style_combine objects with c(), preserve them as list elements
+#' rather than flattening. This enables explicit one-to-one style mapping.
+#'
+#' @param ... Objects to combine
+#' @param recursive Ignored
+#' @return List of style references
+#' @keywords internal
+#' @export
+c.tfl_style_combine <- function(..., recursive = FALSE) {
+  args <- list(...)
+  
+  # Collect all arguments, preserving tfl_style_combine objects as list elements
+  result <- list()
+  for (arg in args) {
+    if (inherits(arg, "tfl_style_combine")) {
+      # Remove class and add as a single element
+      result[[length(result) + 1]] <- unclass(arg)
+    } else if (is.character(arg)) {
+      # Add character strings as-is
+      result[[length(result) + 1]] <- arg
+    } else {
+      # Fallback for other types
+      result[[length(result) + 1]] <- arg
+    }
+  }
+  
+  # Return as list (will be detected as one-to-one mapping by ._resolve_style_refs)
+  result
+}
+
 #' Define or modify column properties
 #' 
 #' Modify properties of existing columns. Can modify single column or batch update
@@ -1362,14 +1546,22 @@ add_style.default <- function(spec, id = NULL, ...) {
 #' }
 #' 
 #' @param spec TFL spec object (must be initialized with \code{\link{tfl_init}})
-#' @param cols Character vector of column names to modify
+#' @param cols Columns to modify using tidyselect syntax. Accepts:
+#'   \itemize{
+#'     \item Named columns: \code{c("age", "group")}
+#'     \item Column ranges: \code{age:group}
+#'     \item Helper functions: \code{starts_with("age_")}, \code{contains("_pct")}
+#'     \item Negation: \code{-id} or \code{!matches("^temp")}
+#'   }
 #' @param colOrder Position of column (length 1 or length of cols)
 #' @param label Column label (length 1 or length of cols)
 #' @param isID Whether column is identifier (length 1 or length of cols)
 #' @param isVisible Whether column is visible (length 1 or length of cols)
 #' @param isGrouping Whether column defines groups (length 1 or length of cols)
 #' @param isPaging Whether column defines pages (length 1 or length of cols)
-#' @param labelStyleRef Label style reference (length 1 or length of cols)
+#' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report. 
+#'   Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
+#'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns)
 #' @param .isColBreak Whether column triggers page break (length 1 or length of cols)
 #' @param dedupe Whether to deduplicate values (length 1 or length of cols)
 #' @param blankAfter Whether to add blank after value change (length 1 or length of cols)
@@ -1412,6 +1604,40 @@ add_style.default <- function(spec, id = NULL, ...) {
 #'     label = "Age (years)",  # Overrides previous label
 #'     c_format(colWidth = "15%")  # Merges with format, keeping type and format
 #'   )
+#' # Apply style references - single value recycled to all columns
+#' spec <- tfl_init(data) |>
+#'   define_cols(c("age", "id"),
+#'     labelStyleRef = f_combine("label_style", "emphasis")
+#'   )
+#' 
+#' # Apply different styles to different columns
+#' spec <- tfl_init(data) |>
+#'   define_cols(c("id", "age", "group"),
+#'     labelStyleRef = c(
+#'       f_combine("id_label", "key"),
+#'       f_combine("numeric_label", "emphasis"),
+#'       f_combine("categorical_label")
+#'     )
+#'   )
+#' 
+#' # Using tidyselect helpers
+#' spec <- tfl_init(data) |>
+#'   define_cols(starts_with("age"),
+#'     label = "Age-related metric",
+#'     c_format(type = "numeric", format = "%.1f")
+#'   )
+#' 
+#' # Using negation with tidyselect
+#' spec <- tfl_init(data) |>
+#'   define_cols(-id,  # Exclude id column
+#'     isVisible = TRUE
+#'   )
+#' 
+#' # Using column range
+#' spec <- tfl_init(data) |>
+#'   define_cols(age:group,  # All columns from age to group
+#'     labelStyleRef = f_combine("emphasis")
+#'   )
 #' }
 define_cols <- function(spec, cols, ..., 
                         label = NULL, isID = NULL, 
@@ -1446,6 +1672,12 @@ define_cols <- function(spec, cols, ...,
     .isColBreak = .isColBreak, dedupe = dedupe, blankAfter = blankAfter
   )
   
+  # Handle labelStyleRef specially with resolve logic
+  if (!is.null(labelStyleRef)) {
+    resolved_styleref <- ._resolve_style_refs(labelStyleRef, length(cols), "labelStyleRef")
+    params_list$labelStyleRef <- resolved_styleref
+  }
+  
   # Process format modifier from ...
   modifiers <- list(...)
   format_spec <- NULL
@@ -1467,9 +1699,9 @@ define_cols <- function(spec, cols, ...,
     }
   }
   
-  # Validate parameter lengths
+  # Validate parameter lengths (excluding labelStyleRef which is already resolved)
   n_cols <- length(cols)
-  for (pname in param_names) {
+  for (pname in setdiff(param_names, "labelStyleRef")) {
     pval <- params_list[[pname]]
     if (!is.null(pval)) {
       if (length(pval) != 1 && length(pval) != n_cols) {
@@ -1490,7 +1722,12 @@ define_cols <- function(spec, cols, ...,
     for (pname in param_names) {
       pval <- params_list[[pname]]
       if (!is.null(pval)) {
-        col_params[[pname]] <- if (length(pval) == 1) pval else pval[i]
+        # For labelStyleRef, it's already a list from ._resolve_style_refs
+        if (pname == "labelStyleRef") {
+          col_params[[pname]] <- pval[[i]]
+        } else {
+          col_params[[pname]] <- if (length(pval) == 1) pval else pval[i]
+        }
       }
     }
     
@@ -1519,7 +1756,7 @@ define_cols <- function(spec, cols, ...,
 #' @param spec TFL spec object
 #' @param text Character vector of title text lines
 #' @param id Title identifier (auto-generated if NULL)
-#' @param styleRef Style reference for title
+#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' @param order Order of title group (auto-assigned if NULL)
 #' 
 #' @return Updated spec object
@@ -1529,7 +1766,7 @@ define_cols <- function(spec, cols, ...,
 #' \dontrun{
 #' spec <- tfl_spec() |>
 #'   add_title(c("Study ABC-123", "Demographics Table")) |>
-#'   add_title("Full Analysis Set", styleRef = "subtitle_style")
+#'   add_title("Full Analysis Set", styleRef = c("subtitle_style", "emphasis"))
 #' }
 add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
@@ -1564,7 +1801,7 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' @param spec TFL spec object
 #' @param text Character vector of subtitle text lines
 #' @param id Subtitle identifier (auto-generated if NULL)
-#' @param styleRef Style reference for subtitle
+#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' @param order Order of subtitle group (auto-assigned if NULL)
 #' 
 #' @return Updated spec object
@@ -1608,7 +1845,7 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' @param spec TFL spec object
 #' @param text Character vector of footnote text lines
 #' @param id Footnote identifier (auto-generated if NULL)
-#' @param styleRef Style reference for footnote
+#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' @param order Order of footnote group (auto-assigned if NULL)
 #' 
 #' @return Updated spec object
@@ -1618,7 +1855,7 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' \dontrun{
 #' spec <- tfl_spec() |>
 #'   add_footnote("Data source: Clinical database lock 2025-12-01") |>
-#'   add_footnote("Missing values displayed as 'N/A'")
+#'   add_footnote("Missing values displayed as 'N/A'", styleRef = c("footnote_style", "emphasis"))
 #' }
 add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
@@ -1656,7 +1893,7 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' @param spec Spec object (dispatches on class)
 #' @param text Character vector of body text lines
 #' @param id Body text identifier (auto-generated if NULL)
-#' @param styleRef Style reference for body text
+#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' @param order Order of body text group (auto-assigned if NULL)
 #' 
 #' @return Updated spec object
@@ -1666,7 +1903,7 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' \dontrun{
 #' spec <- tfl_spec() |>
 #'   set_document(docType = "Table", hasData = FALSE) |>
-#'   add_body_text("No data available for the specified criteria")
+#'   add_body_text("No data available for the specified criteria", styleRef = c("error_style", "bold"))
 #' }
 add_body_text <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   UseMethod("add_body_text")
@@ -1677,7 +1914,7 @@ add_body_text <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) 
 #' @param spec TFL_spec object
 #' @param text Character vector of body text lines
 #' @param id Body text identifier (auto-generated if NULL)
-#' @param styleRef Style reference for body text
+#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' @param order Order of body text group (auto-assigned if NULL)
 #' @return Updated spec object
 #' @export
@@ -1713,7 +1950,7 @@ add_body_text.TFL_spec <- function(spec, text, id = NULL, styleRef = NULL, order
 #' @param spec TFL_options object
 #' @param text Character vector of body text lines
 #' @param id Body text identifier
-#' @param styleRef Style reference for body text
+#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' @param order Order of body text group
 #' @return Error message
 #' @export
@@ -1729,7 +1966,7 @@ add_body_text.TFL_options <- function(spec, text, id = NULL, styleRef = NULL, or
 #' @param spec Spec object
 #' @param text Character vector of body text lines
 #' @param id Body text identifier
-#' @param styleRef Style reference
+#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' @param order Order
 #' @return Error if no method found
 #' @export
@@ -1925,7 +2162,7 @@ add_footer.default <- function(spec, ...) {
 #' @param label Spanning header label
 #' @param stubOrder Order of stub header (auto-generated if NULL)
 #' @param id Stub column identifier (auto-generated if NULL)
-#' @param labelStyleRef Style reference for stub label
+#' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' 
 #' @return Updated spec object
 #' @export
@@ -1936,7 +2173,8 @@ add_footer.default <- function(spec, ...) {
 #' spec <- tfl_init(data) |>
 #'   add_stub_column(
 #'     cols = c("age", "sex"),
-#'     label = "Demographics"
+#'     label = "Demographics",
+#'     labelStyleRef = c("stub_label_style", "bold")
 #'   )
 #' }
 add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL, 
@@ -2193,6 +2431,59 @@ set_document_style <- function(spec, docTemplate = NULL, page = NULL) {
 #'   
 #' check_spec_consistency(spec)
 #' }
+
+# Internal helper to resolve style references
+# Handles three cases:
+# 1. NULL → list of NULLs
+# 2. Single string or vector from f_combine() → recycled to all columns
+# 3. List of vectors → one-to-one mapping with validation
+._resolve_style_refs <- function(style_refs, num_cols, param_name = "styleRef") {
+  if (is.null(style_refs)) {
+    return(rep(list(NULL), num_cols))
+  }
+  
+  # Case 1: Character vector (single style or f_combine result)
+  if (is.character(style_refs)) {
+    # Recycle to all columns
+    return(rep(list(style_refs), num_cols))
+  }
+  
+  # Case 2: List (assumed to be from f_combine results or explicit mapping)
+  if (is.list(style_refs)) {
+    # Validate all elements are either NULL or character vectors
+    for (i in seq_along(style_refs)) {
+      if (!is.null(style_refs[[i]]) && !is.character(style_refs[[i]])) {
+        cli_abort(c(
+          "Element {i} of {param_name} list must be NULL or character vector",
+          i = "Got: {.cls {class(style_refs[[i]])[1]}}"
+        ))
+      }
+    }
+    
+    # Check if this is a mapping (one element per column) or recycling (one element)
+    if (length(style_refs) == 1) {
+      # Single element - recycle to all columns
+      return(rep(list(style_refs[[1]]), num_cols))
+    } else if (length(style_refs) == num_cols) {
+      # One-to-one mapping
+      return(style_refs)
+    } else {
+      # Length mismatch
+      cli_abort(c(
+        "Length of {param_name} list ({length(style_refs)}) must equal 1 or {num_cols} (number of columns)",
+        i = "For recycling a single mapping, use: {.fn f_combine}(...)",
+        i = "For explicit mapping, provide exactly {num_cols} elements in a list or vector"
+      ))
+    }
+  }
+  
+  # Invalid type
+  cli_abort(c(
+    "{param_name} must be NULL, a character vector, or a list of character vectors",
+    i = "Got: {.cls {class(style_refs)[1]}}"
+  ))
+}
+
 .check_spec_consistency <- function(spec, verbose = TRUE) {
   if (!inherits(spec, "TFL_spec")) {
     cli_abort("Object must be of class 'TFL_spec'")
@@ -2212,11 +2503,22 @@ set_document_style <- function(spec, docTemplate = NULL, page = NULL) {
   # Check style references exist in text groups
   check_style_refs <- function(text_groups, group_name) {
     for (id in names(text_groups)) {
-      style_ref <- text_groups[[id]]$styleRef
-      if (!is.null(style_ref) && !style_ref %in% names(spec$attribs$styles)) {
-        issues <<- c(issues, 
-                     paste0("Style reference '", style_ref, "' in ", group_name, 
-                            " '", id, "' not found in defined styles"))
+      style_refs <- text_groups[[id]]$styleRef
+      if (!is.null(style_refs)) {
+        # Convert to vector if it's a single string (for backwards compatibility)
+        if (!is.list(style_refs) && length(style_refs) == 1 && is.character(style_refs)) {
+          style_refs <- list(style_refs)
+        }
+        # Check each style reference
+        if (is.list(style_refs) || is.character(style_refs)) {
+          for (style_ref in if (is.list(style_refs)) style_refs else list(style_refs)) {
+            if (!is.null(style_ref) && !style_ref %in% names(spec$attribs$styles)) {
+              issues <<- c(issues, 
+                           paste0("Style reference '", style_ref, "' in ", group_name, 
+                                  " '", id, "' not found in defined styles"))
+            }
+          }
+        }
       }
     }
   }
@@ -2229,26 +2531,73 @@ set_document_style <- function(spec, docTemplate = NULL, page = NULL) {
   # Check column style references
   for (col_id in names(spec$columns)) {
     col <- spec$columns[[col_id]]
-    if (!is.null(col$labelStyleRef) && !col$labelStyleRef %in% names(spec$attribs$styles)) {
-      issues <- c(issues, 
-                  paste0("Column label style reference '", col$labelStyleRef, 
-                         "' for column '", col_id, "' not found in defined styles"))
+    
+    # Check labelStyleRef (now array)
+    if (!is.null(col$labelStyleRef)) {
+      label_refs <- if (is.character(col$labelStyleRef) && length(col$labelStyleRef) > 0) {
+        col$labelStyleRef
+      } else if (is.list(col$labelStyleRef)) {
+        unlist(col$labelStyleRef)
+      } else {
+        NULL
+      }
+      
+      if (!is.null(label_refs)) {
+        for (style_ref in label_refs) {
+          if (!style_ref %in% names(spec$attribs$styles)) {
+            issues <- c(issues, 
+                        paste0("Column label style reference '", style_ref, 
+                               "' for column '", col_id, "' not found in defined styles"))
+          }
+        }
+      }
     }
     
-    if (!is.null(col$format$valueStyleRef) && !col$format$valueStyleRef %in% names(spec$attribs$styles)) {
-      issues <- c(issues, 
-                  paste0("Column value style reference '", col$format$valueStyleRef, 
-                         "' for column '", col_id, "' not found in defined styles"))
+    # Check valueStyleRef (now array)
+    if (!is.null(col$format$valueStyleRef)) {
+      value_refs <- if (is.character(col$format$valueStyleRef) && length(col$format$valueStyleRef) > 0) {
+        col$format$valueStyleRef
+      } else if (is.list(col$format$valueStyleRef)) {
+        unlist(col$format$valueStyleRef)
+      } else {
+        NULL
+      }
+      
+      if (!is.null(value_refs)) {
+        for (style_ref in value_refs) {
+          if (!style_ref %in% names(spec$attribs$styles)) {
+            issues <- c(issues, 
+                        paste0("Column value style reference '", style_ref, 
+                               "' for column '", col_id, "' not found in defined styles"))
+          }
+        }
+      }
     }
   }
   
   # Check stub column style references
   for (stub_id in names(spec$stubColumns)) {
     stub <- spec$stubColumns[[stub_id]]
-    if (!is.null(stub$labelStyleRef) && !stub$labelStyleRef %in% names(spec$attribs$styles)) {
-      issues <- c(issues, 
-                  paste0("Stub label style reference '", stub$labelStyleRef, 
-                         "' for stub '", stub_id, "' not found in defined styles"))
+    
+    # Check labelStyleRef (now array)
+    if (!is.null(stub$labelStyleRef)) {
+      label_refs <- if (is.character(stub$labelStyleRef) && length(stub$labelStyleRef) > 0) {
+        stub$labelStyleRef
+      } else if (is.list(stub$labelStyleRef)) {
+        unlist(stub$labelStyleRef)
+      } else {
+        NULL
+      }
+      
+      if (!is.null(label_refs)) {
+        for (style_ref in label_refs) {
+          if (!style_ref %in% names(spec$attribs$styles)) {
+            issues <- c(issues, 
+                        paste0("Stub label style reference '", style_ref, 
+                               "' for stub '", stub_id, "' not found in defined styles"))
+          }
+        }
+      }
     }
   }
   
