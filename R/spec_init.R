@@ -290,6 +290,20 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     }
   }
   
+  # Apply page settings from settings if they exist
+  if (!is.null(settings$page)) {
+    # Need to set class to TFL_spec temporarily to use set_document_style
+    class(spec) <- "TFL_spec"
+    
+    spec <- set_document_style(
+      spec = spec,
+      page = settings$page
+    )
+    
+    # Remove the class again (it will be set properly during tfl_init)
+    class(spec) <- NULL
+  }
+  
   invisible(spec)
 }
 

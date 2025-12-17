@@ -79,9 +79,10 @@ tfl_get_setting <- function(name) {
 #' Provides intelligent detection and routing of settings changes. Accepts either:
 #' - Named direct values: `tfl_set_options(bodyTitles = FALSE, contentWidth = "95%")`
 #' - Settings objects from functions: `tfl_set_options(add_header(c("Title")))`
-#' - Mixed: `tfl_set_options(add_header(...), add_footer(...), add_body_text(...))`
+#' - Page settings: `tfl_set_options(page = s_page(size = "Letter", orientation = "portrait"))`
+#' - Mixed: `tfl_set_options(add_header(...), add_footer(...), page = s_page(...))`
 #'
-#' @param ... Named arguments OR settings objects returned from add_header(), add_footer(), add_body_text()
+#' @param ... Named arguments OR settings objects returned from add_header(), add_footer(), add_body_text(), or page = s_page(...)
 #' @return The updated settings list, returned invisibly.
 #' @export
 tfl_set_options <- function(...) {
@@ -120,18 +121,28 @@ tfl_set_options <- function(...) {
         "add_body_text.TFL_options",
         c(list(spec = .options_env$settings), arg_clean)
       )
-    } else if (is.null(arg_name) || arg_name == "") {
-      # Unnamed argument that is not a special setting object - error
-      cli_warn("Unnamed argument {i} is not recognized as a header/footer/bodyText setting")
-    } else {
+    } else if (!is.null(arg_name) && arg_name != "") {
       # Named argument - validate against known settings
       valid_names <- names(.options_env$settings)
       if (!(arg_name %in% valid_names)) {
-        cli_warn("Unknown setting name: {arg_name}. Skipping.")
+        # Special handling for page parameter
+        if (arg_name == "page") {
+          # Accept page objects from s_page() or plain lists
+          if (inherits(arg, "tfl_page") || is.list(arg)) {
+            .options_env$settings$page <- arg
+          } else {
+            cli_warn("Page parameter must be created with s_page() or be a list")
+          }
+        } else {
+          cli_warn("Unknown setting name: {arg_name}. Skipping.")
+        }
       } else {
         # Direct setting assignment
         .options_env$settings[[arg_name]] <- arg
       }
+    } else if (is.null(arg_name) || arg_name == "") {
+      # Unnamed argument that is not a special setting object - error
+      cli_warn("Unnamed argument {i} is not recognized as a header/footer/bodyText setting")
     }
   }
   

@@ -727,6 +727,51 @@
 #' @param size Page size
 #' @param orientation Page orientation
 #' @param margins Margins specification
+#' Create Page Settings Object
+#'
+#' Creates a page settings object for use with `tfl_set_options()` to configure 
+#' default page properties (size, orientation, margins) for the TFL document.
+#'
+#' @param size Page size: "A4", "Letter", "Legal", "Tabloid", etc.
+#' @param orientation Page orientation: "portrait" or "landscape"
+#' @param margins Optional list with keys: top, bottom, left, right (in inches)
+#'
+#' @return Page settings list that can be passed to `tfl_set_options(page = ...)`
+#'
+#' @examples
+#' \dontrun{
+#' # Set default page to Letter size, landscape orientation
+#' tfl_set_options(page = tfl_page(size = "Letter", orientation = "landscape"))
+#'
+#' # Set page with custom margins
+#' tfl_set_options(page = tfl_page(
+#'   size = "A4",
+#'   orientation = "portrait",
+#'   margins = list(top = 1.0, bottom = 1.0, left = 0.75, right = 0.75)
+#' ))
+#' }
+#'
+#' @export
+tfl_page <- function(size = .const_default_page_size,
+                     orientation = .const_default_page_orientation,
+                     margins = NULL) {
+  .validate_enum(size, .const_page_sizes, "size", "tfl_page")
+  .validate_enum(orientation, .const_page_orientations, "orientation", "tfl_page")
+  
+  # Validate margins keys if provided
+  if (!is.null(margins) && is.list(margins)) {
+    .validate_params(margins, "margins", "tfl_page")
+  }
+  
+  list(size = size, orientation = orientation, margins = margins)
+}
+
+#' Internal page specification builder (for context-based usage)
+#'
+#' @param size Page size
+#' @param orientation Page orientation
+#' @param margins Margins specification
+#'
 #' @return Page specification list
 #' @keywords internal
 .page_spec <- function(size = .const_default_page_size, 
