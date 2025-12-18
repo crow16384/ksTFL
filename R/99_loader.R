@@ -6,17 +6,7 @@
 
 #' @keywords internal
 .onLoad <- function(libname, pkgname) {
-  # Get package version
-  pkg_version <- utils::packageVersion(pkgname)
-  
-  # Display welcome message
-  packageStartupMessage(
-    sprintf(
-      "ksTFL v%s - Clinical TFL Framework\n",
-      pkg_version
-    ),
-      "For help, type: ?create_table"
-  )
+ 
   
   # Initialize package environment if needed
   # (settings are already initialized in pkg_settings.R)
@@ -33,6 +23,18 @@
 .onAttach <- function(libname, pkgname) {
   # Called after package is attached
   # Useful for checking dependencies or system requirements
+   # Get package version
+  pkg_version <- utils::packageVersion(pkgname)
+  
+  # Display welcome message
+  packageStartupMessage(
+    sprintf(
+      "ksTFL v%s - Clinical TFL Framework\n",
+      pkg_version
+    ),
+      "For help, type: ??ksTFL"
+  )
+
   invisible(NULL)
 }
 

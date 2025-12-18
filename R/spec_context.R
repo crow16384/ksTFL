@@ -2318,62 +2318,23 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
   
   params <- list(
     label = label,
-    cols = cols,
     labelStyleRef = labelStyleRef,
-    stubOrder = stubOrder
+    stubOrder = as.integer(stubOrder),
+    cols = as.character(cols)
   )
-  params <- params[!sapply(params, is.null)]
-  
+
+  # Resolve labelStyleRef mapping for the stub (single element expected)
+  if (!is.null(labelStyleRef)) {
+    resolved <- ._resolve_style_refs(labelStyleRef, 1, "labelStyleRef")
+    params$labelStyleRef <- resolved[[1]]
+  }
+
+  # Validate params against schema (stub_column)
   .validate_params(params, "stub_column", "add_stub_column")
-  
-  spec$stubColumns[[id]] <- params
-  
-  spec
-}
 
-#' Add style row definitions
-#' 
-#' Add styling rules for table rows. Each call appends to the list.
-#' 
-#' @param spec TFL spec object
-#' @param ... Character vectors of styling rules
-#' 
-#' @return Updated spec object
-#' 
-#' @examples
-#' \dontrun{
-#' spec <- create_text() |>
-#'   add_style_row("bold", "normal", "bold")
-#' }
-.add_style_row <- function(spec, ...) {
-  assert_class(spec, "TFL_spec")
-  
-  spec$styleRows <- spec$styleRows %||% character()
-  spec$styleRows <- c(spec$styleRows, as.character(c(...)))
-  
-  spec
-}
+  # Merge with existing stub if present
+  spec$stubColumns[[id]] <- .merge_recursive(spec$stubColumns[[id]], params)
 
-#' Add data file references
-#' 
-#' Add references to data files (JSON or image files). Each call appends to the list.
-#' 
-#' @param spec TFL spec object
-#' @param ... Character vectors of file paths
-#' 
-#' @return Updated spec object
-#' 
-#' @examples
-#' \dontrun{
-#' spec <- create_text() |>
-#'   add_data_ref("demographics_data.json", "safety_data.json")
-#' }
-.add_data_ref <- function(spec, ...) {
-  assert_class(spec, "TFL_spec")
-  
-  spec$dataRef <- spec$dataRef %||% character()
-  spec$dataRef <- c(spec$dataRef, as.character(c(...)))
-  
   spec
 }
 
@@ -2871,76 +2832,199 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #' }
 preview_spec <- function(spec, max_levels = 3) {
   if (!inherits(spec, "TFL_spec")) {
-    cli_abort("Object must be of class 'TFL_spec'")
+    cli::cli_abort("Object must be of class 'TFL_spec'")
   }
 
   cli::rule("TFL Specification Preview", line = 2)
-  # Also emit a plain text title to ensure it is captured in all environments/tests
   cli::cli_text("{.strong TFL Specification Preview}")
-  cli::cli_text("{.strong Document Type:} {spec$document$docType %||% '<not set>'}")
-  cli::cli_text("{.strong Has Data:} {ifelse(is.null(spec$document$hasData), '<not set>', ifelse(spec$document$hasData, 'Yes', 'No'))}")
 
-  # Page settings summary
+  doc_type <- if (!is.null(spec$document$docType)) spec$document$docType else "<not set>"
+  has_data <- if (is.null(spec$document$hasData)) "<not set>" else if (isTRUE(spec$document$hasData)) "Yes" else "No"
+  cli::cli_text("{.strong Document Type:} {doc_type}")
+  cli::cli_text("{.strong Has Data:} {has_data}")
+
+  # Page settings
   if (!is.null(spec$attribs$documentStyle$page)) {
     pg <- spec$attribs$documentStyle$page
-    cli::cli_text("{.strong Page settings:} size={pg$size %||% '<default>'}, orientation={pg$orientation %||% '<default>'}")
+    size <- if (!is.null(pg$size)) pg$size else "<default>"
+    orient <- if (!is.null(pg$orientation)) pg$orientation else "<default>"
+    cli::cli_text("{.strong Page settings:} size={size}, orientation={orient}")
   }
 
-  # Titles
-  if (length(spec$titles) > 0) {
+  # Titles and subtitles
+  if (!is.null(spec$titles) && length(spec$titles) > 0) {
     cli::cli_text("{.strong Titles:}")
     cli::cli_ul()
-    for (title in spec$titles) {
-      txt <- paste(title$text, collapse = " ")
-      style <- if (!is.null(title$styleRef)) paste0(" [style: ", title$styleRef, "]") else ""
-      cli::cli_li("[{title$order}] {txt}{style}")
+    for (t in spec$titles) {
+      txt <- paste(t$text, collapse = " ")
+      ord <- t$order %||% "?"
+      # normalize and colourize styleRef when present and non-empty
+      style_vec <- if (is.null(t$styleRef)) character(0) else if (is.list(t$styleRef)) unlist(t$styleRef) else as.character(t$styleRef)
+      style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
+      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", cli::col_green(paste(style_vec, collapse = ",")), "]") else ""
+      cli::cli_li("[{ord}] {txt}{style_ref}")
     }
     cli::cli_end()
   }
 
-  # Columns
-  if (length(spec$columns) > 0) {
-    cli::cli_text("{.strong Columns:} {length(spec$columns)}")
-    n_show <- min(5, length(spec$columns))
-    cols <- names(spec$columns)[1:n_show]
-    cli::cli_text("  {paste(cols, collapse = ', ')}{if (length(spec$columns) > 5) ' ...' else ''}")
+  # Footnotes
+  if (!is.null(spec$footnotes) && length(spec$footnotes) > 0) {
+    cli::cli_text("{.strong Footnotes:}")
+    cli::cli_ul()
+    for (f in spec$footnotes) {
+      txt <- paste(f$text, collapse = " ")
+      ord <- f$order %||% "?"
+      style_vec <- if (is.null(f$styleRef)) character(0) else if (is.list(f$styleRef)) unlist(f$styleRef) else as.character(f$styleRef)
+      style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
+      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", cli::col_green(paste(style_vec, collapse = ",")), "]") else ""
+      cli::cli_li("[{ord}] {txt}{style_ref}")
+    }
+    cli::cli_end()
+  }
+
+  # Body text
+  if (!is.null(spec$bodyText) && length(spec$bodyText) > 0) {
+    cli::cli_text("{.strong Body text:}")
+    cli::cli_ul()
+    for (b in spec$bodyText) {
+      txt <- paste(b$text, collapse = " ")
+      ord <- b$order %||% "?"
+      style_vec <- if (is.null(b$styleRef)) character(0) else if (is.list(b$styleRef)) unlist(b$styleRef) else as.character(b$styleRef)
+      style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
+      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", cli::col_green(paste(style_vec, collapse = ",")), "]") else ""
+      cli::cli_li("[{ord}] {txt}{style_ref}")
+    }
+    cli::cli_end()
+  }
+
+  # Columns: list first N with compact info (flags + format)
+  ncols <- length(spec$columns)
+  if (ncols > 0) {
+    cli::cli_text("{.strong Columns:} {ncols}")
+    n_show <- min(12, ncols)
+    cli::cli_ul()
+    for (cn in names(spec$columns)[1:n_show]) {
+      cs <- spec$columns[[cn]]
+
+      # label (support label or colLabel)
+      lab <- cs$label %||% cs$colLabel %||% ""
+      label_part <- if (nzchar(as.character(lab))) paste0(" - ", cli::col_yellow(as.character(lab))) else ""
+
+      # format: accept list or simple string; also support alternate key c_format
+      fmt_val <- NULL
+      if (!is.null(cs$format)) fmt_val <- cs$format
+      if (is.null(fmt_val) && !is.null(cs$c_format)) fmt_val <- cs$c_format
+      fmt_str <- ""
+      if (!is.null(fmt_val)) {
+        if (is.list(fmt_val)) {
+          ftype <- fmt_val$type %||% ""
+          ffmt <- fmt_val$format %||% ""
+          extras <- character(0)
+          if (!is.null(fmt_val$colWidth)) extras <- c(extras, paste0("colWidth=", fmt_val$colWidth))
+          if (!is.null(fmt_val$missings)) {
+            m <- fmt_val$missings
+            if (is.character(m)) m <- paste0("[", paste(m, collapse = ","), "]")
+            extras <- c(extras, paste0("missings=", m))
+          }
+          if (!is.null(fmt_val$valueStyleRef)) extras <- c(extras, paste0("valueStyle=", paste(fmt_val$valueStyleRef, collapse = ",")))
+
+          core <- if (nzchar(ftype) && nzchar(ffmt)) paste0(ftype, ": ", ffmt) else if (nzchar(ffmt)) ffmt else if (nzchar(ftype)) ftype else ""
+          if (length(extras) > 0) {
+            if (nzchar(core)) fmt_str <- paste0(core, " (", paste(extras, collapse = ", "), ")") else fmt_str <- paste(extras, collapse = ", ")
+          } else {
+            fmt_str <- core
+          }
+        } else if (is.character(fmt_val) && length(fmt_val) == 1) {
+          fmt_str <- fmt_val
+        }
+      }
+      fmt_part <- if (nzchar(fmt_str)) paste0(" [", cli::col_magenta(fmt_str), "]") else ""
+
+      # flags
+      flags <- c()
+      if (!is.null(cs$isID) && isTRUE(cs$isID)) flags <- c(flags, "ID")
+      if (!is.null(cs$isVisible) && isFALSE(cs$isVisible)) flags <- c(flags, "hidden")
+      if (!is.null(cs$isGrouping) && isTRUE(cs$isGrouping)) flags <- c(flags, "group")
+      if (!is.null(cs$isPaging) && isTRUE(cs$isPaging)) flags <- c(flags, "page_break")
+      if (!is.null(cs$isColBreak) && isTRUE(cs$isColBreak)) flags <- c(flags, "col_break")
+      if (!is.null(cs$dedupe) && isTRUE(cs$dedupe)) flags <- c(flags, "dedupe")
+      if (!is.null(cs$blankAfter) && isTRUE(cs$blankAfter)) flags <- c(flags, "blank_after")
+      if (!is.null(cs$labelStyleRef)) flags <- c(flags, paste0("labelStyle=", paste(cs$labelStyleRef, collapse = ",")))
+      # valueStyleRef is shown as part of format; do not duplicate into flags
+      flags_str <- paste(flags, collapse = ",")
+      flags_part <- if (nzchar(flags_str)) paste0(" {", cli::col_green(flags_str), "}") else ""
+
+      name_col <- cli::col_blue(cn)
+      cli::cli_li("{name_col}{label_part}{fmt_part}{flags_part}")
+    }
+    if (ncols > n_show) cli::cli_text("  ... +{ncols - n_show} more columns")
+    cli::cli_end()
   }
 
   # Styles overview
-  if (length(spec$attribs$styles) > 0) {
-    cli::cli_text("{.strong Styles defined:} {length(spec$attribs$styles)}")
+  nstyles <- length(spec$attribs$styles %||% list())
+  if (nstyles > 0) {
+    cli::cli_text("{.strong Styles defined:} {nstyles}")
+    n_show <- min(8, nstyles)
     cli::cli_ul()
-    n_show <- min(5, length(spec$attribs$styles))
     for (sid in names(spec$attribs$styles)[1:n_show]) {
       st <- spec$attribs$styles[[sid]]
-      keys <- names(st)
-      cli::cli_li("{sid} ({paste(keys, collapse = ', ')})")
+      keys <- paste(names(st), collapse = ", ")
+      cli::cli_li("{sid} ({keys})")
     }
+    if (nstyles > n_show) cli::cli_text("  ... +{nstyles - n_show} more styles")
     cli::cli_end()
   }
 
-  # Stub Columns
-  if (length(spec$stubColumns) > 0) {
-    cli::cli_text("{.strong Stub Columns:} {length(spec$stubColumns)}")
+  # Stub columns
+  nstub <- length(spec$stubColumns %||% list())
+  if (nstub > 0) {
+    cli::cli_text("{.strong Stub Columns:} {nstub}")
     cli::cli_ul()
-    for (stub_id in names(spec$stubColumns)) {
-      stub <- spec$stubColumns[[stub_id]]
-      cli::cli_li("[{stub$stubOrder}] {stub$label} ({length(stub$cols)} columns)")
+    for (sid in names(spec$stubColumns)) {
+      s <- spec$stubColumns[[sid]]
+      ord <- s$stubOrder %||% "?"
+      lbl <- s$label %||% ""
+      ncols_stub <- length(s$cols %||% list())
+      cli::cli_li("[{ord}] {lbl} ({ncols_stub} cols)")
     }
     cli::cli_end()
   }
 
-  # Headers/Footers samples
-  if (length(spec$headers) > 0) {
+  # Headers/Footers previews (show first row in a clearer format)
+  if (length(spec$headers %||% list()) > 0) {
     cli::cli_text("{.strong Headers:} {length(spec$headers)} row(s)")
     sample_h <- spec$headers[[1]]
-    cli::cli_text("  Sample: {paste(sample_h, collapse = ' | ')}")
+    # print as labeled row with light color per cell
+    cells <- vapply(sample_h, function(x) {
+      txt <- as.character(x %||% "")
+      if (nzchar(txt)) cli::col_yellow(txt) else ""
+    }, character(1))
+    cli::cli_text("{.strong Header Preview:} {paste(cells, collapse = ' | ')}")
   }
-  if (length(spec$footers) > 0) {
+  if (length(spec$footers %||% list()) > 0) {
     cli::cli_text("{.strong Footers:} {length(spec$footers)} row(s)")
     sample_f <- spec$footers[[1]]
-    cli::cli_text("  Sample: {paste(sample_f, collapse = ' | ')}")
+    cellsf <- vapply(sample_f, function(x) {
+      txt <- as.character(x %||% "")
+      if (nzchar(txt)) cli::col_cyan(txt) else ""
+    }, character(1))
+    cli::cli_text("{.strong Footer Preview:} {paste(cellsf, collapse = ' | ')}")
   }
+
+  # Show up to 3 sample data rows if data present in metadata
+  try({
+    data_env <- spec$.metadata$data_env
+    if (!is.null(data_env) && exists("__data__", envir = data_env)) {
+      df <- get("__data__", envir = data_env)
+      if (is.data.frame(df) && nrow(df) > 0) {
+        cli::cli_text("{.strong Sample data (first 3 rows):}")
+        srows <- utils::head(df, 3)
+        # print as simple table
+        print(srows)
+      }
+    }
+  }, silent = TRUE)
 
   invisible(spec)
 }
