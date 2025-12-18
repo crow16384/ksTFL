@@ -4,7 +4,7 @@ importFrom(checkmate, assert_class, assert_string, assert_character, assert_list
 importFrom(jsonlite, toJSON, fromJSON, read_json, write_json)
 importFrom(purrr, map, map_chr, map_lgl, map_dbl, map_int, keep, discard)
 importFrom(rlang, call_modify, call2, env, eval_bare, enquos, enquo, quo_get_expr, quo_get_env, eval_tidy, is_call, is_symbol, caller_env, new_environment, new_data_mask, expr, enexpr, "%||%")
-importFrom(tidyselect, everything, eval_select)
+importFrom(tidyselect, everything, eval_select, all_of)
 importFrom(utils, packageVersion, modifyList)
 
 # Export only public functions (those marked with @export in documentation)

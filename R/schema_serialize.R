@@ -28,7 +28,6 @@
 #'
 #' @return Parsed schema as R list
 #' @keywords internal
-#' @noRd
 .load_schema <- function(schema_path) {
   # Normalize path for consistent caching
   schema_path <- normalizePath(schema_path, mustWork = FALSE)
@@ -319,8 +318,6 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #' @return Processed data structure (not JSON string)
 #'
 #' @keywords internal
-#' @noRd
-#'
 #' @examples
 #' \dontrun{
 #' # Simple schema and data
@@ -557,17 +554,6 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   schema
 }
 
-#' Deep Merge Two Lists
-#'
-#' @description Recursively merge two lists. Values from `b` override `a`.
-#' Uses the `.merge_recursive()` function from utility_functions.R
-#'
-#' @details See `.merge_recursive()` in utility_functions.R for implementation
-#'
-#' @keywords internal
-#' @noRd
-# Note: Implementation moved to utility_functions.R as .merge_recursive()
-# This maintains backward compatibility while consolidating merge logic
 
 ################################################################################
 # Type Matching and Coercion

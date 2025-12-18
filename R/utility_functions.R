@@ -2,6 +2,16 @@
 ## Utility functions used internally in the ksTFL package
 ##==================================================================
 
+
+utils::globalVariables(
+  c(
+    "__data__",
+    "__mask__",
+    "spec",
+    "get_names", "row_number"
+  )
+)
+
 #' Check if Input is a Readable File Path
 #'
 #' Validates that input is a character string pointing to an existing,
@@ -76,9 +86,11 @@
 #' @return Character. Unique identifier in format "<prefix><NNNN>" where N are digits.
 #'
 #' @examples
+#' \dontrun{
 #' # Internal utility examples (not exported):
 #' .auto_id("style_", list())           # -> "style_0001"
 #' .auto_id("style_", list(style_0001 = 1, style_0003 = 3)) # -> "style_0002"
+#' }
 #'
 #' @keywords internal
 .auto_id <- function(prefix, existing_list) {
@@ -126,10 +138,19 @@
 }
 
 ## Internal: generate a stable hash from any number of R objects
+#' Generate a stable short hash for arbitrary R objects
+#'
+#' Useful for creating reproducible identifiers from R objects used in caching
+#' or metadata hashes internal to the package.
+#'
+#' @param ... R objects to include in the hash
+#' @return Character scalar of the first 16 hex characters of the hash
 #' @keywords internal
-#' @examples 
+#' @examples
+#' \dontrun{
 #' .generate_hash('a', 1, TRUE)
-  .generate_hash <- function(...) {
+#' }
+.generate_hash <- function(...) {
   h <- digest::digest(
     list(...),
     algo = "xxhash64",
@@ -138,3 +159,5 @@
   
   substr(h, 1, 16)
 }
+
+

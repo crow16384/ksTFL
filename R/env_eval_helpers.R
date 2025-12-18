@@ -1,3 +1,6 @@
+#' @importFrom tidyselect all_of
+NULL
+
 #' Create a Data Evaluation Environment
 #'
 #' Initialize a working environment where expressions can be evaluated in the context

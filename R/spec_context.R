@@ -3,7 +3,7 @@
 # Utilities for managing spec-schema function call contexts during TFL spec building
 #=============================================================================
 
-#' @importFrom rlang enquos quo_get_expr call_name call_args eval_tidy is_call call2 env eval_bare
+#' @importFrom rlang enquos enquo call2 quo_get_expr call_name call_args eval_tidy is_call call2 env eval_bare
 #' @importFrom jsonlite toJSON
 #' @importFrom utils modifyList
 #' @importFrom checkmate assert_class assert_string assert_character assert_list
@@ -1464,6 +1464,7 @@ add_style.default <- function(spec, id = NULL, ...) {
 #' @export
 #' 
 #' @examples
+#' \dontrun{
 #' # Combine styles for recycling to all columns
 #' styles <- f_combine("label_style", "emphasis", "bold")
 #' 
@@ -1475,6 +1476,7 @@ add_style.default <- function(spec, id = NULL, ...) {
 #'       f_combine("numeric_label")
 #'     )
 #'   )
+#' }
 f_combine <- function(...) {
   styles <- list(...)
   
@@ -1545,7 +1547,6 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'     \item Helper functions: \code{starts_with("age_")}, \code{contains("_pct")}
 #'     \item Negation: \code{-id} or \code{!matches("^temp")}
 #'   }
-#' @param colOrder Position of column (length 1 or length of cols)
 #' @param label Column label (length 1 or length of cols)
 #' @param isID Whether column is identifier (length 1 or length of cols)
 #' @param isVisible Whether column is visible (length 1 or length of cols)
@@ -2036,6 +2037,7 @@ add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL,
 #' 
 #' @param spec Spec object (dispatches on class)
 #' @param ... Up to 3 character strings (left, center, right)
+#' @param level Optional numeric index. If provided, replaces header at that row. If NULL, appends next row.
 #' 
 #' @return Updated spec object
 #' @export
@@ -2579,27 +2581,21 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
   spec
 }
 
-#' Validate TFL specification for consistency
-#' 
-#' Performs additional consistency checks beyond schema validation.
-#' 
-#' @param spec TFL spec object
-#' @param verbose Whether to show validation details
-#' @return Logical indicating if all checks passed
-#' 
-#' @examples
-#' \dontrun{
-#' spec <- create_text() |>
-#'   set_document(docType = "Table", hasData = TRUE)
-#'   
-#' check_spec_consistency(spec)
+#' Resolve styleRef-like inputs into a list matching number of columns
+#'
+#' Internal helper used by column/label style resolution.
+#'
+#' @details
+#' \itemize{
+#'   \item NULL: returns a list of NULLs
+#'   \item Character vector: recycled to all columns
+#'   \item List of character vectors: returned as-is when length == num_cols or recycled when length == 1
 #' }
-
-# Internal helper to resolve style references
-# Handles three cases:
-# 1. NULL → list of NULLs
-# 2. Single string or vector from f_combine() → recycled to all columns
-# 3. List of vectors → one-to-one mapping with validation
+#'
+#' @param style_refs NULL, character vector, or list of character vectors
+#' @param num_cols Integer number of columns to expand/recycle to
+#' @param param_name Parameter name used in error messages (default: "styleRef")
+#' @keywords internal
 ._resolve_style_refs <- function(style_refs, num_cols, param_name = "styleRef") {
   if (is.null(style_refs)) {
     return(rep(list(NULL), num_cols))
@@ -2647,6 +2643,21 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
   ))
 }
 
+#' Validate TFL specification for consistency
+#' 
+#' Performs additional consistency checks beyond schema validation.
+#' 
+#' @param spec TFL spec object
+#' @param verbose Whether to show validation details
+#' @return Logical indicating if all checks passed
+#' 
+#' @examples
+#' \dontrun{
+#' spec <- create_text() |>
+#'   set_document(docType = "Table", hasData = TRUE)
+#'   
+#' check_spec_consistency(spec)
+#' }
 .check_spec_consistency <- function(spec, verbose = TRUE) {
   if (!inherits(spec, "TFL_spec")) {
     cli_abort("Object must be of class 'TFL_spec'")

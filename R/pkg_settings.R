@@ -50,8 +50,10 @@
 #' @return A named list representing the current ksTFL options.
 #'
 #' @examples
+#' \dontrun{
 #' # Inspect all current settings
 #' tfl_get_options()
+#' }
 #'
 #' @export
 tfl_get_options <- function() {
@@ -69,8 +71,10 @@ tfl_get_options <- function() {
 #' @return The value associated with `name` (type depends on the option).
 #'
 #' @examples
+#' \dontrun{
 #' # Get the current page settings
 #' tfl_get_option("page")
+#' }
 #'
 #' @export
 tfl_get_option <- function(name) {
@@ -108,11 +112,13 @@ tfl_get_option <- function(name) {
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
 #'
 #' @examples
+#' \dontrun{
 #' # Set a named option
 #' tfl_set_options(bodyTitles = FALSE, contentWidth = "95%")
 #'
 #' # Update page style via helper
 #' # tfl_set_options(page = p_page(size = "Letter", orientation = "portrait"))
+#' }
 #'
 #' @export
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,

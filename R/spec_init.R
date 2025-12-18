@@ -283,16 +283,16 @@
 #' @param existing_entries List of existing body text entries (to find next available ID)
 #'
 #' @return Character string like "__default_001", "__default_002", etc.
-#'
-#' @examples
-#' # No existing defaults -> __default_001
-#' .generate_default_bodytext_id()
-#'
-#' # With existing default IDs
-#' .generate_default_bodytext_id(list(__default_001 = list(), __default_002 = list()))
-#' # -> "__default_003"
-#'
-#' @keywords internal
+#
+# @examples
+# # No existing defaults -> `__default_001`
+# .generate_default_bodytext_id()
+#
+# # With existing default IDs
+# .generate_default_bodytext_id(list(`__default_001` = list(), `__default_002` = list()))
+# # -> "__default_003"
+#
+# @keywords internal
 .generate_default_bodytext_id <- function(existing_entries = NULL) {
   # Find all existing default IDs
   default_ids <- if (!is.null(existing_entries)) {
@@ -496,11 +496,13 @@
 #' @return A `TFL_spec` object with `docType = "Text"`.
 #'
 #' @examples
+#' \dontrun{
 #' ## Create a simple text spec
 #' spec <- create_text()
 #'
 #' ## With a prefix
 #' spec <- create_text(docPrefix = "Text 1.1")
+#' }
 #'
 #' @export
 create_text <- function(docPrefix = NULL, id = NULL) {
@@ -524,6 +526,7 @@ create_text <- function(docPrefix = NULL, id = NULL) {
 #' @return A `TFL_spec` object with `docType = "Table"`.
 #'
 #' @examples
+#' \dontrun{
 #' ## Basic usage with the built-in `mtcars` dataset
 #' spec <- create_table(mtcars)
 #'
@@ -532,6 +535,7 @@ create_text <- function(docPrefix = NULL, id = NULL) {
 #'
 #' ## Or by names
 #' spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
+#' }
 #'
 #' @export
 create_table <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL) {
@@ -555,8 +559,10 @@ create_table <- function(data = NULL, cols = everything(), docPrefix = NULL, id 
 #'   to the provided file path.
 #'
 #' @examples
+#' \dontrun{
 #' ## Create a figure spec from a local PNG
 #' spec <- create_figure("inst/images/example.png")
+#' }
 #'
 #' @export
 create_figure <- function(filepath, docPrefix = NULL, id = NULL) {
