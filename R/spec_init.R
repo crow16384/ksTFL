@@ -49,7 +49,7 @@
     spec$document$hasData <- FALSE
     spec$document$columns <- NULL
     spec$document$stubColumns <- NULL
-    spec$document$dataRef <- list(data)
+    spec$.metadata$filePath <- normalizePath(file.path(data), winslash = "/", mustWork = FALSE)
     class(spec) <- "TFL_spec"
     spec$.metadata$hash <- .generate_hash(spec)
     return(spec)

@@ -6,7 +6,7 @@
 ## Architecture & Data Flow
 
 ### Core Spec Structure
-The heart of ksTFL is the spec object (`TFL_spec`), initialized by `tfl_init()` and defined in [constants.R](R/constants.R). It contains:
+The heart of ksTFL is the spec object (`TFL_spec`), initialized by `tfl_init()` using user-faced wrappers create_table, create_text, create_figure and defined in [constants.R](R/constants.R). It contains:
 - `document`: metadata (docType, hasData, titles, footers, etc.)
 - `columns`: column definitions with formats and labels. columns are auto-detected for Tables from data frame input.
 - `styleRows`, `styles`: styling specifications. `styleRows` is still TO DO.
