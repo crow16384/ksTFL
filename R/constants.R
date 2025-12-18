@@ -236,6 +236,45 @@
 
 
 # ============================================================
+# JSON SCHEMA CONSTANTS
+# ============================================================
+
+#' JSON Schema type keywords
+.const_schema_types <- c("string", "number", "integer", "boolean", "array", "object", "null")
+
+#' JSON Schema keywords
+.const_schema_keywords <- list(
+  ref = "$ref",
+  defs = "$defs",
+  type = "type",
+  properties = "properties",
+  items = "items",
+  enum = "enum",
+  pattern = "pattern",
+  const = "const",
+  allOf = "allOf",
+  oneOf = "oneOf",
+  anyOf = "anyOf",
+  additionalProperties = "additionalProperties",
+  patternProperties = "patternProperties"
+)
+
+#' JSON Pointer reference prefix
+.const_json_pointer_prefix <- "#/"
+
+#' JSON Pointer escape mappings
+.const_json_pointer_escapes <- list(
+  tilde_char = "~",
+  tilde_escape = "~0",
+  slash_char = "/",
+  slash_escape = "~1"
+)
+
+#' Schema directories in package
+.const_schemas_dir <- "schemas"
+
+
+# ============================================================
 # PACKAGE OPTIONS MANAGEMENT
 # ============================================================
 

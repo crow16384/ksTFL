@@ -71,6 +71,163 @@ clear_schema_cache <- function() {
 
 
 ################################################################################
+# Internal Helper Functions
+################################################################################
+
+#' Get Schema File Path from Package Resources
+#'
+#' @description Resolves a schema file name to its full path in package resources.
+#' Validates that the file exists.
+#'
+#' @param schema_name Name of the schema file (e.g., from constants)
+#'
+#' @return Full path to schema file
+#'
+#' @keywords internal
+#' @noRd
+.get_schema_file_path <- function(schema_name) {
+  checkmate::assert_string(schema_name)
+  
+  schema_file <- system.file(
+    .const_schemas_dir,
+    schema_name,
+    package = "ksTFL"
+  )
+  
+  if (schema_file == "") {
+    cli::cli_abort(
+      c(
+        "Schema file not found in package resources",
+        i = "Looking for: {.emph {schema_name}}"
+      )
+    )
+  }
+  
+  schema_file
+}
+
+#' Normalize JSON Pointer Path Tokens
+#'
+#' @description Builds JSON Pointer path from tokens with proper escaping.
+#' Handles root path and nested keys.
+#'
+#' @param tokens Character vector of tokens to join
+#' @param is_root Logical. If TRUE, path starts empty; otherwise uses root "/"
+#'
+#' @return Character string of JSON Pointer path
+#'
+#' @keywords internal
+#' @noRd
+.normalize_json_pointer_path <- function(tokens, is_root = TRUE) {
+  if (length(tokens) == 0) return(if (is_root) "" else "/")
+  
+  # Escape each token
+  escaped <- vapply(tokens, .json_pointer_escape, character(1), USE.NAMES = FALSE)
+  
+  # Join with "/" prefix
+  if (is_root) {
+    paste0("/", paste(escaped, collapse = "/"))
+  } else {
+    paste(escaped, collapse = "/")
+  }
+}
+
+#' Validate and Normalize Schema Input
+#'
+#' @description Ensures schema is either a valid list or a path to a schema file.
+#' Loads file if path provided. Uses cache for efficiency.
+#'
+#' @param schema Schema as R list or file path (character)
+#'
+#' @return Parsed schema as R list
+#'
+#' @keywords internal
+#' @noRd
+.validate_schema_input <- function(schema) {
+  if (missing(schema) || is.null(schema)) {
+    cli::cli_abort("schema must be provided as R list or JSON file path")
+  }
+  
+  # If character path, load from file
+  if (is.character(schema)) {
+    checkmate::assert_string(schema, .var.name = "schema")
+    
+    if (!file.exists(schema)) {
+      cli::cli_abort(
+        c(
+          "Schema file not found",
+          x = "Path: {.file {schema}}"
+        )
+      )
+    }
+    
+    tryCatch({
+      schema <- .load_schema(schema)
+    }, error = function(e) {
+      cli::cli_abort(
+        c(
+          "Failed to parse schema file",
+          x = "Error: {e$message}"
+        )
+      )
+    })
+  }
+  
+  # Validate it's a list
+  if (!is.list(schema)) {
+    cli::cli_abort("schema must be R list or valid file path")
+  }
+  
+  # Validate as list structure
+  checkmate::assert_list(schema, .var.name = "schema")
+  
+  schema
+}
+
+#' Check if Schema Has Combinator
+#'
+#' @description Tests if schema has oneOf or anyOf combinators
+#'
+#' @param schema Schema fragment
+#' @param combinator Type of combinator: "any" (both), "one" (oneOf), or "any" (anyOf)
+#'
+#' @return Logical TRUE/FALSE or character string for "any" mode
+#'
+#' @keywords internal
+#' @noRd
+.has_combinator <- function(schema, combinator = "any") {
+  if (!is.list(schema)) return(FALSE)
+  
+  has_any_of <- !is.null(schema[[.const_schema_keywords$anyOf]])
+  has_one_of <- !is.null(schema[[.const_schema_keywords$oneOf]])
+  
+  switch(combinator,
+    "any" = has_any_of || has_one_of,
+    "one" = has_one_of,
+    "anyOf" = has_any_of,
+    FALSE
+  )
+}
+
+#' Get Combinator Variants
+#'
+#' @description Extracts oneOf or anyOf variants from schema
+#'
+#' @param schema Schema with combinators
+#'
+#' @return List of variant schemas, or NULL if no combinators
+#'
+#' @keywords internal
+#' @noRd
+.get_combinator_variants <- function(schema) {
+  if (!is.list(schema)) return(NULL)
+  
+  schema[[.const_schema_keywords$anyOf]] %||% 
+    schema[[.const_schema_keywords$oneOf]]
+}
+
+
+################################################################################
 # Public API
 ################################################################################
 
@@ -118,20 +275,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   }
 
   # Get schema file path from package resources
-  schema_file <- system.file(
-    "schemas",
-    .const_spec_schema_file,
-    package = "ksTFL"
-  )
-
-  if (schema_file == "") {
-    cli::cli_abort(
-      c(
-        "Schema file not found in package resources",
-        i = "Looking for: {.const_spec_schema_file}"
-      )
-    )
-  }
+  schema_file <- .get_schema_file_path(.const_spec_schema_file)
 
   # Process the spec using internal serialization function
   fixed <- .serialize_json_internal(
@@ -192,28 +336,8 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #' fixed <- .serialize_json_internal(data, schema)
 #' }
 .serialize_json_internal <- function(data, schema, enforce_additional_properties = FALSE) {
-  if (missing(schema) || is.null(schema)) {
-    cli::cli_abort("schema must be provided as R list or JSON file path")
-  }
-  
-  # Handle schema input: R list or file path
-  if (is.character(schema) && length(schema) == 1) {
-    if (!file.exists(schema)) {
-      cli::cli_abort(sprintf("Schema file not found: {schema}"))
-    }
-    
-    # Use cached loader
-    tryCatch({
-      schema <- .load_schema(schema)
-    }, error = function(e) {
-      cli::cli_abort(sprintf("Failed to parse schema file: {e$message}"))
-    })
-  } else if (!is.list(schema)) {
-    cli::cli_abort("schema must be R list or JSON file path")
-  }
-  
-  # Validate JSON schema
-  checkmate::assert_list(schema)
+  # Validate and normalize schema input using helper
+  schema <- .validate_schema_input(schema)
   
   # Resolve schema references
   schema_resolved <- .resolve_refs(schema)
@@ -235,15 +359,15 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #' so auto_unbox won't convert length-1 arrays to scalars
 #' @keywords internal
 #' @noRd
-.protect_arrays <- function(data, schema, root_schema = NULL, debug_path = "") {
+.protect_arrays <- function(data, schema, root_schema = NULL) {
   if (is.null(schema) || is.null(data)) return(data)
   
   # Use schema as root if not provided
   if (is.null(root_schema)) root_schema <- schema
   
   # Handle combinators - select the matching variant
-  if (!is.null(schema$anyOf) || !is.null(schema$oneOf)) {
-    variants <- if (!is.null(schema$anyOf)) schema$anyOf else schema$oneOf
+  if (.has_combinator(schema)) {
+    variants <- .get_combinator_variants(schema)
     
     # Find matching variant based on type discriminator
     if (is.list(data) && !is.null(data$type) && is.character(data$type)) {
@@ -251,13 +375,14 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
         variant <- variants[[i]]
         
         # Resolve $ref if present
-        if (!is.null(variant$`$ref`)) {
+        if (!is.null(variant[[.const_schema_keywords$ref]])) {
           variant <- .resolve_refs(variant, root_schema)
         }
         
         # Check if this variant's type.const matches data$type
-        type_schema <- variant$properties$type
-        if (!is.null(type_schema$const) && type_schema$const == data$type) {
+        type_schema <- variant[[.const_schema_keywords$properties]][[.const_schema_keywords$type]]
+        if (!is.null(type_schema[[.const_schema_keywords$const]]) && 
+            type_schema[[.const_schema_keywords$const]] == data$type) {
           schema <- variant
           break
         }
@@ -265,16 +390,16 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     }
     
     # If still has combinators after matching, use first variant as fallback
-    if (!is.null(schema$anyOf) || !is.null(schema$oneOf)) {
+    if (.has_combinator(schema)) {
       variant <- variants[[1]]
-      if (!is.null(variant$`$ref`)) {
+      if (!is.null(variant[[.const_schema_keywords$ref]])) {
         variant <- .resolve_refs(variant, root_schema)
       }
       schema <- variant
     }
   }
   
-  schema_type <- schema$type
+  schema_type <- schema[[.const_schema_keywords$type]]
   if (is.null(schema_type)) return(data)
   
   # If schema says array, wrap with AsIs to prevent unboxing
@@ -284,9 +409,9 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     }
     
     # Process array items recursively
-    if (!is.null(schema$items)) {
+    if (!is.null(schema[[.const_schema_keywords$items]])) {
       data <- lapply(seq_along(data), function(i) {
-        .protect_arrays(data[[i]], schema$items, root_schema, paste0(debug_path, "/", i-1))
+        .protect_arrays(data[[i]], schema[[.const_schema_keywords$items]], root_schema)
       })
     }
     
@@ -298,11 +423,11 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   if ("object" %in% schema_type) {
     if (!is.list(data)) return(data)
     
-    props <- schema$properties
+    props <- schema[[.const_schema_keywords$properties]]
     if (!is.null(props)) {
       for (p in names(props)) {
         if (!is.null(data[[p]])) {
-          data[[p]] <- .protect_arrays(data[[p]], props[[p]], root_schema, paste0(debug_path, "/", p))
+          data[[p]] <- .protect_arrays(data[[p]], props[[p]], root_schema)
         }
       }
     }
@@ -352,8 +477,9 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   if (!is.list(schema)) return(schema)
   
   # Handle $ref at this level
-  if (!is.null(schema$`$ref`)) {
-    ref <- schema$`$ref`
+  ref_key <- .const_schema_keywords$ref
+  if (!is.null(schema[[ref_key]])) {
+    ref <- schema[[ref_key]]
     
     # Check cache first
     if (exists(ref, envir = cache, inherits = FALSE)) {
@@ -361,13 +487,18 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     }
     
     # Resolve internal reference
-    if (startsWith(ref, "#/")) {
-      path_tokens <- strsplit(sub("^#/", "", ref), "/")[[1]]
+    if (startsWith(ref, .const_json_pointer_prefix)) {
+      path_tokens <- strsplit(sub(paste0("^", .const_json_pointer_prefix), "", ref), "/")[[1]]
       node <- root
       
       for (p in path_tokens) {
         if (is.null(node[[p]])) {
-          cli::cli_abort(sprintf("Reference '{ref}' not found in schema"))
+          cli::cli_abort(
+            c(
+              "Schema reference not found",
+              x = "Reference: {.field {ref}}"
+            )
+          )
         }
         node <- node[[p]]
       }
@@ -376,7 +507,12 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
       assign(ref, resolved, envir = cache)
       return(resolved)
     } else {
-      cli::cli_abort("External $ref not supported (only internal '#/...' refs)")
+      cli::cli_abort(
+        c(
+          "External schema references not supported",
+          i = "Only internal references (starting with '#/') are allowed"
+        )
+      )
     }
   }
   
@@ -402,13 +538,14 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 .resolve_allOf <- function(schema) {
   if (!is.list(schema)) return(schema)
   
-  if (!is.null(schema$allOf)) {
+  allOf_key <- .const_schema_keywords$allOf
+  if (!is.null(schema[[allOf_key]])) {
     merged <- list()
-    for (sub in schema$allOf) {
-      merged <- .deep_merge(merged, .resolve_allOf(sub))
+    for (sub in schema[[allOf_key]]) {
+      merged <- .merge_recursive(merged, .resolve_allOf(sub))
     }
-    schema$allOf <- NULL
-    schema <- .deep_merge(schema, merged)
+    schema[[allOf_key]] <- NULL
+    schema <- .merge_recursive(schema, merged)
   }
   
   # Recurse into nested structures
@@ -423,29 +560,14 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #' Deep Merge Two Lists
 #'
 #' @description Recursively merge two lists. Values from `b` override `a`.
+#' Uses the `.merge_recursive()` function from utility_functions.R
 #'
-#' @param a Base list
-#' @param b Override list
-#'
-#' @return Merged list
+#' @details See `.merge_recursive()` in utility_functions.R for implementation
 #'
 #' @keywords internal
 #' @noRd
-.deep_merge <- function(a, b) {
-  if (is.null(a)) return(b)
-  if (is.null(b)) return(a)
-  
-  for (k in names(b)) {
-    if (k %in% names(a) &&
-        is.list(a[[k]]) && is.list(b[[k]]) &&
-        !is.null(names(a[[k]]))) {
-      a[[k]] <- .deep_merge(a[[k]], b[[k]])
-    } else {
-      a[[k]] <- b[[k]]
-    }
-  }
-  a
-}
+# Note: Implementation moved to utility_functions.R as .merge_recursive()
+# This maintains backward compatibility while consolidating merge logic
 
 ################################################################################
 # Type Matching and Coercion
@@ -499,13 +621,12 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #'
 #' @param value R value to coerce
 #' @param type_decl Type(s) from schema
-#' @param path JSON Pointer path for error reporting
 #'
 #' @return Coerced value
 #'
 #' @keywords internal
 #' @noRd
-.coerce_value <- function(value, type_decl, path = "") {
+.coerce_value <- function(value, type_decl) {
   if (is.null(type_decl)) return(value)
   
   types <- if (is.character(type_decl)) type_decl else as.character(type_decl)
@@ -517,7 +638,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   prims <- setdiff(types, "null")
   if (length(prims) == 0) {
     if (is.null(value)) return(NULL)
-    cli::cli_abort("Value must be null per schema")
+    cli::cli_abort("Value must be null per schema definition")
   }
   
   primary <- prims[1]
@@ -530,7 +651,10 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   if (primary == "number") {
     v <- suppressWarnings(as.numeric(value))
     if (is.na(v) && !is.nan(v)) {
-      cli::cli_abort(sprintf("Cannot coerce '{as.character(value)}' to number"))
+      cli::cli_abort(c(
+        "Cannot coerce to number",
+        x = "Value: {.val {value}}"
+      ))
     }
     return(v)
   }
@@ -538,7 +662,10 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   if (primary == "integer") {
     v <- suppressWarnings(as.integer(value))
     if (is.na(v)) {
-      cli::cli_abort(sprintf("Cannot coerce '{as.character(value)}' to integer"))
+      cli::cli_abort(c(
+        "Cannot coerce to integer",
+        x = "Value: {.val {value}}"
+      ))
     }
     return(v)
   }
@@ -549,12 +676,18 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
       lv <- tolower(value)
       if (lv %in% c("true", "1")) return(TRUE)
       if (lv %in% c("false", "0")) return(FALSE)
-      cli::cli_abort(sprintf("Cannot coerce string '{value}' to boolean"))
+      cli::cli_abort(c(
+        "Cannot coerce string to boolean",
+        x = "Value: {.val {value}}"
+      ))
     }
     if (is.numeric(value)) {
       if (value == 1) return(TRUE)
       if (value == 0) return(FALSE)
-      cli::cli_abort(sprintf("Cannot coerce numeric {value} to boolean"))
+      cli::cli_abort(c(
+        "Cannot coerce numeric to boolean",
+        x = "Value: {.val {value}}"
+      ))
     }
   }
   
@@ -619,19 +752,23 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #'
 #' @param value Value to check
 #' @param schema Schema fragment with pattern field
-#' @param path JSON Pointer for errors
 #'
 #' @return Value if matches pattern
 #'
 #' @keywords internal
 #' @noRd
-.check_pattern <- function(value, schema, path = "") {
-  if (is.null(schema$pattern)) return(value)
+.check_pattern <- function(value, schema) {
+  pattern_key <- .const_schema_keywords$pattern
+  if (is.null(schema[[pattern_key]])) return(value)
   if (is.null(value) || !is.character(value)) return(value)
   
-  rx <- schema$pattern
+  rx <- schema[[pattern_key]]
   if (!grepl(rx, value, perl = TRUE)) {
-    cli::cli_abort(sprintf("Value '%s' doesn't match pattern /%s/", value, rx))
+    cli::cli_abort(c(
+      "Value does not match required pattern",
+      x = "Value: {.val {value}}",
+      i = "Pattern: /{rx}/"
+    ))
   }
   value
 }
@@ -642,27 +779,21 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #'
 #' @param data Named list
 #' @param schema Schema with patternProperties
-#' @param path JSON Pointer path
 #' @param enforce_additional_properties Logical flag
 #'
 #' @return Transformed data
 #'
 #' @keywords internal
 #' @noRd
-.apply_pattern_properties <- function(data, schema, path = "", 
-                                       enforce_additional_properties = FALSE) {
-  if (is.null(schema$patternProperties) || is.null(names(data))) return(data)
+.apply_pattern_properties <- function(data, schema, enforce_additional_properties = FALSE) {
+  pattern_props_key <- .const_schema_keywords$patternProperties
+  if (is.null(schema[[pattern_props_key]]) || is.null(names(data))) return(data)
   
   for (key in names(data)) {
-    for (rx in names(schema$patternProperties)) {
+    for (rx in names(schema[[pattern_props_key]])) {
       if (grepl(rx, key, perl = TRUE)) {
-        subschema <- schema$patternProperties[[rx]]
-        subpath <- if (identical(path, "") || is.null(path)) {
-          paste0("/", .json_pointer_escape(key))
-        } else {
-          paste0(path, "/", .json_pointer_escape(key))
-        }
-        data[[key]] <- .fix_types(data[[key]], subschema, path = subpath,
+        subschema <- schema[[pattern_props_key]][[rx]]
+        data[[key]] <- .fix_types(data[[key]], subschema,
                                   enforce_additional_properties = enforce_additional_properties)
       }
     }
@@ -678,41 +809,46 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #'
 #' @param value Value to test
 #' @param schema Schema with combinator
-#' @param path JSON Pointer for errors
 #'
 #' @return Integer index (1-based) of matching variant
 #'
 #' @keywords internal
 #' @noRd
-.resolve_combinator_type <- function(value, schema, path = "") {
-  one_of <- !is.null(schema$oneOf)
-  any_of <- !is.null(schema$anyOf)
+.resolve_combinator_type <- function(value, schema) {
+  one_of <- !is.null(schema[[.const_schema_keywords$oneOf]])
+  any_of <- !is.null(schema[[.const_schema_keywords$anyOf]])
   
   if (!one_of && !any_of) {
-    cli::cli_abort("resolve_combinator_type called without oneOf/anyOf")
+    cli::cli_abort(c(
+      "Invalid schema: missing combinators",
+      i = "Expected oneOf or anyOf"
+    ))
   }
   
-  variants <- if (one_of) schema$oneOf else schema$anyOf
+  variants <- if (one_of) schema[[.const_schema_keywords$oneOf]] else schema[[.const_schema_keywords$anyOf]]
   matches <- logical(length(variants))
   
   for (i in seq_along(variants)) {
     subs <- variants[[i]]
-    matches[i] <- if (!is.null(subs$type)) {
-      tryCatch(.match_type(value, subs$type), error = function(e) FALSE)
+    type_key <- .const_schema_keywords$type
+    enum_key <- .const_schema_keywords$enum
+    
+    matches[i] <- if (!is.null(subs[[type_key]])) {
+      tryCatch(.match_type(value, subs[[type_key]]), error = function(e) FALSE)
     } else {
       TRUE
     }
     
     # Check enum constraint
-    if (matches[i] && !is.null(subs$enum)) {
+    if (matches[i] && !is.null(subs[[enum_key]])) {
       vco <- tryCatch({
-        if (!is.null(subs$type) && length(setdiff(subs$type, "null")) > 0 && !is.null(value)) {
-          .coerce_value(value, subs$type, path)
+        if (!is.null(subs[[type_key]]) && length(setdiff(subs[[type_key]], "null")) > 0 && !is.null(value)) {
+          .coerce_value(value, subs[[type_key]])
         } else {
           value
         }
       }, error = function(e) value)
-      if (!(vco %in% subs$enum)) matches[i] <- FALSE
+      if (!(vco %in% subs[[enum_key]])) matches[i] <- FALSE
     }
   }
   
@@ -721,14 +857,17 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   if (one_of) {
     if (length(match_idx) == 1) return(match_idx)
     if (length(match_idx) == 0) {
-      cli::cli_abort("Value doesn't match any oneOf subschema")
+      cli::cli_abort("Value does not match any schema in oneOf")
     }
-    cli::cli_abort("Value matches multiple oneOf subschemas (ambiguous)")
+    cli::cli_abort(c(
+      "Ambiguous value",
+      i = "Value matches multiple schemas in oneOf"
+    ))
   }
   
   if (any_of) {
     if (length(match_idx) == 0) {
-      cli::cli_abort("Value doesn't match any anyOf subschema")
+      cli::cli_abort("Value does not match any schema in anyOf")
     }
     return(match_idx[1])
   }
@@ -760,7 +899,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   
   # Handle combinators
   if (!is.null(schema$oneOf) || !is.null(schema$anyOf)) {
-    idx <- .resolve_combinator_type(data, schema, path)
+    idx <- .resolve_combinator_type(data, schema)
     if (!is.null(idx)) {
       variants <- if (!is.null(schema$oneOf)) schema$oneOf else schema$anyOf
       schema <- variants[[idx]]
@@ -770,7 +909,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   
   # Check pattern early for strings
   if (!is.null(schema$pattern) && !is.null(data) && is.character(data)) {
-    .check_pattern(data, schema, path)
+    .check_pattern(data, schema)
   }
   
   # Handle null
@@ -830,7 +969,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     }
     
     # Apply patternProperties
-    data <- .apply_pattern_properties(data, schema, path = path,
+    data <- .apply_pattern_properties(data, schema,
                                       enforce_additional_properties = enforce_additional_properties)
     
     # Enforce additionalProperties
@@ -879,11 +1018,11 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   # Handle scalars
   if (!is.null(schema$type) && !("array" %in% schema$type) && !("object" %in% schema$type)) {
     if (is.list(data) && length(data) == 1) data <- data[[1]]
-    coerced <- .coerce_value(data, schema$type, path)
+    coerced <- .coerce_value(data, schema$type)
     if (!is.null(schema$pattern) && is.character(coerced)) {
-      .check_pattern(coerced, schema, path)
+      .check_pattern(coerced, schema)
     }
-    coerced <- .check_enum(coerced, schema, path)
+    coerced <- .check_enum(coerced, schema)
     return(coerced)
   }
   
