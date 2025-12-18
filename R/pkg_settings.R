@@ -39,7 +39,20 @@
 
 #' Return the active package options
 #'
+#' Returns the current session settings for ksTFL as a named list. These are
+#' the effective values used when building specs and rendering documents.
+#'
+#' @details
+#' The returned object is the internal settings list stored in the package
+#' environment. Modifying the returned object will not change package state;
+#' use `tfl_set_options()` to update settings for the current session.
+#'
 #' @return A named list representing the current ksTFL options.
+#'
+#' @examples
+#' # Inspect all current settings
+#' tfl_get_options()
+#'
 #' @export
 tfl_get_options <- function() {
   return(.options_env$settings)
@@ -47,8 +60,18 @@ tfl_get_options <- function() {
 
 #' Retrieve a single package option
 #'
-#' @param name Name of the option to fetch.
-#' @return The value associated with `name`.
+#' Fetch a single named option from the active ksTFL settings. This is a
+#' convenience wrapper around `tfl_get_options()` that returns one element or
+#' throws a friendly error if the option does not exist.
+#'
+#' @param name Character(1). Name of the option to fetch (e.g. "page", "styles").
+#'
+#' @return The value associated with `name` (type depends on the option).
+#'
+#' @examples
+#' # Get the current page settings
+#' tfl_get_option("page")
+#'
 #' @export
 tfl_get_option <- function(name) {
   if (!name %in% names(.options_env$settings)) {
@@ -63,14 +86,34 @@ tfl_get_option <- function(name) {
 
 #' Update the session package settings
 #'
-#' Provides intelligent detection and routing of settings changes. Accepts either:
-#' - Named direct values: `tfl_set_options(bodyTitles = FALSE, contentWidth = "95%")`
-#' - Settings objects from functions: `tfl_set_options(add_header(c("Title")))`
-#' - Page settings: `tfl_set_options(page = p_page(size = "Letter", orientation = "portrait"))`
-#' - Mixed: `tfl_set_options(add_header(...), add_footer(...), page = p_page(...))`
+#' Update ksTFL session options. This function accepts:
+#' \itemize{
+#'   \item{Named scalar options (e.g. `bodyTitles = FALSE`, `contentWidth = "95%"`).}
+#'   \item{Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_body_text()`, or page objects from `p_page()`.}
+#'   \item{A mixture of both named values and settings objects.}
+#' }
 #'
-#' @param ... Named arguments OR settings objects returned from add_header(), add_footer(), add_body_text(), or page = p_page(...)
-#' @return The updated settings list, returned invisibly.
+#' The function tries to intelligently route each supplied object into the
+#' appropriate internal settings slot (headers, footers, styles, bodyText, page).
+#'
+#' @param ... Named arguments OR settings objects returned from helper constructors.
+#' @param bodyTitles Logical; override whether body titles are shown.
+#' @param bodySubtitles Logical; override whether body subtitles are shown.
+#' @param bodyFootnotes Logical; override whether body footnotes are shown.
+#' @param gluePrefix Logical; override automatic numbering glue prefix behavior.
+#' @param isContinues Logical; override continuation behavior.
+#' @param contentWidth Character; width for content area (e.g. "100%", "95%").
+#' @param output_directory Character; path to default output directory.
+#'
+#' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
+#'
+#' @examples
+#' # Set a named option
+#' tfl_set_options(bodyTitles = FALSE, contentWidth = "95%")
+#'
+#' # Update page style via helper
+#' # tfl_set_options(page = p_page(size = "Letter", orientation = "portrait"))
+#'
 #' @export
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
                          bodyFootnotes = NULL, gluePrefix = NULL,

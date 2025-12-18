@@ -37,6 +37,11 @@
 #'   # Select specific columns
 #'   spec <- tfl_init(mtcars, docType = "Table", cols = c(cyl, mpg, hp))
 #' }
+#'
+#' # You can also pass a character vector of column names when preferred:
+#' \dontrun{
+#' spec <- tfl_init(mtcars, docType = "Table", cols = c("cyl", "mpg", "hp"))
+#' }
 tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL, docType = "Table") {
   
   # Validate docType
@@ -297,6 +302,14 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
 #' @param existing_entries List of existing body text entries (to find next available ID)
 #'
 #' @return Character string like "__default_001", "__default_002", etc.
+#'
+#' @examples
+#' # No existing defaults -> __default_001
+#' .generate_default_bodytext_id()
+#'
+#' # With existing default IDs
+#' .generate_default_bodytext_id(list(__default_001 = list(), __default_002 = list()))
+#' # -> "__default_003"
 #'
 #' @keywords internal
 .generate_default_bodytext_id <- function(existing_entries = NULL) {

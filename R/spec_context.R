@@ -42,14 +42,20 @@ NULL
 
 #' Auto-Generate Unique Identifier
 #'
-#' Generates a unique ID with a given prefix by appending an incrementing number
-#' until a non-existent ID is found.
+#' Generates a unique ID with a given prefix by choosing the smallest
+#' positive integer suffix that is not yet used. The returned identifier is
+#' zero-padded to 4 digits (e.g. "style_0001").
 #'
 #' @param prefix Character. Prefix for the ID (e.g., "style_")
 #' @param existing_list List. List of existing objects (uses names as existing IDs).
 #'   NULL is treated as an empty list.
 #'
-#' @return Character. Unique identifier in format "<prefix><number>"
+#' @return Character. Unique identifier in format "<prefix><NNNN>" where N are digits.
+#'
+#' @examples
+#' # Internal utility examples (not exported):
+#' .auto_id("style_", list())           # -> "style_0001"
+#' .auto_id("style_", list(style_0001 = 1, style_0003 = 3)) # -> "style_0002"
 #'
 #' @keywords internal
 .auto_id <- function(prefix, existing_list) {
