@@ -132,8 +132,7 @@
                                     },
                                     "required": [
                                         "size",
-                                        "orientation",
-                                        "margins"
+                                        "orientation"
                                     ]
                                 }
                             }

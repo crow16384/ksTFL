@@ -3,7 +3,7 @@ importFrom(cli, cli_abort, cli_warn, cli_alert_success, cli_alert_info, cli_text
 importFrom(checkmate, assert_class, assert_string, assert_character, assert_list, assert_data_frame, assert_null, assert_names)
 importFrom(jsonlite, toJSON, fromJSON, read_json, write_json)
 importFrom(purrr, map, map_chr, map_lgl, map_dbl, map_int, keep, discard)
-importFrom(rlang, enquos, quo_get_expr, quo_get_env, eval_tidy, is_call, is_symbol, caller_env, new_environment, new_data_mask, expr, enexpr, "%||%")
+importFrom(rlang, call_modify, call2, env, eval_bare, enquos, enquo, quo_get_expr, quo_get_env, eval_tidy, is_call, is_symbol, caller_env, new_environment, new_data_mask, expr, enexpr, "%||%")
 importFrom(tidyselect, everything, eval_select)
 importFrom(utils, packageVersion, modifyList)
 
@@ -23,8 +23,8 @@ export(
   s_border,
   s_borders,
   s_table_style,
-  s_margins,
-  s_page,
+  p_margins,
+  p_page,
   
   # Column format function
   c_format,
@@ -54,7 +54,7 @@ export(
   
   # Document configuration
   set_document,
-  set_document_style,
+  set_page_style,
   
   # Specification preview
   preview_spec,
@@ -68,6 +68,7 @@ export(
 
 # S3 method registrations for add_style
 S3method(add_style, TFL_spec)
+S3method(add_style, TFL_options)
 S3method(add_style, default)
 
 # S3 method registrations for c with tfl_style_combine
@@ -87,3 +88,6 @@ S3method(add_header, default)
 S3method(add_footer, TFL_spec)
 S3method(add_footer, TFL_options)
 S3method(add_footer, default)
+
+S3method(set_page_style, TFL_spec)
+S3method(set_page_style, TFL_options)

@@ -223,12 +223,15 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
   # Populate document properties from settings (only schema-defined fields)
   if (is.null(spec$document$bodyTitles)) {
     spec$document$bodyTitles <- settings$body_titles
+    spec$document$bodyTitles <- unclass(spec$document$bodyTitles)
   }
   if (is.null(spec$document$bodySubtitles)) {
     spec$document$bodySubtitles <- settings$body_subtitles
+    spec$document$bodySubtitles <- unclass(spec$document$bodySubtitles)
   }
   if (is.null(spec$document$bodyFootnotes)) {
     spec$document$bodyFootnotes <- settings$body_footnotes
+    spec$document$bodyFootnotes <-  unclass(spec$document$bodyFootnotes)
   }
   if (is.null(spec$document$isContinues)) {
     spec$document$isContinues <- settings$is_continues
@@ -246,6 +249,7 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
   
   if (is.null(spec$attribs$styles)) {
     spec$attribs$styles <- settings$styles
+    spec$attribs$styles <- unclass(spec$attribs$styles)
   }
 
   # Initialize other schema properties as empty lists if not present
@@ -260,51 +264,26 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
   # Apply settings to spec
   # Apply headers from settings
   if (length(settings$headers) > 0) {
-    for (i in seq_along(settings$headers)) {
-      header_obj <- settings$headers[[i]]
-      # Build call arguments: spec + all header properties
-      call_args <- c(list(spec = spec), header_obj)
-      spec <- do.call("add_header.TFL_spec", call_args)
-    }
+    spec$headers <- settings$headers
+    spec$headers <- unclass(spec$headers)
   }
   
   # Apply footers from settings
   if (length(settings$footers) > 0) {
-    for (i in seq_along(settings$footers)) {
-      footer_obj <- settings$footers[[i]]
-      # Build call arguments: spec + all footer properties
-      call_args <- c(list(spec = spec), footer_obj)
-      spec <- do.call("add_footer.TFL_spec", call_args)
-    }
+    spec$footers <- settings$footers
+    spec$footers <- unclass(spec$footers)
   }
   
   # Apply bodyText from settings (including defaults)
   if (length(settings$bodyText) > 0) {
-    for (body_id in names(settings$bodyText)) {
-      body_obj <- settings$bodyText[[body_id]]
-      # Extract properties from body object
-      spec <- add_body_text.TFL_spec(
-        spec = spec,
-        text = body_obj$text,
-        id = body_id,
-        styleRef = body_obj$styleRef,
-        order = body_obj$order
-      )
-    }
+    spec$bodyText <- settings$bodyText
+    spec$bodyText <- unclass(spec$bodyText)
   }
   
   # Apply page settings from settings if they exist
   if (!is.null(settings$page)) {
-    # Need to set class to TFL_spec temporarily to use set_document_style
-    class(spec) <- "TFL_spec"
-    
-    spec <- set_document_style(
-      spec = spec,
-      page = settings$page
-    )
-    
-    # Remove the class again (it will be set properly during tfl_init)
-    class(spec) <- NULL
+    spec$attribs$documentStyle$page <- settings$page
+    spec$attribs$documentStyle$page <- unclass(spec$attribs$documentStyle$page)
   }
   
   invisible(spec)

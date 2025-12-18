@@ -1,13 +1,15 @@
-# ============================================================
-# TFL Spec Builder - Clean Architecture with Prefixed Functions
-# ============================================================
+#============================================================================= 
+# ksTFL/R/spec_context.R
+# Utilities for managing spec-schema function call contexts during TFL spec building
+#=============================================================================
 
-#' @importFrom rlang enquos quo_get_expr call_name call_args eval_tidy is_call
+#' @importFrom rlang enquos quo_get_expr call_name call_args eval_tidy is_call call2 env eval_bare
 #' @importFrom jsonlite toJSON
 #' @importFrom utils modifyList
 #' @importFrom checkmate assert_class assert_string assert_character assert_list
 #' @importFrom cli cli_abort cli_warn cli_alert_success
 #' @importFrom purrr map_chr
+NULL
 
 # ============================================================
 # PART 1: CORE UTILITIES
@@ -59,17 +61,39 @@
   if (!is.list(existing_list)) {
     cli_abort("Internal error: existing_list must be a list or NULL in {.fn .auto_id}")
   }
-  
-  n <- length(existing_list) + 1L
-  max_attempts <- 10000
-  
-  for (attempt in seq_len(max_attempts)) {
-    id <- paste0(prefix, n)
-    if (!id %in% names(existing_list)) return(id)
-    n <- n + 1L
+
+  # Efficiently find the smallest positive integer suffix not already used for
+  # names that exactly match the pattern <prefix><number>. This avoids probing
+  # potentially many times and deterministically fills gaps (e.g. returns
+  # "style_0002" when "style_0001" and "style_0003" exist).
+  # Generated IDs are formatted with 4-digit zero-padding (e.g., 0001).
+
+  nm <- names(existing_list)
+  if (is.null(nm) || length(nm) == 0L) {
+    return(paste0(prefix, sprintf("%04d", 1L)))
   }
-  
-  cli_abort("Failed to generate unique ID after {max_attempts} attempts with prefix {.str {prefix}}")
+
+  # Escape any regex metacharacters in prefix
+  esc_prefix <- gsub("([\\.\\^\\$\\|\\(\\)\\[\\]\\{\\}\\*\\+\\?\\\\])", "\\\\\\1", prefix, perl = TRUE)
+  pattern <- paste0("^", esc_prefix, "([0-9]+)$")
+
+  matches <- regexec(pattern, nm)
+  captures <- regmatches(nm, matches)
+
+  nums <- vapply(captures, function(x) {
+    if (length(x) >= 2) as.integer(x[2]) else NA_integer_
+  }, integer(1))
+
+  used <- nums[!is.na(nums) & nums > 0L]
+
+  if (length(used) == 0L) {
+    return(paste0(prefix, sprintf("%04d", 1L)))
+  }
+
+  # pick smallest missing positive integer; this fills gaps rather than always
+  # appending after the max
+  candidate <- setdiff(seq_len(max(used) + 1L), used)[1L]
+  paste0(prefix, sprintf("%04d", candidate))
 }
 
 #' Auto-Generate Next Stub Order
@@ -722,66 +746,6 @@
   params
 }
 
-#' Internal page specification builder
-#' 
-#' @param size Page size
-#' @param orientation Page orientation
-#' @param margins Margins specification
-#' Create Page Settings Object
-#'
-#' Creates a page settings object for use with `tfl_set_options()` to configure 
-#' default page properties (size, orientation, margins) for the TFL document.
-#' Margins should be specified using `s_margins()` for proper validation.
-#'
-#' @param size Page size: "A4", "A3", "Letter", "Legal", "Executive"
-#' @param orientation Page orientation: "portrait" or "landscape"
-#' @param margins Optional margins specification created with `s_margins()` or a list
-#'   with keys: top, bottom, left, right (with units, e.g., "1.0in", "25mm")
-#'
-#' @return Page settings list that can be passed to `tfl_set_options(page = ...)`
-#'
-#' @examples
-#' \dontrun{
-#' # Set default page to Letter size, landscape orientation
-#' tfl_set_options(page = tfl_page(size = "Letter", orientation = "landscape"))
-#'
-#' # Set page with custom margins using s_margins()
-#' tfl_set_options(page = tfl_page(
-#'   size = "A4",
-#'   orientation = "portrait",
-#'   margins = s_margins(
-#'     top = "1.0in", bottom = "1.0in",
-#'     left = "0.75in", right = "0.75in"
-#'   )
-#' ))
-#' }
-#'
-#' @export
-tfl_page <- function(size = .const_default_page_size,
-                     orientation = .const_default_page_orientation,
-                     margins = NULL) {
-  .validate_enum(size, .const_page_sizes, "size", "tfl_page")
-  .validate_enum(orientation, .const_page_orientations, "orientation", "tfl_page")
-  
-  # Process margins if provided
-  if (!is.null(margins)) {
-    # If margins came from s_margins(), remove the class wrapper
-    if (inherits(margins, "tfl_margins")) {
-      margins <- unclass(margins)
-    } else if (is.list(margins)) {
-      # Validate margins keys if a raw list is passed
-      .validate_params(margins, "margins", "tfl_page")
-    } else {
-      cli_abort(c(
-      "{.arg margins} must be created with {.fn s_margins} or be a list with keys: top, bottom, left, right",
-      i = "Use s_margins() to create a validated margins object"
-    ))
-    }
-  }
-  
-  list(size = size, orientation = orientation, margins = margins)
-}
-
 #' Internal page specification builder (for context-based usage)
 #'
 #' @param size Page size
@@ -798,7 +762,7 @@ tfl_page <- function(size = .const_default_page_size,
   
   # Validate margins keys if a raw list is passed
   if (is.list(margins)) {
-    .validate_params(margins, "margins", "s_page")
+    .validate_params(margins, "margins", "p_page")
   }
   
   list(size = size, orientation = orientation, margins = margins)
@@ -1122,7 +1086,7 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
 
 #' Define page margins
 #' 
-#' This function can only be used inside \code{\link{s_page}}.
+#' This function can only be used inside \code{\link{p_page}}.
 #' 
 #' @param top Top margin, e.g. "25mm"
 #' @param bottom Bottom margin, e.g. "25mm"
@@ -1138,10 +1102,10 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
 #' \dontrun{
 #' spec <- tfl_spec() |>
 #'   add_style("page_style",
-#'     s_page(
+#'     p_page(
 #'       size = "A4",
 #'       orientation = "landscape",
-#'       margins = s_margins(
+#'       margins = p_margins(
 #'         top = "25mm", bottom = "25mm",
 #'         left = "20mm", right = "20mm",
 #'         header = "12mm", footer = "12mm"
@@ -1149,25 +1113,32 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
 #'     )
 #'   )
 #' }
-s_margins <- function(top, bottom, left, right, header, footer) {
-  .assert_context(c("s_page"), "s_margins")
+p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL, footer=NULL) {
+  .assert_context(c("p_page"), "p_margins")
   
-  spec <- .margins_spec(
+  params <- list(
     top = top, bottom = bottom, 
     left = left, right = right, 
     header = header, footer = footer
   )
-  .validate_params(spec, "margins", "s_margins")
+  params <- params[!sapply(params, is.null)]
+  
+  spec <- .margins_spec(
+    top = params$top, bottom = params$bottom, 
+    left = params$left, right = params$right, 
+    header = params$header, footer = params$footer
+  )
+  .validate_params(spec, "margins", "p_margins")
   structure(spec, class = c("tfl_margins", "tfl_nested_modifier"))
 }
 
 #' Define page settings
 #' 
-#' This function can only be used inside \code{\link{set_document_style}}.
+#' This function can only be used inside \code{\link{set_page_style}}.
 #' 
 #' @param size Page size: "A4", "A3", "Letter", "Legal", "Executive"
 #' @param orientation Page orientation: "portrait" or "landscape"
-#' @param margins Margins object created with \code{\link{s_margins}} or a list with keys: top, bottom, left, right, header, footer
+#' @param margins Margins object created with \code{\link{p_margins}} or a list with keys: top, bottom, left, right, header, footer
 #' 
 #' @return A page specification object
 #' @export
@@ -1175,12 +1146,12 @@ s_margins <- function(top, bottom, left, right, header, footer) {
 #' @examples
 #' \dontrun{
 #' spec <- tfl_spec() |>
-#'   set_document_style(
+#'   set_page_style(
 #'     docTemplate = "KeyStat_default",
-#'     page = s_page(
+#'     page = p_page(
 #'       size = "A4",
 #'       orientation = "landscape",
-#'       margins = s_margins(
+#'       margins = p_margins(
 #'         top = "25mm", bottom = "25mm",
 #'         left = "20mm", right = "20mm",
 #'         header = "12mm", footer = "12mm"
@@ -1188,24 +1159,24 @@ s_margins <- function(top, bottom, left, right, header, footer) {
 #'     )
 #'   )
 #' }
-s_page <- function(size = .const_default_page_size, 
+p_page <- function(size = .const_default_page_size, 
                    orientation = .const_default_page_orientation, 
-                   margins) {
-  .assert_context(c("set_document_style"), "s_page")
+                   margins = NULL) {
+  .assert_context(c("set_page_style"), "p_page")
   
   # Set context for nested functions
-  .set_context(parent.frame(), "s_page")
+  .set_context(parent.frame(), "p_page")
   on.exit(.clear_context(parent.frame()))
   
   # Extract nested specs
   if (inherits(margins, "tfl_margins")) {
     margins <- unclass(margins)
   } else if (is.list(margins)) {
-    .validate_params(margins, "margins", "s_page")
+    .validate_params(margins, "margins", "p_page")
   }
   
   spec <- .page_spec(size = size, orientation = orientation, margins = margins)
-  .validate_params(spec, "page", "s_page")
+  .validate_params(spec, "page", "p_page")
   structure(spec, class = c("tfl_page", "tfl_document_modifier"))
 }
 
@@ -1453,7 +1424,7 @@ c_format <- function(type, format = NULL, missings = NULL,
 #'     s_font(color = "#FF0000")  # Adds color, keeps other font properties
 #'   )
 #' }
-add_style <- function(spec, id = NULL, ...) {
+add_style <- function(spec, id, ...) {
   UseMethod("add_style", spec)
 }
 
@@ -1464,13 +1435,13 @@ add_style <- function(spec, id = NULL, ...) {
 #' @param ... Style modifiers created with s_* functions
 #' @return Updated spec object
 #' @export
-add_style.TFL_spec <- function(spec, id = NULL, ...) {
+add_style.TFL_spec <- function(spec, id, ...) {
   assert_class(spec, "TFL_spec")
   
   # Auto-generate ID if needed
-  if (is.null(id)) {
-    id <- .auto_id("style_", spec$attribs$styles)
-  }
+  #if (is.null(id)) {
+  #  id <- .auto_id("style_", spec$attribs$styles)
+  #}
   
   # Initialize style if needed
   if (is.null(spec$attribs$styles[[id]])) {
@@ -1501,6 +1472,45 @@ add_style.TFL_spec <- function(spec, id = NULL, ...) {
   
   spec
 }
+
+#' Add or update a style definition for TFL_options
+#' 
+#' @param spec TFL_options style branch object
+#' @param id Style identifier (name) 
+#' @param ... Style modifiers created with s_* functions
+#' @return Updated spec object
+#' @export
+add_style.TFL_options <- function(spec, id = NULL, ...) {
+  # Initialize style if needed
+  if (is.null(spec$styles[[id]])) {
+    spec$styles[[id]] <- list()
+  }
+  
+  # Set context in the calling environment
+  .set_context(parent.frame(), "add_style")
+  on.exit(.clear_context(parent.frame()))
+  
+  # Capture modifiers
+  modifiers <- list(...)
+  
+  # Process each modifier
+  for (mod in modifiers) {
+    # Extract path and payload using reusable helper
+    mod_info <- .process_style_modifier(mod)
+    path <- mod_info$path
+    payload <- mod_info$payload
+    
+    # Validate using reusable helper
+    .validate_style_payload(path, payload, "add_style")
+    
+    # Merge with last-win
+    current <- spec$styles[[id]][[path]]
+    spec$styles[[id]][[path]] <- .merge_recursive(current, payload)
+  }
+  class(spec) <- "TFL_options_style"
+  spec
+}
+
 
 #' Default method for add_style
 #' 
@@ -1573,6 +1583,7 @@ f_combine <- function(...) {
 #' @param recursive Ignored
 #' @return List of style references
 #' @keywords internal
+#' @method c tfl_style_combine
 #' @export
 c.tfl_style_combine <- function(..., recursive = FALSE) {
   args <- list(...)
@@ -1671,7 +1682,7 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'     labelStyleRef = f_combine("label_style", "emphasis")
 #'   )
 #' 
-#' # Apply different styles to different columns
+#' # Apply different styles combinations to different columns
 #' spec <- tfl_init(data) |>
 #'   define_cols(c("id", "age", "group"),
 #'     labelStyleRef = c(
@@ -1697,7 +1708,7 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' # Using column range
 #' spec <- tfl_init(data) |>
 #'   define_cols(age:group,  # All columns from age to group
-#'     labelStyleRef = f_combine("emphasis")
+#'     labelStyleRef = "emphasis"
 #'   )
 #' }
 define_cols <- function(spec, cols, ..., 
@@ -1967,30 +1978,7 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #'   add_body_text("No data available for the specified criteria", styleRef = c("error_style", "bold"))
 #' }
 add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
-  # Settings context: spec is NOT a TFL_spec or TFL_options object
-  # This happens when called as add_body_text("Some text") in tfl_set_options()
-  if (!inherits(spec, c("TFL_spec", "TFL_options"))) {
-    # If spec is provided as first arg (not NULL), treat it as text
-    if (!is.null(spec) && is.null(text)) {
-      text <- spec
-      spec <- NULL
-    }
-    
-    # Return special object that tfl_set_options() can detect
-    # Do NOT include spec in the returned object to avoid duplicate parameters
-    return(structure(
-      list(
-        text = text,
-        id = id,
-        styleRef = styleRef,
-        order = order
-      ),
-      class = c("tfl_bodytext_setting", "list")
-    ))
-  }
-  
-  # Spec/options context: use S3 dispatch
-  UseMethod("add_body_text")
+  UseMethod("add_body_text", spec)
 }
 
 #' Add body text for TFL_spec
@@ -2006,11 +1994,7 @@ add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, 
 #' @return Updated spec object
 #' @export
 add_body_text.TFL_spec <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
-  # Accept both TFL_spec objects and plain lists (for use in .fill_spec_defaults)
-  if (!inherits(spec, c("TFL_spec", "list"))) {
-    cli_abort("{.arg spec} must be a TFL_spec or list")
-  }
-  
+  assert_class(spec, "TFL_spec")  
   # Auto-remove default body text entries when user adds custom content
   if (!is.null(text)) {
     default_ids <- grep(paste0("^", .const_bodytext_default_id_prefix, "_"), 
@@ -2054,10 +2038,7 @@ add_body_text.TFL_spec <- function(spec, text = NULL, id = NULL, styleRef = NULL
 #' @return Updated options object
 #' @export
 add_body_text.TFL_options <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
-  if (!inherits(spec, "TFL_options")) {
-    cli_abort("Object must be of class 'TFL_options'")
-  }
-  
+  assert_class(spec, "TFL_options")  
   # When user sets custom bodyText in options, remove all existing defaults
   # BUT first capture the max number to generate next sequential ID
   if (!is.null(text)) {
@@ -2083,7 +2064,7 @@ add_body_text.TFL_options <- function(spec, text = NULL, id = NULL, styleRef = N
     if (!is.null(text) && exists("max_number") && max_number > 0) {
       # User added custom text: generate next sequential ID
       next_num <- max_number + 1
-      id <- sprintf("%s_%03d", .const_bodytext_default_id_prefix, next_num)
+      id <- sprintf("%s_%04d", .const_bodytext_default_id_prefix, next_num)
     } else {
       # No user text or no existing defaults: use the helper
       id <- .generate_default_bodytext_id(spec$bodyText)
@@ -2106,7 +2087,7 @@ add_body_text.TFL_options <- function(spec, text = NULL, id = NULL, styleRef = N
   }
   
   spec$bodyText[[id]] <- .merge_recursive(spec$bodyText[[id]], new_data)
-  
+  class(spec) <- "TFL_options_bodytext"
   spec
 }
 
@@ -2151,25 +2132,8 @@ add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL,
 #' options <- add_header(options, "Study ABC-123", "CONFIDENTIAL", "Page {PAGE}")
 #' }
 add_header <- function(spec = NULL, ..., level = NULL) {
-  # Settings context: spec is NOT a TFL_spec or TFL_options object
-  # This happens when called as add_header(c("text1", "text2")) without explicit spec
-  if (!inherits(spec, c("TFL_spec", "TFL_options"))) {
-    # Capture all content arguments (spec becomes first positional arg, then ...)
-    content_args <- list(...)
-    if (!is.null(spec)) {
-      content_args <- c(list(spec), content_args)
-    }
-    
-    # Return special object that tfl_set_options() can detect and process
-    return(structure(
-      content_args,
-      class = c("tfl_header_setting", "list"),
-      level = level
-    ))
-  }
-  
   # Spec context: spec IS a TFL_spec or TFL_options object
-  UseMethod("add_header")
+  UseMethod("add_header", spec)
 }
 
 #' Add a header row for TFL_spec
@@ -2180,15 +2144,11 @@ add_header <- function(spec = NULL, ..., level = NULL) {
 #' @return Updated spec object
 #' @export
 add_header.TFL_spec <- function(spec, ..., level = NULL) {
-  # Accept both TFL_spec objects and plain lists (for use in .fill_spec_defaults)
-  if (!inherits(spec, c("TFL_spec", "list"))) {
-    cli_abort("{.arg spec} must be a TFL_spec or list")
-  }
-  
+  checkmate::assert_class(spec, "TFL_spec")  
   header_parts <- as.character(c(...))
   
   if (length(header_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_header} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+    cli_abort("{.fn add_header} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
   }
   
   # Handle level parameter
@@ -2222,14 +2182,12 @@ add_header.TFL_spec <- function(spec, ..., level = NULL) {
 #' @return Updated options object
 #' @export
 add_header.TFL_options <- function(spec, ..., level = NULL) {
-  if (!inherits(spec, "TFL_options")) {
-    cli_abort("Object must be of class 'TFL_options'")
-  }
+  checkmate::assert_class(spec, "TFL_options")
   
   header_parts <- as.character(c(...))
   
   if (length(header_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_header} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+    cli_abort("{.fn add_header} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
   }
   
   # Handle level parameter
@@ -2247,7 +2205,7 @@ add_header.TFL_options <- function(spec, ..., level = NULL) {
   
   # Add as new row to headers list
   spec$headers <- c(spec$headers %||% list(), list(header_parts))
-  
+  class(spec) <- "TFL_options_header"
   spec
 }
 
@@ -2290,24 +2248,8 @@ add_header.default <- function(spec, ...) {
 #' options <- add_footer(options, "Company Name", "", "Page {PAGE} of {NUMPAGES}")
 #' }
 add_footer <- function(spec = NULL, ..., level = NULL) {
-  # Settings context: spec is NOT a TFL_spec or TFL_options object
-  if (!inherits(spec, c("TFL_spec", "TFL_options"))) {
-    # Capture all content arguments (spec becomes first positional arg, then ...)
-    content_args <- list(...)
-    if (!is.null(spec)) {
-      content_args <- c(list(spec), content_args)
-    }
-    
-    # Return special object that tfl_set_options() can detect and process
-    return(structure(
-      content_args,
-      class = c("tfl_footer_setting", "list"),
-      level = level
-    ))
-  }
-  
   # Spec context: spec IS a TFL_spec or TFL_options object
-  UseMethod("add_footer")
+  UseMethod("add_footer", spec)
 }
 
 #' Add a footer row for TFL_spec
@@ -2318,15 +2260,11 @@ add_footer <- function(spec = NULL, ..., level = NULL) {
 #' @return Updated spec object
 #' @export
 add_footer.TFL_spec <- function(spec, ..., level = NULL) {
-  # Accept both TFL_spec objects and plain lists (for use in .fill_spec_defaults)
-  if (!inherits(spec, c("TFL_spec", "list"))) {
-    cli_abort("{.arg spec} must be a TFL_spec or list")
-  }
-  
+  checkmate::assert_class(spec, "TFL_spec")  
   footer_parts <- as.character(c(...))
   
   if (length(footer_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_footer} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+    cli_abort("{.fn add_footer} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
   }
   
   # Handle level parameter
@@ -2359,14 +2297,12 @@ add_footer.TFL_spec <- function(spec, ..., level = NULL) {
 #' @return Updated options object
 #' @export
 add_footer.TFL_options <- function(spec, ..., level = NULL) {
-  if (!inherits(spec, "TFL_options")) {
-    cli_abort("Object must be of class 'TFL_options'")
-  }
+  checkmate::assert_class(spec, "TFL_options")
   
   footer_parts <- as.character(c(...))
   
   if (length(footer_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_footer} accepts maximum {.const_max_header_footer_parts} parts (left, center, right)")
+    cli_abort("{.fn add_footer} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
   }
   
   # Handle level parameter
@@ -2383,7 +2319,7 @@ add_footer.TFL_options <- function(spec, ..., level = NULL) {
   }
   # Add as new row to footers list
   spec$footers <- c(spec$footers %||% list(), list(footer_parts))
-  
+  class(spec) <- "TFL_options_footer"
   spec
 }
 
@@ -2599,7 +2535,7 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
 #' 
 #' @param spec TFL spec object
 #' @param docTemplate Name of predefined document template
-#' @param page Page settings object created with \code{\link{s_page}} or a list with keys: size, orientation, margins
+#' @param page Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins
 #' 
 #' @return Updated spec object
 #' @export
@@ -2607,12 +2543,12 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
 #' @examples
 #' \dontrun{
 #' spec <- tfl_spec() |>
-#'   set_document_style(
+#'   set_page_style(
 #'     docTemplate = "KeyStat_default",
-#'     page = s_page(
+#'     page = p_page(
 #'       size = "A4",
 #'       orientation = "landscape",
-#'       margins = s_margins(
+#'       margins = p_margins(
 #'         top = "25mm", bottom = "25mm",
 #'         left = "20mm", right = "20mm",
 #'         header = "12mm", footer = "12mm"
@@ -2620,11 +2556,42 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
 #'     )
 #'   )
 #' }
-set_document_style <- function(spec, docTemplate = NULL, page = NULL) {
+set_page_style <- function(spec, docTemplate = NULL, page = NULL) {
+  UseMethod("set_page_style", spec)
+}
+
+#' Set document style properties
+#' 
+#' Set document-level style configuration. Multiple calls merge with last-win strategy.
+#' 
+#' @param spec TFL spec object
+#' @param docTemplate Name of predefined document template
+#' @param page Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins
+#' 
+#' @return Updated spec object
+#' @export
+#' 
+#' @examples
+#' \dontrun{
+#' spec <- tfl_spec() |>
+#'   set_page_style(
+#'     docTemplate = "KeyStat_default",
+#'     page = p_page(
+#'       size = "A4",
+#'       orientation = "landscape",
+#'       margins = p_margins(
+#'         top = "25mm", bottom = "25mm",
+#'         left = "20mm", right = "20mm",
+#'         header = "12mm", footer = "12mm"
+#'       )
+#'     )
+#'   )
+#' }
+set_page_style.TFL_spec <- function(spec, docTemplate = NULL, page = NULL) {
   assert_class(spec, "TFL_spec")
   
   # Set context in the calling environment
-  .set_context(parent.frame(), "set_document_style")
+  .set_context(parent.frame(), "set_page_style")
   on.exit(.clear_context(parent.frame()))
   
   params <- list()
@@ -2638,30 +2605,98 @@ set_document_style <- function(spec, docTemplate = NULL, page = NULL) {
     if (inherits(page, "tfl_page")) {
       page <- unclass(page)
     } else if (is.list(page)) {
-      .validate_params(page, "page", "set_document_style")
+      .validate_params(page, "page", "set_page_style")
     } else {
       cli_abort(c(
-        "{.fn set_document_style} requires {.arg page} created by {.fn s_page} or a list with keys: ",
+        "{.fn set_page_style} requires {.arg page} created by {.fn p_page} or a list with keys: ",
         paste0("{.arg ", .get_allowed_properties("page"), "}", collapse = ", ")
       ))
     }
     
     # Validate nested shapes
     if (!is.null(page$margins)) {
-      .validate_params(page$margins, "margins", "set_document_style$page.margins")
+      .validate_params(page$margins, "margins", "set_page_style$page.margins")
     }
     
     params$page <- page
   }
   
   # Validate params against schema
-  .validate_params(params, "documentStyle", "set_document_style")
+  .validate_params(params, "documentStyle", "set_page_style")
   
   spec$attribs$documentStyle <- .merge_recursive(spec$attribs$documentStyle, params)
   
   spec
 }
 
+#' Set document style properties
+#' 
+#' Set document-level style configuration. Multiple calls merge with last-win strategy.
+#' 
+#' @param spec TFL spec object
+#' @param docTemplate Name of predefined document template
+#' @param page Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins
+#' 
+#' @return Updated spec object
+#' @export
+#' 
+#' @examples
+#' \dontrun{
+#' spec <- tfl_spec() |>
+#'   set_page_style(
+#'     docTemplate = "KeyStat_default",
+#'     page = p_page(
+#'       size = "A4",
+#'       orientation = "landscape",
+#'       margins = p_margins(
+#'         top = "25mm", bottom = "25mm",
+#'         left = "20mm", right = "20mm",
+#'         header = "12mm", footer = "12mm"
+#'       )
+#'     )
+#'   )
+#' }
+set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
+  assert_class(spec, "TFL_options")
+  
+  # Set context in the calling environment
+  .set_context(parent.frame(), "set_page_style")
+  on.exit(.clear_context(parent.frame()))
+  
+  params <- list()
+  
+  if (!is.null(docTemplate)) {
+    params$docTemplate <- docTemplate
+  }
+  
+  if (!is.null(page)) {
+    # Extract nested specs
+    if (inherits(page, "tfl_page")) {
+      page <- unclass(page)
+    } else if (is.list(page)) {
+      .validate_params(page, "page", "set_page_style")
+    } else {
+      cli_abort(c(
+        "{.fn set_page_style} requires {.arg page} created by {.fn p_page} or a list with keys: ",
+        paste0("{.arg ", .get_allowed_properties("page"), "}", collapse = ", ")
+      ))
+    }
+    
+    # Validate nested shapes
+    if (!is.null(page$margins)) {
+      .validate_params(page$margins, "margins", "set_page_style$page.margins")
+    }
+    
+    params$page <- page
+  }
+  
+  # Validate params against schema
+  .validate_params(params, "documentStyle", "set_page_style")
+  
+  spec$attribs$documentStyle <- .merge_recursive(spec$attribs$documentStyle, params)
+  class(spec) <- "TFL_options_pagestyle"
+  spec
+}
 
 #' Validate TFL specification for consistency
 #' 
