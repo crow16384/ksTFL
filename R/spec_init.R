@@ -1,48 +1,26 @@
-#' Initialize a TFL Specification Object
+#' Internal: Initialize a TFL Specification Object
 #'
-#' Creates and initializes a TFL (Tables, Figures, Listings) specification object
-#' for building structured clinical reports. The spec object serves as a container
-#' for document metadata, column definitions, styles, and content.
+#' This internal function creates and initializes a TFL (Tables, Figures,
+#' Listings and Text) specification object. It is intended to be called by the
+#' public facing wrappers `create_table()`, `create_figure()` and
+#' `create_text()`. Users should call the wrappers instead of this function.
 #'
-#' @param data A data frame to build the table from. Required when `docType`
-#'   is "Table", otherwise must be NULL.
-#' @param docType Character. Document type: one of "Table", "Text", or "Figure".
-#'   Defaults to "Table".
-#' @param cols Tidyselect expression indicating which columns from `data` to include
-#'   in the spec. Defaults to `everything()` (all columns).
-#' @param docPrefix Optional character string to prefix the document title (e.g., "Table 14.1")
+#' @param data A data frame to build the table from (for tables), a file path
+#'   for figures, or NULL for text documents.
+#' @param cols Tidyselect expression indicating which columns from `data` to
+#'   include in the spec. Defaults to `everything()` (all columns). This
+#'   argument is captured and passed from the public wrappers using
+#'   quosures.
+#' @param docPrefix Optional character string to prefix the document title
+#'   (e.g., "Table 14.1").
 #' @param id Unused parameter (reserved for future use).
+#' @param docType Character. Document type: one of "Table", "Text", or
+#'   "Figure". Defaults to "Table".
 #'
-#' @return A TFL_spec object ready for further modification with functions like
-#'   `add_style()`, `define_cols()`, `add_title()`, etc.
+#' @return A TFL_spec object.
 #'
-#' @details
-#' The initialization process:
-#' 1. Creates empty spec structure with default values from package settings
-#' 2. Validates document type and data compatibility
-#' 3. Auto-selects columns based on tidyselect expression
-#' 4. Auto-detects data types and generates format specifications
-#' 5. Creates data evaluation environment for expressions
-#'
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#'   # Initialize with no data (for Figure)
-#'   spec <- tfl_init()
-#'
-#'   # Initialize with data for a table
-#'   spec <- tfl_init(data = mtcars, docType = "Table")
-#'
-#'   # Select specific columns
-#'   spec <- tfl_init(mtcars, docType = "Table", cols = c(cyl, mpg, hp))
-#' }
-#'
-#' # You can also pass a character vector of column names when preferred:
-#' \dontrun{
-#' spec <- tfl_init(mtcars, docType = "Table", cols = c("cyl", "mpg", "hp"))
-#' }
-tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL, docType = "Table") {
+#' @keywords internal
+.tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL, docType = "Table") {
   
   # Validate docType
   docType <- match.arg(docType, c("Table", "Text", "Figure"))
@@ -475,7 +453,7 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
               i = "Supported types: integer, numeric, character, Date, POSIXct, POSIXlt",
               i = "Please convert the column to a supported type before use"
             ),
-            call = expr(tfl_init())
+            call = expr(.tfl_init())
           )
         }
         
@@ -516,4 +494,104 @@ tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NU
     file.exists(x) &&
     !dir.exists(x) &&
     file.access(x, 4) == 0
+}
+
+#' Check if Input is a Readable File Path
+#'
+#' Validates that input is a character string pointing to an existing,
+#' readable file (not a directory).
+#'
+#' @param x The object to check
+#'
+#' @return Logical TRUE if valid file path, FALSE otherwise
+#'
+#' @keywords internal
+.is_readable_dir <- function(x) {
+  is.character(x) &&
+    length(x) == 1L &&
+    dir.exists(x) &&
+    file.access(x, 4) == 0
+}
+
+
+
+#' Create a Text Document Specification
+#'
+#' Create and initialize a TFL specification for narrative (text) documents.
+#' This is a user-facing wrapper around the internal `.tfl_init()` initializer
+#' and provides a clear, intention-revealing name for creating text-only
+#' specifications. Text documents do not accept `data` and will have
+#' `docType = "Text"` set on the resulting spec.
+#'
+#' @param docPrefix Optional character prefix for the document title.
+#' @param id Unused; reserved for future extensions.
+#'
+#' @return A `TFL_spec` object with `docType = "Text"`.
+#'
+#' @examples
+#' ## Create a simple text spec
+#' spec <- create_text()
+#'
+#' ## With a prefix
+#' spec <- create_text(docPrefix = "Text 1.1")
+#'
+#' @export
+create_text <- function(docPrefix = NULL, id = NULL) {
+  .tfl_init(data = NULL, cols = everything(), docPrefix = docPrefix, id = id, docType = "Text")
+}
+
+
+#' Create a Table Specification
+#'
+#' Create and initialize a TFL specification for tabular output. This wrapper
+#' captures the tidyselect `cols` expression and forwards it to the internal
+#' initializer. Use `create_table()` when you have a data frame that should be
+#' rendered as a table.
+#'
+#' @param data A data frame to build the table from (required).
+#' @param cols Tidyselect expression indicating which columns from `data` to
+#'   include in the spec. Defaults to `everything()`.
+#' @param docPrefix Optional character prefix for the document title.
+#' @param id Unused; reserved for future extensions.
+#'
+#' @return A `TFL_spec` object with `docType = "Table"`.
+#'
+#' @examples
+#' ## Basic usage with the built-in `mtcars` dataset
+#' spec <- create_table(mtcars)
+#'
+#' ## Select specific columns using tidyselect
+#' spec <- create_table(mtcars, cols = c(cyl, mpg, hp))
+#'
+#' ## Or by names
+#' spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
+#'
+#' @export
+create_table <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL) {
+  cols_quo <- enquo(cols)
+  .tfl_init(data = data, cols = !!cols_quo, docPrefix = docPrefix, id = id, docType = "Table")
+}
+
+
+#' Create a Figure Specification
+#'
+#' Create and initialize a TFL specification for embedding a figure file. The
+#' `filepath` parameter must be a single character path to a readable file. This
+#' wrapper renames the `data` parameter from the internal initializer to
+#' `filepath` for clarity.
+#'
+#' @param filepath Character path to the figure file (required).
+#' @param docPrefix Optional character prefix for the document title.
+#' @param id Unused; reserved for future extensions.
+#'
+#' @return A `TFL_spec` object with `docType = "Figure"` and `dataRef` set
+#'   to the provided file path.
+#'
+#' @examples
+#' ## Create a figure spec from a local PNG
+#' spec <- create_figure("inst/images/example.png")
+#'
+#' @export
+create_figure <- function(filepath, docPrefix = NULL, id = NULL) {
+  .tfl_init(data = filepath, cols = everything(), docPrefix = docPrefix, id = id, docType = "Figure")
 }

@@ -9,8 +9,10 @@ importFrom(utils, packageVersion, modifyList)
 
 # Export only public functions (those marked with @export in documentation)
 export(
-  # Initialization function
-  tfl_init,
+  # Initialization function wrappers
+  create_text,
+  create_table,
+  create_figure,
   
   # Style helper function
   f_combine,

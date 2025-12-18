@@ -15,7 +15,7 @@
       "ksTFL v%s - Clinical TFL Framework\n",
       pkg_version
     ),
-    "For help, type: ?tfl_init"
+      "For help, type: ?create_table"
   )
   
   # Initialize package environment if needed

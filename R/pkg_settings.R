@@ -124,7 +124,32 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
 
   for (pname in names(params)) {
     if (pname %in% names(.options_env$settings)) {
-      .options_env$settings[[pname]] <- params[[pname]]
+      val <- params[[pname]]
+
+      # Type checks for known option names
+      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "gluePrefix", "isContinues")) {
+        checkmate::assert_logical(val, len = 1, any.missing = FALSE, .var.name = pname)
+      } else if (pname %in% c( "doc_style_template")) {
+        checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)
+      } else if (pname %in% c("output_directory")) {
+        if (!.is_readable_dir(val)) {
+          cli_warn("The specified output directory {.var {val}} does not exist or is not writable.")
+      }
+       } else 
+       if (pname %in% c("contentWidth")) {
+        .validate_pattern(contentWidth, .const_pattern_content_width, 
+                      "contentWidth", "tfl_set_options",
+                      "Must be like '100%', '6.5in', or '16.51cm'")
+      } else
+      {
+        # Fallback: if a default exists, warn when types differ
+        default_val <- .options_env$defaults[[pname]]
+        if (!is.null(default_val) && !inherits(val, class(default_val))) {
+          cli_warn("Setting {.var {pname}} has unexpected type; expected {.cls {class(default_val)[1]}}")
+        }
+      }
+
+      .options_env$settings[[pname]] <- val
     } else {
       cli_warn("Unknown setting name: {pname}. Skipping.")
     }

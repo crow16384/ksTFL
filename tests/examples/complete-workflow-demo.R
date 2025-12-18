@@ -55,10 +55,10 @@ cat("Data prepared: ", nrow(safety_data), " adverse events\n\n")
 
 # Initialize Table 1 WITH DATA (proper usage)
 cat("Initializing table1_spec with safety_data:\n")
-table1_spec <- tfl_init(
+table1_spec <- create_table(
   data = safety_data,
   cols = everything(),  # Include all columns
-  docType = "Table",
+  docPrefix = NULL,
   id = "t01s01"
 )
 
@@ -140,9 +140,9 @@ cat("Data prepared: ", nrow(efficacy_data), " endpoints\n\n")
 
 # Initialize Table 2 WITH DATA
 cat("Initializing table2_spec with efficacy_data:\n")
-table2_spec <- tfl_init(
+table2_spec <- create_table(
   data = efficacy_data,
-  docType = "Table",
+  docPrefix = NULL,
   id = "t02s01"
 )
 
@@ -224,9 +224,9 @@ writeLines("Safety Plot Content Placeholder", dummy_figure)
 
 cat("Initializing figure1_spec with figure file:\n")
 tryCatch({
-  figure1_spec <- tfl_init(
-    data = dummy_figure,
-    docType = "Figure",
+  figure1_spec <- create_figure(
+    filepath = dummy_figure,
+    docPrefix = NULL,
     id = "f01s01"
   )
   
@@ -259,9 +259,8 @@ cat("✓ Footer: PROPRIETARY | Summary | \n\n")
 
 # Initialize Text spec (NO DATA required)
 cat("Initializing text1_spec (narrative document):\n")
-text1_spec <- tfl_init(
-  data = NULL,  # Text documents have NO data
-  docType = "Text",
+text1_spec <- create_text(
+  docPrefix = NULL,
   id = "txt01"
 )
 
@@ -301,9 +300,9 @@ cat("Data prepared: ", nrow(patient_data), " patients\n\n")
 
 # Initialize Listing WITH DATA
 cat("Initializing listing_spec with patient data:\n")
-listing_spec <- tfl_init(
+listing_spec <- create_table(
   data = patient_data,
-  docType = "Table",
+  docPrefix = NULL,
   id = "lst01"
 )
 
@@ -400,9 +399,9 @@ new_data <- data.frame(
 )
 
 cat("Initializing new_project_spec:\n")
-new_project_spec <- tfl_init(
+new_project_spec <- create_table(
   data = new_data,
-  docType = "Table",
+  docPrefix = NULL,
   id = "new_t01"
 )
 
@@ -455,9 +454,9 @@ cat("  - tfl_get_option() to retrieve specific option\n")
 cat("  - Options inherited automatically by all specs\n\n")
 
 cat("✓ SPEC INITIALIZATION:\n")
-cat("  - tfl_init(data, docType='Table') for tables\n")
-cat("  - tfl_init(data='file.png', docType='Figure') for figures\n")
-cat("  - tfl_init(data=NULL, docType='Text') for text\n")
+cat("  - create_table(data) for tables\n")
+cat("  - create_figure(filepath) for figures\n")
+cat("  - create_text() for text\n")
 cat("  - All specs properly initialized with parameters\n\n")
 
 cat("✓ COLUMN DEFINITION:\n")

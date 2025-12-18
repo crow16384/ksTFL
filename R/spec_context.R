@@ -826,7 +826,7 @@ NULL
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_font(font_name = "Arial", font_size = "12pt", bold = TRUE)
 #'   )
@@ -862,7 +862,7 @@ s_font <- function(font_name = NULL, font_size = NULL, bold = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_paragraph(
 #'       alignment = "center",
@@ -890,7 +890,7 @@ s_spacing <- function(before = NULL, after = NULL, line_spacing = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_paragraph(
 #'       indents = s_indents(left = "10mm", first_line = "-5mm")
@@ -918,7 +918,7 @@ s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_paragraph(
 #'       alignment = "center",
@@ -962,7 +962,7 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_table_style(
 #'       borders = s_borders(
@@ -993,7 +993,7 @@ s_border <- function(color = NULL, width = NULL, line_style = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_table_style(
 #'       borders = s_borders(
@@ -1044,7 +1044,7 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("header_style",
 #'     s_table_style(
 #'       background_color = "#D9D9D9",
@@ -1106,7 +1106,7 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("page_style",
 #'     p_page(
 #'       size = "A4",
@@ -1151,7 +1151,7 @@ p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   set_page_style(
 #'     docTemplate = "KeyStat_default",
 #'     page = p_page(
@@ -1199,13 +1199,13 @@ p_page <- function(size = .const_default_page_size,
 #' @examples
 #' \dontrun{
 #' # All columns get both styles
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(c("age", "sex"),
 #'     labelStyleRef = f_combine("label_style", "emphasis")
 #'   )
 #' 
 #' # Different styles for different columns
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(c("age", "sex"),
 #'     labelStyleRef = c(
 #'       f_combine("age_label_style", "numeric_emphasis"),
@@ -1304,7 +1304,7 @@ f_combine <- function(...) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols("age",
 #'     label = "Age (years)",
 #'     c_format(type = "numeric", format = "%.1f", colWidth = "10%", 
@@ -1419,7 +1419,7 @@ c_format <- function(type, format = NULL, missings = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style("header",
 #'     s_font(font_name = "Arial", font_size = "14pt", bold = TRUE),
 #'     s_paragraph(alignment = "center"),
@@ -1554,7 +1554,7 @@ add_style.default <- function(spec, id = NULL, ...) {
 #' styles <- f_combine("label_style", "emphasis", "bold")
 #' 
 #' # Use in define_cols for one-to-one mapping
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(c("id", "age"),
 #'     labelStyleRef = c(
 #'       f_combine("id_label", "key"),
@@ -1623,7 +1623,7 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   \item \code{\link{c_format}} - Column format specification
 #' }
 #' 
-#' @param spec TFL spec object (must be initialized with \code{\link{tfl_init}})
+#' @param spec TFL spec object (must be initialized with \code{\link{create_table}})
 #' @param cols Columns to modify using tidyselect syntax. Accepts:
 #'   \itemize{
 #'     \item Named columns: \code{c("age", "group")}
@@ -1653,27 +1653,27 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' data <- data.frame(id = 1:10, age = rnorm(10, 45, 10), group = rep(c("A", "B"), 5))
 #' 
 #' # Single column
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols("age",
 #'     label = "Age (years)",
 #'     c_format(type = "numeric", format = "%.1f", colWidth = "10%")
 #'   )
 #' 
 #' # Batch update with single value
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(c("id", "age", "group"),
 #'     isVisible = TRUE  # Applied to all three
 #'   )
 #' 
 #' # Batch update with mapped values
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(c("id", "age"),
 #'     label = c("Subject ID", "Age (years)"),  # One-to-one mapping
 #'     isID = c(TRUE, FALSE)
 #'   )
 #' 
 #' # Multiple calls merge
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols("age",
 #'     label = "Age",
 #'     c_format(type = "numeric", format = "%.0f")
@@ -1683,13 +1683,13 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'     c_format(colWidth = "15%")  # Merges with format, keeping type and format
 #'   )
 #' # Apply style references - single value recycled to all columns
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(c("age", "id"),
 #'     labelStyleRef = f_combine("label_style", "emphasis")
 #'   )
 #' 
 #' # Apply different styles combinations to different columns
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(c("id", "age", "group"),
 #'     labelStyleRef = c(
 #'       f_combine("id_label", "key"),
@@ -1699,20 +1699,20 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   )
 #' 
 #' # Using tidyselect helpers
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(starts_with("age"),
 #'     label = "Age-related metric",
 #'     c_format(type = "numeric", format = "%.1f")
 #'   )
 #' 
 #' # Using negation with tidyselect
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(-id,  # Exclude id column
 #'     isVisible = TRUE
 #'   )
 #' 
 #' # Using column range
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   define_cols(age:group,  # All columns from age to group
 #'     labelStyleRef = "emphasis"
 #'   )
@@ -1842,7 +1842,7 @@ define_cols <- function(spec, cols, ...,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_title(c("Study ABC-123", "Demographics Table")) |>
 #'   add_title("Full Analysis Set", styleRef = c("subtitle_style", "emphasis"))
 #' }
@@ -1887,7 +1887,7 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_subtitle("Safety Analysis Set") |>
 #'   add_subtitle("Data Cutoff: 2025-12-14", styleRef = "footnote_style")
 #' }
@@ -1931,7 +1931,7 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_footnote("Data source: Clinical database lock 2025-12-01") |>
 #'   add_footnote("Missing values displayed as 'N/A'", styleRef = c("footnote_style", "emphasis"))
 #' }
@@ -1979,7 +1979,7 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   set_document(docType = "Table", hasData = FALSE) |>
 #'   add_body_text("No data available for the specified criteria", styleRef = c("error_style", "bold"))
 #' }
@@ -2129,7 +2129,7 @@ add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL,
 #' @examples
 #' \dontrun{
 #' # Add to a spec object
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_header("Study ABC-123", "CONFIDENTIAL", "Page {PAGE}") |>
 #'   add_header("Protocol v2.0", "", "Date: {DATE}")
 #' 
@@ -2245,7 +2245,7 @@ add_header.default <- function(spec, ...) {
 #' @examples
 #' \dontrun{
 #' # Add to a spec object
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_footer("Company Name", "", "Page {PAGE} of {NUMPAGES}") |>
 #'   add_footer("", "Confidential", "")
 #' 
@@ -2359,7 +2359,7 @@ add_footer.default <- function(spec, ...) {
 #' @examples
 #' \dontrun{
 #' data <- data.frame(id = 1:10, age = rnorm(10, 45, 10), sex = sample(c("M", "F"), 10, TRUE))
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   add_stub_column(
 #'     cols = c("age", "sex"),
 #'     label = "Demographics",
@@ -2428,7 +2428,7 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_style_row("bold", "normal", "bold")
 #' }
 .add_style_row <- function(spec, ...) {
@@ -2451,7 +2451,7 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   add_data_ref("demographics_data.json", "safety_data.json")
 #' }
 .add_data_ref <- function(spec, ...) {
@@ -2484,7 +2484,7 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   set_document(
 #'     docType = "Table",
 #'     docPrefix = "Table 14.1",
@@ -2548,7 +2548,7 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   set_page_style(
 #'     docTemplate = "KeyStat_default",
 #'     page = p_page(
@@ -2579,7 +2579,7 @@ set_page_style <- function(spec, docTemplate = NULL, page = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   set_page_style(
 #'     docTemplate = "KeyStat_default",
 #'     page = p_page(
@@ -2648,7 +2648,7 @@ set_page_style.TFL_spec <- function(spec, docTemplate = NULL, page = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   set_page_style(
 #'     docTemplate = "KeyStat_default",
 #'     page = p_page(
@@ -2714,7 +2714,7 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- tfl_spec() |>
+#' spec <- create_text() |>
 #'   set_document(docType = "Table", hasData = TRUE)
 #'   
 #' check_spec_consistency(spec)
@@ -2948,7 +2948,7 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #' @examples
 #' \dontrun{
 #' data <- data.frame(id = 1:10, age = rnorm(10, 45, 10))
-#' spec <- tfl_init(data) |>
+#' spec <- create_table(data) |>
 #'   set_document(docType = "Table", hasData = TRUE) |>
 #'   add_title("Study Title") |>
 #'   add_header("Study", "Confidential", "Page {PAGE}")
