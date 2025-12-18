@@ -15,7 +15,8 @@ Imports:
 	purrr,
 	rlang,
 	tidyselect,
-	utils
+	utils,
+	digest
 Suggests:
 	testthat (>= 3.0.0)
 Roxygen: list(markdown = TRUE)

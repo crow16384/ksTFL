@@ -51,6 +51,7 @@
     spec$document$stubColumns <- NULL
     spec$document$dataRef <- list(data)
     class(spec) <- "TFL_spec"
+    spec$.metadata$hash <- .generate_hash(spec)
     return(spec)
   }
   
@@ -67,6 +68,7 @@
     spec$document$stubColumns <- NULL
     spec$document$columns <- NULL
     class(spec) <- "TFL_spec"
+    spec$.metadata$hash <- .generate_hash(spec)
     return(spec)
   }
   
@@ -125,6 +127,7 @@
   
   #class(spec) <- c("TFL_spec", "TFL_table_spec")
   class(spec) <- "TFL_spec"
+  spec$.metadata$hash <- .generate_hash(spec)
   spec
 }
 
