@@ -167,15 +167,14 @@ utils::globalVariables(
 
 #' Guess Table Column Layout from Data Frame
 #' used in TFL_init() to pre-populate column definitions
+#' @param df Data frame to analyze
+#' @param missings Character string for missing value representation (default: "NA")
 #' @noRd 
-.guess_table_layout <- function(df) {
+.guess_table_layout <- function(df, missings = "NA") {
 
   # ---- assertions ----
   checkmate::assert_data_frame(df, any.missing = FALSE)
-  checkmate::assert_true(
-    exists(".const_default_missing_value", inherits = TRUE),
-    .var.name = ".const_default_missing_value"
-  )
+  checkmate::assert_character(missings, len = 1, .var.name = "missings")
 
   # ---- configuration ----
   min_width_pct <- 5
@@ -274,7 +273,7 @@ utils::globalVariables(
     }
 
     # replace missings once
-    rendered[is.na(rendered)] <- .const_default_missing_value
+    rendered[is.na(rendered)] <- missings
 
     # ---- width estimation ----
     value_len <- max_line_width(rendered)

@@ -153,7 +153,9 @@
 .init_column_specs <- function(data, data_cols) {
   columns <- list()
   
-  formats <- .guess_table_layout(data[names(data) %in% data_cols]) #get default formats based on first column
+  # Get current missings value from options
+  missings_value <- tfl_get_option("missings")
+  formats <- .guess_table_layout(data[names(data) %in% data_cols], missings = missings_value)
 
   for (col_idx in seq_along(data_cols)) {
     col_name <- data_cols[col_idx]

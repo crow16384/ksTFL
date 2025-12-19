@@ -22,6 +22,9 @@
     isContinues         = FALSE,
     contentWidth        = "100%",
     
+    # Data display defaults
+    missings            = .const_default_missing_value,
+    
     # Content
     headers             = .const_options_header_footer,
     footers             = .const_options_header_footer,
@@ -112,6 +115,7 @@ tfl_get_option <- function(name) {
 #' @param gluePrefix Logical; override automatic numbering glue prefix behavior.
 #' @param isContinues Logical; override continuation behavior.
 #' @param contentWidth Character; width for content area (e.g. "100%", "95%").
+#' @param missings Character; default representation for missing values (e.g. "NA", ".", "---").
 #' @param output_directory Character; path to default output directory.
 #'
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
@@ -119,7 +123,7 @@ tfl_get_option <- function(name) {
 #' @examples
 #' \dontrun{
 #' # Set a named option
-#' tfl_set_options(bodyTitles = FALSE, contentWidth = "95%")
+#' tfl_set_options(bodyTitles = FALSE, contentWidth = "95%", missings = ".")
 #'
 #' # Update page style via helper
 #' # tfl_set_options(page = p_page(size = "Letter", orientation = "portrait"))
@@ -128,7 +132,8 @@ tfl_get_option <- function(name) {
 #' @export
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
                          bodyFootnotes = NULL, gluePrefix = NULL,
-                         isContinues = NULL, contentWidth = NULL, output_directory='.') {
+                         isContinues = NULL, contentWidth = NULL, missings = NULL,
+                         output_directory='.') {
   
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
@@ -140,7 +145,7 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
       # Type checks for known option names
       if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "gluePrefix", "isContinues")) {
         checkmate::assert_logical(val, len = 1, any.missing = FALSE, .var.name = pname)
-      } else if (pname %in% c( "doc_style_template")) {
+      } else if (pname %in% c("doc_style_template", "missings")) {
         checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("output_directory")) {
         if (!.is_readable_dir(val)) {
