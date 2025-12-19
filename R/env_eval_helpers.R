@@ -73,6 +73,13 @@ NULL
 #'
 #' @param .data A data frame to select columns from
 #' @param ... Column selection expressions (tidyselect syntax)
+#' \itemize{
+#'   \item `everything()` — selects all columns.
+#'   \item `c(col1, col2)` or multiple symbols — select specific columns by name.
+#'   \item Helper helpers: `starts_with()`, `contains()`, `matches()`, etc.
+#'   \item Negation: use `-col` or `!matches()` to exclude columns.
+#'   \item External character vectors (unquoted symbols that evaluate to character vectors) are supported and will be wrapped with `all_of()`.
+#' }
 #' @param .selenv Environment for evaluating column expressions (default: calling environment)
 #' @param .strict Logical. If `TRUE` (default), require exact column matches
 #'
@@ -151,6 +158,12 @@ NULL
 #'
 #' @param .data A data frame to select columns from
 #' @param ... Column selection expressions (tidyselect syntax)
+#' \itemize{
+#'   \item `everything()` — selects all columns.
+#'   \item `c(col1, col2)` or listing symbols — select specific columns by name.
+#'   \item Helper helpers: `starts_with()`, `ends_with()`, `contains()`, `matches()`, etc.
+#'   \item Negation: use `-id` or `!matches()` to exclude columns.
+#' }
 #' @param .selenv Environment for evaluating column expressions (default: calling environment)
 #' @param .strict Logical. If `TRUE` (default), require exact column matches
 #'
@@ -230,6 +243,11 @@ NULL
 #' of values in the specified columns.
 #'
 #' @param ... Column names (unquoted or as character vector)
+#' \itemize{
+#'   \item Accepts one or more column names as unquoted symbols (e.g., `cyl`) or as a character vector.
+#'   \item Supports tidyselect-style helpers when evaluated in a data mask (e.g., `starts_with()`, `contains()`).
+#'   \item Multiple columns may be supplied and will be evaluated against the `__data__` object in the data environment.
+#' }
 #' @param data The data frame to evaluate (default: `__data__` from environment)
 #'
 #' @return A logical vector with `TRUE` at the first row of each value change,
@@ -252,6 +270,11 @@ NULL
 #' of values in the specified columns.
 #'
 #' @param ... Column names (unquoted or as character vector)
+#' \itemize{
+#'   \item Accepts one or more column names as unquoted symbols (e.g., `cyl`) or as a character vector.
+#'   \item Supports tidyselect-style helpers when evaluated in a data mask (e.g., `starts_with()`, `contains()`).
+#'   \item Multiple columns may be supplied and will be evaluated against the `__data__` object in the data environment.
+#' }
 #' @param data The data frame to evaluate (default: `__data__` from environment)
 #'
 #' @return A logical vector with `TRUE` at the last row of each value change,
@@ -274,6 +297,11 @@ NULL
 #' This function is designed to be called within a data evaluation environment.
 #'
 #' @param ... Column selection expressions (tidyselect syntax)
+#' \itemize{
+#'   \item Accepts tidyselect expressions (e.g., `everything()`, `c(col1, col2)`, helpers like `starts_with()`).
+#'   \item Supports unquoted symbols that evaluate to external character vectors (these will be wrapped with `all_of()`).
+#'   \item Expressions are evaluated in the data mask and must resolve to existing column names (unless `.strict = FALSE`).
+#' }
 #' @param .data The data frame to select from (default: `__data__` from environment)
 #' @param .selenv Environment for evaluating column expressions (default: calling environment)
 #' @param .strict Logical. If `TRUE` (default), require exact column matches
@@ -367,7 +395,7 @@ NULL
 #' @details
 #' These functions are designed to be called from within a data evaluation environment
 #' created by `.create_data_env()` or accessed via `.env_eval()`.
-#'
+#' @noRd 
 .env_func_list <- list(
   firstOf    = .eval_firstOf,
   lastOf     = .eval_lastOf,

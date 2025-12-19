@@ -4,6 +4,15 @@
 # This file is loaded first (alphabetically) to set up
 # package initialization and load-time behaviors
 
+#' Package load/unload hooks
+#'
+#' Internal package lifecycle hooks called by R when the package is loaded,
+#' attached, or unloaded. These functions are used to initialize package
+#' state and display a user-facing startup message. They are intentionally
+#' minimal and marked internal.
+#'
+#' @param libname Character. Path to the package library (provided by R).
+#' @param pkgname Character. Package name (provided by R).
 #' @keywords internal
 .onLoad <- function(libname, pkgname) {
  
@@ -19,6 +28,13 @@
   invisible(NULL)
 }
 
+#' Package attach hook
+#'
+#' Called when the package is attached to the search path. Displays a
+#' startup message and may perform lightweight runtime checks.
+#'
+#' @param libname Character. Path to the package library (provided by R).
+#' @param pkgname Character. Package name (provided by R).
 #' @keywords internal
 .onAttach <- function(libname, pkgname) {
   # Called after package is attached
@@ -38,6 +54,12 @@
   invisible(NULL)
 }
 
+#' Package unload hook
+#'
+#' Called when the package is unloaded. This hook can be used to clean up
+#' resources allocated at load/attach time.
+#'
+#' @param libpath Character. Path to the installed package (provided by R).
 #' @keywords internal
 .onUnload <- function(libpath) {
   # Cleanup when package is unloaded

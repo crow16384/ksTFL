@@ -144,6 +144,11 @@ utils::globalVariables(
 #' or metadata hashes internal to the package.
 #'
 #' @param ... R objects to include in the hash
+#' \itemize{
+#'   \item Arbitrary R objects that are serializable via base serialization (vectors, lists, data frames, atomic values).
+#'   \item Avoid passing non-serializable objects (external pointers, open connections); behavior is undefined for such inputs.
+#'   \item Typical usage: provide the spec object, associated data, or small metadata values to generate a reproducible short hash.
+#' }
 #' @return Character scalar of the first 16 hex characters of the hash
 #' @keywords internal
 #' @examples
@@ -160,4 +165,138 @@ utils::globalVariables(
   substr(h, 1, 16)
 }
 
+#' Guess Table Column Layout from Data Frame
+#' used in TFL_init() to pre-populate column definitions
+#' @noRd 
+.guess_table_layout <- function(df) {
+  checkmate::assert_data_frame(df, .var.name = "df")
 
+  if (!exists(".const_default_missing_value", inherits = TRUE)) {
+    cli::cli_abort(c(
+      "Internal configuration missing: {.var .const_default_missing_value} not found.",
+      i = "Ensure constants are defined (e.g. in R/constants.R) and the package is loaded."
+    ))
+  }
+
+  min_width_pct <- 5
+  max_width_pct <- 60
+  eps <- .Machine$double.eps^0.5
+
+  n <- ncol(df)
+  result <- vector("list", n)
+  raw_widths <- numeric(n)
+
+  # ---- helpers ----
+
+  is_scalar_value <- function(x) {
+    if (is.null(x)) return(TRUE)
+    if (length(x) != 1) return(FALSE)
+    if (is.atomic(x)) return(TRUE)
+    if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) return(TRUE)
+    FALSE
+  }
+
+  is_integerish <- function(x) {
+    x <- x[!is.na(x)]
+    if (!length(x)) return(TRUE)
+    all(abs(x - round(x)) < eps)
+  }
+
+  decimal_places <- function(x) {
+    x <- x[!is.na(x)]
+    if (!length(x)) return(0)
+
+    s <- format(x, scientific = FALSE, trim = TRUE)
+    dp <- regexpr("\\.", s)
+    has_dp <- dp > 0
+    if (!any(has_dp)) return(0)
+
+    max(nchar(substr(s[has_dp], dp[has_dp] + 1, nchar(s[has_dp]))))
+  }
+
+  for (i in seq_len(n)) {
+    col <- df[[i]]
+    col_name <- names(df)[i]
+    col_label <- attr(col, "label", exact = TRUE)
+
+    # ---- scalar check ----
+    if (is.list(col)) {
+      bad <- vapply(col, function(x) !is_scalar_value(x), logical(1))
+      if (any(bad)) {
+        cli::cli_abort(c(
+          "Column '{col_name}' contains non-scalar values and cannot be exported.",
+          x = "List elements must be atomic scalars or Date/POSIX objects."
+        ))
+      }
+    }
+
+    # ---- type ----
+    is_numeric <- is.numeric(col) &&
+      !inherits(col, c("Date", "POSIXct", "POSIXlt"))
+
+    type <- if (is_numeric) "numeric" else "string"
+
+    # ---- format ----
+    if (type == "numeric") {
+      if (is_integerish(col)) {
+        fmt <- "%d"
+      } else {
+        dp <- min(decimal_places(col), 4)
+        fmt <- paste0("%.", dp, "f")
+      }
+    } else {
+      fmt <- "%s"
+    }
+
+    # ---- render for width ----
+    rendered <- if (type == "numeric") {
+      out <- sprintf(fmt, col)
+      format(out, scientific = FALSE)
+    } else {
+      as.character(col)
+    }
+
+    rendered[is.na(rendered)] <- .const_default_missing_value
+
+    value_len <- max(nchar(rendered), na.rm = TRUE)
+    name_len  <- nchar(col_name)
+    label_len <- if (!is.null(col_label)) nchar(as.character(col_label)) else 0
+
+    raw_widths[i] <- max(value_len, name_len, label_len, 1)
+
+    result[[i]] <- list(
+      type = type,
+      format = fmt,
+      colWidth = NA_character_
+    )
+  }
+
+  # ---- width normalization ----
+  pct <- raw_widths / sum(raw_widths) * 100
+
+  # enforce min / max
+  pct <- pmax(pct, min_width_pct)
+  pct <- pmin(pct, max_width_pct)
+
+  # renormalize
+  pct <- pct / sum(pct) * 100
+
+  # round to 1 dp
+  pct_rounded <- round(pct, 1)
+
+  # fix rounding drift
+  drift <- 100 - sum(pct_rounded)
+  if (abs(drift) >= 0.05) {
+    idx <- which.max(pct_rounded)
+    pct_rounded[idx] <- pct_rounded[idx] + drift
+  }
+
+  pct_chr <- sprintf("%.1f%%", pct_rounded)
+
+  for (i in seq_len(n)) {
+    result[[i]]$colWidth <- pct_chr[i]
+  }
+
+  names(result) <- names(df)
+  result
+}

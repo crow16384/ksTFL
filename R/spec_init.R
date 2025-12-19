@@ -19,6 +19,14 @@
 #'
 #' @return A TFL_spec object.
 #'
+#' @details
+#' The initializer enforces docType-specific rules:
+#' \itemize{
+#'   \item{Table:} `data` must be a `data.frame` and `cols` selects included columns via tidyselect; the original data is copied into a data environment stored in `spec$.metadata$data_env` for later evaluation (styles/conditions).
+#'   \item{Figure:} `data` must be a single file path string pointing to a readable file; no table columns are created.
+#'   \item{Text:} `data` must be `NULL`; the spec is created without tabular columns.
+#' }
+#'
 #' @keywords internal
 .tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL, docType = "Table") {
   
@@ -283,16 +291,17 @@
 #' @param existing_entries List of existing body text entries (to find next available ID)
 #'
 #' @return Character string like "__default_001", "__default_002", etc.
-#
-# @examples
-# # No existing defaults -> `__default_001`
-# .generate_default_bodytext_id()
-#
-# # With existing default IDs
-# .generate_default_bodytext_id(list(`__default_001` = list(), `__default_002` = list()))
-# # -> "__default_003"
-#
-# @keywords internal
+#'
+#' @examples
+#' \dontrun{
+#' # No existing defaults -> `__default_001`
+#' .generate_default_bodytext_id()
+#'
+#' # With existing default IDs
+#' .generate_default_bodytext_id(list(`__default_001` = list(), `__default_002` = list()))
+#' # -> "__default_003"
+#' }
+#' @keywords internal
 .generate_default_bodytext_id <- function(existing_entries = NULL) {
   # Find all existing default IDs
   default_ids <- if (!is.null(existing_entries)) {

@@ -5,6 +5,10 @@
 #' keyed by a combination of its variable name and metadata hash.
 #'
 #' @param ... One or more objects of class `TFL_spec` to be combined.
+#' \itemize{
+#'   \item Each argument must be a `TFL_spec` produced by `create_table()`, `create_text()` or `create_figure()`.
+#'   \item Arguments are keyed in the resulting report by the argument name combined with the spec metadata hash (see return value).
+#' }
 #'
 #' @details
 #' The function performs the following operations:

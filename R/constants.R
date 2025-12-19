@@ -1,3 +1,19 @@
+##' Package constants and validation patterns for ksTFL
+##'
+##' This file contains package-wide constant objects used across ksTFL.
+##' It includes default spec templates, enumerations, validation regexes,
+##' schema property lists, and JSON schema helper constants. These constants
+##' are referenced by spec constructors, validation routines and serializer
+##' helpers to centralize magic strings and ensure consistent behavior.
+##'
+##' These objects are internal to the package and are not exported to CRAN
+##' users. They are documented here to assist developers working on
+##' specification creation, schema resolution, and formatting helpers.
+##'
+##' @keywords internal
+##' @name ksTFL-constants
+NULL
+
 #=============================================================================
 # ksTFL/R/constants.R 
 # Package-wide constants for ksTFL
@@ -211,6 +227,9 @@
 
 #' Default column format string for numeric types
 .const_default_numeric_format <- "%d"
+
+#' default missing value representation
+.const_default_missing_value <- "NA"
 
 #' Default line spacing minimum
 .const_min_line_spacing <- 1

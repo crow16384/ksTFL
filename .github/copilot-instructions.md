@@ -380,3 +380,33 @@ tfl_init(data = NULL, docType = "Text", id = "txt01")
 5. Implement remaining schema validation (row_style_schema, styles_schema)
 
 
+## Doc pass — Dec 19, 2025
+
+Summary of recent documentation and small-code fixes performed while auditing the repo:
+
+- Files updated with improved roxygen and doc guidance:
+   - `R/spec_context.R` — clarified `...` usage, removed duplicated \itemize blocks, documented `add_header()`/`add_footer()` parts, clarified `add_style()` and nesting rules.
+   - `R/env_eval_helpers.R` — documented tidyselect behaviour, `__data__`/`__mask__` evaluation, and listed embedded helper functions (`firstOf`, `lastOf`, `get_names`, `row_number`, `every_nth`, `eval`).
+   - `R/create_report.R` — documented `create_report(...)` behaviour: keys are `<varname>_<hash>`, docOrder/dataRef numbering, and validation rules.
+   - `R/pkg_settings.R` — documented `tfl_set_options(...)` `...` shapes and routing logic for helper-returned settings objects.
+   - `R/utility_functions.R`, `R/constants.R`, `R/99_loader.R`, `R/spec_init.R`, `R/spec_serializer.R`, `R/schema_serialize.R` — small doc additions and fixes (file-level roxygen, `@name` tags, clearer descriptions).
+
+- Specific issues fixed
+   - Added missing `@name` file-level tags to `schema_serialize.R` and `spec_serializer.R` so roxygen can emit Rd topics.
+   - Fixed Rd generation problems for `.onAttach` and `.onUnload` by adding short titles and descriptions in `R/99_loader.R`.
+   - Removed duplicate `\itemize{}` blocks in `R/spec_context.R` that caused doc noise.
+
+- Key behavioural reminders discovered during the pass
+   - `create_report(...)` keys specs by variable name + metadata hash; it also assigns `document$docOrder` and `dataRef` values.
+   - `spec$.metadata$data_env` is a layered environment: functions layer, `__data__` raw data layer, and `__mask__` tidyselect mask. Do not mutate the shadow copy.
+   - The JSON serialization pipeline is central and testable at each stage: `.serialize_json_internal()` → `.fix_types()` → `.resolve_refs()` → `.resolve_allOf()` → `.protect_arrays()` → `jsonlite::toJSON()`.
+   - `define_cols()` uses `enquos()` and requires `c()` when specifying multiple columns; misuse is a common source of user error.
+   - `add_style()` enforces contextual nesting via `.set_context()` / `.assert_context()` — incorrect nesting (e.g., `s_borders()` outside `s_table_style()`) will be rejected.
+
+- Recommended next verification steps (local)
+   1. Run `devtools::load_all()` and `roxygen2::roxygenise()` locally to regenerate Rd files and catch any remaining warnings.
+   2. Run `testthat` tests (`devtools::test()` or `R CMD check`) to validate behavior after doc changes.
+   3. If you want, I can continue: (a) finish a final grep for any remaining `@param ...` misses, or (b) expand doc examples for critical helpers.
+
+
+

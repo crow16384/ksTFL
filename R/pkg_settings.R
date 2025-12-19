@@ -101,6 +101,11 @@ tfl_get_option <- function(name) {
 #' appropriate internal settings slot (headers, footers, styles, bodyText, page).
 #'
 #' @param ... Named arguments OR settings objects returned from helper constructors.
+#' \itemize{
+#'   \item Named scalar options (e.g. `bodyTitles = FALSE`, `contentWidth = "95%"`).
+#'   \item Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_style()`, `add_body_text()`, and `p_page()`/`set_page_style()`.
+#'   \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
+#' }
 #' @param bodyTitles Logical; override whether body titles are shown.
 #' @param bodySubtitles Logical; override whether body subtitles are shown.
 #' @param bodyFootnotes Logical; override whether body footnotes are shown.

@@ -1106,6 +1106,11 @@ p_page <- function(size = .const_default_page_size,
 #' Useful with \code{\link{define_cols}} when mapping different styles to different columns.
 #' 
 #' @param ... Character strings representing style names to combine
+#' \itemize{
+#'   \item Each argument must be a single character string naming a style declared via `add_style()`.
+#'   \item Use `f_combine()` to group multiple style names that should be applied together.
+#'   \item The returned value is a character vector (or object of class `tfl_style_combine` in some variants).
+#' }
 #' 
 #' @return A character vector of style names
 #' @export
@@ -1327,6 +1332,11 @@ c_format <- function(type, format = NULL, missings = NULL,
 #' @param spec Spec object (dispatches on class)
 #' @param id Style identifier (auto-generated if NULL)
 #' @param ... Style modifiers created with s_* functions
+#' \itemize{
+#'   \item \code{\link{s_font}} — font properties.
+#'   \item \code{\link{s_paragraph}} — paragraph-level formatting (may include nested \code{\link{s_spacing}} and \code{\link{s_indents}}).
+#'   \item \code{\link{s_table_style}} — table-cell styling (may include nested \code{\link{s_borders}} / \code{\link{s_border}}).
+#' }
 #' 
 #' @return Updated spec object
 #' @export
@@ -1353,6 +1363,11 @@ add_style <- function(spec, id, ...) {
 #' @param spec TFL_spec object
 #' @param id Style identifier (auto-generated if NULL)
 #' @param ... Style modifiers created with s_* functions
+#' \itemize{
+#'   \item Allowed modifiers: `s_font()`, `s_paragraph()`, `s_table_style()`.
+#'   \item `s_paragraph()` may itself contain nested modifiers `s_spacing()` and `s_indents()`.
+#'   \item Modifiers are merged into the named style using a last-win strategy.
+#' }
 #' @return Updated spec object
 #' @export
 add_style.TFL_spec <- function(spec, id, ...) {
@@ -1398,6 +1413,11 @@ add_style.TFL_spec <- function(spec, id, ...) {
 #' @param spec TFL_options style branch object
 #' @param id Style identifier (name) 
 #' @param ... Style modifiers created with s_* functions
+#' \itemize{
+#'   \item Allowed modifiers: `s_font()`, `s_paragraph()`, `s_table_style()`.
+#'   \item `s_paragraph()` may itself contain nested modifiers `s_spacing()` and `s_indents()`.
+#'   \item Modifiers are merged into the named style using a last-win strategy.
+#' }
 #' @return Updated spec object
 #' @export
 add_style.TFL_options <- function(spec, id = NULL, ...) {
@@ -1437,6 +1457,10 @@ add_style.TFL_options <- function(spec, id = NULL, ...) {
 #' @param spec Spec object
 #' @param id Style identifier
 #' @param ... Style modifiers
+#' \itemize{
+#'   \item Functions created with `s_*()` helpers (e.g., `s_font()`, `s_paragraph()`).
+#'   \item These modifiers are evaluated in the `add_style()` context and merged into the style definition.
+#' }
 #' @return Error if no method found
 #' @export
 add_style.default <- function(spec, id = NULL, ...) {
@@ -1459,6 +1483,10 @@ add_style.default <- function(spec, id = NULL, ...) {
 #' }
 #' 
 #' @param ... Character strings representing style names to combine
+#' \itemize{
+#'   \item Each argument must be a single character string naming a style.
+#'   \item Returned object has class `tfl_style_combine` to signal grouped style application.
+#' }
 #' 
 #' @return Object of class "tfl_style_combine" (character vector with special class)
 #' @export
@@ -1502,6 +1530,11 @@ f_combine <- function(...) {
 #' rather than flattening. This enables explicit one-to-one style mapping.
 #'
 #' @param ... Objects to combine
+#' \itemize{
+#'   \item Accepts `tfl_style_combine` objects and plain character strings.
+#'   \item `tfl_style_combine` objects are preserved as single list elements to enable one-to-one mappings.
+#'   \item Character strings are added as separate list elements.
+#' }
 #' @param recursive Ignored
 #' @return List of style references
 #' @keywords internal
@@ -1559,6 +1592,11 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' @param dedupe Whether to deduplicate values (length 1 or length of cols)
 #' @param blankAfter Whether to add blank after value change (length 1 or length of cols)
 #' @param ... Column format modifier created with \code{\link{c_format}}
+#' \itemize{
+#'   \item Provide a single `c_format()` call to describe how values in the selected columns should be displayed.
+#'   \item `c_format()` accepts `type`, `format`, `missings`, `colWidth`, and `valueStyleRef` (see \code{\link{c_format}}).
+#'   \item Multiple modifiers are not allowed; `define_cols()` will error if more than one `c_format()` is provided.
+#' }
 #' 
 #' @return Updated spec object
 #' @export
@@ -1640,6 +1678,8 @@ define_cols <- function(spec, cols, ...,
   assert_class(spec, "TFL_spec")
   cols <- enquos(cols)
   cols <- .get_data_column_names(spec$.metadata$data_env$`__data__`, !!!cols)
+
+  cols <- intersect(cols, names(spec$columns)) #keep only columns that exist in spec definition
   assert_character(cols, min.len = 1)
   
   # Check that all cols exist
@@ -2037,6 +2077,11 @@ add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL,
 #' 
 #' @param spec Spec object (dispatches on class)
 #' @param ... Up to 3 character strings (left, center, right)
+#' \itemize{
+#'   \item Positional parts represent left, center and right header/footer cells respectively.
+#'   \item Supply fewer than 3 parts if some cells should be empty; use empty string "" for explicit empties.
+#'   \item Each call appends one header/footer row; use the `level` parameter to replace an existing row.
+#' }
 #' @param level Optional numeric index. If provided, replaces header at that row. If NULL, appends next row.
 #' 
 #' @return Updated spec object
@@ -2062,6 +2107,11 @@ add_header <- function(spec = NULL, ..., level = NULL) {
 #' 
 #' @param spec TFL_spec object
 #' @param ... Up to 3 character strings (left, center, right)
+#' \itemize{
+#'   \item Positional parts represent left, center and right header/footer cells respectively.
+#'   \item Supply fewer than 3 parts if some cells should be empty; use empty string "" for explicit empties.
+#'   \item Each call appends one header/footer row; use the `level` parameter to replace an existing row.
+#' }
 #' @param level Optional numeric index. If provided, replaces header at that row. If NULL, appends next row.
 #' @return Updated spec object
 #' @export
@@ -2100,6 +2150,11 @@ add_header.TFL_spec <- function(spec, ..., level = NULL) {
 #' 
 #' @param spec TFL_options object
 #' @param ... Up to 3 character strings (left, center, right)
+#' \itemize{
+#'   \item Positional parts represent left, center and right header/footer cells respectively.
+#'   \item Supply fewer than 3 parts if some cells should be empty; use empty string "" for explicit empties.
+#'   \item Each call appends one header/footer row; use the `level` parameter to replace an existing row.
+#' }
 #' @param level Optional numeric index. If provided, replaces header at that row. If NULL, appends next row.
 #' @return Updated options object
 #' @export
@@ -2135,6 +2190,11 @@ add_header.TFL_options <- function(spec, ..., level = NULL) {
 #' 
 #' @param spec Spec object
 #' @param ... Header parts
+#' \itemize{
+#'   \item Up to 3 positional character strings: left, center, right.
+#'   \item Use an empty string "" to represent an empty cell.
+#'   \item The `level` parameter can be used to replace an existing row instead of appending.
+#' }
 #' @return Error if no method found
 #' @export
 add_header.default <- function(spec, ...) {
@@ -2153,6 +2213,11 @@ add_header.default <- function(spec, ...) {
 #' 
 #' @param spec Spec object (dispatches on class)
 #' @param ... Up to 3 character strings (left, center, right)
+#' \itemize{
+#'   \item Positional parts represent left, center and right header/footer cells respectively.
+#'   \item Supply fewer than 3 parts if some cells should be empty; use empty string "" for explicit empties.
+#'   \item Each call appends one header/footer row; use the `level` parameter to replace an existing row.
+#' }
 #' @param level Optional numeric index. If provided, replaces footer at that row. If NULL, appends next row.
 #' 
 #' @return Updated spec object
@@ -2178,6 +2243,11 @@ add_footer <- function(spec = NULL, ..., level = NULL) {
 #' 
 #' @param spec TFL_spec object
 #' @param ... Up to 3 character strings (left, center, right)
+#' \itemize{
+#'   \item Positional parts represent left, center and right header/footer cells respectively.
+#'   \item Supply fewer than 3 parts if some cells should be empty; use empty string "" for explicit empties.
+#'   \item Each call appends one header/footer row; use the `level` parameter to replace an existing row.
+#' }
 #' @param level Optional numeric index. If provided, replaces footer at that row. If NULL, appends next row.
 #' @return Updated spec object
 #' @export
@@ -2249,6 +2319,11 @@ add_footer.TFL_options <- function(spec, ..., level = NULL) {
 #' 
 #' @param spec Spec object
 #' @param ... Footer parts
+#' \itemize{
+#'   \item Up to 3 positional character strings: left, center, right.
+#'   \item Use an empty string "" to represent an empty cell.
+#'   \item The `level` parameter can be used to replace an existing row instead of appending.
+#' }
 #' @return Error if no method found
 #' @export
 add_footer.default <- function(spec, ...) {

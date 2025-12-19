@@ -1,14 +1,32 @@
+##' Schema serialization and validation (internal)
+##'
+##' Module: JSON Schema Serialization for ksTFL
+##'
+##' This internal module validates R objects against the package JSON schemas
+##' and prepares them for JSON export. Key responsibilities:
+##' - Resolve internal `$ref` references and `$defs`
+##' - Merge `allOf` subschemas and handle combinators (`oneOf`, `anyOf`)
+##' - Enforce `type`, `enum`, and `pattern` constraints and coerce values
+##' - Provide detailed JSON Pointer-based error reporting for diagnostics
+##'
+##' These helpers are internal and intended for `serialize_spec()` and
+##' related serialization pipelines.
+##'
+##' @keywords internal
+##' @name schema_serialize
+NULL
+
 ################################################################################
-# TFL Framework - JSON Schema Serialization
-#
-# This module provides schema-driven validation and JSON serialization. It handles:
-# - Internal $ref/$defs resolution
-# - allOf, oneOf, anyOf combinators
-# - enum and pattern validation
-# - Type coercion and validation
-# - JSON Pointer paths for error reporting
-#
-# The serializer ensures R objects conform to their schema before JSON export.
+ # TFL Framework - JSON Schema Serialization
+ #
+ # This module provides schema-driven validation and JSON serialization. It handles:
+ # - Internal $ref/$defs resolution
+ # - allOf, oneOf, anyOf combinators
+ # - enum and pattern validation
+ # - Type coercion and validation
+ # - JSON Pointer paths for error reporting
+ #
+ # The serializer ensures R objects conform to their schema before JSON export.
 ################################################################################
 
 
