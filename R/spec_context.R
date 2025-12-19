@@ -2993,33 +2993,49 @@ preview_spec <- function(spec, max_levels = 3, layout = c("compact","full"), wid
     }
   }
 
-  # Columns compact table
+  # Columns: single-line per column summary
   ncols <- length(spec$columns)
   if (ncols > 0) {
     cli::cli_rule("Columns")
     cols <- names(spec$columns)
-    rows <- lapply(cols, function(cn) {
+    for (cn in cols) {
       cs <- spec$columns[[cn]]
       lab <- cs$label %||% cs$colLabel %||% ""
       fmt_val <- cs$format %||% cs$c_format %||% NULL
-      ffmt <- if (is.list(fmt_val)) fmt_val$format %||% "" else if (is.character(fmt_val)) fmt_val else ""
+      ftype <- ""
+      ffmt <- ""
+      colw <- ""
+      if (is.list(fmt_val)) {
+        ftype <- fmt_val$type %||% ""
+        ffmt <- fmt_val$format %||% ""
+        if (!is.null(fmt_val$colWidth)) colw <- as.character(fmt_val$colWidth)
+      } else if (is.character(fmt_val) && length(fmt_val) == 1) {
+        ffmt <- fmt_val
+      }
       flags <- c()
       if (!is.null(cs$isID) && isTRUE(cs$isID)) flags <- c(flags, "ID")
       if (!is.null(cs$isVisible) && isFALSE(cs$isVisible)) flags <- c(flags, "hidden")
       if (!is.null(cs$isGrouping) && isTRUE(cs$isGrouping)) flags <- c(flags, "group")
       if (!is.null(cs$isPaging) && isTRUE(cs$isPaging)) flags <- c(flags, "page_break")
-      c(name = cn, label = as.character(lab), format = as.character(ffmt), flags = paste(flags, collapse = ","))
-    })
-    # rbind the named character vectors directly so colnames are preserved
-    df_rows <- do.call(rbind, rows)
-    name_w <- min(30, max(nchar(df_rows[,"name"]), nchar("Name")))
-    label_w <- min(40, max(nchar(df_rows[,"label"]), nchar("Label")))
-    fmt_w <- min(30, max(nchar(df_rows[,"format"]), nchar("Format")))
-    flags_w <- min(30, max(nchar(df_rows[,"flags"]), nchar("Flags")))
-    cli::cli_text(sprintf("%-*s  %-*s  %-*s  %-*s", name_w, "Name", label_w, "Label", fmt_w, "Format", flags_w, "Flags"))
-    for (i in seq_len(nrow(df_rows))) {
-      line <- sprintf("%-*s  %-*s  %-*s  %-*s", name_w, col_blue(trunc_str(df_rows[i,"name"], name_w)), label_w, col_yellow(trunc_str(df_rows[i,"label"], label_w)), fmt_w, col_magenta(trunc_str(df_rows[i,"format"], fmt_w)), flags_w, col_green(trunc_str(df_rows[i,"flags"], flags_w)))
-      cli::cli_text(line)
+      if (!is.null(cs$isColBreak) && isTRUE(cs$isColBreak)) flags <- c(flags, "col_break")
+      if (!is.null(cs$dedupe) && isTRUE(cs$dedupe)) flags <- c(flags, "dedupe")
+      if (!is.null(cs$blankAfter) && isTRUE(cs$blankAfter)) flags <- c(flags, "blank_after")
+      flags_str <- if (length(flags) > 0) paste0("[", paste(flags, collapse = ","), "]") else ""
+      # styles (value style or general style reference)
+      style_vec <- if (!is.null(cs$valueStyleRef)) {
+        if (is.list(cs$valueStyleRef)) unlist(cs$valueStyleRef) else as.character(cs$valueStyleRef)
+      } else if (!is.null(cs$styleRef)) {
+        if (is.list(cs$styleRef)) unlist(cs$styleRef) else as.character(cs$styleRef)
+      } else character(0)
+      style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
+      style_str <- if (length(style_vec) > 0) paste0("[styles: ", col_green(paste(style_vec, collapse = ",")), "]") else ""
+
+      # assemble line: name - label: [T:<type>, F:<format>, W:<width>] [flags] [styles]
+      name_part <- col_blue(cn)
+      label_part <- col_yellow(trunc_str(as.character(lab), floor(width * 0.5)))
+      tfw_part <- paste0("[T:", ifelse(nzchar(ftype), col_magenta(ftype), ""), ", F:", ifelse(nzchar(ffmt), col_magenta(ffmt), ""), ", W:", ifelse(nzchar(colw), col_green(colw), ""), "]")
+      parts <- paste(Filter(nzchar, c(paste0(name_part, " - ", label_part, ": ", tfw_part), flags_str, style_str)), collapse = " ")
+      cli::cli_text(parts)
     }
   }
 
