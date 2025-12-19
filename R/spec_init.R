@@ -153,9 +153,12 @@
 .init_column_specs <- function(data, data_cols) {
   columns <- list()
   
+  formats <- .guess_table_layout(data[names(data) %in% data_cols]) #get default formats based on first column
+
   for (col_idx in seq_along(data_cols)) {
     col_name <- data_cols[col_idx]
     col_vector <- data[[col_name]]
+    
     
     # Validate column extraction
     if (is.null(col_vector)) {
@@ -176,7 +179,8 @@
       .isColBreak   = FALSE,
       dedupe        = FALSE,
       blankAfter    = FALSE,
-      format        = .get_data_format(col_vector, col_name) %||% NULL
+      #format        = .get_data_format(col_vector, col_name) %||% NULL
+      format        = formats[[col_name]] %||% NULL
     )
   }
   

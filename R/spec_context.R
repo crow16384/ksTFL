@@ -2916,12 +2916,24 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #'   
 #' preview_spec(spec)
 #' }
-preview_spec <- function(spec, max_levels = 3) {
-  if (!inherits(spec, "TFL_spec")) {
-    cli::cli_abort("Object must be of class 'TFL_spec'")
+preview_spec <- function(spec, max_levels = 3, layout = c("compact","full"), width = getOption("width", 80L), colors = TRUE) {
+  if (!inherits(spec, "TFL_spec")) cli::cli_abort("Object must be of class 'TFL_spec'")
+
+  layout <- match.arg(layout)
+
+  # color helpers
+  col_blue <- function(x) if (isTRUE(colors)) cli::col_blue(x) else x
+  col_yellow <- function(x) if (isTRUE(colors)) cli::col_yellow(x) else x
+  col_magenta <- function(x) if (isTRUE(colors)) cli::col_magenta(x) else x
+  col_green <- function(x) if (isTRUE(colors)) cli::col_green(x) else x
+  col_cyan <- function(x) if (isTRUE(colors)) cli::col_cyan(x) else x
+
+  trunc_str <- function(x, max_len) {
+    s <- as.character(x)
+    if (nchar(s) > max_len) paste0(substr(s, 1, max_len - 1), "…") else s
   }
 
-  cli::rule("TFL Specification Preview", line = 2)
+  cli::cli_rule("TFL Specification Preview")
   cli::cli_text("{.strong TFL Specification Preview}")
 
   doc_type <- if (!is.null(spec$document$docType)) spec$document$docType else "<not set>"
@@ -2929,184 +2941,134 @@ preview_spec <- function(spec, max_levels = 3) {
   cli::cli_text("{.strong Document Type:} {doc_type}")
   cli::cli_text("{.strong Has Data:} {has_data}")
 
-  # Page settings
+  # compact metadata
+  if (!is.null(spec$document$docPrefix)) cli::cli_text("{.strong Doc Prefix:} {col_blue(spec$document$docPrefix)}")
+  if (!is.null(spec$document$docOrder)) cli::cli_text("{.strong Doc Order:} {spec$document$docOrder}")
+  if (!is.null(spec$document$contentWidth)) cli::cli_text("{.strong Content Width:} {spec$document$contentWidth}")
+
+  # Page
   if (!is.null(spec$attribs$documentStyle$page)) {
     pg <- spec$attribs$documentStyle$page
-    size <- if (!is.null(pg$size)) pg$size else "<default>"
-    orient <- if (!is.null(pg$orientation)) pg$orientation else "<default>"
+    size <- pg$size %||% "<default>"
+    orient <- pg$orientation %||% "<default>"
     cli::cli_text("{.strong Page settings:} size={size}, orientation={orient}")
   }
 
-  # Titles and subtitles
+  # Headers (all rows)
+  if (length(spec$headers %||% list()) > 0) {
+    cli::cli_rule("Headers")
+    for (i in seq_along(spec$headers)) {
+      row <- spec$headers[[i]]
+      cells <- vapply(row, function(x) trunc_str(as.character(x %||% ""), floor(width / max(1, length(row)))), character(1))
+      cli::cli_text("{.strong Row {i}:} {paste(col_yellow(cells), collapse = ' | ')}")
+    }
+  }
+
+  # Titles
   if (!is.null(spec$titles) && length(spec$titles) > 0) {
-    cli::cli_text("{.strong Titles:}")
-    cli::cli_ul()
-    for (t in spec$titles) {
-      txt <- paste(t$text, collapse = " ")
-      ord <- t$order %||% "?"
-      # normalize and colourize styleRef when present and non-empty
+    cli::cli_rule("Titles")
+    tlist <- spec$titles
+    orders <- vapply(tlist, function(x) if (!is.null(x$order)) as.integer(x$order) else NA_integer_, integer(1))
+    ord_idx <- order(is.na(orders), orders)
+    for (t in tlist[ord_idx]) {
+      txt <- trunc_str(paste(t$text, collapse = " "), width)
       style_vec <- if (is.null(t$styleRef)) character(0) else if (is.list(t$styleRef)) unlist(t$styleRef) else as.character(t$styleRef)
       style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
-      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", cli::col_green(paste(style_vec, collapse = ",")), "]") else ""
-      cli::cli_li("[{ord}] {txt}{style_ref}")
+      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", col_green(paste(style_vec, collapse = ",")), "]") else ""
+      cli::cli_text("- {txt}{style_ref}")
     }
-    cli::cli_end()
   }
 
-  # Footnotes
-  if (!is.null(spec$footnotes) && length(spec$footnotes) > 0) {
-    cli::cli_text("{.strong Footnotes:}")
-    cli::cli_ul()
-    for (f in spec$footnotes) {
-      txt <- paste(f$text, collapse = " ")
-      ord <- f$order %||% "?"
-      style_vec <- if (is.null(f$styleRef)) character(0) else if (is.list(f$styleRef)) unlist(f$styleRef) else as.character(f$styleRef)
-      style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
-      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", cli::col_green(paste(style_vec, collapse = ",")), "]") else ""
-      cli::cli_li("[{ord}] {txt}{style_ref}")
+  # Subtitles
+  if (!is.null(spec$subtitles) && length(spec$subtitles) > 0) {
+    cli::cli_rule("Subtitles")
+    slist <- spec$subtitles
+    orders <- vapply(slist, function(x) if (!is.null(x$order)) as.integer(x$order) else NA_integer_, integer(1))
+    ord_idx <- order(is.na(orders), orders)
+    for (s in slist[ord_idx]) {
+      txt <- trunc_str(paste(s$text, collapse = " "), width)
+      style_vec <- if (is.null(s$styleRef)) character(0) else if (is.list(s$styleRef)) unlist(s$styleRef) else as.character(s$styleRef)
+      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", col_green(paste(style_vec, collapse = ",")), "]") else ""
+      cli::cli_text("- {txt}{style_ref}")
     }
-    cli::cli_end()
   }
 
-  # Body text
-  if (!is.null(spec$bodyText) && length(spec$bodyText) > 0) {
-    cli::cli_text("{.strong Body text:}")
-    cli::cli_ul()
-    for (b in spec$bodyText) {
-      txt <- paste(b$text, collapse = " ")
-      ord <- b$order %||% "?"
-      style_vec <- if (is.null(b$styleRef)) character(0) else if (is.list(b$styleRef)) unlist(b$styleRef) else as.character(b$styleRef)
-      style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
-      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", cli::col_green(paste(style_vec, collapse = ",")), "]") else ""
-      cli::cli_li("[{ord}] {txt}{style_ref}")
-    }
-    cli::cli_end()
-  }
-
-  # Columns: list first N with compact info (flags + format)
+  # Columns compact table
   ncols <- length(spec$columns)
   if (ncols > 0) {
-    cli::cli_text("{.strong Columns:} {ncols}")
-    n_show <- min(12, ncols)
-    cli::cli_ul()
-    for (cn in names(spec$columns)[1:n_show]) {
+    cli::cli_rule("Columns")
+    cols <- names(spec$columns)
+    rows <- lapply(cols, function(cn) {
       cs <- spec$columns[[cn]]
-
-      # label (support label or colLabel)
       lab <- cs$label %||% cs$colLabel %||% ""
-      label_part <- if (nzchar(as.character(lab))) paste0(" - ", cli::col_yellow(as.character(lab))) else ""
-
-      # format: accept list or simple string; also support alternate key c_format
-      fmt_val <- NULL
-      if (!is.null(cs$format)) fmt_val <- cs$format
-      if (is.null(fmt_val) && !is.null(cs$c_format)) fmt_val <- cs$c_format
-      fmt_str <- ""
-      if (!is.null(fmt_val)) {
-        if (is.list(fmt_val)) {
-          ftype <- fmt_val$type %||% ""
-          ffmt <- fmt_val$format %||% ""
-          extras <- character(0)
-          if (!is.null(fmt_val$colWidth)) extras <- c(extras, paste0("colWidth=", fmt_val$colWidth))
-          if (!is.null(fmt_val$missings)) {
-            m <- fmt_val$missings
-            if (is.character(m)) m <- paste0("[", paste(m, collapse = ","), "]")
-            extras <- c(extras, paste0("missings=", m))
-          }
-          if (!is.null(fmt_val$valueStyleRef)) extras <- c(extras, paste0("valueStyle=", paste(fmt_val$valueStyleRef, collapse = ",")))
-
-          core <- if (nzchar(ftype) && nzchar(ffmt)) paste0(ftype, ": ", ffmt) else if (nzchar(ffmt)) ffmt else if (nzchar(ftype)) ftype else ""
-          if (length(extras) > 0) {
-            if (nzchar(core)) fmt_str <- paste0(core, " (", paste(extras, collapse = ", "), ")") else fmt_str <- paste(extras, collapse = ", ")
-          } else {
-            fmt_str <- core
-          }
-        } else if (is.character(fmt_val) && length(fmt_val) == 1) {
-          fmt_str <- fmt_val
-        }
-      }
-      fmt_part <- if (nzchar(fmt_str)) paste0(" [", cli::col_magenta(fmt_str), "]") else ""
-
-      # flags
+      fmt_val <- cs$format %||% cs$c_format %||% NULL
+      ffmt <- if (is.list(fmt_val)) fmt_val$format %||% "" else if (is.character(fmt_val)) fmt_val else ""
       flags <- c()
       if (!is.null(cs$isID) && isTRUE(cs$isID)) flags <- c(flags, "ID")
       if (!is.null(cs$isVisible) && isFALSE(cs$isVisible)) flags <- c(flags, "hidden")
       if (!is.null(cs$isGrouping) && isTRUE(cs$isGrouping)) flags <- c(flags, "group")
       if (!is.null(cs$isPaging) && isTRUE(cs$isPaging)) flags <- c(flags, "page_break")
-      if (!is.null(cs$isColBreak) && isTRUE(cs$isColBreak)) flags <- c(flags, "col_break")
-      if (!is.null(cs$dedupe) && isTRUE(cs$dedupe)) flags <- c(flags, "dedupe")
-      if (!is.null(cs$blankAfter) && isTRUE(cs$blankAfter)) flags <- c(flags, "blank_after")
-      if (!is.null(cs$labelStyleRef)) flags <- c(flags, paste0("labelStyle=", paste(cs$labelStyleRef, collapse = ",")))
-      # valueStyleRef is shown as part of format; do not duplicate into flags
-      flags_str <- paste(flags, collapse = ",")
-      flags_part <- if (nzchar(flags_str)) paste0(" {", cli::col_green(flags_str), "}") else ""
-
-      name_col <- cli::col_blue(cn)
-      cli::cli_li("{name_col}{label_part}{fmt_part}{flags_part}")
+      c(name = cn, label = as.character(lab), format = as.character(ffmt), flags = paste(flags, collapse = ","))
+    })
+    # rbind the named character vectors directly so colnames are preserved
+    df_rows <- do.call(rbind, rows)
+    name_w <- min(30, max(nchar(df_rows[,"name"]), nchar("Name")))
+    label_w <- min(40, max(nchar(df_rows[,"label"]), nchar("Label")))
+    fmt_w <- min(30, max(nchar(df_rows[,"format"]), nchar("Format")))
+    flags_w <- min(30, max(nchar(df_rows[,"flags"]), nchar("Flags")))
+    cli::cli_text(sprintf("%-*s  %-*s  %-*s  %-*s", name_w, "Name", label_w, "Label", fmt_w, "Format", flags_w, "Flags"))
+    for (i in seq_len(nrow(df_rows))) {
+      line <- sprintf("%-*s  %-*s  %-*s  %-*s", name_w, col_blue(trunc_str(df_rows[i,"name"], name_w)), label_w, col_yellow(trunc_str(df_rows[i,"label"], label_w)), fmt_w, col_magenta(trunc_str(df_rows[i,"format"], fmt_w)), flags_w, col_green(trunc_str(df_rows[i,"flags"], flags_w)))
+      cli::cli_text(line)
     }
-    if (ncols > n_show) cli::cli_text("  ... +{ncols - n_show} more columns")
-    cli::cli_end()
   }
 
-  # Styles overview
-  nstyles <- length(spec$attribs$styles %||% list())
-  if (nstyles > 0) {
-    cli::cli_text("{.strong Styles defined:} {nstyles}")
-    n_show <- min(8, nstyles)
-    cli::cli_ul()
-    for (sid in names(spec$attribs$styles)[1:n_show]) {
-      st <- spec$attribs$styles[[sid]]
-      keys <- paste(names(st), collapse = ", ")
-      cli::cli_li("{sid} ({keys})")
+  # Footnotes
+  if (!is.null(spec$footnotes) && length(spec$footnotes) > 0) {
+    cli::cli_rule("Footnotes")
+    flist <- spec$footnotes
+    orders <- vapply(flist, function(x) if (!is.null(x$order)) as.integer(x$order) else NA_integer_, integer(1))
+    ord_idx <- order(is.na(orders), orders)
+    for (f in flist[ord_idx]) {
+      txt <- trunc_str(paste(f$text, collapse = " "), width)
+      style_vec <- if (is.null(f$styleRef)) character(0) else if (is.list(f$styleRef)) unlist(f$styleRef) else as.character(f$styleRef)
+      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", col_green(paste(style_vec, collapse = ",")), "]") else ""
+      cli::cli_text("- {txt}{style_ref}")
     }
-    if (nstyles > n_show) cli::cli_text("  ... +{nstyles - n_show} more styles")
-    cli::cli_end()
   }
 
-  # Stub columns
-  nstub <- length(spec$stubColumns %||% list())
-  if (nstub > 0) {
-    cli::cli_text("{.strong Stub Columns:} {nstub}")
-    cli::cli_ul()
-    for (sid in names(spec$stubColumns)) {
-      s <- spec$stubColumns[[sid]]
-      ord <- s$stubOrder %||% "?"
-      lbl <- s$label %||% ""
-      ncols_stub <- length(s$cols %||% list())
-      cli::cli_li("[{ord}] {lbl} ({ncols_stub} cols)")
-    }
-    cli::cli_end()
-  }
-
-  # Headers/Footers previews (show first row in a clearer format)
-  if (length(spec$headers %||% list()) > 0) {
-    cli::cli_text("{.strong Headers:} {length(spec$headers)} row(s)")
-    sample_h <- spec$headers[[1]]
-    # print as labeled row with light color per cell
-    cells <- vapply(sample_h, function(x) {
-      txt <- as.character(x %||% "")
-      if (nzchar(txt)) cli::col_yellow(txt) else ""
-    }, character(1))
-    cli::cli_text("{.strong Header Preview:} {paste(cells, collapse = ' | ')}")
-  }
+  # Footers (all rows)
   if (length(spec$footers %||% list()) > 0) {
-    cli::cli_text("{.strong Footers:} {length(spec$footers)} row(s)")
-    sample_f <- spec$footers[[1]]
-    cellsf <- vapply(sample_f, function(x) {
-      txt <- as.character(x %||% "")
-      if (nzchar(txt)) cli::col_cyan(txt) else ""
-    }, character(1))
-    cli::cli_text("{.strong Footer Preview:} {paste(cellsf, collapse = ' | ')}")
+    cli::cli_rule("Footers")
+    for (i in seq_along(spec$footers)) {
+      row <- spec$footers[[i]]
+      cells <- vapply(row, function(x) trunc_str(as.character(x %||% ""), floor(width / max(1, length(row)))), character(1))
+      cli::cli_text("{.strong Row {i}:} {paste(col_cyan(cells), collapse = ' | ')}")
+    }
   }
 
-  # Show up to 3 sample data rows if data present in metadata
+  # Body text
+  if (!is.null(spec$bodyText) && length(spec$bodyText) > 0) {
+    cli::cli_rule("Body text")
+    blist <- spec$bodyText
+    orders <- vapply(blist, function(x) if (!is.null(x$order)) as.integer(x$order) else NA_integer_, integer(1))
+    ord_idx <- order(is.na(orders), orders)
+    for (b in blist[ord_idx]) {
+      txt <- trunc_str(paste(b$text, collapse = " "), width)
+      style_vec <- if (is.null(b$styleRef)) character(0) else if (is.list(b$styleRef)) unlist(b$styleRef) else as.character(b$styleRef)
+      style_ref <- if (length(style_vec) > 0) paste0(" [style: ", col_green(paste(style_vec, collapse = ",")), "]") else ""
+      cli::cli_text("- {txt}{style_ref}")
+    }
+  }
+
+  # Sample data
   try({
     data_env <- spec$.metadata$data_env
     if (!is.null(data_env) && exists("__data__", envir = data_env)) {
       df <- get("__data__", envir = data_env)
       if (is.data.frame(df) && nrow(df) > 0) {
-        cli::cli_text("{.strong Sample data (first 3 rows):}")
+        cli::cli_rule("Sample data (first 3 rows)")
         srows <- utils::head(df, 3)
-        # print as simple table
         print(srows)
       }
     }

@@ -169,39 +169,41 @@ utils::globalVariables(
 #' used in TFL_init() to pre-populate column definitions
 #' @noRd 
 .guess_table_layout <- function(df) {
-  checkmate::assert_data_frame(df, .var.name = "df")
 
-  if (!exists(".const_default_missing_value", inherits = TRUE)) {
-    cli::cli_abort(c(
-      "Internal configuration missing: {.var .const_default_missing_value} not found.",
-      i = "Ensure constants are defined (e.g. in R/constants.R) and the package is loaded."
-    ))
-  }
+  # ---- assertions ----
+  checkmate::assert_data_frame(df, any.missing = FALSE)
+  checkmate::assert_true(
+    exists(".const_default_missing_value", inherits = TRUE),
+    .var.name = ".const_default_missing_value"
+  )
 
+  # ---- configuration ----
   min_width_pct <- 5
   max_width_pct <- 60
   eps <- .Machine$double.eps^0.5
 
   n <- ncol(df)
-  result <- vector("list", n)
   raw_widths <- numeric(n)
+  result <- vector("list", n)
 
   # ---- helpers ----
 
+  # scalar-per-cell validation
   is_scalar_value <- function(x) {
     if (is.null(x)) return(TRUE)
     if (length(x) != 1) return(FALSE)
     if (is.atomic(x)) return(TRUE)
-    if (inherits(x, c("Date", "POSIXct", "POSIXlt"))) return(TRUE)
-    FALSE
+    inherits(x, c("Date", "POSIXct", "POSIXlt"))
   }
 
+  # integer detection by value
   is_integerish <- function(x) {
     x <- x[!is.na(x)]
     if (!length(x)) return(TRUE)
     all(abs(x - round(x)) < eps)
   }
 
+  # decimal places detection (no scientific notation)
   decimal_places <- function(x) {
     x <- x[!is.na(x)]
     if (!length(x)) return(0)
@@ -211,58 +213,79 @@ utils::globalVariables(
     has_dp <- dp > 0
     if (!any(has_dp)) return(0)
 
-    max(nchar(substr(s[has_dp], dp[has_dp] + 1, nchar(s[has_dp]))))
+    max(
+      nchar(
+        substr(s[has_dp], dp[has_dp] + 1L, nchar(s[has_dp])),
+        type = "width"
+      )
+    )
   }
 
+  # UTF-8 visual width
+  text_width <- function(x) {
+    nchar(x, type = "width", allowNA = TRUE, keepNA = FALSE)
+  }
+
+  # longest line width (handles manual \n)
+  max_line_width <- function(x) {
+    lines <- strsplit(x, "\n", fixed = TRUE)
+    max(vapply(lines, function(l) max(text_width(l)), integer(1)))
+  }
+
+  # ---- main loop (column-wise, cache-friendly) ----
   for (i in seq_len(n)) {
     col <- df[[i]]
     col_name <- names(df)[i]
     col_label <- attr(col, "label", exact = TRUE)
 
-    # ---- scalar check ----
+    # ---- scalar validation (fast fail) ----
     if (is.list(col)) {
-      bad <- vapply(col, function(x) !is_scalar_value(x), logical(1))
-      if (any(bad)) {
-        cli::cli_abort(c(
-          "Column '{col_name}' contains non-scalar values and cannot be exported.",
-          x = "List elements must be atomic scalars or Date/POSIX objects."
-        ))
+      ok <- vapply(col, is_scalar_value, logical(1))
+      if (!all(ok)) {
+        cli::cli_abort(
+          "Column {.field {col_name}} contains non-scalar values and cannot be exported."
+        )
       }
     }
 
-    # ---- type ----
+    # ---- type detection ----
     is_numeric <- is.numeric(col) &&
       !inherits(col, c("Date", "POSIXct", "POSIXlt"))
 
     type <- if (is_numeric) "numeric" else "string"
 
-    # ---- format ----
+    # ---- format guessing ----
     if (type == "numeric") {
       if (is_integerish(col)) {
         fmt <- "%d"
       } else {
-        dp <- min(decimal_places(col), 4)
+        dp <- min(decimal_places(col), 4L)
         fmt <- paste0("%.", dp, "f")
       }
     } else {
       fmt <- "%s"
     }
 
-    # ---- render for width ----
+    # ---- render once per column (performance critical) ----
     rendered <- if (type == "numeric") {
-      out <- sprintf(fmt, col)
-      format(out, scientific = FALSE)
+      format(sprintf(fmt, col), scientific = FALSE)
     } else {
       as.character(col)
     }
 
+    # replace missings once
     rendered[is.na(rendered)] <- .const_default_missing_value
 
-    value_len <- max(nchar(rendered), na.rm = TRUE)
-    name_len  <- nchar(col_name)
-    label_len <- if (!is.null(col_label)) nchar(as.character(col_label)) else 0
+    # ---- width estimation ----
+    value_len <- max_line_width(rendered)
+    name_len  <- max_line_width(col_name)
+    label_len <- if (!is.null(col_label)) {
+      max_line_width(as.character(col_label))
+    } else {
+      0L
+    }
 
-    raw_widths[i] <- max(value_len, name_len, label_len, 1)
+    raw_widths[i] <- max(value_len, name_len, label_len, 1L)
 
     result[[i]] <- list(
       type = type,
@@ -274,17 +297,13 @@ utils::globalVariables(
   # ---- width normalization ----
   pct <- raw_widths / sum(raw_widths) * 100
 
-  # enforce min / max
   pct <- pmax(pct, min_width_pct)
   pct <- pmin(pct, max_width_pct)
 
-  # renormalize
   pct <- pct / sum(pct) * 100
-
-  # round to 1 dp
   pct_rounded <- round(pct, 1)
 
-  # fix rounding drift
+  # rounding drift correction
   drift <- 100 - sum(pct_rounded)
   if (abs(drift) >= 0.05) {
     idx <- which.max(pct_rounded)
