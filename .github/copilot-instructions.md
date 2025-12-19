@@ -278,7 +278,45 @@ When modifying schema_serialize.R:
 3. Verify JSON output matches schema structure
 4. Check error messages display correctly with cli formatting
 
-## Context-Based Function Nesting (CRITICAL)
+## Style Management & Consolidation
+
+### Style Consolidation in create_report() (Dec 19, 2025)
+The `create_report()` function now automatically consolidates styles in each spec:
+- **Helper function**: `._consolidate_styles_in_spec(spec)` - internal function in [create_report.R](R/create_report.R)
+- **Process** (5 steps):
+  1. Recursively collect all styleRef locations from spec (labelStyleRef, valueStyleRef, styleRef)
+  2. Identify style combinations (character vectors with length > 1)
+  3. For each combination: sort alphabetically (order-independent), merge styles using `.merge_recursive()`, generate hash via `.generate_hash()`
+  4. Replace all combination references with merged style hashes
+  5. Remove unreferenced styles from spec
+- **StyleRef Locations** (7 identified in spec_schema_v1.json):
+  - `spec$columns[[col]]$labelStyleRef` 
+  - `spec$columns[[col]]$format$valueStyleRef`
+  - `spec$stubColumns[[stub]]$labelStyleRef`
+  - `spec$titles[[]]$styleRef`
+  - `spec$subtitles[[]]$styleRef`
+  - `spec$footnotes[[]]$styleRef`
+  - `spec$bodyText[[]]$styleRef`
+  - `spec$headers[[]]$styleRef`
+  - `spec$footers[[]]$styleRef`
+- **Key Design**:
+  - Per-spec consolidation (not global)
+  - Order-independence via alphabetic sorting
+  - Deterministic hash naming: `style_<16-char-hex>`
+  - Validation: all referenced styles must exist before merging
+  - Cleanup: removes styles no longer directly referenced after consolidation
+
+### Predefined Clinical Styles (Dec 19, 2025)
+30+ predefined styles available in `.const_options_styles` (constants.R):
+- **Font styles**: `font_bold`, `font_italic`, `font_underline`, `font_bold_italic`
+- **Color styles**: `text_blue`, `text_red`, `text_green`
+- **Alignment**: `text_center`, `text_right`, `numeric_right`
+- **Highlighting**: `cell_highlight_yellow`, `cell_highlight_red`, `cell_highlight_green`
+- **Borders**: `cell_border_bottom`, `cell_border_top`, `cell_border_double_bottom`
+- **Combinations**: `header_bold`, `emphasis`, `total_bold`, `warning_bold_red`
+Used via: `add_style(spec, id = "my_style", f_combine("bold", "red"))` or reference predefined names
+
+### Context-Based Function Nesting (CRITICAL)
 The package uses `.assert_context()` and `.set_context()` for enforcing proper function call hierarchy. **This is essential to understand:**
 
 ### Function Nesting Rules (from spec_context.R):
@@ -311,11 +349,6 @@ The package uses `.assert_context()` and `.set_context()` for enforcing proper f
    - ✗ `add_style(spec, s_spacing(...))` - ERROR
    - ✓ `add_style(spec, s_paragraph(spacing = s_spacing(...)))`
 
-8. **`c_format()`** - Can ONLY be used inside `define_cols()`
-   - Parameters: `type` ("string" or "numeric"), `format` (sprintf format), `missings`, `colWidth`, `valueStyleRef`
-   - ✓ `define_cols(spec, col, c_format(type = "numeric", format = "0.00"))`
-   - ✗ `add_style(spec, c_format(...))` - ERROR
-
 ## Settings/Options Management (CRITICAL)
 - **Naming**: Use "options" terminology: `tfl_set_options()`, `tfl_get_options()`, `tfl_get_option()`, `tfl_reset_options()`
 - **Replace behavior**: When `tfl_set_options()` is called with `add_header()` or `add_footer()`, it **REPLACES** previous headers/footers, not accumulate
@@ -325,11 +358,21 @@ The package uses `.assert_context()` and `.set_context()` for enforcing proper f
   - ✗ `margins = list(top = 1.0, bottom = 1.0)` - ERROR: need units
   - ✓ `margins = list(top = "1.0in", bottom = "1.0in", left = "0.75in", right = "0.75in")`
 
-## Column Selection with tidyselect (CRITICAL)
-`define_cols()` uses `enquos()` for tidyselect support. **Always use `c()` for multiple columns:**
-- ✗ `define_cols(spec, col1, col2, label = "...")` - ERROR: object 'col2' not found
-- ✓ `define_cols(spec, c(col1, col2), label = "...")` - CORRECT
-- ✓ `define_cols(spec, col1, label = "...")` - CORRECT (single column)
+## Column Definition with define_cols() (CRITICAL - Dec 19, 2025)
+`define_cols()` has been refactored to accept format parameters directly (no longer wraps in `c_format()` function):
+- **Signature**: `define_cols(spec, cols, label = NULL, isID = FALSE, type = NULL, format = NULL, missings = NULL, colWidth = NULL, valueStyleRef = NULL, isColBreak = FALSE, labelStyleRef = NULL)`
+- **Format parameters**: `type`, `format`, `missings`, `colWidth`, `valueStyleRef` now accept direct values (recycled 1-or-n)
+  - Length 1: applied to all columns
+  - Length matching cols: applied individually
+  - Invalid: other lengths raise error
+- **Column selection**: Uses `enquos()` for tidyselect support. **Always use `c()` for multiple columns:**
+  - ✗ `define_cols(spec, col1, col2, label = "...")` - ERROR: object 'col2' not found
+  - ✓ `define_cols(spec, c(col1, col2), label = "...")` - CORRECT
+  - ✓ `define_cols(spec, col1, label = "...")` - CORRECT (single column)
+- **Example**: 
+  ```r
+  define_cols(spec, c(age, weight), type = "numeric", format = "0.00", valueStyleRef = "numeric_right")
+  ```
 
 ## tfl_init() Parameter Patterns (CRITICAL)
 Three document types with different parameter requirements:
@@ -369,10 +412,17 @@ tfl_init(data = NULL, docType = "Text", id = "txt01")
 ✅ **Helper Functions**: Extracted common patterns for reusability
 
 ⏳ **Still TO DO** (per original instructions):
-- `row_style_schema` validation rules
-- `styles_schema` validation rules
-- Python backend integration testing
-- Comprehensive testthat test suite expansion
+- `row_style_schema` validation rules (design pending)
+- `styles_schema` validation rules (design pending)
+- Python backend integration testing (out of R scope)
+
+✅ **Completed Since Initial Instructions**:
+- Style consolidation in `create_report()` with hash-based merging
+- Predefined clinical styles (30+ in `.const_options_styles`)
+- Column definition refactoring (direct format parameters, 1-or-n recycling)
+- `missings` parameter in package options
+- Enhanced `valueStyleRef` support matching `labelStyleRef` behavior
+- Comprehensive roxygen documentation pass
 
 ### Recommended Next Steps
 1. Add more comprehensive tests for schema_serialize.R edge cases
@@ -410,5 +460,28 @@ Summary of recent documentation and small-code fixes performed while auditing th
    2. Run `testthat` tests (`devtools::test()` or `R CMD check`) to validate behavior after doc changes.
    3. If you want, I can continue: (a) finish a final grep for any remaining `@param ...` misses, or (b) expand doc examples for critical helpers.
 
+## Session Notes (Dec 19, 2025 - Style Consolidation)
 
+### Completed Work
+- Implemented `._consolidate_styles_in_spec()` in [create_report.R](R/create_report.R)
+- Integrated style consolidation into `create_report()` function
+- Identified all 7 styleRef locations in spec structure across 9 properties
+- Used existing `.generate_hash()` from utility_functions.R (no duplicate functions)
+- Employed alphabetic sorting for order-independent combination merging
 
+### Key Implementation Details
+**The 5-step consolidation process**:
+1. **Recursive collection** via nested `.collect_style_refs()` helper
+   - Scans all 9 styleRef-bearing properties
+   - Separates single references from combinations (length > 1)
+2. **Validation** - all referenced styles must exist in `spec$attribs$styles`
+3. **Merging** - combinations sorted, hashed with `style_<16-char-hex>`, merged via `.merge_recursive()`
+4. **Replacement** - all combination references updated to point to merged hash
+5. **Cleanup** - unreferenced styles removed (including now-unused component styles)
+
+### Important Reminders
+- **Reuse existing functions**: Never create duplicate functions like `.generate_hash()` when one already exists
+- **Per-spec scope**: Consolidation happens on each spec individually in `create_report()`, not globally
+- **Hash consistency**: Alphabetic sorting ensures same combination always produces same hash regardless of input order
+- **Validation first**: Always validate all referenced styles exist before attempting merge operations
+- **Recursive traversal**: Use pattern of nested helper functions with `<<-` for parent scope updates when collecting data across nested structures

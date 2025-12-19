@@ -173,7 +173,7 @@ utils::globalVariables(
 .guess_table_layout <- function(df, missings = "NA") {
 
   # ---- assertions ----
-  checkmate::assert_data_frame(df, any.missing = FALSE)
+  checkmate::assert_data_frame(df, any.missing = TRUE)
   checkmate::assert_character(missings, len = 1, .var.name = "missings")
 
   # ---- configuration ----
