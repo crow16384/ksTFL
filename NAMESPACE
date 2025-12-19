@@ -58,9 +58,7 @@ export(
   set_document,
   set_page_style,
   
-  # Specification preview
-  preview_spec,
-  
+
   # Package options functions
   tfl_get_options,
   tfl_get_option,
@@ -93,3 +91,6 @@ S3method(add_footer, default)
 
 S3method(set_page_style, TFL_spec)
 S3method(set_page_style, TFL_options)
+
+# S3 method registration for print
+S3method(print, TFL_spec)
