@@ -159,7 +159,7 @@
     col_name <- data_cols[col_idx]
     col_vector <- data[[col_name]]
     
-    
+
     # Validate column extraction
     if (is.null(col_vector)) {
       cli_abort(c(
@@ -176,7 +176,7 @@
       isGrouping    = FALSE,
       isPaging      = FALSE,
       labelStyleRef = NULL,
-      .isColBreak   = FALSE,
+      isColBreak   = FALSE,
       dedupe        = FALSE,
       blankAfter    = FALSE,
       #format        = .get_data_format(col_vector, col_name) %||% NULL

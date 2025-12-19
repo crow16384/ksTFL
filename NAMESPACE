@@ -28,9 +28,6 @@ export(
   p_margins,
   p_page,
   
-  # Column format function
-  c_format,
-  
   # Style context manipulation (generic)
   add_style,
   

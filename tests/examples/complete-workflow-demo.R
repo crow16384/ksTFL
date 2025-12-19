@@ -5,7 +5,7 @@
 # - Setting options
 # - Creating Table, Figure, and Text specs with PROPER parameters
 # - Using define_cols() with real data
-# - Applying formatting with c_format()
+# - Applying formatting with direct type/format/colWidth parameters
 # - Applying styles with add_style()
 # - Previewing specs
 # - Full workflow from start to finish
@@ -80,7 +80,7 @@ table1_spec <- define_cols(
   All_Grades,
   label = "N (%)",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0")
+  type = "numeric", format = "0"
 )
 
 table1_spec <- define_cols(
@@ -88,7 +88,7 @@ table1_spec <- define_cols(
   c(Grade_1, Grade_2, Grade_3),
   label = "Grade",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0")
+  type = "numeric", format = "0"
 )
 
 cat("✓ Columns defined:\n")
@@ -164,7 +164,7 @@ table2_spec <- define_cols(
   N,
   label = "N",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0")
+  type = "numeric", format = "0"
 )
 
 table2_spec <- define_cols(
@@ -172,7 +172,7 @@ table2_spec <- define_cols(
   c(Treatment_A, Treatment_B),
   label = "Response Count",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0")
+  type = "numeric", format = "0"
 )
 
 table2_spec <- define_cols(
@@ -180,7 +180,7 @@ table2_spec <- define_cols(
   p_value,
   label = "p-value",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0.000")
+  type = "numeric", format = "0.000"
 )
 
 cat("✓ Columns defined with specific formatting\n\n")
@@ -324,7 +324,7 @@ listing_spec <- define_cols(
   Age,
   label = "Age (years)",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0")
+  type = "numeric", format = "0"
 )
 
 listing_spec <- define_cols(
@@ -339,7 +339,7 @@ listing_spec <- define_cols(
   ORR,
   label = "ORR (Y/N)",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0")
+  type = "numeric", format = "0"
 )
 
 listing_spec <- define_cols(
@@ -347,7 +347,7 @@ listing_spec <- define_cols(
   AdverseEvents,
   label = "# AE",
   isVisible = TRUE,
-  c_format(type = "numeric", format = "0")
+  type = "numeric", format = "0"
 )
 
 cat("✓ Listing columns defined\n\n")
@@ -466,8 +466,8 @@ cat("  - isID, isVisible, isGrouping flags\n")
 cat("  - Selection via column name, starts_with(), everything()\n\n")
 
 cat("✓ DATA FORMATTING:\n")
-cat("  - c_format(type='numeric', format='0.000')\n")
-cat("  - Applied per column via define_cols()\n")
+cat("  - type, format, colWidth, missings parameters in define_cols()\n")
+cat("  - Applied per column with 1-or-n recycling\n")
 cat("  - Support for numeric, date, character formatting\n\n")
 
 cat("✓ STYLING:\n")

@@ -697,7 +697,7 @@ NULL
 #' @param valueStyleRef Character vector of style IDs for cell values
 #' @return Column format specification list
 #' @keywords internal
-.col_format_spec <- function(type, format = NULL, missings = NULL, 
+.col_format_spec <- function(type=NULL, format = NULL, missings = NULL, 
                              colWidth = NULL, valueStyleRef = NULL) {
   .validate_enum(type, .const_column_types, "type", "col_format_spec")
   
@@ -1208,45 +1208,6 @@ f_combine <- function(...) {
   ))
 }
 
-#' Define column format
-#' 
-#' This function can only be used inside \code{\link{define_cols}}.
-#' 
-#' @param type Data type: "string" or "numeric"
-#' @param format Format string for numeric data (sprintf style), default is \code{.const_default_numeric_format}
-#' @param missings How to display missing values in numeric columns
-#' @param colWidth Column width, e.g. "2in", "5cm", "20%"
-#' @param valueStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
-#' 
-#' @return A column format specification object
-#' @export
-#' 
-#' @examples
-#' \dontrun{
-#' spec <- create_table(data) |>
-#'   define_cols("age",
-#'     label = "Age (years)",
-#'     c_format(type = "numeric", format = "%.1f", colWidth = "10%", 
-#'              valueStyleRef = c("numeric_style", "right_align"))
-#'   )
-#' }
-c_format <- function(type, format = NULL, missings = NULL, 
-                     colWidth = NULL, valueStyleRef = NULL) {
-  .assert_context(c("define_cols"), "c_format")
-  
-  spec <- .col_format_spec(
-    type = type,
-    format = format,
-    missings = missings,
-    colWidth = colWidth,
-    valueStyleRef = valueStyleRef
-  )
-  
-  .validate_params(spec, "col_format", "c_format")
-  
-  structure(spec, class = c("tfl_col_format", "tfl_col_modifier"))
-}
-
 # ============================================================
 # PART 5: EXPORTED CONTEXT FUNCTIONS
 # ============================================================
@@ -1565,12 +1526,9 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' Define or modify column properties
 #' 
 #' Modify properties of existing columns. Can modify single column or batch update
-#' multiple columns. Multiple calls merge with last-win strategy.
-#' 
-#' Available modifiers inside this function:
-#' \itemize{
-#'   \item \code{\link{c_format}} - Column format specification
-#' }
+#' multiple columns. All parameters support 1-to-many recycling: provide a single value 
+#' to apply to all columns, or a vector matching the length of `cols` for one-to-one mapping.
+#' Multiple calls merge with last-win strategy.
 #' 
 #' @param spec TFL spec object (must be initialized with \code{\link{create_table}})
 #' @param cols Columns to modify using tidyselect syntax. Accepts:
@@ -1588,15 +1546,16 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report. 
 #'   Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
 #'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns)
-#' @param .isColBreak Whether column triggers page break (length 1 or length of cols)
+#' @param isColBreak Whether column triggers page break (length 1 or length of cols)
 #' @param dedupe Whether to deduplicate values (length 1 or length of cols)
 #' @param blankAfter Whether to add blank after value change (length 1 or length of cols)
-#' @param ... Column format modifier created with \code{\link{c_format}}
-#' \itemize{
-#'   \item Provide a single `c_format()` call to describe how values in the selected columns should be displayed.
-#'   \item `c_format()` accepts `type`, `format`, `missings`, `colWidth`, and `valueStyleRef` (see \code{\link{c_format}}).
-#'   \item Multiple modifiers are not allowed; `define_cols()` will error if more than one `c_format()` is provided.
-#' }
+#' @param type Data type for column format: "string" or "numeric" (length 1 or length of cols). Optional; omit to preserve existing.
+#' @param format Format string for numeric data (sprintf style), e.g. "%.1f" (length 1 or length of cols). Optional.
+#' @param missings How to display missing values in columns (length 1 or length of cols). Optional.
+#' @param colWidth Column width, e.g. "2in", "5cm", "20%" (length 1 or length of cols). Optional.
+#' @param valueStyleRef Style names to apply to cell values. Provided styles will be merged with last-win strategy for report. 
+#'   Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
+#'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns). Optional.
 #' 
 #' @return Updated spec object
 #' @export
@@ -1605,11 +1564,11 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' \dontrun{
 #' data <- data.frame(id = 1:10, age = rnorm(10, 45, 10), group = rep(c("A", "B"), 5))
 #' 
-#' # Single column
+#' # Single column with format
 #' spec <- create_table(data) |>
 #'   define_cols("age",
 #'     label = "Age (years)",
-#'     c_format(type = "numeric", format = "%.1f", colWidth = "10%")
+#'     type = "numeric", format = "%.1f", colWidth = "10%"
 #'   )
 #' 
 #' # Batch update with single value
@@ -1625,16 +1584,24 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'     isID = c(TRUE, FALSE)
 #'   )
 #' 
+#' # Batch format update with mixed recycling
+#' spec <- create_table(data) |>
+#'   define_cols(c("id", "age"),
+#'     type = "numeric",  # Single value recycled to both columns
+#'     colWidth = c("10%", "15%")  # Different widths for each column
+#'   )
+#' 
 #' # Multiple calls merge
 #' spec <- create_table(data) |>
 #'   define_cols("age",
 #'     label = "Age",
-#'     c_format(type = "numeric", format = "%.0f")
+#'     type = "numeric", format = "%.0f"
 #'   ) |>
 #'   define_cols("age",
 #'     label = "Age (years)",  # Overrides previous label
-#'     c_format(colWidth = "15%")  # Merges with format, keeping type and format
+#'     colWidth = "15%"  # Merges with format, keeping type and format
 #'   )
+#' 
 #' # Apply style references - single value recycled to all columns
 #' spec <- create_table(data) |>
 #'   define_cols(c("age", "id"),
@@ -1655,7 +1622,7 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' spec <- create_table(data) |>
 #'   define_cols(starts_with("age"),
 #'     label = "Age-related metric",
-#'     c_format(type = "numeric", format = "%.1f")
+#'     type = "numeric", format = "%.1f"
 #'   )
 #' 
 #' # Using negation with tidyselect
@@ -1670,11 +1637,13 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'     labelStyleRef = "emphasis"
 #'   )
 #' }
-define_cols <- function(spec, cols, ..., 
-                        label = NULL, isID = NULL, 
+define_cols <- function(spec, cols, 
+                        label = NULL, isID = c(T,F, NULL), 
                         isVisible = NULL, isGrouping = NULL, isPaging = NULL,
-                        labelStyleRef = NULL, .isColBreak = NULL, dedupe = NULL,
-                        blankAfter = NULL) {
+                        labelStyleRef = NULL, isColBreak = NULL, dedupe = NULL,
+                        blankAfter = NULL,
+                        type = NULL, format = NULL, missings = NULL, 
+                        colWidth = NULL, valueStyleRef = NULL) {
   assert_class(spec, "TFL_spec")
   cols <- enquos(cols)
   cols <- .get_data_column_names(spec$.metadata$data_env$`__data__`, !!!cols)
@@ -1692,17 +1661,13 @@ define_cols <- function(spec, cols, ...,
     ))
   }
   
-  # Set context in the calling environment
-  .set_context(parent.frame(), "define_cols")
-  on.exit(.clear_context(parent.frame()))
-  
-  # Collect parameters
+  # Collect non-format parameters
   param_names <- c("label", "isID", "isVisible", "isGrouping", 
-                   "isPaging", "labelStyleRef", ".isColBreak", "dedupe", "blankAfter")
+                   "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter")
   params_list <- list(
-     label = label, isID = isID, isVisible = isVisible,
+    label = label, isID = isID, isVisible = isVisible,
     isGrouping = isGrouping, isPaging = isPaging, labelStyleRef = labelStyleRef,
-    .isColBreak = .isColBreak, dedupe = dedupe, blankAfter = blankAfter
+    isColBreak = isColBreak, dedupe = dedupe, blankAfter = blankAfter
   )
   
   # Handle labelStyleRef specially with resolve logic
@@ -1711,31 +1676,38 @@ define_cols <- function(spec, cols, ...,
     params_list$labelStyleRef <- resolved_styleref
   }
   
-  # Process format modifier from ...
-  modifiers <- list(...)
-  format_spec <- NULL
+  # Handle valueStyleRef specially with resolve logic (same as labelStyleRef)
+  resolved_valuestyleref <- NULL
+  if (!is.null(valueStyleRef)) {
+    resolved_valuestyleref <- ._resolve_style_refs(valueStyleRef, length(cols), "valueStyleRef")
+  }
   
-  if (length(modifiers) > 0) {
-    for (mod in modifiers) {
-      if (inherits(mod, "tfl_col_format")) {
-        if (!is.null(format_spec)) {
-          cli_abort("{.fn define_cols} accepts only one {.fn c_format} call")
-        }
-        format_spec <- unclass(mod)
-        .validate_params(format_spec, "col_format", "define_cols$c_format")
-      } else {
+  # Collect format parameters (only include if non-NULL)
+  format_param_names <- c("type", "format", "missings", "colWidth")
+  format_params_list <- list(
+    type = type, format = format, missings = missings, 
+    colWidth = colWidth
+  )
+  # Filter out NULL values
+  format_params_list <- format_params_list[!vapply(format_params_list, is.null, logical(1))]
+  
+  # Validate parameter lengths for non-format params (excluding labelStyleRef which is already resolved)
+  n_cols <- length(cols)
+  for (pname in setdiff(param_names, "labelStyleRef")) {
+    pval <- params_list[[pname]]
+    if (!is.null(pval)) {
+      if (length(pval) != 1 && length(pval) != n_cols) {
         cli_abort(c(
-          "Invalid modifier in {.fn define_cols}",
-          i = "Use {.fn c_format} to define column format"
+          "{.arg {pname}} must have length 1 or length of {.arg cols} ({n_cols}) in {.fn define_cols}",
+          x = "Got length {length(pval)}"
         ))
       }
     }
   }
   
-  # Validate parameter lengths (excluding labelStyleRef which is already resolved)
-  n_cols <- length(cols)
-  for (pname in setdiff(param_names, "labelStyleRef")) {
-    pval <- params_list[[pname]]
+  # Validate parameter lengths for format params (excluding valueStyleRef which is already resolved)
+  for (pname in setdiff(names(format_params_list), "valueStyleRef")) {
+    pval <- format_params_list[[pname]]
     if (!is.null(pval)) {
       if (length(pval) != 1 && length(pval) != n_cols) {
         cli_abort(c(
@@ -1752,6 +1724,8 @@ define_cols <- function(spec, cols, ...,
     
     # Build params for this column
     col_params <- list()
+    
+    # Handle non-format parameters
     for (pname in param_names) {
       pval <- params_list[[pname]]
       if (!is.null(pval)) {
@@ -1764,8 +1738,23 @@ define_cols <- function(spec, cols, ...,
       }
     }
     
-    # Add format if provided
-    if (!is.null(format_spec)) {
+    # Build format spec for this column if any format params are provided
+    if (length(format_params_list) > 0 || !is.null(resolved_valuestyleref)) {
+      # Extract values for this column with 1-or-n recycling
+      col_format_params <- list()
+      for (fpname in names(format_params_list)) {
+        fpval <- format_params_list[[fpname]]
+        col_format_params[[fpname]] <- if (length(fpval) == 1) fpval else fpval[i]
+      }
+      
+      # Add resolved valueStyleRef for this column (already resolved as a list)
+      if (!is.null(resolved_valuestyleref)) {
+        col_format_params$valueStyleRef <- resolved_valuestyleref[[i]]
+      }
+      
+      # Create format spec using .col_format_spec()
+      format_spec <- do.call(.col_format_spec, col_format_params)
+      
       # Merge with existing format
       existing_format <- spec$columns[[col_id]]$format
       col_params$format <- .merge_recursive(existing_format, format_spec)

@@ -1,5 +1,7 @@
 # ksTFL Copilot Instructions
 
+!!! you are the professional R package developer working on the ksTFL package. You perfectly understand the codebase and its architecture. You perfectly understand R Rlang, S3 methods, R environments, tidyselect, checkmate, cli, jsonlite and roxygen documentation. You know how to work with R environments and how to structure R packages.
+
 ## Project Overview
 **ksTFL** is an R package that generates metadata for clinical Tables, Figures, and Listings (TFLs). It creates a specification object (`TFL_spec`) that describes document structure, data, styles, and content—this metadata is then passed to Python code for rendering into styled DOCX documents.
 
