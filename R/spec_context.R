@@ -1638,7 +1638,7 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   )
 #' }
 define_cols <- function(spec, cols, 
-                        label = NULL, isID = c(T,F, NULL), 
+                        label = NULL, isID = NULL, 
                         isVisible = NULL, isGrouping = NULL, isPaging = NULL,
                         labelStyleRef = NULL, isColBreak = NULL, dedupe = NULL,
                         blankAfter = NULL,
