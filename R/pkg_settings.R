@@ -106,7 +106,7 @@ tfl_get_option <- function(name) {
 #' @param ... Named arguments OR settings objects returned from helper constructors.
 #' \itemize{
 #'   \item Named scalar options (e.g. `bodyTitles = FALSE`, `contentWidth = "95%"`).
-#'   \item Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_style()`, `add_body_text()`, and `p_page()`/`set_page_style()`.
+#'   \item Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_style()`, `add_body_text()`, and `set_page_style(`p_page(`p_margins()`)`)`.
 #'   \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 #' }
 #' @param bodyTitles Logical; override whether body titles are shown.
@@ -126,9 +126,24 @@ tfl_get_option <- function(name) {
 #' tfl_set_options(bodyTitles = FALSE, contentWidth = "95%", missings = ".")
 #'
 #' # Update page style via helper
-#' # tfl_set_options(page = p_page(size = "Letter", orientation = "portrait"))
+#'  tfl_set_options(
+#'    set_page_style(page= p_page(
+#'    size = "Letter",
+#'    orientation = "portrait",
+#'    margins = p_margins(top = "1in", bottom = "1in", left = "0.75in", right = "0.75in")
+#'  )))
+#' 
+#' # Add default header and footer via helpers
+#' tfl_set_options(
+#'   add_header(c("Left Header", "Center Header", "Right Header")),
+#'   add_footer(c("Left Footer", "Center Footer", "Right Footer"))
+#' )
+#' 
+#' # Add default body text via helper
+#' tfl_set_options(
+#'   add_body_text("This is the default body text for all text specs.")
+#' )
 #' }
-#'
 #' @export
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
                          bodyFootnotes = NULL, gluePrefix = NULL,
@@ -203,11 +218,11 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
         if(as.character(fn)=="add_body_text") {
           body_texts_cnt <- body_texts_cnt + 1
           if (body_texts_cnt > 1) {
-            cli_abort("Multiple {.fn add_body_text} calls detected in tfl_set_opts() invocation. Only one default body text is allowed")
+            cli_abort("Multiple {.fn add_body_text} calls detected in tfl_set_options() invocation. Only one default body text is allowed")
           }
           opts$bodyText <- .options_env$settings$bodyText
         } else {
-          cli_abort("Function {.fn {as.character(fn)}} is not supported in tfl_set_opts()")
+          cli_abort("Function {.fn {as.character(fn)}} is not supported in tfl_set_options()")
         }
         
         # rebuild call with object as FIRST argument

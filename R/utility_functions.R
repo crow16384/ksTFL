@@ -318,3 +318,22 @@ utils::globalVariables(
   names(result) <- names(df)
   result
 }
+
+
+#' Recursively Remove Class Attributes from an Object
+#' @param x R object (list or atomic) to unclass
+#' @noRd 
+.unclass_recursive <- function(x) {
+
+  # Remove class only
+  if (!is.null(class(x))) {
+    class(x) <- NULL
+  }
+
+  # Recurse only into true lists
+  if (is.list(x)) {
+    x <- lapply(x, .unclass_recursive)
+  }
+
+  x
+}

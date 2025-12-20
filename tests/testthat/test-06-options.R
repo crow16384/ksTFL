@@ -1,0 +1,99 @@
+# ============================================================================
+# Test: Package Options Management
+# ============================================================================
+
+test_that("tfl_set_options() sets missings option", {
+  current <- tfl_get_option("missings")
+  tfl_set_options(missings = "N/A")
+  
+  expect_equal(tfl_get_option("missings"), "N/A")
+  
+  # Cleanup
+  tfl_set_options(missings = current)
+})
+
+test_that("tfl_set_options() sets page_size option", {
+  tfl_reset_options()
+  tfl_set_options(set_page_style(docTemplate = 'my_custom', page = p_page(size = 'Letter', orientation = 'portrait', margins = p_margins(top='3cm'))))
+  
+  opts <- tfl_get_options()
+  expect_equal(opts$doc_style_template, "my_custom")
+  expect_equal(opts$page$size, "Letter")
+  expect_equal(opts$page$orientation, "portrait")
+  expect_equal(opts$page$margins$top, "3cm")
+})
+
+
+
+test_that("tfl_get_options() returns list of all options", {
+  opts <- tfl_get_options()
+  
+  expect_is(opts, "TFL_options")
+  expect_true(length(names(opts)) > 0)
+})
+
+test_that("tfl_get_option() retrieves single option", {
+  missings <- tfl_get_option("missings")
+  
+  expect_is(missings, "character")
+  expect_true(nchar(missings) > 0)
+})
+
+test_that("tfl_get_option() with invalid option name", {
+  expect_error(
+    tfl_get_option("nonexistent_option"),
+    "Unknown option"
+  )
+})
+
+test_that("tfl_reset_options() restores defaults", {
+  # Change an option
+  tfl_set_options(missings = "CUSTOM")
+  expect_equal(tfl_get_option("missings"), "CUSTOM")
+  
+  # Reset
+  tfl_reset_options()
+  default_missings <- tfl_get_option("missings")
+  expect_equal(default_missings, .const_default_missing_value)
+})
+
+test_that("tfl_set_options() with add_header helper", {
+  tfl_reset_options()
+  tfl_set_options(add_header(c("Left", "Center", "Right")))
+  
+  opts <- tfl_get_options()
+  expect_length(opts$headers,1)
+  
+  tfl_set_options(add_header(c("Left", "Center", "Right")))
+  
+  opts <- tfl_get_options()
+  expect_length(opts$headers,2)
+})
+
+test_that("tfl_set_options() with add_footer helper", {
+  tfl_reset_options()
+  tfl_set_options(add_footer(c("Page Header", "Page Footer")))
+  
+  opts <- tfl_get_options()
+  expect_length(opts$footers,1)
+  
+  tfl_set_options(add_footer(c("Page Header", "Page Footer")))
+  opts <- tfl_get_options()
+  expect_length(opts$footers,2)
+})
+
+
+test_that("tfl_set_options() with page configuration object", {
+  tfl_set_options(
+    set_page_style(page= p_page(
+    size = "Letter",
+    orientation = "portrait",
+    margins = p_margins(top = "1in", bottom = "1in", left = "0.75in", right = "0.75in")
+  )))
+  
+  tfl_get_option("page")
+  
+  expect_equal(tfl_get_option("page")$size, "Letter")
+  expect_equal(tfl_get_option("page")$orientation, "portrait")
+})
+

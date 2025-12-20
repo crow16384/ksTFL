@@ -13,7 +13,6 @@
 #'   quosures.
 #' @param docPrefix Optional character string to prefix the document title
 #'   (e.g., "Table 14.1").
-#' @param id Unused parameter (reserved for future use).
 #' @param docType Character. Document type: one of "Table", "Text", or
 #'   "Figure". Defaults to "Table".
 #'
@@ -28,7 +27,7 @@
 #' }
 #'
 #' @keywords internal
-.tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL, docType = "Table") {
+.tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, docType = "Table") {
   
   # Validate docType
   docType <- match.arg(docType, c("Table", "Text", "Figure"))
@@ -54,6 +53,7 @@
     }
 
     spec$document$docType <- docType
+    spec$document$docPrefix <- docPrefix
     spec$document$hasData <- FALSE
     spec$document$columns <- NULL
     spec$document$stubColumns <- NULL
@@ -72,6 +72,7 @@
       ))
     }
     spec$document$docType <- docType
+    spec$document$docPrefix <- docPrefix
     spec$document$hasData <- FALSE
     spec$document$stubColumns <- NULL
     spec$document$columns <- NULL
@@ -116,7 +117,8 @@
   # Set document properties
   spec$document <- list(
     docType = docType,
-    hasData = has_data
+    hasData = has_data,
+    docPrefix = docPrefix
   )
   
   spec$columns <- columns
@@ -234,11 +236,31 @@
     spec$document$bodyFootnotes <-  unclass(spec$document$bodyFootnotes)
   }
   if (is.null(spec$document$isContinues)) {
-    spec$document$isContinues <- settings$is_continues
+    spec$document$isContinues <- settings$isContinues
   }
   if (is.null(spec$document$contentWidth)) {
-    spec$document$contentWidth <- settings$content_width
+    spec$document$contentWidth <- settings$contentWidth
   }
+  if (is.null(spec$document$gluePrefix)) {
+    spec$document$gluePrefix <- settings$gluePrefix
+  }
+  if (is.null(spec$document$output_directory)) {
+    spec$document$output_directory <- settings$output_directory
+  }
+  if (is.null(spec$document$bodyTitles)) {
+    spec$document$bodyTitles <- settings$bodyTitles
+  } 
+  if (is.null(spec$document$bodySubtitles)) {
+    spec$document$bodySubtitles <- settings$bodySubtitles
+  }
+  if (is.null(spec$document$bodyFootnotes)) {
+    spec$document$bodyFootnotes <- settings$bodyFootnotes
+  }
+  if (is.null(spec$document$contentWidth)) {
+    spec$document$contentWidth <- settings$contentWidth
+  }
+
+
   
   # Initialize documentStyle structure if needed
   if (is.null(spec$attribs$documentStyle)) {
@@ -506,7 +528,6 @@
 #' `docType = "Text"` set on the resulting spec.
 #'
 #' @param docPrefix Optional character prefix for the document title.
-#' @param id Unused; reserved for future extensions.
 #'
 #' @return A `TFL_spec` object with `docType = "Text"`.
 #'
@@ -520,8 +541,8 @@
 #' }
 #'
 #' @export
-create_text <- function(docPrefix = NULL, id = NULL) {
-  .tfl_init(data = NULL, cols = everything(), docPrefix = docPrefix, id = id, docType = "Text")
+create_text <- function(docPrefix = NULL) {
+  .tfl_init(data = NULL, cols = everything(), docPrefix = docPrefix, docType = "Text")
 }
 
 
@@ -536,7 +557,6 @@ create_text <- function(docPrefix = NULL, id = NULL) {
 #' @param cols Tidyselect expression indicating which columns from `data` to
 #'   include in the spec. Defaults to `everything()`.
 #' @param docPrefix Optional character prefix for the document title.
-#' @param id Unused; reserved for future extensions.
 #'
 #' @return A `TFL_spec` object with `docType = "Table"`.
 #'
@@ -553,9 +573,9 @@ create_text <- function(docPrefix = NULL, id = NULL) {
 #' }
 #'
 #' @export
-create_table <- function(data = NULL, cols = everything(), docPrefix = NULL, id = NULL) {
+create_table <- function(data = NULL, cols = everything(), docPrefix = NULL) {
   cols_quo <- enquo(cols)
-  .tfl_init(data = data, cols = !!cols_quo, docPrefix = docPrefix, id = id, docType = "Table")
+  .tfl_init(data = data, cols = !!cols_quo, docPrefix = docPrefix, docType = "Table")
 }
 
 
@@ -568,7 +588,6 @@ create_table <- function(data = NULL, cols = everything(), docPrefix = NULL, id 
 #'
 #' @param filepath Character path to the figure file (required).
 #' @param docPrefix Optional character prefix for the document title.
-#' @param id Unused; reserved for future extensions.
 #'
 #' @return A `TFL_spec` object with `docType = "Figure"` and `dataRef` set
 #'   to the provided file path.
@@ -580,6 +599,6 @@ create_table <- function(data = NULL, cols = everything(), docPrefix = NULL, id 
 #' }
 #'
 #' @export
-create_figure <- function(filepath, docPrefix = NULL, id = NULL) {
-  .tfl_init(data = filepath, cols = everything(), docPrefix = docPrefix, id = id, docType = "Figure")
+create_figure <- function(filepath, docPrefix = NULL) {
+  .tfl_init(data = filepath, cols = everything(), docPrefix = docPrefix, docType = "Figure")
 }

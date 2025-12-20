@@ -88,12 +88,12 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   ellipsize <- function(x, max_len) {
     s <- as.character(x)
     if (is.na(s) || s == "") return("")
-    if (nchar(s) > max_len) paste0(substr(s, 1, max_len - 1), "…") else s
+    if (nchar(s) > max_len) paste0(substr(s, 1, max_len - 1), "\u2026") else s
   }
 
   # Helper for colored section separators
   .colored_rule <- function(title, color_fn = col_cyan) {
-    rule_text <- paste0("─── ", title, " ", paste(rep("─", max(1, 70 - nchar(title))), collapse = ""))
+    rule_text <- paste0("\u2500\u2500\u2500 ", title, " ", paste(rep("\u2500", max(1, 70 - nchar(title))), collapse = ""))
     cli::cli_text(color_fn(rule_text))
   }
 
@@ -265,7 +265,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
       format("Flags", width = max_flags, justify = "left"), " | ",
       format("Styles", width = max_styles, justify = "left")
     )
-    separator_line <- paste(rep("─", nchar(header_line, type = "width")), collapse = "")
+    separator_line <- paste(rep("\u2500", nchar(header_line, type = "width")), collapse = "")
 
     # Display table
     cli::cli_verbatim(col_blue(header_line))

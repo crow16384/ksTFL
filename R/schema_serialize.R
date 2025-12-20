@@ -366,6 +366,8 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   fixed <- .protect_arrays(fixed, schema_expanded, root_schema = schema_expanded)
   
   # Return processed data structure (caller handles JSON serialization)
+
+  fixed <- .unclass_recursive(fixed)
   fixed
 }
 
