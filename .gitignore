@@ -6,7 +6,6 @@
 
 # Generated documentation
 man/*.Rd
-docs/
 
 # Build outputs
 *.tar.gz
