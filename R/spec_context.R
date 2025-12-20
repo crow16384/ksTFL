@@ -1150,63 +1150,8 @@ f_combine <- function(...) {
   as.character(styles)
 }
 
-#' Resolve Style References for Multiple Columns
-#' 
-#' Internal helper to handle style reference assignment with recycling or mapping.
-#' Supports both single values (recycled to all columns) and lists of f_combine() results
-#' (one-to-one mapping).
-#' 
-#' @param style_refs Raw style reference input (character, list, or NULL)
-#' @param num_cols Number of columns to apply to
-#' @param param_name Name of parameter (for error messages)
-#' 
-#' @return List of length num_cols, each element a character vector of styles or NULL
-#' @keywords internal
-.resolve_style_refs <- function(style_refs, num_cols, param_name) {
-  if (is.null(style_refs)) {
-    return(rep(list(NULL), num_cols))
-  }
-  
-  # Case 1: Single character string - recycle to all columns
-  if (is.character(style_refs) && length(style_refs) == 1) {
-    return(rep(list(style_refs), num_cols))
-  }
-  
-  # Case 2: Character vector from f_combine() - recycle to all columns
-  if (is.character(style_refs) && length(style_refs) > 1) {
-    return(rep(list(style_refs), num_cols))
-  }
-  
-  # Case 3: List of f_combine() results - one-to-one mapping
-  if (is.list(style_refs)) {
-    if (length(style_refs) != num_cols) {
-      cli_abort(c(
-        "Length mismatch in {.arg {param_name}}",
-        x = "Expected {num_cols} mappings, got {length(style_refs)}",
-        i = "Use {.fn f_combine}() for each column, or provide single value to recycle"
-      ))
-    }
-    
-    # Validate each element is character vector or NULL
-    for (i in seq_along(style_refs)) {
-      if (!is.null(style_refs[[i]]) && !is.character(style_refs[[i]])) {
-        cli_abort(c(
-          "Invalid element in {.arg {param_name}} list",
-          x = "Element {i} is not a character vector or NULL",
-          i = "Each element should be result of {.fn f_combine}() or a string"
-        ))
-      }
-    }
-    
-    return(style_refs)
-  }
-  
-  cli_abort(c(
-    "Invalid type for {.arg {param_name}}",
-    x = "Must be character string, character vector, or list of {.fn f_combine}() results",
-    i = "Got: {typeof(style_refs)}"
-  ))
-}
+
+ 
 
 # ============================================================
 # PART 5: EXPORTED CONTEXT FUNCTIONS

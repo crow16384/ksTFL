@@ -397,71 +397,7 @@
 #' formatting directives based on the column's class. Supports numeric, integer,
 #' character, and date types with automatic conversion handling.
 #'
-#' @param col A data column vector (e.g., data$var1)
-#' @param col_name Character string naming the column, used in warning/error messages.
-#'   Optional.
-#'
-#' @return A format specification list created with \code{.col_format_spec()},
-#'   containing fields:
-#'   - \code{type}: Character ("numeric" or "string")
-#'   - \code{format}: Printf-style format string or NULL
-#'
-#' @details
-#' Type detection and format assignment:
-#' \itemize{
-#'   \item{integer:} type="numeric", format="%d"
-#'   \item{double/numeric:} type="numeric", format="%.1f"
-#'   \item{character:} type="string", format=NULL
-#'   \item{Date/POSIXct/POSIXlt:} type="string" with warning about ISO conversion
-#'   \item{Other coercible types:} type="string" with warning about implicit conversion
-#'   \item{Non-coercible types:} Raises error with remediation guidance
-#' }
-#'
-#' @keywords internal
-.get_data_format <- function(col, col_name = NULL) {
-  if (!is.atomic(col) && !is.vector(col)) {
-    cli_abort(
-      "Expected atomic vector for {.arg col} in {.fn .get_data_format}, ",
-      "got {.cls {class(col)[[1]]}}"
-    )
-  }
-  
-  col_class <- class(col)[1L]
-  col_label <- if (!is.null(col_name) && nchar(col_name) > 0L) {
-    paste0(col_name)
-  } else {
-    ""
-  }
-  
-  switch(col_class,
-    "integer" = {
-      # Integer type: use %d format for whole numbers
-      .col_format_spec(type = "numeric", format = "%d")
-    },
-    "numeric" =,
-    "double" = {
-      # Numeric/double type: use %.1f for decimal precision
-      .col_format_spec(type = "numeric", format = "%.1f")
-    },
-    "character" = {
-      # Character type: no specific format needed
-      .col_format_spec(type = "string", format = NULL)
-    },
-    "Date" =,
-    "POSIXct" =,
-    "POSIXlt" = {
-      # Date/time types: convert to ISO string with user notice
-      cli_warn(
-        "Column {.str {col_label}} has class {.cls {col_class}} and will be converted to ISO 8601 date/time {.cls string} format in output."
-      )
-      .col_format_spec(type = "string", format = NULL)
-    },
-    # Default: Try to coerce unknown types to character
-    {
-      .coerce_unknown_type(col, col_name, col_class, col_label)
-    }
-  )
-}
+
 
 #' Coerce Unknown Column Type to String Format
 #'

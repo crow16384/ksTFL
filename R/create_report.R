@@ -354,7 +354,7 @@ create_report <- function(...) {
       specs_with_ref <- paste(all_data_refs[[ref]], collapse = ", ")
       warnings_to_issue <- c(
         warnings_to_issue,
-        paste0(ref, " → ", specs_with_ref)
+        paste0(ref, " \u2192 ", specs_with_ref)
       )
     }
   }
