@@ -55,8 +55,8 @@
     spec$document$docType <- docType
     spec$document$docPrefix <- docPrefix
     spec$document$hasData <- FALSE
-    spec$document$columns <- NULL
-    spec$document$stubColumns <- NULL
+    spec$columns <- NULL
+    spec$stubColumns <- NULL
     spec$.metadata$filePath <- normalizePath(file.path(data), winslash = "/", mustWork = FALSE)
     class(spec) <- "TFL_spec"
     spec$.metadata$hash <- .generate_hash(spec)
@@ -74,8 +74,8 @@
     spec$document$docType <- docType
     spec$document$docPrefix <- docPrefix
     spec$document$hasData <- FALSE
-    spec$document$stubColumns <- NULL
-    spec$document$columns <- NULL
+    spec$stubColumns <- NULL
+    spec$columns <- NULL
     class(spec) <- "TFL_spec"
     spec$.metadata$hash <- .generate_hash(spec)
     return(spec)
@@ -114,12 +114,13 @@
     ))
   }
   
-  # Set document properties
-  spec$document <- list(
+  docprops <- list(
     docType = docType,
     hasData = has_data,
     docPrefix = docPrefix
   )
+  # Set document properties
+  spec$document <- .merge_recursive(spec$document, docprops)
   
   spec$columns <- columns
   
