@@ -245,9 +245,6 @@
   if (is.null(spec$document$gluePrefix)) {
     spec$document$gluePrefix <- settings$gluePrefix
   }
-  if (is.null(spec$document$output_directory)) {
-    spec$document$output_directory <- settings$output_directory
-  }
   if (is.null(spec$document$bodyTitles)) {
     spec$document$bodyTitles <- settings$bodyTitles
   } 

@@ -436,15 +436,37 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     return(I(data))
   }
   
-  # If schema says object, process properties
+  # If schema says object, process properties and patternProperties
   if ("object" %in% schema_type) {
     if (!is.list(data)) return(data)
     
+    # Process explicit properties
     props <- schema[[.const_schema_keywords$properties]]
     if (!is.null(props)) {
       for (p in names(props)) {
         if (!is.null(data[[p]])) {
           data[[p]] <- .protect_arrays(data[[p]], props[[p]], root_schema)
+        }
+      }
+    }
+    
+    # Process patternProperties for keys matching regex patterns
+    pattern_props <- schema[[.const_schema_keywords$patternProperties]]
+    if (!is.null(pattern_props) && !is.null(names(data))) {
+      for (data_key in names(data)) {
+        # Skip keys that were already processed as explicit properties
+        if (!is.null(props) && data_key %in% names(props)) next
+        
+        # Check if data_key matches any pattern in patternProperties
+        # Apply ALL matching patterns (like .apply_pattern_properties does)
+        for (pattern in names(pattern_props)) {
+          if (grepl(pattern, data_key, perl = TRUE)) {
+            if (!is.null(data[[data_key]])) {
+              # Recursively protect with the matched pattern schema
+              subschema <- pattern_props[[pattern]]
+              data[[data_key]] <- .protect_arrays(data[[data_key]], subschema, root_schema)
+            }
+          }
         }
       }
     }
@@ -785,13 +807,14 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #'
 #' @param data Named list
 #' @param schema Schema with patternProperties
+#' @param path JSON Pointer path for error reporting
 #' @param enforce_additional_properties Logical flag
 #'
 #' @return Transformed data
 #'
 #' @keywords internal
 #' @noRd
-.apply_pattern_properties <- function(data, schema, enforce_additional_properties = FALSE) {
+.apply_pattern_properties <- function(data, schema, path = "", enforce_additional_properties = FALSE) {
   pattern_props_key <- .const_schema_keywords$patternProperties
   if (is.null(schema[[pattern_props_key]]) || is.null(names(data))) return(data)
   
@@ -799,7 +822,12 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     for (rx in names(schema[[pattern_props_key]])) {
       if (grepl(rx, key, perl = TRUE)) {
         subschema <- schema[[pattern_props_key]][[rx]]
-        data[[key]] <- .fix_types(data[[key]], subschema,
+        subpath <- if (identical(path, "") || is.null(path)) {
+          paste0("/", .json_pointer_escape(key))
+        } else {
+          paste0(path, "/", .json_pointer_escape(key))
+        }
+        data[[key]] <- .fix_types(data[[key]], subschema, path = subpath,
                                   enforce_additional_properties = enforce_additional_properties)
       }
     }
@@ -975,7 +1003,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     }
     
     # Apply patternProperties
-    data <- .apply_pattern_properties(data, schema,
+    data <- .apply_pattern_properties(data, schema, path = path,
                                       enforce_additional_properties = enforce_additional_properties)
     
     # Enforce additionalProperties

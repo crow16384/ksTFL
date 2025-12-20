@@ -2363,7 +2363,6 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' @param bodyFootnotes Whether to place footnotes in body (vs footer)
 #' @param hasData Whether document has data to report
 #' @param bodySubtitles Whether to place subtitles in body (vs header)
-#' @param outFileName Output file name
 #' 
 #' @return Updated spec object
 #' @export
@@ -2381,7 +2380,7 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
                          docOrder = NULL, isContinues = NULL, contentWidth = NULL,
                          bodyTitles = NULL, bodyFootnotes = NULL, hasData = NULL,
-                         bodySubtitles = NULL, outFileName = NULL) {
+                         bodySubtitles = NULL) {
   assert_class(spec, "TFL_spec")
   
   
@@ -2402,7 +2401,7 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
     bodyFootnotes = bodyFootnotes,
     hasData = hasData,
     bodySubtitles = bodySubtitles,
-    outFileName = outFileName
+    
   )
   params <- params[!sapply(params, is.null)]
   

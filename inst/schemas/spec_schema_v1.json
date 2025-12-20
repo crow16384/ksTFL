@@ -3,8 +3,32 @@
     "type": "object",
     "title": "KeyStat TFL specifications (v1)",
     "description": "Defines structure and meta-data for multiple TFLs, keyed by specification ID",
+    "properties": {
+        "_metadata": {
+            "type": "object",
+            "title": "Top-level metadata",
+            "description": "Container for filesystem metadata",
+            "properties": {
+                "outDir": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "description": "Output directory for serialized files"
+                },
+                "docFileName": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "description": "Document file base name"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
     "patternProperties": {
-        ".*": {
+        "^[A-Za-z0-9][A-Za-z0-9_-]*_[a-f0-9]{16}$": {
             "type": "object",
             "title": "TFL Specification",
             "description": "A single TFL specification containing structure and meta-data",
@@ -439,13 +463,6 @@
                             "title": "Body titles",
                             "description": "Yes to place subtitles into the document body, No to place titles to the document header",
                             "default": true
-                        },
-                        "outFileName": {
-                            "type": [
-                                "null",
-                                "string"
-                            ],
-                            "description": "Output file name for the document"
                         }
                     },
                     "required": [
