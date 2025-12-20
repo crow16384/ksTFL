@@ -200,36 +200,49 @@
   spec
 }
 
-#' Combine Multiple TFL Specifications into a Single Report
+#' Combine Multiple TFL Specifications and/or Reports into a Single Report
 #'
-#' This function takes multiple TFL specification objects and combines them into
-#' a single report object matching the spec_schema_v1 structure. Each spec is
-#' keyed by a combination of its variable name and metadata hash.
+#' This function takes multiple TFL specification objects and/or previously created
+#' TFL report objects and combines them into a single report object matching the
+#' spec_schema_v1 structure. Each spec is keyed by a combination of its variable
+#' name and metadata hash (for direct specs) or preserves original keys (for specs
+#' from reports).
 #'
-#' @param ... One or more objects of class `TFL_spec` to be combined.
+#' @param ... One or more objects of class `TFL_spec` or `TFL_report` to be combined.
 #' \itemize{
-#'   \item Each argument must be a `TFL_spec` produced by `create_table()`, `create_text()` or `create_figure()`.
-#'   \item Arguments are keyed in the resulting report by the argument name combined with the spec metadata hash (see return value).
+#'   \item `TFL_spec` objects produced by `create_table()`, `create_text()` or `create_figure()`.
+#'   \item `TFL_report` objects produced by previous calls to `create_report()`.
+#'   \item Arguments are processed in order; each new `TFL_spec` is keyed by the
+#'         argument name combined with the spec metadata hash.
+#'   \item `TFL_report` objects are flattened and their spec keys are preserved.
 #' }
 #'
 #' @details
 #' The function performs the following operations:
 #' \enumerate{
-#'   \item Validates that all inputs are of class `TFL_spec`
-#'   \item Consolidates styles within each spec (merges combinations, removes unreferenced styles)
-#'   \item Assigns a `docOrder` integer (1, 2, 3, ...) based on input position
-#'   \item Updates each spec's `dataRef` to `<hash>_0001`, `<hash>_0002`, etc.
-#'   \item Returns a named list keyed by `<varname>_<hash>`
+#'   \item Flattens all inputs (extracts specs from `TFL_report` objects)
+#'   \item Validates that no duplicate spec keys exist across all inputs
+#'   \item Consolidates styles within newly-added `TFL_spec` objects only
+#'         (specs from `TFL_report` are already consolidated)
+#'   \item Assigns a global `docOrder` integer (1, 2, 3, ...) based on final position
+#'   \item Preserves existing `dataRef` values and warns if duplicates detected
+#'   \item Returns a named list keyed by `<variable_name>_<hash>` or original report keys
 #' }
 #'
-#' @return A named list where each element is a modified TFL_spec object,
-#'   keyed by the pattern `<variable_name>_<hash>`.
+#' @return A named list where each element is a TFL_spec object,
+#'   keyed by the pattern `<variable_name>_<hash>` for direct specs, or
+#'   original keys for specs extracted from input reports.
+#'   Result has class `TFL_report`.
 #'
 #' @examples
 #' \dontrun{
 #' spec1 <- create_table(mtcars)
 #' spec2 <- create_text()
 #' final_report <- create_report(spec1, spec2)
+#'
+#' # Combining with a previous report
+#' spec3 <- create_figure("path/to/image.png")
+#' combined <- create_report(final_report, spec3)
 #' }
 #'
 #' @export
@@ -240,53 +253,130 @@ create_report <- function(...) {
 
   # Validate input is not empty
   if (length(specs_list) == 0) {
-    cli_abort("create_report() requires at least one TFL_spec object")
+    cli_abort("create_report() requires at least one TFL_spec or TFL_report object")
   }
 
-  # Validate all objects are TFL_spec
+  # ---- PHASE 1: Flatten inputs (order-preserving) ----
+  flattened <- list()  # Will store list of (key, spec, is_new) tuples
+  
   for (i in seq_along(specs_list)) {
-    if (!inherits(specs_list[[i]], "TFL_spec")) {
+    obj <- specs_list[[i]]
+    obj_name <- spec_names[[i]]
+    
+    if (inherits(obj, "TFL_report")) {
+      # Extract all specs from the report with their keys
+      for (report_key in names(obj)) {
+        spec <- obj[[report_key]]
+        flattened[[length(flattened) + 1]] <- list(
+          key = report_key,
+          spec = spec,
+          is_new = FALSE  # Pre-consolidated
+        )
+      }
+    } else if (inherits(obj, "TFL_spec")) {
+      # Compute key for direct spec
+      hash <- obj$.metadata$hash
+      if (is.null(hash) || !is.character(hash) || hash == "") {
+        cli_abort(c(
+          "Spec object {.val {obj_name}} has invalid or missing metadata hash",
+          i = "Ensure the spec was properly initialized with create_table(), create_text(), or create_figure()"
+        ))
+      }
+      
+      key <- paste0(obj_name, "_", hash)
+      flattened[[length(flattened) + 1]] <- list(
+        key = key,
+        spec = obj,
+        is_new = TRUE  # Needs style consolidation
+      )
+    } else {
       cli_abort(c(
-        "All arguments to create_report() must be of class TFL_spec",
-        x = "Argument {i} ({.val {spec_names[[i]]}}) is of class {.cls {class(specs_list[[i]])}}"
+        "All arguments to create_report() must be of class TFL_spec or TFL_report",
+        x = "Argument {i} ({.val {obj_name}}) is of class {.cls {class(obj)}}"
       ))
     }
   }
 
-  # Process each spec
+  # ---- PHASE 2: Validate duplicate keys ----
+  all_keys <- vapply(flattened, function(x) x$key, character(1))
+  duplicate_keys <- all_keys[duplicated(all_keys)]
+  
+  if (length(duplicate_keys) > 0) {
+    cli_abort(c(
+      "Duplicate spec keys detected across inputs",
+      x = "The following keys appear multiple times: {.str {unique(duplicate_keys)}}",
+      i = "This indicates specs with identical content; ensure each spec is unique"
+    ))
+  }
+
+  # ---- PHASE 3: Style consolidation (only for new specs) ----
+  for (i in seq_along(flattened)) {
+    if (flattened[[i]]$is_new) {
+      flattened[[i]]$spec <- ._consolidate_styles_in_spec(flattened[[i]]$spec)
+    }
+  }
+
+  # ---- PHASE 4: Renumber docOrder globally and create dataRef for new specs ----
+  for (i in seq_along(flattened)) {
+    flattened[[i]]$spec$document$docOrder <- as.integer(i)
+    
+    # Create dataRef for new specs (direct TFL_spec objects)
+    # For specs from TFL_report, preserve existing dataRef
+    if (flattened[[i]]$is_new) {
+      hash <- flattened[[i]]$spec$.metadata$hash
+      doc_order_padded <- sprintf("%04d", i)
+      flattened[[i]]$spec$dataRef <- c(paste0(doc_order_padded, "_", hash))
+    }
+  }
+
+  # ---- PHASE 5: Validate dataRef (collect all warnings) ----
+  all_data_refs <- list()
+  warnings_to_issue <- character(0)
+  
+  for (i in seq_along(flattened)) {
+    spec <- flattened[[i]]$spec
+    key <- flattened[[i]]$key
+    
+    data_refs <- spec$dataRef
+    if (!is.null(data_refs) && length(data_refs) > 0) {
+      for (ref in data_refs) {
+        if (is.null(all_data_refs[[ref]])) {
+          all_data_refs[[ref]] <- list()
+        }
+        all_data_refs[[ref]] <- c(all_data_refs[[ref]], key)
+      }
+    }
+  }
+  
+  # Identify duplicate dataRef values
+  for (ref in names(all_data_refs)) {
+    if (length(all_data_refs[[ref]]) > 1) {
+      specs_with_ref <- paste(all_data_refs[[ref]], collapse = ", ")
+      warnings_to_issue <- c(
+        warnings_to_issue,
+        paste0(ref, " → ", specs_with_ref)
+      )
+    }
+  }
+
+  # ---- PHASE 6: Build result ----
   result <- list()
-
-  for (i in seq_along(specs_list)) {
-    spec <- specs_list[[i]]
-    var_name <- spec_names[[i]]
-    
-    # Consolidate styles before processing
-    spec <- ._consolidate_styles_in_spec(spec)
-    
-    hash <- spec$.metadata$hash
-
-    # Validate hash exists
-    if (is.null(hash) || !is.character(hash) || hash == "") {
-      cli_abort(c(
-        "Spec object {.val {var_name}} has invalid or missing metadata hash",
-        i = "Ensure the spec was properly initialized with create_table(), create_text(), or create_figure()"
-      ))
-    }
-
-    # Create the key: <varname>_<hash>
-    key <- paste0(var_name, "_", hash)
-
-    # Update docOrder: 1-based index
-    spec$document$docOrder <- as.integer(i)
-
-    # Update dataRef: <hash>_<docOrder with 4-digit padding>
-    doc_order_padded <- sprintf("%04d", i)
-    spec$dataRef <- c(paste0(doc_order_padded, "_", hash))
-
-    # Add to result list with the key
-    result[[key]] <- spec
+  
+  for (item in flattened) {
+    result[[item$key]] <- item$spec
   }
 
   class(result) <- c("TFL_report", "list")
+  
+  # Issue collected dataRef warnings (if any)
+  if (length(warnings_to_issue) > 0) {
+    warning_message <- c(
+      "The following dataRef values are referenced by multiple specs:",
+      stats::setNames(warnings_to_issue, rep("*", length(warnings_to_issue))),
+      i = "This may indicate shared data files across documents"
+    )
+    cli_warn(warning_message)
+  }
+
   return(result)
 }
