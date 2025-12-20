@@ -176,145 +176,21 @@ Follow the pattern of exported functions like `tfl_init()`:
 - **Path parameters**: Avoid threading `path` through recursive functions for error reporting—use context management or error wrapping instead. Removes ~30% of parameter passing overhead
 - **Schema resolution performance**: `.resolve_refs()` is recursive and called for every schema object. Use constants and avoid string comparisons in hot paths
 
-## Refactoring Lessons Learned (Session Dec 18, 2025)
+## Refactoring Lessons Learned (Dec 18, 2025)
 
-### What Was Optimized
-1. **Constants Extraction** (~100+ magic strings → `.const_schema_keywords`)
-   - Before: Schema keywords hardcoded throughout schema_serialize.R
-   - After: Single constant definition in constants.R referenced everywhere
-   - Benefit: Maintenance ease, consistency, easier schema evolution
+### Completed Optimizations
+1. **Constants Extraction** (~100+ magic strings → centralized constants)
+2. **Helper Function Creation** (5 new helper functions for schema processing)
+3. **Error Message Standardization** (all errors use `cli_abort()` with structured formatting)
+4. **Merge Function Consolidation** (single `.merge_recursive()` implementation)
+5. **Parameter Cleanup** (~30% reduction in parameter passing for recursive functions)
 
-2. **Helper Function Creation** (5 new helpers)
-   - `.get_schema_file_path()`: Centralized schema file resolution
-   - `.normalize_json_pointer_path()`: JSON Pointer path normalization
-   - `.validate_schema_input()`: Schema file validation
-   - `.has_combinator()`: Check for allOf/oneOf/anyOf
-   - `.get_combinator_variants()`: Extract combinator variants
-   - Benefit: Code reuse, cleaner error handling
+### Key Patterns
+- JSON Schema processing pipeline: `.serialize_json_internal()` → `.fix_types()` → `.resolve_refs()` → `.resolve_allOf()` → `.protect_arrays()` → `jsonlite::toJSON()`
+- Constants usage: All schema keywords, types, and JSON pointer manipulations stored in `.const_*` definitions
+- Merge strategy: Use `.merge_recursive(x, y)` with `keep.null = TRUE` for all list merging
 
-3. **Error Message Standardization**
-   - Before: Mix of base R `stop()` and basic messages
-   - After: All errors use `cli_abort()` with structured bullets (x, i, *, !)
-   - Applied to: `.fix_types()`, `.resolve_refs()`, `.resolve_allOf()`, type coercion, enum validation, pattern validation
 
-4. **Merge Function Consolidation**
-   - Before: Two implementations (`.deep_merge()` in schema_serialize.R, `.merge_recursive()` in utility_functions.R)
-   - After: Single `.merge_recursive()` implementation using `base::modifyList(x, y, keep.null = TRUE)`
-   - Benefit: Reduced maintenance burden, more robust (uses battle-tested base function)
-
-5. **Parameter Cleanup** (~30% reduction in parameter passing)
-   - Removed unused `path` parameter from function signatures: `.coerce_value()`, `.check_pattern()`, `.check_enum()`, `.resolve_combinator_type()`
-   - Removed unused `debug_path` parameter from `.protect_arrays()`
-   - Removed `path = path` argument from all calls to above functions
-   - Benefit: Cleaner signatures, reduced cognitive load, fewer parameter mismatches
-
-### Code Patterns Discovered
-
-#### JSON Schema Processing Pipeline
-```
-Input data → .serialize_json_internal() 
-          → .fix_types() [type coercion]
-          → .resolve_refs() [expand $ref]
-          → .resolve_allOf() [merge allOf schemas]
-          → .protect_arrays() [array protection]
-          → jsonlite::toJSON()
-```
-Each stage is independent and can be tested separately.
-
-#### Constants Usage Pattern
-```r
-# In constants.R
-.const_schema_keywords <- list(
-  ref = "$ref",
-  type = "type",
-  properties = "properties",
-  items = "items",
-  enum = "enum",
-  pattern = "pattern",
-  allOf = "allOf",
-  oneOf = "oneOf",
-  anyOf = "anyOf"
-)
-
-# In schema_serialize.R
-if (!is.null(schema[[.const_schema_keywords$allOf]])) { ... }
-```
-
-#### Merge Strategy
-Use `.merge_recursive(x, y)` with semantic clarity:
-- `x` = base configuration
-- `y` = override/merge values
-- `keep.null = TRUE` ensures NULL values in `y` override any values in `x`
-- Critical for schema merging where explicit NULL means "remove this constraint"
-
-### Issues Encountered & Resolutions
-
-1. **Unused Argument Error After Refactoring**
-   - Problem: `.apply_pattern_properties()` called with `path = path` but function didn't accept it
-   - Root cause: Parameter removed but not all call sites updated
-   - Solution: Grep for all function calls, remove parameter from call sites
-   - Lesson: Use grep_search before finalizing refactoring to ensure consistency
-
-2. **Stale R Environment After Edits**
-   - Problem: File changes don't reflect in R until session restart
-   - Solution: Always remind user to restart R or run `devtools::reload_all()`
-   - Prevention: Document in instructions that R caches loaded functions
-
-3. **Multi-replace Failures**
-   - Problem: Whitespace/indentation mismatches prevented replacements
-   - Solution: Read actual file content first, include 3-5 lines context for unambiguous matching
-   - Lesson: Exact literal matching is strict; preview file first
-
-### Performance Implications
-- **Constants**: Negligible runtime cost; improves readability and maintenance
-- **Merge consolidation**: Slight performance gain using `base::modifyList` (C implementation) vs custom recursion
-- **Parameter removal**: ~30% reduction in stack frame size for recursive calls
-- **Helper functions**: Minimal overhead; benefits outweigh micro-optimization costs
-
-### Testing Recommendations
-When modifying schema_serialize.R:
-1. Test with valid spec objects (`test-preview_spec.R`)
-2. Test with edge cases (empty lists, all-NULL properties, deeply nested schemas)
-3. Verify JSON output matches schema structure
-4. Check error messages display correctly with cli formatting
-
-## Style Management & Consolidation
-
-### Style Consolidation in create_report() (Dec 19, 2025)
-The `create_report()` function now automatically consolidates styles in each spec:
-- **Helper function**: `._consolidate_styles_in_spec(spec)` - internal function in [create_report.R](R/create_report.R)
-- **Process** (5 steps):
-  1. Recursively collect all styleRef locations from spec (labelStyleRef, valueStyleRef, styleRef)
-  2. Identify style combinations (character vectors with length > 1)
-  3. For each combination: sort alphabetically (order-independent), merge styles using `.merge_recursive()`, generate hash via `.generate_hash()`
-  4. Replace all combination references with merged style hashes
-  5. Remove unreferenced styles from spec
-- **StyleRef Locations** (7 identified in spec_schema_v1.json):
-  - `spec$columns[[col]]$labelStyleRef` 
-  - `spec$columns[[col]]$format$valueStyleRef`
-  - `spec$stubColumns[[stub]]$labelStyleRef`
-  - `spec$titles[[]]$styleRef`
-  - `spec$subtitles[[]]$styleRef`
-  - `spec$footnotes[[]]$styleRef`
-  - `spec$bodyText[[]]$styleRef`
-  - `spec$headers[[]]$styleRef`
-  - `spec$footers[[]]$styleRef`
-- **Key Design**:
-  - Per-spec consolidation (not global)
-  - Order-independence via alphabetic sorting
-  - Deterministic hash naming: `style_<16-char-hex>`
-  - Validation: all referenced styles must exist before merging
-  - Cleanup: removes styles no longer directly referenced after consolidation
-
-### Predefined Clinical Styles (Dec 19, 2025)
-30+ predefined styles available in `.const_options_styles` (constants.R):
-- **Font styles**: `font_bold`, `font_italic`, `font_underline`, `font_bold_italic`
-- **Color styles**: `text_blue`, `text_red`, `text_green`
-- **Alignment**: `text_center`, `text_right`, `numeric_right`
-- **Highlighting**: `cell_highlight_yellow`, `cell_highlight_red`, `cell_highlight_green`
-- **Borders**: `cell_border_bottom`, `cell_border_top`, `cell_border_double_bottom`
-- **Combinations**: `header_bold`, `emphasis`, `total_bold`, `warning_bold_red`
-Used via: `add_style(spec, id = "my_style", f_combine("bold", "red"))` or reference predefined names
 
 ### Context-Based Function Nesting (CRITICAL)
 The package uses `.assert_context()` and `.set_context()` for enforcing proper function call hierarchy. **This is essential to understand:**
@@ -424,64 +300,110 @@ tfl_init(data = NULL, docType = "Text", id = "txt01")
 - Enhanced `valueStyleRef` support matching `labelStyleRef` behavior
 - Comprehensive roxygen documentation pass
 
-### Recommended Next Steps
-1. Add more comprehensive tests for schema_serialize.R edge cases
-2. Document the JSON Schema processing pipeline in separate doc
-3. Add performance benchmarks for recursive schema processing
-4. Consider memoization for frequently-accessed schema lookups if needed
-5. Implement remaining schema validation (row_style_schema, styles_schema)
+### Future Enhancements
+1. Implement `row_style_schema` validation rules (conditional row styling)
+2. Implement `styles_schema` validation for predefined style templates
+3. Performance optimization: memoization for schema lookups if needed
+4. Python backend: integrate with rendering pipeline for DOCX output
 
 
-## Doc pass — Dec 19, 2025
+## Doc Pass — Dec 19, 2025
 
-Summary of recent documentation and small-code fixes performed while auditing the repo:
+Summary of documentation improvements:
+- Updated roxygen in `R/spec_context.R`, `R/env_eval_helpers.R`, `R/create_report.R`, `R/pkg_settings.R`
+- Added missing file-level tags; fixed Rd generation for `.onAttach()` and `.onUnload()`
+- Clarified context-based function nesting in `add_style()` and related functions
+- Removed duplicate documentation blocks
 
-- Files updated with improved roxygen and doc guidance:
-   - `R/spec_context.R` — clarified `...` usage, removed duplicated \itemize blocks, documented `add_header()`/`add_footer()` parts, clarified `add_style()` and nesting rules.
-   - `R/env_eval_helpers.R` — documented tidyselect behaviour, `__data__`/`__mask__` evaluation, and listed embedded helper functions (`firstOf`, `lastOf`, `get_names`, `row_number`, `every_nth`, `eval`).
-   - `R/create_report.R` — documented `create_report(...)` behaviour: keys are `<varname>_<hash>`, docOrder/dataRef numbering, and validation rules.
-   - `R/pkg_settings.R` — documented `tfl_set_options(...)` `...` shapes and routing logic for helper-returned settings objects.
-   - `R/utility_functions.R`, `R/constants.R`, `R/99_loader.R`, `R/spec_init.R`, `R/spec_serializer.R`, `R/schema_serialize.R` — small doc additions and fixes (file-level roxygen, `@name` tags, clearer descriptions).
+## Current State of Codebase (Dec 20, 2025)
 
-- Specific issues fixed
-   - Added missing `@name` file-level tags to `schema_serialize.R` and `spec_serializer.R` so roxygen can emit Rd topics.
-   - Fixed Rd generation problems for `.onAttach` and `.onUnload` by adding short titles and descriptions in `R/99_loader.R`.
-   - Removed duplicate `\itemize{}` blocks in `R/spec_context.R` that caused doc noise.
+✅ **Fully Implemented**:
+- Spec initialization for all 3 docTypes (Table, Text, Figure)
+- Column auto-detection and format assignment
+- Style consolidation with hash-based merging
+- Context-based function nesting validation
+- Extended `create_report()` with mixed report/spec support (NEW - Dec 20)
+- 30+ predefined clinical styles
+- Comprehensive error messages with `cli_abort()`
+- Full test coverage for core functionality (20+ tests per major function)
 
-- Key behavioural reminders discovered during the pass
-   - `create_report(...)` keys specs by variable name + metadata hash; it also assigns `document$docOrder` and `dataRef` values.
-   - `spec$.metadata$data_env` is a layered environment: functions layer, `__data__` raw data layer, and `__mask__` tidyselect mask. Do not mutate the shadow copy.
-   - The JSON serialization pipeline is central and testable at each stage: `.serialize_json_internal()` → `.fix_types()` → `.resolve_refs()` → `.resolve_allOf()` → `.protect_arrays()` → `jsonlite::toJSON()`.
-   - `define_cols()` uses `enquos()` and requires `c()` when specifying multiple columns; misuse is a common source of user error.
-   - `add_style()` enforces contextual nesting via `.set_context()` / `.assert_context()` — incorrect nesting (e.g., `s_borders()` outside `s_table_style()`) will be rejected.
+⏳ **Still TO DO**:
+- `row_style_schema` validation rules
+- `styles_schema` validation rules
+- Python backend integration
 
-- Recommended next verification steps (local)
-   1. Run `devtools::load_all()` and `roxygen2::roxygenise()` locally to regenerate Rd files and catch any remaining warnings.
-   2. Run `testthat` tests (`devtools::test()` or `R CMD check`) to validate behavior after doc changes.
-   3. If you want, I can continue: (a) finish a final grep for any remaining `@param ...` misses, or (b) expand doc examples for critical helpers.
+## Quick Reference
 
-## Session Notes (Dec 19, 2025 - Style Consolidation)
+**Create specs**:
+```r
+spec_table <- create_table(mtcars)
+spec_text <- create_text()
+spec_figure <- create_figure("path/to/image.png")
+```
 
-### Completed Work
-- Implemented `._consolidate_styles_in_spec()` in [create_report.R](R/create_report.R)
-- Integrated style consolidation into `create_report()` function
-- Identified all 7 styleRef locations in spec structure across 9 properties
-- Used existing `.generate_hash()` from utility_functions.R (no duplicate functions)
-- Employed alphabetic sorting for order-independent combination merging
+**Combine into reports** (new!):
+```r
+# Single create
+report <- create_report(spec_table, spec_text)
 
-### Key Implementation Details
-**The 5-step consolidation process**:
-1. **Recursive collection** via nested `.collect_style_refs()` helper
-   - Scans all 9 styleRef-bearing properties
-   - Separates single references from combinations (length > 1)
-2. **Validation** - all referenced styles must exist in `spec$attribs$styles`
-3. **Merging** - combinations sorted, hashed with `style_<16-char-hex>`, merged via `.merge_recursive()`
-4. **Replacement** - all combination references updated to point to merged hash
-5. **Cleanup** - unreferenced styles removed (including now-unused component styles)
+# Mix reports with specs
+report_extended <- create_report(report, spec_figure, spec_text2)
+```
 
-### Important Reminders
-- **Reuse existing functions**: Never create duplicate functions like `.generate_hash()` when one already exists
-- **Per-spec scope**: Consolidation happens on each spec individually in `create_report()`, not globally
-- **Hash consistency**: Alphabetic sorting ensures same combination always produces same hash regardless of input order
-- **Validation first**: Always validate all referenced styles exist before attempting merge operations
-- **Recursive traversal**: Use pattern of nested helper functions with `<<-` for parent scope updates when collecting data across nested structures
+**Style a column**:
+```r
+spec <- add_style(spec, id = "my_style", s_font(bold = TRUE))
+spec <- define_cols(spec, c(col1, col2), labelStyleRef = "my_style")
+```
+
+**Add content**:
+```r
+spec <- add_title(spec, "Title")
+spec <- add_subtitle(spec, "Subtitle")
+spec <- add_footnote(spec, "Note")
+```
+
+
+
+## Session Notes (Dec 20, 2025 - Extended create_report())
+
+### Extended create_report() to Support Mixed Input Types
+The `create_report()` function now accepts both `TFL_spec` and `TFL_report` objects for flexible composition:
+
+**New Capability**: Combine previously generated reports with new specs
+```r
+# Create initial report
+report1 <- create_report(spec1, spec2)
+
+# Extend with new specs
+final_report <- create_report(report1, spec3, spec4)
+# Result: 4 specs combined in order-preserving manner
+```
+
+**6-Phase Processing Pipeline** in `create_report()`:
+1. **Phase 1: Flatten inputs** - Extract specs from TFL_report objects while preserving keys
+2. **Phase 2: Validate keys** - Reject duplicate spec keys (content duplicates)
+3. **Phase 3: Consolidate styles** - Only for new TFL_spec objects (marked `is_new=TRUE`)
+4. **Phase 4: Renumber docOrder & create dataRef** - Global sequential numbering (1, 2, 3, ...) and new dataRef for new specs
+5. **Phase 5: Warn on dataRef duplicates** - Collect all warnings and issue once
+6. **Phase 6: Build result** - Assemble final TFL_report with preserved key structure
+
+**Key Design Decisions**:
+- **Order preservation**: Input order determines final docOrder (1-based)
+- **Selective consolidation**: Only new specs undergo style consolidation; pre-consolidated specs from reports are preserved as-is
+- **Key preservation**: Report specs keep their original keys; new specs get keys as `<varname>_<hash>`
+- **dataRef handling**: New specs get `<padded_docOrder>_<hash>` (e.g., `0001_abc123def456`); report dataRef values preserved unchanged
+- **Duplicate detection**: Error on duplicate keys; warn on duplicate dataRef (may indicate shared data files)
+
+**Implementation File**: [create_report.R](R/create_report.R) - `create_report()` function (~180 lines)
+
+**Test Coverage** (20 comprehensive tests in test-07-create-report.R):
+- Basic single/multiple specs, mixed reports + specs
+- docOrder sequential validation (1, 2, 3, ...)
+- dataRef creation format (`^\d{4}_[a-f0-9]{16}$`)
+- Style consolidation for new specs only
+- Style preservation from input reports
+- Duplicate key detection (error)
+- Duplicate dataRef detection (warning)
+- Nested report combinations
+- Multiple independent style consolidations
