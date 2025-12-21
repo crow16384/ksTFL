@@ -22,6 +22,14 @@
                         "string"
                     ],
                     "description": "Document file base name"
+                },
+                "datetime": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "description": "ISO 8601 formatted timestamp when the report was saved",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
                 }
             },
             "additionalProperties": false
@@ -308,10 +316,7 @@
                                                     ],
                                                     "pattern": "^#[0-9A-Fa-f]{6}$"
                                                 }
-                                            },
-                                            "required": [
-                                                "font_name"
-                                            ]
+                                            }
                                         },
                                         "table_style": {
                                             "type": "object",

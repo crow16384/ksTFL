@@ -55,6 +55,10 @@ export(
   set_document,
   set_page_style,
   
+  # Report creation and serialization
+  create_report,
+  serialize_spec,
+  save_report,
 
   # Package options functions
   tfl_get_options,

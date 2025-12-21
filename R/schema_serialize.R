@@ -379,6 +379,11 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 .protect_arrays <- function(data, schema, root_schema = NULL) {
   if (is.null(schema) || is.null(data)) return(data)
   
+  # Convert ALL empty lists to NULL - they should never appear in JSON
+  if (is.list(data) && length(data) == 0) {
+    return(NULL)
+  }
+  
   # Use schema as root if not provided
   if (is.null(root_schema)) root_schema <- schema
   
@@ -600,6 +605,39 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 ################################################################################
 # Type Matching and Coercion
 ################################################################################
+
+#' Check if Schema Allows Null
+#'
+#' @description Tests if a schema allows null values, accounting for type arrays,
+#' combinators (oneOf, anyOf), and nested schemas.
+#'
+#' @param schema Schema fragment
+#'
+#' @return Logical TRUE if null is allowed
+#'
+#' @keywords internal
+#' @noRd
+.allows_null <- function(schema) {
+  if (!is.list(schema)) return(FALSE)
+  
+  # Direct type check
+  if (!is.null(schema$type) && "null" %in% schema$type) return(TRUE)
+  
+  # Check combinators
+  if (!is.null(schema$oneOf)) {
+    return(any(vapply(schema$oneOf, .allows_null, logical(1))))
+  }
+  
+  if (!is.null(schema$anyOf)) {
+    return(any(vapply(schema$anyOf, .allows_null, logical(1))))
+  }
+  
+  if (!is.null(schema$allOf)) {
+    return(any(vapply(schema$allOf, .allows_null, logical(1))))
+  }
+  
+  FALSE
+}
 
 #' Check if Value Matches Schema Type
 #'
@@ -931,6 +969,12 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 .fix_types <- function(data, schema, path = "", enforce_additional_properties = FALSE) {
   if (is.null(schema)) return(data)
   
+  # CRITICAL: Convert ALL empty lists to NULL immediately
+  # Empty lists are ambiguous in JSON and should never be serialized
+  if (is.list(data) && length(data) == 0) {
+    return(NULL)
+  }
+  
   # Handle combinators
   if (!is.null(schema$oneOf) || !is.null(schema$anyOf)) {
     idx <- .resolve_combinator_type(data, schema)
@@ -950,6 +994,13 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   if (is.null(data)) {
     if (!is.null(schema$type) && "null" %in% schema$type) return(NULL)
     return(NULL)
+  }
+  
+  # Convert empty lists to NULL if schema allows null
+  if (is.list(data) && length(data) == 0) {
+    if (.allows_null(schema)) {
+      return(NULL)
+    }
   }
   
   # Handle arrays
