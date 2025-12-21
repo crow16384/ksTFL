@@ -2466,8 +2466,7 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
     bodyTitles = bodyTitles,
     bodyFootnotes = bodyFootnotes,
     hasData = hasData,
-    bodySubtitles = bodySubtitles,
-    
+    bodySubtitles = bodySubtitles
   )
   params <- params[!sapply(params, is.null)]
   
