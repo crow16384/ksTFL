@@ -117,6 +117,9 @@ tfl_get_option <- function(name) {
 #' @param isContinues Logical; override continuation behavior.
 #' @param contentWidth Character; width for content area (e.g. "100%", "95%").
 #' @param missings Character; default representation for missing values (e.g. "NA", ".", "---").
+#' @param autoColWidth Logical; enable automatic column width recalculation when user sets `colWidth` via `define_cols()`.
+#'   Default TRUE. When TRUE, locked columns maintain exact width while unlocked columns normalize to fill remaining space.
+#'   Set FALSE to disable auto-recalculation and manage widths manually.
 #' @param output_directory Character; path to default output directory.
 #'
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
@@ -144,6 +147,17 @@ tfl_get_option <- function(name) {
 #' tfl_set_options(
 #'   add_body_text("This is the default body text for all text specs.")
 #' )
+#' 
+#' # Control automatic column width recalculation
+#' # Enable auto-recalculation (default):
+#' tfl_set_options(autoColWidth = TRUE)
+#' spec <- create_table(data) |>
+#'   define_cols("id", colWidth = "20%")  # Locks id, others auto-adjust
+#'
+#' # Disable auto-recalculation for manual width management:
+#' tfl_set_options(autoColWidth = FALSE)
+#' spec <- create_table(data) |>
+#'   define_cols(c("id", "age"), colWidth = c("20%", "30%"))  # Exact widths, no auto-adjust
 #' }
 #' @export
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,

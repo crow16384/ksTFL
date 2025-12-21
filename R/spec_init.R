@@ -507,6 +507,19 @@ create_text <- function(docPrefix = NULL) {
 #'
 #' @return A `TFL_spec` object with `docType = "Table"`.
 #'
+#' @details
+#' Column Width Initialization:
+#' Initial column widths are automatically calculated based on data properties and sum to 100%.
+#' To lock specific columns and trigger automatic recalculation of others, use `define_cols()` with
+#' the `colWidth` parameter (when `autoColWidth = TRUE`, the default).
+#' 
+#' Example workflow:
+#' \itemize{
+#'   \item Create table: widths auto-distributed (e.g., all 33.3% for 3 columns)
+#'   \item `define_cols(id, colWidth="20%")`: locks id at 20%, others recalculate to fill 80%
+#'   \item `define_cols(age, colWidth="15%")`: locks age at 15%, others fill remaining 65%
+#' }
+#'
 #' @examples
 #' \dontrun{
 #' ## Basic usage with the built-in `mtcars` dataset

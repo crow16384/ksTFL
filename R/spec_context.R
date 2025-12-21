@@ -1498,9 +1498,24 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #' @param format Format string for numeric data (sprintf style), e.g. "%.1f" (length 1 or length of cols). Optional.
 #' @param missings How to display missing values in columns (length 1 or length of cols). Optional.
 #' @param colWidth Column width, e.g. "2in", "5cm", "20%" (length 1 or length of cols). Optional.
+#'   When specified, marks columns as LOCKED and triggers automatic recalculation of remaining unlocked
+#'   columns if `autoColWidth = TRUE` in `tfl_set_options()`. Locked columns maintain their exact width
+#'   while unlocked columns normalize to fill remaining available space.
 #' @param valueStyleRef Style names to apply to cell values. Provided styles will be merged with last-win strategy for report. 
 #'   Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
 #'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns). Optional.
+#' 
+#' @details
+#' Column Width Auto-Recalculation:
+#' When `colWidth` is specified, columns are marked as "locked" and remaining "unlocked" columns are 
+#' automatically recalculated (if `autoColWidth = TRUE`, the default). This uses a LOCKED/UNLOCKED 
+#' partitioning algorithm:
+#' \itemize{
+#'   \item Locked columns (any unit: %, cm, in) maintain their exact specified width
+#'   \item Unlocked columns normalize proportionally to fill remaining available space
+#'   \item All widths sum to 100% with 1 decimal place precision
+#' }
+#' To disable auto-recalculation, use `tfl_set_options(autoColWidth = FALSE)`.
 #' 
 #' @return Updated spec object
 #' @export
@@ -1562,6 +1577,26 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'       f_combine("categorical_label")
 #'     )
 #'   )
+#' 
+#' # Column width auto-recalculation (when autoColWidth = TRUE, the default):
+#' # Initial widths are automatically distributed (e.g., id=33.3%, age=33.3%, group=33.4%)
+#' spec <- create_table(data) |>
+#'   define_cols("id", colWidth = "20%")  # Lock id at 20%
+#'   # Result: id=20%, age and group auto-recalculate to fill remaining 80%
+#'   # 
+#' # Multiple colWidth calls preserve previous locks:
+#' spec <- create_table(data) |>
+#'   define_cols("id", colWidth = "20%")  # Lock id at 20%
+#'   |> define_cols("age", colWidth = "15%")  # Lock age at 15%
+#'   # Result: id=20% (locked), age=15% (locked), group=65% (fills remaining)
+#' 
+#' # Disable auto-recalculation to manage widths manually:
+#' tfl_set_options(autoColWidth = FALSE)  # Turn off auto-recalculation
+#' spec <- create_table(data) |>
+#'   define_cols(c("id", "age", "group"), colWidth = c("25%", "30%", "45%"))
+#'   # Widths stay exactly as specified, no automatic recalculation
+#' tfl_set_options(autoColWidth = TRUE)  # Re-enable (restore default)
+#' 
 #' 
 #' # Using tidyselect helpers
 #' spec <- create_table(data) |>
@@ -2389,7 +2424,6 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' @param spec TFL spec object
 #' @param docPrefix Output prefix and number according to SAP
 #' @param glueNumType Whether to glue type and number to first title
-#' @param docOrder Order of output when combining documents
 #' @param isContinues Whether page breaks should be ignored
 #' @param contentWidth Width of content, e.g. "100%", "25cm", "10in"
 #' @param bodyTitles Whether to place titles in body (vs header)
@@ -2411,7 +2445,7 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   )
 #' }
 set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
-                         docOrder = NULL, isContinues = NULL, contentWidth = NULL,
+                         isContinues = NULL, contentWidth = NULL,
                          bodyTitles = NULL, bodyFootnotes = NULL, hasData = NULL,
                          bodySubtitles = NULL) {
   assert_class(spec, "TFL_spec")
@@ -2427,7 +2461,6 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
   params <- list(
     docPrefix = docPrefix,
     glueNumType = glueNumType,
-    docOrder = docOrder,
     isContinues = isContinues,
     contentWidth = contentWidth,
     bodyTitles = bodyTitles,
