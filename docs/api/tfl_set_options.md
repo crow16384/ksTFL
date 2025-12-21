@@ -13,5 +13,11 @@ Key behavior and transitive chains:
 Direct package callees:
 - `.options_env` (read/write), and may invoke any of: `add_style`, `add_header`, `add_footer`, `set_page_style`, `add_body_text` via `eval_bare` of reconstructed calls.
 
+Key Parameters:
+- `autoColWidth` (logical, default TRUE): Controls whether `define_cols()` triggers automatic recalculation of unlocked column widths when user sets `colWidth` on any column.
+  - When TRUE: Locked columns remain immutable, unlocked columns normalize to fill available space
+  - When FALSE: No automatic recalculation; user manages all column widths manually
+
 Usage notes:
 - When passing helper calls, nested helper constructors are executed (so `p_page(p_margins(...))` is valid and will run during `tfl_set_options`).
+- Column width auto-recalculation uses LOCKED/UNLOCKED partitioning: locked columns (any unit) stay fixed, unlocked % columns normalize to fill remaining space.
