@@ -415,8 +415,8 @@ utils::globalVariables(
 #' @param spec TFL_spec object with columns and metadata
 #'
 #' @return Updated spec with recalculated column widths in both:
-#'   - spec$columns[[col_id]]$format$colWidth (display strings like "25.3%")
-#'   - spec$.metadata$colWidths[[col_id]] (metadata for future recalculations)
+#'   - `spec$columns[[col_id]]$format$colWidth` (display strings like "25.3%")
+#'   - `spec$.metadata$colWidths[[col_id]]` (metadata for future recalculations)
 #'
 #' @details
 #' Algorithm:
