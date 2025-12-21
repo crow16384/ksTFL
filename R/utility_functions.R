@@ -166,10 +166,18 @@ utils::globalVariables(
 }
 
 #' Guess Table Column Layout from Data Frame
-#' used in TFL_init() to pre-populate column definitions
+#' 
+#' Analyzes a data frame and generates initial column layout specifications.
+#' Returns both format specs and width metadata for recalculation support.
+#' 
 #' @param df Data frame to analyze
 #' @param missings Character string for missing value representation (default: "NA")
-#' @noRd 
+#'
+#' @return List with two elements:
+#'   - `$formats`: Named list of format specs (keyed by column name) with type, format, colWidth
+#'   - `$metadata`: Named list of width metadata (keyed by column name) with unit, value, locked, auto_weight
+#'
+#' @keywords internal
 .guess_table_layout <- function(df, missings = "NA") {
 
   # ---- assertions ----
@@ -184,6 +192,7 @@ utils::globalVariables(
   n <- ncol(df)
   raw_widths <- numeric(n)
   result <- vector("list", n)
+  metadata <- vector("list", n)
 
   # ---- helpers ----
 
@@ -313,10 +322,24 @@ utils::globalVariables(
 
   for (i in seq_len(n)) {
     result[[i]]$colWidth <- pct_chr[i]
+    
+    # Create metadata for this column
+    metadata[[i]] <- list(
+      unit       = "%",
+      value      = pct_rounded[i],
+      locked     = FALSE,
+      auto_weight = pct_rounded[i]
+    )
   }
 
   names(result) <- names(df)
-  result
+  names(metadata) <- names(df)
+  
+  # Return both formats and metadata
+  list(
+    formats = result,
+    metadata = metadata
+  )
 }
 
 
@@ -336,4 +359,173 @@ utils::globalVariables(
   }
 
   x
+}
+
+#' Parse colWidth String into Unit and Value
+#'
+#' Extracts the numeric value and unit from a colWidth string.
+#' Handles patterns like "25.3%", "3.5cm", "10mm", "1in".
+#'
+#' @param colwidth_str Character string representing a column width
+#'
+#' @return List with `unit` and `value` elements, or NULL if parsing fails
+#'
+#' @keywords internal
+.parse_colwidth <- function(colwidth_str) {
+  
+  if (!is.character(colwidth_str) || length(colwidth_str) != 1) {
+    return(NULL)
+  }
+  
+  # Try to match pattern: <number><%|cm|mm|in|pt>
+  # Matches strings like "25.3%", "3.5cm", "10mm", "1in"
+  m <- regexec("^([0-9.]+)([a-z%]+)$", colwidth_str, ignore.case = TRUE)
+  matches <- regmatches(colwidth_str, m)
+  
+  if (length(matches[[1]]) != 3) {
+    return(NULL)
+  }
+  
+  value_str <- matches[[1]][2]
+  unit <- matches[[1]][3]
+  
+  # Try to convert value to numeric
+  value <- suppressWarnings(as.numeric(value_str))
+  
+  if (is.na(value)) {
+    return(NULL)
+  }
+  
+  # Normalize unit to lowercase
+  unit <- tolower(unit)
+  
+  list(unit = unit, value = value)
+}
+
+#' Recalculate Column Widths Based on User Settings
+#'
+#' Implements the column width recalculation algorithm per spec in columns_width_recalc.txt.
+#' When user locks column widths, remaining unlocked columns are normalized to fill the available space.
+#' Locked columns (any unit) remain unchanged.
+#'
+#' Only recalculates when:
+#' 1. User has set colWidth via define_cols() (marked as locked=TRUE)
+#' 2. autoColWidth option is TRUE
+#'
+#' @param spec TFL_spec object with columns and metadata
+#'
+#' @return Updated spec with recalculated column widths in both:
+#'   - spec$columns[[col_id]]$format$colWidth (display strings like "25.3%")
+#'   - spec$.metadata$colWidths[[col_id]] (metadata for future recalculations)
+#'
+#' @details
+#' Algorithm:
+#' 1. Partition columns into LOCKED (locked=TRUE) and UNLOCKED (locked=FALSE)
+#' 2. LOCKED columns retain their exact value (whether % or fixed units)
+#' 3. For UNLOCKED columns:
+#'    - Calculate available space (100% - sum of locked% columns)
+#'    - Calculate weights based on auto_weight
+#'    - Normalize to fill available space
+#' 4. Round to 1 decimal place, apply drift correction to largest column
+#' 5. Update both spec and metadata
+#'
+#' @keywords internal
+.recalculate_col_widths <- function(spec) {
+  
+  # Guard: no metadata = no recalculation
+  if (is.null(spec$.metadata$colWidths)) {
+    return(spec)
+  }
+  
+  col_meta <- spec$.metadata$colWidths
+  if (length(col_meta) == 0) {
+    return(spec)
+  }
+  
+  col_ids <- names(col_meta)
+  
+  # ---- Step 1: Partition into LOCKED and UNLOCKED ----
+  # Locked columns: locked == TRUE (any unit)
+  # Unlocked columns: locked == FALSE
+  locked_ids <- col_ids[vapply(col_ids, function(cid) {
+    col_meta[[cid]]$locked
+  }, logical(1))]
+  
+  unlocked_ids <- col_ids[!vapply(col_ids, function(cid) {
+    col_meta[[cid]]$locked
+  }, logical(1))]
+  
+  # ---- Edge case: no unlocked columns ----
+  if (length(unlocked_ids) == 0) {
+    # All columns are locked, nothing to recalculate
+    return(spec)
+  }
+  
+  # ---- Step 2: Calculate available space ----
+  # Locked percentage columns reduce available space for unlocked columns
+  available_space <- 100
+  locked_percentage_total <- 0
+  
+  for (cid in locked_ids) {
+    meta <- col_meta[[cid]]
+    if (meta$unit == "%") {
+      locked_percentage_total <- locked_percentage_total + meta$value
+    }
+    # Fixed-unit locked columns don't affect available space
+  }
+  
+  available_space <- 100 - locked_percentage_total
+  
+  if (available_space <= 0) {
+    # Locked columns already exceed 100%, can't normalize unlocked
+    # Return as-is
+    return(spec)
+  }
+  
+  # ---- Step 3: Calculate weights for unlocked columns ----
+  weights <- numeric(length(unlocked_ids))
+  names(weights) <- unlocked_ids
+  
+  for (i in seq_along(unlocked_ids)) {
+    cid <- unlocked_ids[i]
+    meta <- col_meta[[cid]]
+    # Unlocked columns always use auto_weight
+    weights[i] <- meta$auto_weight
+  }
+  
+  # ---- Step 4: Normalize unlocked weights to fill available space ----
+  total_weight <- sum(weights)
+  if (total_weight <= 0) {
+    return(spec)
+  }
+  
+  normalized <- (weights / total_weight) * available_space
+  
+  # ---- Step 5: Round to 1 decimal place + drift correction ----
+  pct_rounded <- round(normalized, 1)
+  
+  # Compute rounding drift
+  drift <- available_space - sum(pct_rounded)
+  
+  # Apply drift to largest unlocked column
+  if (abs(drift) >= 0.05) {
+    idx_max <- which.max(pct_rounded)
+    pct_rounded[idx_max] <- pct_rounded[idx_max] + drift
+  }
+  
+  # ---- Step 6: Update spec with new widths for unlocked columns ----
+  for (i in seq_along(unlocked_ids)) {
+    cid <- unlocked_ids[i]
+    
+    # Update colWidth in spec
+    spec$columns[[cid]]$format$colWidth <- sprintf("%.1f%%", pct_rounded[i])
+    
+    # Update metadata value
+    spec$.metadata$colWidths[[cid]]$value <- pct_rounded[i]
+  }
+  
+  # ---- Step 7: Locked columns remain unchanged ----
+  # (Already have correct values in spec and metadata)
+  
+  spec
 }

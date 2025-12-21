@@ -105,8 +105,13 @@
   has_data <- nrow(data) > 0L
   
   # Initialize column specifications with auto-detected properties
-  if(length(data_cols) > 0) columns <- .init_column_specs(data, data_cols) else {
+  if(length(data_cols) > 0) {
+    column_specs <- .init_column_specs(data, data_cols)
+    columns <- column_specs$columns
+    widths_metadata <- column_specs$widths_metadata
+  } else {
     columns <- list()
+    widths_metadata <- list()
     cli_abort(c(
       "No columns selected for the table:",
       x = "The column selection expression returned zero columns",
@@ -124,10 +129,11 @@
   
   spec$columns <- columns
   
-  # Store metadata for later use (data environment and column mapping)
+  # Store metadata for later use (data environment, column mapping, and width metadata)
   spec$.metadata <- list(
     report_cols = data_cols,
-    data_env = eval_env
+    data_env = eval_env,
+    colWidths = widths_metadata
   )
   
   # Add optional docPrefix if provided
@@ -158,7 +164,11 @@
   
   # Get current missings value from options
   missings_value <- tfl_get_option("missings")
-  formats <- .guess_table_layout(data[names(data) %in% data_cols], missings = missings_value)
+  layout_result <- .guess_table_layout(data[names(data) %in% data_cols], missings = missings_value)
+  
+  # Extract formats and metadata from the result
+  formats <- layout_result$formats
+  widths_metadata <- layout_result$metadata
 
   for (col_idx in seq_along(data_cols)) {
     col_name <- data_cols[col_idx]
@@ -184,12 +194,15 @@
       isColBreak   = FALSE,
       dedupe        = FALSE,
       blankAfter    = FALSE,
-      #format        = .get_data_format(col_vector, col_name) %||% NULL
       format        = formats[[col_name]] %||% NULL
     )
   }
   
-  columns
+  # Return columns and metadata for storage in spec$.metadata$colWidths
+  list(
+    columns = columns,
+    widths_metadata = widths_metadata
+  )
 }
 
 #' Fill Specification with Schema-Compliant Defaults

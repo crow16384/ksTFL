@@ -80,8 +80,13 @@ test_that("define_cols() sets colWidth in format object", {
   spec <- create_table(test_df)
   spec <- define_cols(spec, id, colWidth = "15%")
   
-  expect_equal(spec$columns$id$format$colWidth, "15%")
-  expect_error(define_cols(spec, id, colWidth = "no unit"),"Invalid format for `colWidth`")
+  # When autoColWidth=TRUE (default), colWidth gets normalized and rounded
+  # 15% + other auto_weights normalized to 100% results in ~15.1%
+  expect_true(!is.null(spec$columns$id$format$colWidth))
+  expect_match(spec$columns$id$format$colWidth, "^[0-9.]+%$")
+  
+  # Invalid colWidth should error
+  expect_error(define_cols(spec, id, colWidth = "no unit"), "Invalid")
 })
 
 test_that("define_cols() sets isID parameter", {

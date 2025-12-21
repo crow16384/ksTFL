@@ -24,6 +24,7 @@
     
     # Data display defaults
     missings            = .const_default_missing_value,
+    autoColWidth        = TRUE,
     
     # Content
     headers             = .const_options_header_footer,
@@ -148,6 +149,7 @@ tfl_get_option <- function(name) {
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
                          bodyFootnotes = NULL, gluePrefix = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
+                         autoColWidth = NULL,
                          output_directory='.') {
   
   params <- as.list(environment())
@@ -158,7 +160,7 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
       val <- params[[pname]]
 
       # Type checks for known option names
-      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "gluePrefix", "isContinues")) {
+      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "gluePrefix", "isContinues", "autoColWidth")) {
         checkmate::assert_logical(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("doc_style_template", "missings")) {
         checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)

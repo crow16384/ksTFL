@@ -1606,6 +1606,9 @@ define_cols <- function(spec, cols,
     ))
   }
   
+  # Track if user is setting colWidth so we can trigger recalculation later
+  user_set_colwidth <- !is.null(colWidth)
+  
   # Collect non-format parameters
   param_names <- c("label", "isID", "isVisible", "isGrouping", 
                    "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter")
@@ -1710,6 +1713,36 @@ define_cols <- function(spec, cols,
     
     # Merge with last-win
     spec$columns[[col_id]] <- .merge_recursive(spec$columns[[col_id]], col_params)
+    
+    # If user set colWidth, update metadata to mark as locked
+    if (user_set_colwidth && !is.null(colWidth)) {
+      col_colwidth <- if (length(colWidth) == 1) colWidth else colWidth[i]
+      # Extract unit and value from colWidth
+      width_info <- .parse_colwidth(col_colwidth)
+      
+      # Validate colWidth format
+      if (is.null(width_info)) {
+        cli_abort(c(
+          "Invalid format for {.arg colWidth}:",
+          x = "{.str {col_colwidth}} is not in a recognized format",
+          i = "Use patterns like {.str 25%}, {.str 3.5cm}, {.str 10mm}, or {.str 1in}"
+        ))
+      }
+      
+      if (!is.null(spec$.metadata$colWidths[[col_id]])) {
+        spec$.metadata$colWidths[[col_id]]$locked <- TRUE
+        spec$.metadata$colWidths[[col_id]]$unit <- width_info$unit
+        spec$.metadata$colWidths[[col_id]]$value <- width_info$value
+      }
+    }
+  }
+  
+  # If user set colWidth and autoColWidth is enabled, recalculate remaining columns
+  if (user_set_colwidth) {
+    auto_col_width <- tfl_get_option("autoColWidth")
+    if (auto_col_width) {
+      spec <- .recalculate_col_widths(spec)
+    }
   }
   
   spec

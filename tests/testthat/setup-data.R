@@ -2,6 +2,17 @@
 # Test data and setup for ksTFL tests
 # ============================================================================
 
+# Simple 3-column test data frame for width recalculation tests
+test_df_simple <- tibble::tibble(
+  id    = 1:10,
+  value = c(100, 105, 110, NA, 115, 120, 125, 130, NA, 140),
+  ratio = c(0.1, 0.2, NA, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
+)
+
+attr(test_df_simple$id, "label") <- "Identifier"
+attr(test_df_simple$value, "label") <- "Value (numeric)"
+attr(test_df_simple$ratio, "label") <- "Ratio (0-1)"
+
 # Simple test data frame with various types and missing values
 test_df <- tibble::tibble(
   id        = 1:10,
