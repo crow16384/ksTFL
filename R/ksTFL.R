@@ -23,6 +23,7 @@
 #' @param libname Character. Path to the package library (provided by R).
 #' @param pkgname Character. Package name (provided by R).
 #' @keywords internal
+#' @noRd
 .onLoad <- function(libname, pkgname) {
  
   
@@ -45,6 +46,7 @@
 #' @param libname Character. Path to the package library (provided by R).
 #' @param pkgname Character. Package name (provided by R).
 #' @keywords internal
+#' @noRd
 .onAttach <- function(libname, pkgname) {
   # Called after package is attached
   # Useful for checking dependencies or system requirements
@@ -70,6 +72,7 @@
 #'
 #' @param libpath Character. Path to the installed package (provided by R).
 #' @keywords internal
+#' @noRd
 .onUnload <- function(libpath) {
   # Cleanup when package is unloaded
   invisible(NULL)

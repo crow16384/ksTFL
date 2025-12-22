@@ -46,6 +46,7 @@ NULL
 #'
 #' @return Parsed schema as R list
 #' @keywords internal
+#' @noRd
 .load_schema <- function(schema_path) {
   # Normalize path for consistent caching
   schema_path <- normalizePath(schema_path, mustWork = FALSE)
@@ -78,9 +79,10 @@ NULL
 #'
 #' @examples
 #' \dontrun{
-#' clear_schema_cache()
+#' .clear_schema_cache()
 #' }
-clear_schema_cache <- function() {
+#' @noRd
+.clear_schema_cache <- function() {
   rm(list = ls(envir = .schema_cache), envir = .schema_cache)
   cli::cli_alert_success("Schema cache cleared")
   invisible(TRUE)
@@ -270,7 +272,6 @@ clear_schema_cache <- function() {
 #'   - `spec`: The original TFL_report object
 #'   - `fixed`: The processed data structure ready for JSON serialization
 #'
-#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -280,6 +281,8 @@ clear_schema_cache <- function() {
 #' result <- serialize_spec(report)
 #' # result$fixed is now ready for JSON serialization
 #' }
+#' @keywords internal
+#' @noRd
 serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   # Validate input is a TFL_report
   if (!inherits(spec, "TFL_report")) {
@@ -350,6 +353,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #' data <- list(name = "John", age = 30)
 #' fixed <- .serialize_json_internal(data, schema)
 #' }
+#' @noRd
 .serialize_json_internal <- function(data, schema, enforce_additional_properties = FALSE) {
   # Validate and normalize schema input using helper
   schema <- .validate_schema_input(schema)

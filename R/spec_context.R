@@ -2669,6 +2669,7 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #' @param num_cols Integer number of columns to expand/recycle to
 #' @param param_name Parameter name used in error messages (default: "styleRef")
 #' @keywords internal
+#' @noRd 
 ._resolve_style_refs <- function(style_refs, num_cols, param_name = "styleRef") {
   if (is.null(style_refs)) {
     return(rep(list(NULL), num_cols))
@@ -2731,6 +2732,7 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #'   
 #' check_spec_consistency(spec)
 #' }
+#' @noRd
 .check_spec_consistency <- function(spec, verbose = TRUE) {
   if (!inherits(spec, "TFL_spec")) {
     cli_abort("Object must be of class 'TFL_spec'")

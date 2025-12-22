@@ -22,6 +22,7 @@ utils::globalVariables(
 #' @return Logical TRUE if valid file path, FALSE otherwise
 #'
 #' @keywords internal
+#' @noRd
 .is_readable_file <- function(x) {
   is.character(x) &&
     length(x) == 1L &&
@@ -40,6 +41,7 @@ utils::globalVariables(
 #' @return Logical TRUE if valid file path, FALSE otherwise
 #'
 #' @keywords internal
+#' @noRd
 .is_readable_dir <- function(x) {
   is.character(x) &&
     length(x) == 1L &&
@@ -64,6 +66,7 @@ utils::globalVariables(
 #' - Otherwise, `y` completely replaces `x` (last wins)
 #'
 #' @keywords internal
+#' @noRd
 .merge_recursive <- function(x, y) {
   if (is.null(x)) return(y)
   if (is.null(y)) return(x)
@@ -93,6 +96,7 @@ utils::globalVariables(
 #' }
 #'
 #' @keywords internal
+#' @noRd
 .auto_id <- function(prefix, existing_list) {
   # Handle NULL as empty list
   if (is.null(existing_list)) {
@@ -155,6 +159,7 @@ utils::globalVariables(
 #' \dontrun{
 #' .generate_hash('a', 1, TRUE)
 #' }
+#' @noRd
 .generate_hash <- function(...) {
   h <- digest::digest(
     list(...),
@@ -178,6 +183,7 @@ utils::globalVariables(
 #'   - `$metadata`: Named list of width metadata (keyed by column name) with unit, value, locked, auto_weight
 #'
 #' @keywords internal
+#' @noRd
 .guess_table_layout <- function(df, missings = "NA") {
 
   # ---- assertions ----
@@ -345,6 +351,8 @@ utils::globalVariables(
 
 #' Recursively Remove Class Attributes from an Object
 #' @param x R object (list or atomic) to unclass
+#' @return R object with all class attributes removed
+#' @keywords internal
 #' @noRd 
 .unclass_recursive <- function(x) {
 
@@ -371,6 +379,7 @@ utils::globalVariables(
 #' @return List with `unit` and `value` elements, or NULL if parsing fails
 #'
 #' @keywords internal
+#' @noRd
 .parse_colwidth <- function(colwidth_str) {
   
   if (!is.character(colwidth_str) || length(colwidth_str) != 1) {
@@ -430,6 +439,7 @@ utils::globalVariables(
 #' 5. Update both spec and metadata
 #'
 #' @keywords internal
+#' @noRd
 .recalculate_col_widths <- function(spec) {
   
   # Guard: no metadata = no recalculation

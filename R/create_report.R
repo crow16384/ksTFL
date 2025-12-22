@@ -14,6 +14,7 @@
 #'
 #' @return Updated spec with consolidated styles
 #' @keywords internal
+#' @noRd
 ._consolidate_styles_in_spec <- function(spec) {
   if (!inherits(spec, "TFL_spec")) {
     cli_abort("Input must be a TFL_spec object")

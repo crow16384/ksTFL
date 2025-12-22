@@ -27,6 +27,7 @@
 #' }
 #'
 #' @keywords internal
+#' @noRd
 .tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, docType = "Table") {
   
   # Validate docType
@@ -159,6 +160,7 @@
 #' @return List of column specifications, keyed by column name
 #'
 #' @keywords internal
+#' @noRd
 .init_column_specs <- function(data, data_cols) {
   columns <- list()
   
@@ -191,7 +193,7 @@
       isGrouping    = FALSE,
       isPaging      = FALSE,
       labelStyleRef = NULL,
-      isColBreak   = FALSE,
+      isColBreak    = FALSE,
       dedupe        = FALSE,
       blankAfter    = FALSE,
       format        = formats[[col_name]] %||% NULL
@@ -221,6 +223,7 @@
 #' - Schema-defined optional fields as empty lists
 #'
 #' @keywords internal
+#' @noRd
 .fill_spec_defaults <- function(spec) {
   if (!is.list(spec)) {
     cli_abort("{.arg spec} must be a list in {.fn .fill_spec_defaults}")
@@ -341,6 +344,7 @@
 #' # -> "__default_003"
 #' }
 #' @keywords internal
+#' @noRd
 .generate_default_bodytext_id <- function(existing_entries = NULL) {
   # Find all existing default IDs
   default_ids <- if (!is.null(existing_entries)) {
@@ -380,6 +384,7 @@
 #' with user-provided labels from the source data.
 #'
 #' @keywords internal
+#' @noRd
 .get_col_label <- function(col) {
   if (!is.atomic(col) && !is.vector(col)) {
     cli_warn("Input to {.fn .get_col_label} appears to be non-vector type")
@@ -422,6 +427,7 @@
 #' @return Format specification list for string type
 #'
 #' @keywords internal
+#' @noRd
 .coerce_unknown_type <- function(col, col_name, col_class, col_label) {
   call <- caller_env()
   tryCatch(
@@ -484,7 +490,7 @@
 #' spec <- create_text()
 #'
 #' ## With a prefix
-#' spec <- create_text(docPrefix = "Text 1.1")
+#' spec <- create_text(docPrefix = "Narrative 1.1")
 #' }
 #'
 #' @export
@@ -502,22 +508,22 @@ create_text <- function(docPrefix = NULL) {
 #'
 #' @param data A data frame to build the table from (required).
 #' @param cols Tidyselect expression indicating which columns from `data` to
-#'   include in the spec. Defaults to `everything()`.
-#' @param docPrefix Optional character prefix for the document title.
+#'   include in the report. Defaults to `everything()`.
+#' @param docPrefix Optional character prefix for the document title. E.g. "Table 14.1". If provided will be prepended to the document title by `gluePrefix` logic (see `tfl_options`).
 #'
 #' @return A `TFL_spec` object with `docType = "Table"`.
 #'
 #' @details
 #' Column Width Initialization:
-#' Initial column widths are automatically calculated based on data properties and sum to 100%.
+#' Initial column widths are automatically calculated based on data values and their types and sum to 100%.
 #' To lock specific columns and trigger automatic recalculation of others, use `define_cols()` with
-#' the `colWidth` parameter (when `autoColWidth = TRUE`, the default).
+#' the `colWidth` parameter (when `autoColWidth = TRUE` in the tfl_options, the default).
 #' 
 #' Example workflow:
 #' \itemize{
-#'   \item Create table: widths auto-distributed (e.g., all 33.3% for 3 columns)
-#'   \item `define_cols(id, colWidth="20%")`: locks id at 20%, others recalculate to fill 80%
-#'   \item `define_cols(age, colWidth="15%")`: locks age at 15%, others fill remaining 65%
+#'   \item Create table: widths auto-distributed 
+#'   \item `define_cols(id, colWidth="20%")`: locks id at 20%, others recalculated to fill 80% keeping intially detected proportions
+#'   \item `define_cols(age, colWidth="2cm")`: locks age at fixed 2cm width, other relative columns recalculated to fill remaining space
 #' }
 #'
 #' @examples
@@ -527,8 +533,14 @@ create_text <- function(docPrefix = NULL) {
 #'
 #' ## Select specific columns using tidyselect
 #' spec <- create_table(mtcars, cols = c(cyl, mpg, hp))
+#' 
+#' ## or using ranges:
+#' spec <- create_table(mtcars, cyl:hp)
 #'
-#' ## Or by names
+#' ## or by excluding columns
+#' spec <- create_table(mtcars, cols = -c(gear, carb))
+#' 
+#' ## or simple by names
 #' spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
 #' }
 #'

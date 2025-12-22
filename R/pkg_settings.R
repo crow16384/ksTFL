@@ -120,7 +120,7 @@ tfl_get_option <- function(name) {
 #' @param autoColWidth Logical; enable automatic column width recalculation when user sets `colWidth` via `define_cols()`.
 #'   Default TRUE. When TRUE, locked columns maintain exact width while unlocked columns normalize to fill remaining space.
 #'   Set FALSE to disable auto-recalculation and manage widths manually.
-#' @param output_directory Character; path to default output directory.
+#' @param output_directory Character; path to default output directory of rendered document.
 #'
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
 #'

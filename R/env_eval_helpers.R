@@ -287,6 +287,7 @@ NULL
 #'   .env_eval(lastOf(cyl))
 #'   .env_eval(lastOf(cyl, am))
 #' }
+#' @noRd
 .eval_lastOf <- function(..., data=`__data__`) {
   .eval_change_of("last", ..., data = data)
 }
@@ -313,6 +314,7 @@ NULL
 #' \dontrun{
 #'   .env_eval(get_names(cyl, am))  # Returns c("cyl", "am")
 #' }
+#'  @noRd
 .eval_get_names <- function(..., .data=`__data__`, .selenv=NULL, .strict=T) {
    names(.get_data_columns(.data, ..., .selenv = .selenv, .strict = .strict))
   }
@@ -330,6 +332,7 @@ NULL
 #' \dontrun{
 #'   .env_eval(row_numbers())  # Returns c(1, 2, 3, ..., nrow(data))
 #' }
+#'  @noRd
 .eval_row_numbers <- function(.data=`__data__`) {
   seq_len(nrow(.data))
 }
@@ -347,6 +350,7 @@ NULL
 #' \dontrun{
 #'   .env_eval(every_nth(3))  # Returns logical vector TRUE at rows 1, 4, 7, 10, ...
 #' }
+#'  @noRd
 .eval_every_nth <- function(n) {
   ((row_number() - 1) %% n) == 0
 }
@@ -369,6 +373,7 @@ NULL
 #' \dontrun{
 #'   with(menv, eval(cyl + am))
 #' }
+#'  @noRd
 .eval_in_env <- function(expr) {
   expr <- enexpr(expr)
 
