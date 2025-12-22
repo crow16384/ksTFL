@@ -1,8 +1,17 @@
-# ============================================================
-# ksTFL Package Loader
-# ============================================================
-# This file is loaded first (alphabetically) to set up
-# package initialization and load-time behaviors
+#' ksTFL Package
+#' 
+#' @description
+#' Generate metadata for clinical Tables, Figures, and Listings (TFLs).
+#' 
+#' @details
+#' To get started, see the vignettes:
+#' - `vignette("Getting Started with ksTFL")` - Quick start guide
+#' - `vignette("Comprehensive Styling Guide")` - Styling reference
+#' - `vignette("Advanced Examples & Complex Workflows")` - Real-world examples
+#' - `vignette("ksTFL Documentation Index")` - Complete documentation index
+#'
+#' @keywords internal
+"_PACKAGE"
 
 #' Package load/unload hooks
 #'

@@ -1,10 +1,10 @@
-##' Spec serialization helpers
-##'
-##' This module is responsible for preparing and serializing `TFL_report` objects
-##' into JSON documents that conform to the package JSON schema suitable for the
-##' Python renderer.
-##'
-NULL
+## Spec serialization helpers
+##
+## This module is responsible for preparing and serializing `TFL_report` objects
+## into JSON documents that conform to the package JSON schema suitable for the
+## Python renderer.
+##
+
 
 #' Internal: Recursively Remove NULL Values
 #'
