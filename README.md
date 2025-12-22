@@ -71,6 +71,7 @@ The spec object stores:
 - **columns**: Column definitions with formats, labels, and style references
 - **styles**: Named style definitions (fonts, paragraphs, table styles, borders)
 - **.metadata**: Internal state (data environment, report columns, hash)
+- **Internal metadata**: The spec contains internal bookkeeping (a data environment copy, report column list, and internal hash). These internal fields are not part of the user-facing API and are removed from the JSON export produced by `save_report()`.
 
 ## Package Options
 

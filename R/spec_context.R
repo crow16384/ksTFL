@@ -11,6 +11,11 @@
 #' @importFrom purrr map_chr
 NULL
 
+# Package-local context marker environment (fallback for promise-evaluated helpers)
+.context_marker_env <- new.env(parent = emptyenv())
+# initialize stack
+assign("stack", character(0), envir = .context_marker_env)
+
 # ============================================================
 # PART 1: CORE UTILITIES
 # ============================================================
@@ -50,6 +55,9 @@ NULL
 #' @keywords internal
 .set_context <- function(env, context) {
   assign(".__tfl_context__", context, envir = env)
+  # Push context onto package-local stack for fallback detection
+  stack <- get("stack", envir = .context_marker_env)
+  assign("stack", c(stack, context), envir = .context_marker_env)
   invisible(NULL)
 }
 
@@ -58,8 +66,13 @@ NULL
 #' @param env Environment to clear context from
 #' @keywords internal
 .clear_context <- function(env) {
-  if (exists(".__tfl_context__", envir = env)) {
+  if (exists(".__tfl_context__", envir = env, inherits = FALSE)) {
     remove(".__tfl_context__", envir = env)
+  }
+  # Pop package-local stack (if non-empty)
+  stack <- get("stack", envir = .context_marker_env)
+  if (length(stack) > 0) {
+    assign("stack", head(stack, -1), envir = .context_marker_env)
   }
   invisible(NULL)
 }
@@ -93,6 +106,12 @@ NULL
         paste0("* {.fn ", allowed_contexts, "}")
       ))
     }
+    return(invisible(TRUE))
+  }
+
+  # Fallback: if no context found in the call frames, check the package-local stack
+  stack <- get("stack", envir = .context_marker_env)
+  if (length(stack) > 0 && any(stack %in% allowed_contexts)) {
     return(invisible(TRUE))
   }
   
@@ -846,8 +865,9 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
   .assert_context(c("add_style"), "s_paragraph")
   
   # Set context for nested functions
-  .set_context(parent.frame(), "s_paragraph")
-  on.exit(.clear_context(parent.frame()))
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "s_paragraph")
+  on.exit(.clear_context(.frame_env))
   
   # Build spec with strict validation on spacing/indents shapes
   spec <- .paragraph_spec(
@@ -921,8 +941,9 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
   .assert_context(c("s_table_style"), "s_borders")
   
   # Set context for nested functions
-  .set_context(parent.frame(), "s_borders")
-  on.exit(.clear_context(parent.frame()))
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "s_borders")
+  on.exit(.clear_context(.frame_env))
   
   # Extract nested specs
   if (inherits(top, "tfl_border")) top <- unclass(top)
@@ -975,8 +996,9 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
   .assert_context(c("add_style"), "s_table_style")
   
   # Set context for nested functions
-  .set_context(parent.frame(), "s_table_style")
-  on.exit(.clear_context(parent.frame()))
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "s_table_style")
+  on.exit(.clear_context(.frame_env))
   
   # Extract nested specs
   if (inherits(borders, "tfl_borders")) {
@@ -1085,8 +1107,9 @@ p_page <- function(size = .const_default_page_size,
   .assert_context(c("set_page_style"), "p_page")
   
   # Set context for nested functions
-  .set_context(parent.frame(), "p_page")
-  on.exit(.clear_context(parent.frame()))
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "p_page")
+  on.exit(.clear_context(.frame_env))
   
   # Extract nested specs
   if (inherits(margins, "tfl_margins")) {
@@ -1289,23 +1312,27 @@ add_style.TFL_spec <- function(spec, id, ...) {
     spec$attribs$styles[[id]] <- list()
   }
   
-  # Set context in the calling environment
-  .set_context(parent.frame(), "add_style")
-  on.exit(.clear_context(parent.frame()))
+  # Set context in the current call frame so nested `s_*` modifiers
+  # (which are evaluated as promises) can detect the `add_style` context.
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "add_style")
+  on.exit(.clear_context(.frame_env))
   
-  # Capture modifiers
-  modifiers <- list(...)
-  
-  # Process each modifier
-  for (mod in modifiers) {
+  # Capture modifiers as quosures and evaluate them inside the add_style frame
+  mod_quos <- rlang::enquos(...)
+
+  # Process each modifier after forcing it in the add_style frame so
+  # nested s_* helpers can detect the context marker during evaluation.
+  for (i in seq_along(mod_quos)) {
+    mod <- rlang::eval_tidy(mod_quos[[i]], env = .frame_env)
     # Extract path and payload using reusable helper
     mod_info <- .process_style_modifier(mod)
     path <- mod_info$path
     payload <- mod_info$payload
-    
+
     # Validate using reusable helper
     .validate_style_payload(path, payload, "add_style")
-    
+
     # Merge with last-win
     current <- spec$attribs$styles[[id]][[path]]
     spec$attribs$styles[[id]][[path]] <- .merge_recursive(current, payload)
@@ -1332,23 +1359,27 @@ add_style.TFL_options <- function(spec, id = NULL, ...) {
     spec$styles[[id]] <- list()
   }
   
-  # Set context in the calling environment
-  .set_context(parent.frame(), "add_style")
-  on.exit(.clear_context(parent.frame()))
+  # Set context in the current call frame so nested `s_*` modifiers
+  # are evaluated with the correct context marker.
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "add_style")
+  on.exit(.clear_context(.frame_env))
   
-  # Capture modifiers
-  modifiers <- list(...)
-  
-  # Process each modifier
-  for (mod in modifiers) {
+  # Capture modifiers as quosures and evaluate them inside the add_style frame
+  mod_quos <- rlang::enquos(...)
+
+  # Process each modifier after forcing it in the add_style frame so
+  # nested s_* helpers can detect the context marker during evaluation.
+  for (i in seq_along(mod_quos)) {
+    mod <- rlang::eval_tidy(mod_quos[[i]], env = .frame_env)
     # Extract path and payload using reusable helper
     mod_info <- .process_style_modifier(mod)
     path <- mod_info$path
     payload <- mod_info$payload
-    
+
     # Validate using reusable helper
     .validate_style_payload(path, payload, "add_style")
-    
+
     # Merge with last-win
     current <- spec$styles[[id]][[path]]
     spec$styles[[id]][[path]] <- .merge_recursive(current, payload)
@@ -2546,9 +2577,10 @@ set_page_style <- function(spec, docTemplate = NULL, page = NULL) {
 set_page_style.TFL_spec <- function(spec, docTemplate = NULL, page = NULL) {
   assert_class(spec, "TFL_spec")
   
-  # Set context in the calling environment
-  .set_context(parent.frame(), "set_page_style")
-  on.exit(.clear_context(parent.frame()))
+  # Set context in the current call frame so nested p_* helpers can detect it
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "set_page_style")
+  on.exit(.clear_context(.frame_env))
   
   params <- list()
   
@@ -2615,9 +2647,10 @@ set_page_style.TFL_spec <- function(spec, docTemplate = NULL, page = NULL) {
 set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
   assert_class(spec, "TFL_options")
   
-  # Set context in the calling environment
-  .set_context(parent.frame(), "set_page_style")
-  on.exit(.clear_context(parent.frame()))
+  # Set context in the current call frame so nested p_* helpers can detect it
+  .frame_env <- sys.frame()
+  .set_context(.frame_env, "set_page_style")
+  on.exit(.clear_context(.frame_env))
   
   params <- list()
   

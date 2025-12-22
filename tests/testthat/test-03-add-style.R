@@ -154,3 +154,73 @@ test_that("add_style() last-win mege", {
   
 })
 
+test_that("add_style() accepts multiple nested modifiers on TFL_spec (strict checks)", {
+  spec <- create_text()
+  res <- add_style(spec, id = "combo_style",
+                   s_font(font_name = "Arial", font_size = "12pt", bold = TRUE),
+                   s_paragraph(alignment = "center", spacing = s_spacing(before = "4pt")),
+                   s_table_style(background_color = "#EFEFEF")
+  )
+
+  expect_true("combo_style" %in% names(res$attribs$styles))
+  st <- res$attribs$styles$combo_style
+  expect_equal(st$font$font_name, "Arial")
+  expect_equal(st$font$font_size, "12pt")
+  expect_equal(st$font$bold, TRUE)
+  expect_equal(st$paragraph$alignment, "center")
+  expect_equal(st$paragraph$spacing$before, "4pt")
+  expect_equal(st$table_style$background_color, "#EFEFEF")
+})
+
+test_that("add_style() accepts multiple nested modifiers on TFL_options (strict checks)", {
+  opts <- tfl_get_options()
+
+  res_opts <- add_style(opts, id = "opt_combo",
+                        s_font(font_name = "Arial", font_size = "11pt"),
+                        s_paragraph(alignment = "left"),
+                        s_table_style(background_color = "#FFFFFF")
+  )
+
+  expect_true("opt_combo" %in% names(res_opts$styles))
+  st2 <- res_opts$styles$opt_combo
+  expect_equal(st2$font$font_name, "Arial")
+  expect_equal(st2$font$font_size, "11pt")
+  expect_equal(st2$paragraph$alignment, "left")
+  expect_equal(st2$table_style$background_color, "#FFFFFF")
+})
+
+test_that("set_page_style() accepts nested p_page on TFL_spec and TFL_options", {
+  # TFL_spec
+  spec <- create_text()
+  spec2 <- set_page_style(spec,
+                          page = p_page(size = "A4", orientation = "landscape",
+                                        margins = p_margins(top = "25mm", bottom = "25mm")))
+  expect_equal(spec2$attribs$documentStyle$page$size, "A4")
+  expect_equal(spec2$attribs$documentStyle$page$orientation, "landscape")
+  expect_equal(spec2$attribs$documentStyle$page$margins$top, "25mm")
+
+  # TFL_options: modify global session settings via tfl_set_options()
+  old_opts <- tfl_get_options()
+  # Use tfl_set_options() with a helper call; tfl_set_options parses the call
+  tfl_set_options(set_page_style(page = p_page(size = "Letter", orientation = "portrait",
+                                               margins = p_margins(top = "1in", bottom = "1in"))))
+  opts_now <- tfl_get_options()
+  expect_equal(opts_now$page$size, "Letter")
+  expect_equal(opts_now$page$orientation, "portrait")
+  expect_equal(opts_now$page$margins$top, "1in")
+  # restore previous session options
+  tfl_set_options(old_opts)
+})
+
+test_that("add_style() on TFL_options accepts nested s_borders/s_border", {
+  opts <- tfl_get_options()
+  opts2 <- add_style(opts, id = "opt_border",
+                     s_table_style(background_color = "#DDDDDD",
+                                   borders = s_borders(bottom = s_border(width = "2pt", color = "#000000"))))
+  expect_true("opt_border" %in% names(opts2$styles))
+  st <- opts2$styles$opt_border
+  expect_equal(st$table_style$background_color, "#DDDDDD")
+  expect_equal(st$table_style$borders$bottom$width, "2pt")
+  expect_equal(st$table_style$borders$bottom$color, "#000000")
+})
+

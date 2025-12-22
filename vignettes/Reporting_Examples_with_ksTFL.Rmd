@@ -1,0 +1,215 @@
+---
+title: "Reporting Examples — ksTFL"
+author: "ksTFL Team"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Reporting Examples — ksTFL}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
+```
+
+This vignette presents short, runnable examples that progress from minimal specs to more complex, real-world reporting patterns. All code is illustrative — run in an R session where `ksTFL` is loaded.
+
+---
+
+**1. Minimal examples**
+
+Simple minimal table
+
+```r
+spec_tbl <- create_table(mtcars, cols = c(mpg))
+print(spec_tbl)
+```
+
+Simple minimal figure
+
+```r
+# supply a readable image path
+fig_spec <- create_figure("inst/images/example.png")
+print(fig_spec)
+```
+
+Simple minimal text (narrative)
+
+```r
+txt_spec <- create_text(docPrefix = "Narrative 1") |> add_body_text("This is a short narrative.")
+print(txt_spec)
+```
+
+Combine table/figure/text into a single report
+
+```r
+report <- create_report(spec_tbl, fig_spec, txt_spec)
+print(report)
+```
+
+---
+
+**2. Increasing complexity — tables with rich content**
+
+Table with multiple-level titles, headers, footnotes and footers
+
+Notes about headers/footers: each header/footer *row* is a character vector of length 1, 2 or 3. Interpretation:
+- length 3: treated as c(left, center, right)
+- length 2: treated as c(left, right)
+- length 1: treated as left only
+To place text only on the right provide an explicit 3-element vector with empty left/center, for example `c("", "", "Right-only text")`.
+
+```r
+spec <- create_table(mtcars)
+
+# multiple titles (order preserved)
+spec <- spec |> add_title(c("Study ABC-123", "Demographics")) |> add_subtitle("Full Analysis Set")
+
+# multiple header rows (three parts: left/center/right)
+spec <- spec |> 
+  add_header(c("Study ABC-123", "", "CONFIDENTIAL")) |> 
+  add_header(c("Site: All Sites", "Generated: {DATE}", ""))
+
+# footers: two-element row will be treated as left/right
+spec <- spec |> add_footer(c("Company", "Page {PAGE} of {NUMPAGES}"))
+
+# multiple footnotes
+spec <- spec |> add_footnote("Data are means (SD)") |> add_footnote("N = number of subjects")
+
+print(spec)
+```
+
+Tables with custom styles
+
+```r
+spec <- spec |> 
+  add_style("table_title", s_font(font_name = "Calibri", font_size = "13pt", bold = TRUE), s_paragraph(alignment = "center")) |> 
+  add_style("numeric_cell", s_paragraph(alignment = "right"))
+
+spec <- spec |> define_cols(c(mpg, hp), label = c("MPG","HP"), type = c("numeric","numeric"), format = c("%.1f","%.0f"), valueStyleRef = "numeric_cell")
+
+spec <- spec |> add_title("Table 1 — Key metrics", styleRef = "table_title")
+```
+
+Combination of styles (use `f_combine()`)
+
+```r
+spec <- spec |> add_style("bold_em", s_font(bold = TRUE)) |> add_style("red", s_font(color = "#FF0000"))
+# apply combined style to a title label
+spec <- spec |> add_title("Important", styleRef = f_combine("bold_em", "red"))
+
+# create report to force consolidation of combined styles
+r <- create_report(spec)
+# after create_report(), combined styles are merged into single hashed style names in each spec's attribs$styles
+```
+
+---
+
+**3. Advanced table layout: multi-level column headers**
+
+While ksTFL does not provide a high-level API that automatically constructs multi-row column header blocks for you, you can achieve multi-level headers by constructing title/header rows and using column `label` values and `colOrder` to present the logical structure. For more complex table header rendering, the renderer (downstream) typically composes visual multi-row headers from the metadata you provide (labels, colOrder, group metadata). Example pattern below shows creating group titles via `add_subtitle()` and column labels via `define_cols()`:
+
+```r
+spec2 <- create_table(mtcars)
+spec2 <- spec2 |> define_cols(c(mpg, hp, wt), label = c("MPG","HP","Weight"))
+spec2 <- spec2 |> add_title("Demographics — grouped") |> add_subtitle(c("Group: Vital signs", "Subset: Adults"))
+```
+
+(If your renderer expects explicit header-group metadata, extend `spec$columns` with grouping info using `define_cols()` metadata fields; consult the renderer contract.)
+
+Spanning (stub) columns
+
+ksTFL supports "stub" columns — named labels that span multiple data columns (useful for grouped column headers or stub rows). Use `add_stub_column()` to declare a stub. Key points:
+
+- `cols`: character vector of column names the stub spans (these must exist in `spec$columns`).
+- `label`: text to show for the stub header.
+- `stubOrder`: integer controlling stacking order when multiple stub rows are present (auto-generated when `NULL`). Lower values are rendered first (top). Multiple stubs may share the same `stubOrder` provided their `cols` sets do not overlap.
+- `labelStyleRef`: optional named style (single name or list) applied to the stub label.
+
+The function validates for overlapping spans at the same `stubOrder` and will `cli_abort()` if a conflict is detected. After `create_report()` and `save_report()` the stub definitions are exported in the spec and the renderer can place spanning headers accordingly.
+
+Example — create two stub rows (one spanning mpg/hp, another spanning wt):
+
+```r
+spec_stub <- create_table(mtcars)
+spec_stub <- spec_stub |> define_cols(c(mpg, hp, wt), label = c("MPG","HP","Weight"))
+
+# stub spanning mpg+hp
+spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp"), label = "Engine metrics")
+
+# another stub for weight
+spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass")
+
+print(spec_stub$stubColumns)
+```
+
+Note: `add_stub_column()` auto-generates `id` and `stubOrder` when omitted. Use `stubOrder` explicitly to control vertical placement of multiple stub rows.
+
+---
+
+**4. tfl options: session-level defaults and overrides**
+
+Set common headers/footers and default body texts for the session using `tfl_set_options()` so multiple specs inherit them.
+
+```r
+# set session defaults: header, footer and a default body text
+tfl_set_options(
+  add_header(c("Study ABC-123", "", "CONFIDENTIAL")),
+  add_footer(c("Company", "Page {PAGE} of {NUMPAGES}")),
+  add_body_text("Default explanatory paragraph applied when no body text provided"),
+  missings = "N/A"
+)
+
+# new specs will pick up these defaults
+spec_a <- create_table(mtcars)
+spec_b <- create_text()
+
+# spec_a will show default header/footer and default bodyText until you override
+print(spec_a)
+```
+
+Overwrite session defaults in an individual spec
+
+```r
+# override header for this single spec
+spec_a <- spec_a |> add_header(c("Special report", "", ""))
+# add_header() on a spec appends rows to the spec's own header list, effectively overriding defaults for that spec when saved
+```
+
+Important notes about option semantics
+
+- `tfl_set_options()` sets session defaults and accepts helper objects like `add_header(...)`, `add_footer(...)`, `add_style(...)`.
+- When setting header/footer/bodyText via `tfl_set_options()`, the call *replaces* the corresponding defaults (it does not accumulate from previous `tfl_set_options()` calls unless you pass multiple helpers in the same call).
+- Adding header/footer/title/footnote rows to a `TFL_spec` appends those entries specifically to that spec; these per-spec entries are used in preference to generic defaults when saving/serializing.
+
+---
+
+**5. Save and inspect the exported files**
+
+Create a small report and save it (the serializer is internal and invoked by `save_report()`).
+
+```r
+r <- create_report(spec_a, spec_b)
+res <- save_report(r, docFileName = "report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+print(res)
+
+# inspect metaPath for files listed in res
+```
+
+The returned `res` contains the main spec JSON filename and any `dataRef` files written; inspect those to confirm headers, titles and style names.
+
+---
+
+**6. Where multi-headers/footers/titles/footnotes are documented**
+
+The package documents that you may append multiple `add_header()`, `add_footer()`, `add_title()`, `add_subtitle()` and `add_footnote()` calls to a spec and that these calls append rows/groups. See the Getting Started and Styling Guide vignettes for examples and behavior notes.
+
+---
+
+Practical tips and gotchas
+
+- To create a single-right-aligned header text use `c("", "", "Right text")` since a single element is treated as left-only and a two-element vector is treated as left/right.
+- `create_report()` consolidates combined styles and assigns `docOrder` and `dataRef` names — run it before `save_report()` to preview merged styles in `spec$attribs$styles`.
+- `save_report()` calls the package serializer internally; do not call the internal serializer directly in user code.
+
+If you want, I can run the example code locally (I cannot run R here) or update `inst/examples/ksTFL_example.R` to include one or two of the above scenarios for direct execution. 

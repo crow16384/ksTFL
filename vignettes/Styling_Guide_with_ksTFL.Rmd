@@ -1,0 +1,132 @@
+---
+title: "Styling Guide — ksTFL"
+author: "ksTFL Team"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Styling Guide — ksTFL}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
+```
+
+This guide explains ksTFL styling primitives (`s_*` helpers), how to create and apply named styles with `add_style()`, and how style combinations created with `f_combine()` are resolved during `create_report()`.
+
+Package-provided styles: ksTFL also ships a set of predefined style templates (clinical defaults) that you can reference by name in `labelStyleRef`, `valueStyleRef` or `styleRef`. These built-in templates provide sensible defaults for fonts, paragraph spacing and table presentation and may be used directly or combined with your custom styles via `f_combine()` to create more complex styling.
+
+1) Style primitives (what they do)
+
+- `s_font(...)` — font family, `font_size` (with units, e.g. "12pt"), `bold`, `italic`, `underline`, `color` (hex or name), `highlight` (background color).
+- `s_paragraph(...)` — paragraph-level settings: `alignment` (left/right/center/justify/distributed), `spacing` (use `s_spacing()`), `indents` (use `s_indents()`), `word_style` (Word style name).
+- `s_spacing(before, after, line_spacing)` — nested helper for paragraph spacing; accepts units like "6pt" and `line_spacing` multiplier (>= 1).
+- `s_indents(left, right, first_line)` — nested helper for indents; accepts units like "10mm" or negative for hanging.
+- `s_table_style(...)` — cell-level styling: `background_color`, `row_height` (e.g. "15mm" or "auto"), `vertical_alignment` (top/center/bottom), `text_orientation` (horizontal, vertical_90, vertical_270), `borders` (use `s_borders()`).
+- `s_borders(...)` and `s_border(color, width, line_style)` — define per-side border properties; `line_style` must be one of `single`, `double`, `dashed`, `dotted`, `thick`, `none` and `width` requires units like "1pt".
+
+2) Declaring styles: `add_style()`
+
+Call `add_style(spec, id, ...)` to create or update a named style in `spec$attribs$styles`.
+
+- Each modifier (e.g., `s_font(...)`) is mapped to a schema path (font, paragraph, table_style) and validated against allowed properties.
+- Multiple calls to `add_style()` with the same `id` merge using a last-win strategy (fields in later calls override or extend earlier ones).
+
+Example — create a named style and a numeric alignment style:
+
+```r
+spec <- create_table(mtcars)
+spec <- spec |> 
+  add_style("title_header_style",
+    s_font(font_name = "Arial", font_size = "12pt", bold = TRUE),
+    s_paragraph(alignment = "center", spacing = s_spacing(before = "6pt", after = "6pt")),
+    s_table_style(background_color = "#F2F2F2")
+  ) |> 
+  add_style("numeric_right", s_paragraph(alignment = "right"))
+```
+
+Note: header/footer rendering is governed by the Word document template. ksTFL stores header/footer rows as content only; it does not maintain a separate header/footer style store inside the spec. If you need to override a template header/footer style you must create a named style whose id matches the style name used by your template (see `inst/schemas/styles_schema_v0.json`). This is an advanced, template-dependent mechanism — for most workflows apply named styles to titles, subtitles, footnotes and table cells.
+
+3) Applying styles
+
+- Text groups (`add_title`, `add_subtitle`, `add_footnote`, `add_body_text`) accept `styleRef` — a character vector of style names or a single style name.
+- Columns accept `labelStyleRef` and `valueStyleRef` when using `define_cols()`.
+
+Example — apply styles to columns and titles:
+
+```r
+spec <- spec |> 
+  define_cols(c(mpg, hp), labelStyleRef = "header_style", valueStyleRef = "numeric_right") |> 
+  add_title("Demographics", styleRef = "header_style")
+```
+
+4) Combining styles with `f_combine()` — why and how
+
+Why combine styles?
+
+- Often you want to apply more than one named style to the same element (e.g., `bold` + `color_red` + `border_bottom`). Rather than duplicating combined definitions, you can reference multiple styles and let ksTFL merge them into one final style.
+
+How `f_combine()` works
+
+- `f_combine("styleA", "styleB")` simply returns a character vector of style names. It is a convenience to explicitly indicate multiple style names that should be applied together.
+At the `create_report()` stage, ksTFL scans the spec for style references that are length > 1 (combinations). It sorts the names (so order does not matter), computes a unique hash for the sorted combination, merges the component style definitions using the package's internal recursive-merge logic (last-win across component styles in the sorted order), and writes the merged style into `spec$attribs$styles` under the generated hash name (e.g., `style_<hash>`).
+
+Key consequences:
+
+- The combination is order-independent (because ksTFL sorts the component names before hashing), avoiding accidental duplicate merged styles caused by different argument ordering.
+- After `create_report()`, all elements will reference the single merged style name (the computed hash), making downstream renderers simpler.
+
+Example — combine label emphasis and a color:
+
+```r
+spec <- spec |> 
+  add_style("bold_em", s_font(bold = TRUE)) |> 
+  add_style("red", s_font(color = "#FF0000")) |> 
+  define_cols("age", labelStyleRef = f_combine("bold_em", "red"))
+
+# When creating report: create_report(spec) -> merged style created and applied automatically
+```
+
+5) Practical rules and validation notes
+
+- Do not call `s_*` helper functions outside of `add_style()` (they assert context and will error otherwise).
+- Allowed values: font names (examples: Arial, Courier New, Times New Roman, Calibri), alignments (left, right, center, justify, distributed), border styles (single, double, dashed, dotted, thick, none). The package stores these enumerations as internal constants; the vignette lists the accepted values explicitly above so you do not need to reference internal symbols.
+- If you want to modify global defaults, use `tfl_set_options(add_style(...))` to set styles in the package options — these session defaults are applied automatically when a spec is initialized.
+
+6) Troubleshooting
+
+- If you see an error about unknown parameters in a modifier, check the allowed property names in the documentation for the corresponding `s_*` helper (for example `font_name`, `font_size`, `background_color`). The package validates modifiers against the schema internally; the vignette lists the accepted parameters and common allowed values above.
+- If combined styles are not appearing as expected, ensure you call `create_report()` — consolidation of combinations happens there.
+
+7) Reference: allowed values and patterns
+
+Below are the exact allowed enumerations and common validation patterns used by ksTFL (sourced from the package constants). Use these values when supplying arguments to `s_*` helpers or `define_cols()`.
+
+- Font names (`s_font(font_name)`):
+  - Arial, Courier New, Times New Roman, Calibri
+- Text alignment (`s_paragraph(alignment)`):
+  - left, right, center, justify, distributed
+- Border line styles (`s_border(line_style)`):
+  - single, double, dashed, dotted, thick, none
+- Vertical alignment (`s_table_style(vertical_alignment)`):
+  - top, center, bottom
+- Text orientation (`s_table_style(text_orientation)`):
+  - horizontal, vertical_90, vertical_270
+- Page sizes (`p_page(size)`):
+  - A4, A3, Letter, Legal, Executive
+- Page orientations (`p_page(orientation)`):
+  - portrait, landscape
+- Column types (detected by the package's column-format logic, and used by `define_cols(type)`):
+  - string, numeric
+
+Validation patterns (use when constructing values):
+
+- Font size: must include units, e.g. `12pt` (pattern: numeric + `pt`).
+- Hex color: `#RRGGBB` (6 hex digits). Color names from ksTFL color map are also accepted (e.g., `red`, `blue`, `grey20`).
+- Spacing and indents: units allowed `pt`, `cm`, `in`, `mm` (e.g., `6pt`, `10mm`).
+- Border width: points only, e.g. `1pt`, `2pt`.
+- Column width and content width: percentages or units: `25%`, `3.5cm`, `1in`.
+
+Use these exact tokens — the package validates inputs and will raise informative errors when values are not in the allowed set or fail pattern checks.
+
+End of Styling Guide.
