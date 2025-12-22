@@ -76,11 +76,19 @@ print(list.files(out$metaPath, full.names = TRUE))
 spec_stub <- create_table(mtcars)
 spec_stub <- spec_stub |> define_cols(c(mpg, hp, wt), label = c("MPG","HP","Weight"))
 
-# Add a stub spanning mpg+hp and another for wt
-spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp"), label = "Engine metrics")
-spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass")
+# Multi-level stubs example:
+#  - top-level stub spans all three columns (stubOrder = 1)
+#  - second-level stubs create two spans on the next row (stubOrder = 2)
+spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp", "wt"), label = "Vitals", stubOrder = 1)
+spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp"), label = "Engine metrics", stubOrder = 2)
+spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass", stubOrder = 2)
 
-cat("Stub columns defined:\n")
+# style for stub labels
+spec_stub <- spec_stub |> add_style("stub_label", s_font(bold = TRUE))
+# apply style by re-adding a stub with labelStyleRef (shows labelStyleRef usage)
+spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass", stubOrder = 2, labelStyleRef = "stub_label")
+
+cat("Multi-level stub columns defined:\n")
 print(spec_stub$stubColumns)
 
 # 8. Demonstrate session options (defaults) + per-spec override

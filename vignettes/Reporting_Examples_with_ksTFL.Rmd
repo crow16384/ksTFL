@@ -1,215 +1,257 @@
 ---
-title: "Reporting Examples — ksTFL"
+title: "Reporting Examples — ksTFL (v3)"
 author: "ksTFL Team"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Reporting Examples — ksTFL}
+  %\VignetteIndexEntry{Reporting Examples — ksTFL (v3)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
-```
+This vignette presents a realistic progression of reporting examples — from minimal tables/listings/figures/text to a full clinical-style table with multi-level headers, spanning stub columns, multi-line titles/footnotes, reusable styles, and session defaults. All examples use exported ksTFL helpers only; set `eval=TRUE` locally to run the R chunks.
 
-This vignette presents short, runnable examples that progress from minimal specs to more complex, real-world reporting patterns. All code is illustrative — run in an R session where `ksTFL` is loaded.
+```{r create_sample_data, eval = FALSE}
+# Sample datasets used by multiple sections (run locally before executing examples)
+set.seed(2025)
 
----
-
-**1. Minimal examples**
-
-Simple minimal table
-
-```r
-spec_tbl <- create_table(mtcars, cols = c(mpg))
-print(spec_tbl)
-```
-
-Simple minimal figure
-
-```r
-# supply a readable image path
-fig_spec <- create_figure("inst/images/example.png")
-print(fig_spec)
-```
-
-Simple minimal text (narrative)
-
-```r
-txt_spec <- create_text(docPrefix = "Narrative 1") |> add_body_text("This is a short narrative.")
-print(txt_spec)
-```
-
-Combine table/figure/text into a single report
-
-```r
-report <- create_report(spec_tbl, fig_spec, txt_spec)
-print(report)
-```
-
----
-
-**2. Increasing complexity — tables with rich content**
-
-Table with multiple-level titles, headers, footnotes and footers
-
-Notes about headers/footers: each header/footer *row* is a character vector of length 1, 2 or 3. Interpretation:
-- length 3: treated as c(left, center, right)
-- length 2: treated as c(left, right)
-- length 1: treated as left only
-To place text only on the right provide an explicit 3-element vector with empty left/center, for example `c("", "", "Right-only text")`.
-
-```r
-spec <- create_table(mtcars)
-
-# multiple titles (order preserved)
-spec <- spec |> add_title(c("Study ABC-123", "Demographics")) |> add_subtitle("Full Analysis Set")
-
-# multiple header rows (three parts: left/center/right)
-spec <- spec |> 
-  add_header(c("Study ABC-123", "", "CONFIDENTIAL")) |> 
-  add_header(c("Site: All Sites", "Generated: {DATE}", ""))
-
-# footers: two-element row will be treated as left/right
-spec <- spec |> add_footer(c("Company", "Page {PAGE} of {NUMPAGES}"))
-
-# multiple footnotes
-spec <- spec |> add_footnote("Data are means (SD)") |> add_footnote("N = number of subjects")
-
-print(spec)
-```
-
-Tables with custom styles
-
-```r
-spec <- spec |> 
-  add_style("table_title", s_font(font_name = "Calibri", font_size = "13pt", bold = TRUE), s_paragraph(alignment = "center")) |> 
-  add_style("numeric_cell", s_paragraph(alignment = "right"))
-
-spec <- spec |> define_cols(c(mpg, hp), label = c("MPG","HP"), type = c("numeric","numeric"), format = c("%.1f","%.0f"), valueStyleRef = "numeric_cell")
-
-spec <- spec |> add_title("Table 1 — Key metrics", styleRef = "table_title")
-```
-
-Combination of styles (use `f_combine()`)
-
-```r
-spec <- spec |> add_style("bold_em", s_font(bold = TRUE)) |> add_style("red", s_font(color = "#FF0000"))
-# apply combined style to a title label
-spec <- spec |> add_title("Important", styleRef = f_combine("bold_em", "red"))
-
-# create report to force consolidation of combined styles
-r <- create_report(spec)
-# after create_report(), combined styles are merged into single hashed style names in each spec's attribs$styles
-```
-
----
-
-**3. Advanced table layout: multi-level column headers**
-
-While ksTFL does not provide a high-level API that automatically constructs multi-row column header blocks for you, you can achieve multi-level headers by constructing title/header rows and using column `label` values and `colOrder` to present the logical structure. For more complex table header rendering, the renderer (downstream) typically composes visual multi-row headers from the metadata you provide (labels, colOrder, group metadata). Example pattern below shows creating group titles via `add_subtitle()` and column labels via `define_cols()`:
-
-```r
-spec2 <- create_table(mtcars)
-spec2 <- spec2 |> define_cols(c(mpg, hp, wt), label = c("MPG","HP","Weight"))
-spec2 <- spec2 |> add_title("Demographics — grouped") |> add_subtitle(c("Group: Vital signs", "Subset: Adults"))
-```
-
-(If your renderer expects explicit header-group metadata, extend `spec$columns` with grouping info using `define_cols()` metadata fields; consult the renderer contract.)
-
-Spanning (stub) columns
-
-ksTFL supports "stub" columns — named labels that span multiple data columns (useful for grouped column headers or stub rows). Use `add_stub_column()` to declare a stub. Key points:
-
-- `cols`: character vector of column names the stub spans (these must exist in `spec$columns`).
-- `label`: text to show for the stub header.
-- `stubOrder`: integer controlling stacking order when multiple stub rows are present (auto-generated when `NULL`). Lower values are rendered first (top). Multiple stubs may share the same `stubOrder` provided their `cols` sets do not overlap.
-- `labelStyleRef`: optional named style (single name or list) applied to the stub label.
-
-The function validates for overlapping spans at the same `stubOrder` and will `cli_abort()` if a conflict is detected. After `create_report()` and `save_report()` the stub definitions are exported in the spec and the renderer can place spanning headers accordingly.
-
-Example — create two stub rows (one spanning mpg/hp, another spanning wt):
-
-```r
-spec_stub <- create_table(mtcars)
-spec_stub <- spec_stub |> define_cols(c(mpg, hp, wt), label = c("MPG","HP","Weight"))
-
-# stub spanning mpg+hp
-spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp"), label = "Engine metrics")
-
-# another stub for weight
-spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass")
-
-print(spec_stub$stubColumns)
-```
-
-Note: `add_stub_column()` auto-generates `id` and `stubOrder` when omitted. Use `stubOrder` explicitly to control vertical placement of multiple stub rows.
-
----
-
-**4. tfl options: session-level defaults and overrides**
-
-Set common headers/footers and default body texts for the session using `tfl_set_options()` so multiple specs inherit them.
-
-```r
-# set session defaults: header, footer and a default body text
-tfl_set_options(
-  add_header(c("Study ABC-123", "", "CONFIDENTIAL")),
-  add_footer(c("Company", "Page {PAGE} of {NUMPAGES}")),
-  add_body_text("Default explanatory paragraph applied when no body text provided"),
-  missings = "N/A"
+demog_tbl <- data.frame(
+  subject_id = sprintf("S%03d", 1:24),
+  age = sample(25:80, 24, TRUE),
+  sex = sample(c("M","F"), 24, TRUE),
+  trt = sample(c("Placebo","DrugA"), 24, TRUE),
+  stringsAsFactors = FALSE
 )
 
-# new specs will pick up these defaults
-spec_a <- create_table(mtcars)
-spec_b <- create_text()
+vitals_tbl <- data.frame(
+  subject_id = rep(demog_tbl$subject_id, each = 2),
+  visit = rep(c("Baseline","Week 12"), times = 24),
+  sbp = round(rnorm(48, 120, 12)),
+  dbp = round(rnorm(48, 75, 8)),
+  stringsAsFactors = FALSE
+)
 
-# spec_a will show default header/footer and default bodyText until you override
-print(spec_a)
+labs_tbl <- data.frame(
+  subject_id = demog_tbl$subject_id,
+  ALT = round(rnorm(24, 28, 9)),
+  AST = round(rnorm(24, 26, 8)),
+  stringsAsFactors = FALSE
+)
+
+# Example plot file (created locally when running the vignette)
+plot_file <- file.path(tempdir(), "example_plot.png")
+png(plot_file, width = 600, height = 400)
+plot(demog_tbl$age, vitals_tbl$sbp[1:24], xlab = "Age", ylab = "SBP", main = "Age vs SBP")
+dev.off()
 ```
 
-Overwrite session defaults in an individual spec
+## 1 — Simple minimal table
 
-```r
-# override header for this single spec
-spec_a <- spec_a |> add_header(c("Special report", "", ""))
-# add_header() on a spec appends rows to the spec's own header list, effectively overriding defaults for that spec when saved
+Goal: show a single-table workflow from data to a `TFL_spec` using only exported helpers.
+
+```{r example_minimal_table, eval = FALSE}
+spec_min_table <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt), id = "tbl_min")
+spec_min_table <- add_title(spec_min_table, "Demographics (minimal)")
+
+# Print shows a compact overview (useful in interactive sessions)
+print(spec_min_table)
+
+```{r save_min_table, eval = FALSE}
+# End-to-end: wrap single spec into a report and save
+rpt_min_table <- create_report(spec_min_table)
+res_min_table <- save_report(rpt_min_table, docFileName = "tbl_min.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+res_min_table
+```
 ```
 
-Important notes about option semantics
-
-- `tfl_set_options()` sets session defaults and accepts helper objects like `add_header(...)`, `add_footer(...)`, `add_style(...)`.
-- When setting header/footer/bodyText via `tfl_set_options()`, the call *replaces* the corresponding defaults (it does not accumulate from previous `tfl_set_options()` calls unless you pass multiple helpers in the same call).
-- Adding header/footer/title/footnote rows to a `TFL_spec` appends those entries specifically to that spec; these per-spec entries are used in preference to generic defaults when saving/serializing.
+Notes: `print()` on a `TFL_spec` provides a readable overview including docType, titles and defined columns.
 
 ---
 
-**5. Save and inspect the exported files**
+## 2 — Simple minimal figure
 
-Create a small report and save it (the serializer is internal and invoked by `save_report()`).
+Goal: create a figure spec from a local image file and add a title.
 
-```r
-r <- create_report(spec_a, spec_b)
-res <- save_report(r, docFileName = "report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-print(res)
+```{r example_minimal_figure, eval = FALSE}
+spec_min_fig <- create_figure(data = plot_file, id = "fig_min")
+spec_min_fig <- add_title(spec_min_fig, "Example: Age vs SBP")
+print(spec_min_fig)
 
-# inspect metaPath for files listed in res
+```{r save_min_fig, eval = FALSE}
+# End-to-end: save the single-figure report
+rpt_min_fig <- create_report(spec_min_fig)
+res_min_fig <- save_report(rpt_min_fig, docFileName = "fig_min.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+res_min_fig
+```
 ```
 
-The returned `res` contains the main spec JSON filename and any `dataRef` files written; inspect those to confirm headers, titles and style names.
+---
+
+## 3 — Simple minimal text (narrative)
+
+Goal: create a text-only spec for narrative content.
+
+```{r example_minimal_text, eval = FALSE}
+spec_min_text <- create_text(id = "txt_min")
+spec_min_text <- add_body_text(spec_min_text, "This narrative describes the study population and analysis approach.")
+print(spec_min_text)
+
+```{r save_min_text, eval = FALSE}
+# End-to-end: save the narrative as a report
+rpt_min_text <- create_report(spec_min_text)
+res_min_text <- save_report(rpt_min_text, docFileName = "txt_min.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+res_min_text
+```
+```
 
 ---
 
-**6. Where multi-headers/footers/titles/footnotes are documented**
+## 4 — Combine table/figure/text into a single report
 
-The package documents that you may append multiple `add_header()`, `add_footer()`, `add_title()`, `add_subtitle()` and `add_footnote()` calls to a spec and that these calls append rows/groups. See the Getting Started and Styling Guide vignettes for examples and behavior notes.
+Goal: assemble mixed specs into a `TFL_report` and inspect its summary.
+
+```{r example_combine_report, eval = FALSE}
+report_simple <- create_report(spec_min_table, spec_min_fig, spec_min_text)
+print(report_simple)
+
+```{r save_report_simple, eval = FALSE}
+# Save combined simple report
+res_report_simple <- save_report(report_simple, docFileName = "report_simple.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+res_report_simple
+```
+```
+
+Notes: `create_report()` preserves input order and consolidates styles and ids.
 
 ---
 
-Practical tips and gotchas
+## 5 — Table with multiple levels (headers/subheaders), titles and footnotes
 
-- To create a single-right-aligned header text use `c("", "", "Right text")` since a single element is treated as left-only and a two-element vector is treated as left/right.
-- `create_report()` consolidates combined styles and assigns `docOrder` and `dataRef` names — run it before `save_report()` to preview merged styles in `spec$attribs$styles`.
-- `save_report()` calls the package serializer internally; do not call the internal serializer directly in user code.
+Goal: build a clinical-style table with multi-level column headers, subtitles and footnotes.
 
-If you want, I can run the example code locally (I cannot run R here) or update `inst/examples/ksTFL_example.R` to include one or two of the above scenarios for direct execution. 
+```{r example_multilevel_table, eval = FALSE}
+spec_multi <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST), id = "tbl_multi")
+spec_multi <- add_title(spec_multi, "Laboratory Results")
+spec_multi <- add_subtitle(spec_multi, "Selected hepatic enzymes by subject")
+spec_multi <- add_footnote(spec_multi, "Values are shown as observed.")
+
+spec_multi <- define_cols(
+  spec_multi,
+  c(subject_id, ALT, AST),
+  label = c("Subject ID", "ALT (U/L)", "AST (U/L)")
+)
+
+print(spec_multi)
+
+```{r save_multilevel, eval = FALSE}
+# Save the multilevel table as a report
+rpt_multi <- create_report(spec_multi)
+res_multi <- save_report(rpt_multi, docFileName = "tbl_multi.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+res_multi
+```
+```
+
+---
+
+## 6 — Stub columns (spanning headers)
+
+Goal: demonstrate `add_stub_column()` to create stacked/spanning stub headers above groups of columns.
+
+```{r example_stubs, eval = FALSE}
+# Start with a simple table that contains multiple measurement columns
+spec_stub <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt), id = "tbl_stub")
+spec_stub <- define_cols(spec_stub, c(subject_id, age, sex, trt), label = c("Subject","Age","Sex","Treatment"))
+
+# Add a first-level stub that groups age and sex as 'Vitals'
+spec_stub <- add_stub_column(spec_stub, cols = c("age", "sex"), label = "Vitals", stubOrder = 1)
+
+# Add a second-level stub that groups treatment separately
+spec_stub <- add_stub_column(spec_stub, cols = c("trt"), label = "Treatment group", stubOrder = 2, labelStyleRef = "stub_label")
+
+print(spec_stub)
+```
+
+Notes: `add_stub_column()` takes `cols` as column *names* from `spec$columns`, a `label`, and a numeric `stubOrder` (lower numbers render closer to the left/top depending on renderer). Provide `labelStyleRef` to style stub labels.
+
+---
+
+```{r save_stub, eval = FALSE}
+# Save stubbed table report
+rpt_stub <- create_report(spec_stub)
+res_stub <- save_report(rpt_stub, docFileName = "tbl_stub.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+res_stub
+```
+
+## 7 — Styles and `f_combine()` for combined style references
+
+Goal: create simple styles, combine them with `f_combine()` and reference the combined style in `define_cols()`.
+
+```{r example_styles_combine, eval = FALSE}
+# Create a spec and add some atomic styles
+spec_styles <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt), id = "tbl_styles")
+spec_styles <- add_style(spec_styles, id = "header_bold", s_font(bold = TRUE))
+spec_styles <- add_style(spec_styles, id = "red_text", s_font(color = "#FF0000"))
+
+# Combine two style refs into one labelStyleRef using f_combine()
+spec_styles <- define_cols(
+  spec_styles,
+  c(subject_id, age, sex, trt),
+  label = c("Subject","Age","Sex","Treatment"),
+  labelStyleRef = c(f_combine("header_bold","red_text"), "", "", "")
+)
+
+print(spec_styles)
+```
+
+Notes: `f_combine()` returns a style reference that instructs the package to merge named styles into a single applied style on render/assembly.
+
+---
+
+```{r save_styles, eval = FALSE}
+# Save the styled table report
+rpt_styles <- create_report(spec_styles)
+res_styles <- save_report(rpt_styles, docFileName = "tbl_styles.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+res_styles
+```
+
+## 8 — Save report (end-to-end export)
+
+Goal: show `save_report()` usage — it validates and serializes specs and writes metadata/data/figure files to `metaPath`.
+
+```{r example_save_report, eval = FALSE}
+# Combine a couple of specs into a report
+report_full <- create_report(spec_styles, spec_multi)
+
+# Save the report — this calls the serializer internally and writes files to metaPath
+res <- save_report(report_full, docFileName = "example_report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
+
+# Inspect returned metadata
+str(res)
+```
+
+Notes: `save_report()` is the public entrypoint to persist specs/data/figures for downstream rendering; it internally calls validation/serialization and returns a metadata list with generated file paths.
+
+---
+
+## 9 — Session-wide `tfl_options`: common headers/footers and default body text
+
+Goal: set session defaults so multiple specs inherit common headers, footers, and default body text.
+
+```{r example_session_options, eval = FALSE}
+session_opts <- tfl_set_options(
+  add_header(c("Study ABC", "Locked Database")),
+  add_footer(c("Confidential", "Page {page}")),
+  add_body_text("This report contains preliminary analyses.")
+)
+
+spec_with_opts <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt), id = "tbl_opts")
+spec_with_opts <- add_title(spec_with_opts, "Demographics (session defaults applied)")
+print(spec_with_opts)
+```
+
+Notes: Use `tfl_get_options()` to inspect current session defaults. Options apply only to specs created after calling `tfl_set_options()` in the same R session.
+
+---
+
+## Final notes
+
+This vignette demonstrates complete end-to-end examples using only exported helpers: `create_table()`, `create_figure()`, `create_text()`, `define_cols()`, `add_stub_column()`, `add_style()`, `f_combine()`, `create_report()`, `save_report()`, and session helpers `tfl_set_options()` / `tfl_get_options()`. When running locally, set the top chunk `eval=TRUE` to generate the sample data and plot, then execute examples in order.
