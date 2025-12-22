@@ -42,12 +42,15 @@ NULL
 # ============================================================
 
 #' Allowed font names
+#' @noRd 
 .const_font_names <- c("Arial", "Courier New", "Times New Roman", "Calibri")
 
 #' Allowed text alignment values
+#' @noRd
 .const_alignment_values <- c("left", "right", "center", "justify", "distributed")
 
 #' Allowed Word style names
+#' @noRd
 .const_word_styles <- c(
   "Normal",
   "Heading 1",
@@ -61,27 +64,35 @@ NULL
 )
 
 #' Allowed border line styles
+#' @noRd
 .const_line_styles <- c("single", "double", "dashed", "dotted", "thick", "none")
 
 #' Allowed vertical alignment values
+#' @noRd
 .const_vertical_alignment <- c("top", "center", "bottom")
 
 #' Allowed text orientation values
+#' @noRd
 .const_text_orientation <- c("horizontal", "vertical_90", "vertical_270")
 
 #' Allowed page sizes
+#' @noRd
 .const_page_sizes <- c("A4", "A3", "Letter", "Legal", "Executive")
 
 #' Allowed page orientations
+#' @noRd
 .const_page_orientations <- c("portrait", "landscape")
 
 #' Allowed column data types
+#' @noRd
 .const_column_types <- c("string", "numeric")
 
 #' Allowed document types
+#' @noRd
 .const_doc_types <- c("Table", "Figure", "Text")
 
 #' Border sides (used for iterating over borders)
+#' @noRd
 .const_border_sides <- c("top", "bottom", "left", "right")
 
 
@@ -89,6 +100,7 @@ NULL
 #'
 #' Maps standard color names to their hexadecimal RGB equivalents.
 #' Includes grayscale colors: grey10-grey90 represent 10%-90% gray intensity
+#' @noRd
 .const_color_hex_map <- list(
   black     = "#000000",
   white     = "#FFFFFF",
@@ -143,34 +155,44 @@ NULL
 # ============================================================
 
 #' Pattern for font size (points only)
+#' @noRd
 .const_pattern_font_size <- "^[0-9]+(\\.[0-9]+)?pt$"
 
 #' Pattern for hex color codes
+#' @noRd
 .const_pattern_hex_color <- "^#[0-9A-Fa-f]{6}$"
 
 #' Pattern for color values (hex codes or predefined color names)
 #' This pattern matches either hex codes or color names from .const_color_names
+#' @noRd
 .const_pattern_color <- "^(#[0-9A-Fa-f]{6}|[a-zA-Z]+)$"
 
 #' Pattern for spacing values (allows pt, cm, in, mm)
+#' @noRd
 .const_pattern_spacing <- "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$"
 
 #' Pattern for indentation values (allows negative, pt, cm, in, mm)
+#' @noRd
 .const_pattern_indents <- "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
 
 #' Pattern for margin values (allows pt, cm, in, mm)
+#' @noRd
 .const_pattern_margins <- "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
 
 #' Pattern for border width (points only)
+#' @noRd
 .const_pattern_border_width <- "^[0-9]+(\\.[0-9]+)?pt$"
 
 #' Pattern for row height (allows pt, cm, in, mm, or auto)
+#' @noRd
 .const_pattern_row_height <- "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm)|(auto)$"
 
 #' Pattern for column width (allows %, in, cm)
+#' @noRd
 .const_pattern_col_width <- "^\\d+(\\.\\d+)?(%|in|cm)$"
 
 #' Pattern for content width (allows %, in, cm)
+#' @noRd
 .const_pattern_content_width <- "^\\d+(\\.\\d+)?(%|in|cm)$"
 
 # ============================================================
@@ -181,6 +203,7 @@ NULL
 #'
 #' Maps schema type names to their allowed property names.
 #' Used for validation in .validate_params()
+#' @noRd
 .const_schema_properties <- list(
   font = c("font_name", "font_size", "bold", "italic", "underline", "color", "highlight"),
   paragraph = c("alignment", "spacing", "indents", "word_style"),
@@ -206,6 +229,7 @@ NULL
 #' Modifier class to schema path mapping
 #' 
 #' Maps style modifier class names to their corresponding schema property paths.
+#' @noRd
 .const_modifier_paths <- list(
   tfl_font = "font",
   tfl_paragraph = "paragraph",
@@ -217,40 +241,53 @@ NULL
 # ============================================================
 
 #' Default page size
+#' @noRd
 .const_default_page_size <- "A4"
 
 #' Default page orientation
+#' @noRd
 .const_default_page_orientation <- "landscape"
 
 #' Default document template name
+#' @noRd
 .const_default_doc_template <- "KeyStat_default"
 
 #' Default column format string for numeric types
+#' @noRd
 .const_default_numeric_format <- "%d"
 
 #' default missing value representation
+#' @noRd
 .const_default_missing_value <- "NA"
 
 #' Default line spacing minimum
+#' @noRd
 .const_min_line_spacing <- 1
 
 #' Maximum number of header/footer parts
+#' @noRd
 .const_max_header_footer_parts <- 3L
 
 #' Default body text message (when no data available)
+#' @noRd
 .const_default_bodytext <- "No data to report"
 
 #' Body text default ID prefix (for global defaults)
+#' @noRd
 .const_bodytext_default_id_prefix <- "__default"
 
 #' Order value for default body text (appears last)
+#' @noRd
 .const_default_bodytext_order <- 999L
 
 #' Schema file names
+#' @noRd
 .const_spec_schema_file = "spec_schema_v1.json"
 #' Style schema file name
+#' @noRd
 .const_style_schema_file = "styles_schema_v0.json"
 #' Row style schema file name
+#' @noRd
 .const_row_style_schema_file = "row_style_actions_schema_v0.json"
 
 
@@ -259,9 +296,11 @@ NULL
 # ============================================================
 
 #' JSON Schema type keywords
+#' @noRd
 .const_schema_types <- c("string", "number", "integer", "boolean", "array", "object", "null")
 
 #' JSON Schema keywords
+#' @noRd
 .const_schema_keywords <- list(
   ref = "$ref",
   defs = "$defs",
@@ -279,9 +318,11 @@ NULL
 )
 
 #' JSON Pointer reference prefix
+#' @noRd
 .const_json_pointer_prefix <- "#/"
 
 #' JSON Pointer escape mappings
+#' @noRd
 .const_json_pointer_escapes <- list(
   tilde_char = "~",
   tilde_escape = "~0",
@@ -290,6 +331,7 @@ NULL
 )
 
 #' Schema directories in package
+#' @noRd
 .const_schemas_dir <- "schemas"
 
 

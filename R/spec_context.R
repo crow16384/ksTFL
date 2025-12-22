@@ -30,6 +30,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return Integer. Next available stub order (minimum 1)
 #'
 #' @keywords internal
+#' @noRd
 .auto_stub_order <- function(existing_stubs) {
   if (length(existing_stubs) == 0) {
     return(1L)
@@ -53,6 +54,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param env Environment to set context in
 #' @param context Context name
 #' @keywords internal
+#' @noRd
 .set_context <- function(env, context) {
   assign(".__tfl_context__", context, envir = env)
   # Push context onto package-local stack for fallback detection
@@ -65,6 +67,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' 
 #' @param env Environment to clear context from
 #' @keywords internal
+#' @noRd
 .clear_context <- function(env) {
   if (exists(".__tfl_context__", envir = env, inherits = FALSE)) {
     remove(".__tfl_context__", envir = env)
@@ -72,7 +75,7 @@ assign("stack", character(0), envir = .context_marker_env)
   # Pop package-local stack (if non-empty)
   stack <- get("stack", envir = .context_marker_env)
   if (length(stack) > 0) {
-    assign("stack", head(stack, -1), envir = .context_marker_env)
+    assign("stack", utils::head(stack, -1), envir = .context_marker_env)
   }
   invisible(NULL)
 }
@@ -84,6 +87,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param allowed_contexts Character vector of allowed contexts
 #' @param fn_name Name of the function being called
 #' @keywords internal
+#' @noRd
 .assert_context <- function(allowed_contexts, fn_name) {
   # Traverse up the parent frames to find the context marker
   depth <- 0
@@ -142,6 +146,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param type Type of schema element
 #' @return Character vector of allowed properties
 #' @keywords internal
+#' @noRd
 .get_allowed_properties <- function(type) {
   # Initialize cache if not exists
   if (!exists("cache", envir = .schema_cache_env)) {
@@ -163,6 +168,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return Invisibly NULL if validation passes. Aborts with error if invalid parameters found.
 #'
 #' @keywords internal
+#' @noRd
 .validate_params <- function(params, type, fn_name) {
   if (!is.list(params)) {
     cli_abort("{.arg params} must be a list in {.fn {fn_name}}")
@@ -203,6 +209,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return Invisibly NULL if validation passes. Aborts with error if required fields missing.
 #'
 #' @keywords internal
+#' @noRd
 .validate_required <- function(params, required_fields, fn_name) {
   if (!is.list(params)) {
     cli_abort("{.arg params} must be a list in {.fn {fn_name}}")
@@ -235,6 +242,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return Invisibly NULL. Aborts with error if value not in allowed set.
 #'
 #' @keywords internal
+#' @noRd
 .validate_enum <- function(value, allowed, param_name, fn_name) {
   if (is.null(value)) {
     return(invisible(NULL))
@@ -269,6 +277,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return Invisibly NULL. Aborts with error if value doesn't match pattern.
 #'
 #' @keywords internal
+#' @noRd
 .validate_pattern <- function(value, pattern, param_name, fn_name, description = NULL) {
   if (is.null(value)) {
     return(invisible(NULL))
@@ -309,6 +318,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return Invisibly NULL. Aborts with error if value doesn't match pattern or isn't a valid color name.
 #'
 #' @keywords internal
+#' @noRd
 .validate_color <- function(value, param_name, fn_name, description = NULL) {
   if (is.null(value)) {
     return(invisible(NULL))
@@ -359,6 +369,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' to ensure consistent hex code storage regardless of input format.
 #'
 #' @keywords internal
+#' @noRd
 .normalize_color <- function(color) {
   if (is.null(color)) {
     return(NULL)
@@ -404,6 +415,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return List with validated font properties (NULL values excluded)
 #'
 #' @keywords internal
+#' @noRd
 .font_spec <- function(font_name = NULL, font_size = NULL, bold = NULL, 
                        italic = NULL, underline = NULL, color = NULL, 
                        highlight = NULL) {
@@ -459,6 +471,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return List with validated spacing properties (NULL values excluded)
 #'
 #' @keywords internal
+#' @noRd
 .spacing_spec <- function(before = NULL, after = NULL, line_spacing = NULL) {
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
@@ -497,6 +510,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param first_line First line indent
 #' @return Indents specification list
 #' @keywords internal
+#' @noRd
 .indents_spec <- function(left = NULL, right = NULL, first_line = NULL) {
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
@@ -525,6 +539,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param word_style Base Word style
 #' @return Paragraph specification list
 #' @keywords internal
+#' @noRd
 .paragraph_spec <- function(alignment = NULL, spacing = NULL, indents = NULL, 
                             word_style = NULL) {
   params <- list()
@@ -578,6 +593,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param line_style Line style
 #' @return Border specification list
 #' @keywords internal
+#' @noRd
 .border_spec <- function(color = NULL, width = NULL, line_style = NULL) {
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
@@ -607,6 +623,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param right Right border specification
 #' @return Borders specification list
 #' @keywords internal
+#' @noRd
 .borders_spec <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
   params <- list()
   
@@ -627,6 +644,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param borders Borders specification
 #' @return Table style specification list
 #' @keywords internal
+#' @noRd
 .table_style_spec <- function(background_color = NULL, row_height = NULL,
                               vertical_alignment = NULL, text_orientation = NULL,
                               borders = NULL) {
@@ -674,6 +692,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param footer Footer margin
 #' @return Margins specification list
 #' @keywords internal
+#' @noRd
 .margins_spec <- function(top, bottom, left, right, header, footer) {
   params <- as.list(environment())
   
@@ -693,6 +712,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #'
 #' @return Page specification list
 #' @keywords internal
+#' @noRd
 .page_spec <- function(size = .const_default_page_size, 
                        orientation = .const_default_page_orientation, 
                        margins) {
@@ -716,6 +736,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param valueStyleRef Character vector of style IDs for cell values
 #' @return Column format specification list
 #' @keywords internal
+#' @noRd
 .col_format_spec <- function(type=NULL, format = NULL, missings = NULL, 
                              colWidth = NULL, valueStyleRef = NULL) {
   .validate_enum(type, .const_column_types, "type", "col_format_spec")
@@ -1189,6 +1210,7 @@ f_combine <- function(...) {
 #' @param modifier Style modifier object (e.g., tfl_font, tfl_paragraph)
 #' @return List with `path` (character) and `payload` (list)
 #' @keywords internal
+#' @noRd
 .process_style_modifier <- function(modifier) {
   if (!inherits(modifier, "tfl_style_modifier")) {
     cli_abort(c(
@@ -1219,6 +1241,7 @@ f_combine <- function(...) {
 #' @param payload List. Modifier payload to validate
 #' @param fn_name Character. Function name for error messages
 #' @keywords internal
+#' @noRd
 .validate_style_payload <- function(path, payload, fn_name = "add_style") {
   # Validate payload against schema cache before merging
   .validate_params(payload, path, fn_name)
@@ -2757,7 +2780,8 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #' @param spec TFL spec object
 #' @param verbose Whether to show validation details
 #' @return Logical indicating if all checks passed
-#' 
+#' @keywords internal
+#' @noRd
 #' @examples
 #' \dontrun{
 #' spec <- create_text() |>
@@ -2765,7 +2789,6 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #'   
 #' check_spec_consistency(spec)
 #' }
-#' @noRd
 .check_spec_consistency <- function(spec, verbose = TRUE) {
   if (!inherits(spec, "TFL_spec")) {
     cli_abort("Object must be of class 'TFL_spec'")

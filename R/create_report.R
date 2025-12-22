@@ -234,7 +234,7 @@
 #'   keyed by the pattern `<variable_name>_<hash>` for direct specs, or
 #'   original keys for specs extracted from input reports.
 #'   Result has class `TFL_report`.
-#'
+#' @export
 #' @examples
 #' \dontrun{
 #' spec1 <- create_table(mtcars)
@@ -245,8 +245,6 @@
 #' spec3 <- create_figure("path/to/image.png")
 #' combined <- create_report(final_report, spec3)
 #' }
-#'
-#' @export
 create_report <- function(...) {
   # Capture all arguments and their names
   specs_list <- list(...)

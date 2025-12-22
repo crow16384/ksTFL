@@ -526,6 +526,7 @@ create_text <- function(docPrefix = NULL) {
 #'   \item `define_cols(age, colWidth="2cm")`: locks age at fixed 2cm width, other relative columns recalculated to fill remaining space
 #' }
 #'
+#' @export
 #' @examples
 #' \dontrun{
 #' ## Basic usage with the built-in `mtcars` dataset
@@ -544,7 +545,6 @@ create_text <- function(docPrefix = NULL) {
 #' spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
 #' }
 #'
-#' @export
 create_table <- function(data = NULL, cols = everything(), docPrefix = NULL) {
   cols_quo <- enquo(cols)
   .tfl_init(data = data, cols = !!cols_quo, docPrefix = docPrefix, docType = "Table")
@@ -564,13 +564,14 @@ create_table <- function(data = NULL, cols = everything(), docPrefix = NULL) {
 #' @return A `TFL_spec` object with `docType = "Figure"` and `dataRef` set
 #'   to the provided file path.
 #'
+#' @export
 #' @examples
 #' \dontrun{
 #' ## Create a figure spec from a local PNG
 #' spec <- create_figure("inst/images/example.png")
 #' }
 #'
-#' @export
+
 create_figure <- function(filepath, docPrefix = NULL) {
   .tfl_init(data = filepath, cols = everything(), docPrefix = docPrefix, docType = "Figure")
 }

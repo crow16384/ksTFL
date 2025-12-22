@@ -17,6 +17,7 @@ NULL
 #'   - A data mask as `__mask__` for tidyverse-style evaluation
 #'
 #' @keywords internal
+#' @noRd
 #' @examples
 #' \dontrun{
 #'   menv <- .create_data_env(mtcars, list())
@@ -92,6 +93,7 @@ NULL
 #' - Character vectors via external variables
 #'
 #' @keywords internal
+#' @noRd
 #' @examples
 #' \dontrun{
 #'   .get_data_columns(mtcars, everything())
@@ -170,6 +172,7 @@ NULL
 #' @return A character vector of column names
 #'
 #' @keywords internal
+#' @noRd
 #' @examples
 #' \dontrun{
 #'   .get_data_column_names(mtcars, everything())
@@ -192,6 +195,7 @@ NULL
 #' @return The result of evaluating `expr` in the data environment
 #'
 #' @keywords internal
+#' @noRd
 #' @examples
 #' \dontrun{
 #'   .env_eval(cyl + am)
@@ -255,6 +259,7 @@ NULL
 #'   and `TRUE` for single-row data.
 #'
 #' @keywords internal
+#' @noRd
 #' @examples
 #' \dontrun{
 #'   .env_eval(firstOf(cyl))
@@ -282,12 +287,13 @@ NULL
 #'   and `TRUE` for single-row data.
 #'
 #' @keywords internal
+#' @noRd
 #' @examples
 #' \dontrun{
 #'   .env_eval(lastOf(cyl))
 #'   .env_eval(lastOf(cyl, am))
 #' }
-#' @noRd
+
 .eval_lastOf <- function(..., data=`__data__`) {
   .eval_change_of("last", ..., data = data)
 }
@@ -309,12 +315,12 @@ NULL
 #'
 #' @return A character vector of selected column names
 #'
+#' @noRd
 #' @keywords internal
 #' @examples
 #' \dontrun{
 #'   .env_eval(get_names(cyl, am))  # Returns c("cyl", "am")
 #' }
-#'  @noRd
 .eval_get_names <- function(..., .data=`__data__`, .selenv=NULL, .strict=T) {
    names(.get_data_columns(.data, ..., .selenv = .selenv, .strict = .strict))
   }
@@ -327,12 +333,12 @@ NULL
 #'
 #' @return An integer vector of row numbers from 1 to nrow(.data)
 #'
+#' @noRd
 #' @keywords internal
 #' @examples
 #' \dontrun{
 #'   .env_eval(row_numbers())  # Returns c(1, 2, 3, ..., nrow(data))
 #' }
-#'  @noRd
 .eval_row_numbers <- function(.data=`__data__`) {
   seq_len(nrow(.data))
 }
@@ -345,12 +351,12 @@ NULL
 #'
 #' @return A logical vector with `TRUE` at every nth row
 #'
+#' @noRd
 #' @keywords internal
 #' @examples
 #' \dontrun{
 #'   .env_eval(every_nth(3))  # Returns logical vector TRUE at rows 1, 4, 7, 10, ...
 #' }
-#'  @noRd
 .eval_every_nth <- function(n) {
   ((row_number() - 1) %% n) == 0
 }
@@ -368,12 +374,12 @@ NULL
 #' This function uses the `__mask__` object from the evaluation environment,
 #' which provides tidyverse-style data masking for column reference.
 #'
+#' @noRd
 #' @keywords internal
 #' @examples
 #' \dontrun{
 #'   with(menv, eval(cyl + am))
 #' }
-#'  @noRd
 .eval_in_env <- function(expr) {
   expr <- enexpr(expr)
 
