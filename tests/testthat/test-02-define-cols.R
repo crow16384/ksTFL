@@ -138,3 +138,27 @@ test_that("define_cols() chains multiple calls", {
   expect_equal(spec$columns$value$label, "Value Override")
 })
 
+test_that("define_cols() with colWidth preserves existing type", {
+  # Issue: https://github.com/...
+  # When calling define_cols() with colWidth but no type parameter,
+  # the previously set type should be preserved (not dropped)
+  spec <- create_table(test_df)
+  
+  # First: set type and label
+  spec <- define_cols(spec, id, type = "numeric", label = "ID")
+  expect_equal(spec$columns$id$format$type, "numeric")
+  expect_equal(spec$columns$id$label, "ID")
+  
+  # Second: set colWidth only
+  spec <- define_cols(spec, id, colWidth = "10%")
+  
+  # Type should be preserved
+  expect_equal(spec$columns$id$format$type, "numeric", 
+               info = "type field should not be dropped when specifying colWidth")
+  expect_equal(spec$columns$id$label, "ID", 
+               info = "label should also be preserved")
+  
+  # colWidth should be set
+  expect_true(!is.null(spec$columns$id$format$colWidth))
+})
+

@@ -25,6 +25,7 @@
     # Data display defaults
     missings            = .const_default_missing_value,
     autoColWidth        = TRUE,
+    minColWidth         = 0.5,  # Minimum relative column width (%) for unlocked columns
     
     # Content
     headers             = .const_options_header_footer,
@@ -120,6 +121,8 @@ tfl_get_option <- function(name) {
 #' @param autoColWidth Logical; enable automatic column width recalculation when user sets `colWidth` via `define_cols()`.
 #'   Default TRUE. When TRUE, locked columns maintain exact width while unlocked columns normalize to fill remaining space.
 #'   Set FALSE to disable auto-recalculation and manage widths manually.
+#' @param minColWidth Numeric; minimum relative column width (%) for unlocked columns during recalculation.
+#'   Default 0.5. Used to validate that relative widths don't squeeze columns below acceptable minimum.
 #' @param output_directory Character; path to default output directory of rendered document.
 #'
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
@@ -163,7 +166,7 @@ tfl_get_option <- function(name) {
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
                          bodyFootnotes = NULL, gluePrefix = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
-                         autoColWidth = NULL,
+                         autoColWidth = NULL, minColWidth = NULL,
                          output_directory='.') {
   
   params <- as.list(environment())
@@ -176,6 +179,8 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
       # Type checks for known option names
       if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "gluePrefix", "isContinues", "autoColWidth")) {
         checkmate::assert_logical(val, len = 1, any.missing = FALSE, .var.name = pname)
+      } else if (pname == "minColWidth") {
+        checkmate::assert_numeric(val, len = 1, lower = 0, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("doc_style_template", "missings")) {
         checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("output_directory")) {

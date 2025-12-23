@@ -63,7 +63,7 @@ Each `TFL_spec` contains:
 |-----------|---------|---------------|
 | **document** | Metadata (docType, title, page settings) | `set_document()`, `set_page_style()` |
 | **columns** | Column definitions, labels, formats, styles | `define_cols()` |
-| **stubColumns** | Spanning headers above column groups | `add_stub_column()` |
+| **stubColumns** | Spanning headers above column groups | `add_span_header()` |
 | **headers** | Page header text (left/center/right) | `add_header()` |
 | **titles** | Main document titles | `add_title()` |
 | **subtitles** | Secondary titles | `add_subtitle()` |
@@ -236,38 +236,52 @@ For comprehensive styling details see [Styling Guide](Styling_Guide_with_ksTFL.R
 
 ---
 
-## Step 5: Add spanning headers (stub columns)
+## Step 5: Add spanning headers (span headers)
 
-Create multi-level headers with `add_stub_column()`:
+Create multi-level headers with `add_span_header()` using tidyselect expressions:
 
 ```{r add_stubs, eval = FALSE}
 spec <- create_table(mtcars)
 spec <- define_cols(spec, c(mpg, cyl, hp, wt),
   label = c("MPG", "Cyl", "HP", "Weight"))
 
-# Top-level stub spanning all columns
-spec <- add_stub_column(spec, cols = c("mpg", "cyl", "hp", "wt"),
+# Top-level span header spanning all columns
+spec <- add_span_header(spec, cols = c(mpg, cyl, hp, wt),
   label = "Motor Vehicle Specs",
-  stubOrder = 1)
-
-# Second-level stubs: finer grouping
-spec <- add_stub_column(spec, cols = c("mpg", "cyl", "hp"),
+  stubOrder = 0) |>
+# Second-level headers: finer grouping
+add_span_header(cols = c(mpg, cyl, hp),
   label = "Engine",
-  stubOrder = 2)
-spec <- add_stub_column(spec, cols = "wt",
+  stubOrder = 1) |>
+add_span_header(cols = wt,
   label = "Weight",
-  stubOrder = 2)
+  stubOrder = 1)
+```
+
+**Tidyselect support**: `add_span_header()` accepts all tidyselect expressions:
+
+```{r add_stubs_tidyselect, eval = FALSE}
+# Using column ranges and helpers
+spec <- add_span_header(spec, cols = mpg:hp, label = "First", stubOrder = 0) |>
+  add_span_header(cols = starts_with("c"), label = "C-columns", stubOrder = 1) |>
+  add_span_header(cols = -mpg, label = "Non-MPG", stubOrder = 2)
 ```
 
 **Key concepts**:
-- `cols`: Column names (from `spec$columns`) to span
+- `cols`: Column names (from `spec$columns`) to span. Accepts:
+  - **Unquoted names**: `c(mpg, cyl, hp)` 
+  - **Quoted names**: `c("mpg", "cyl", "hp")`
+  - **Ranges**: `mpg:hp`
+  - **Helpers**: `starts_with("c")`, `contains("w")`, `matches("^m")`
+  - **Negation**: `-mpg` (all columns except mpg)
 - `label`: Spanning header text
-- `stubOrder`: Vertical stacking order (lower = closer to top; auto-generated if NULL)
-- `labelStyleRef`: Style for the stub header label
+- `stubOrder`: Vertical stacking order (0 = top, 1 = next, etc.; auto-generated if NULL)
+- `labelStyleRef`: Style(s) for the header label
 
 **Rules**:
-- Stubs with the same `stubOrder` sit on the same row
-- Overlapping columns only allowed if stubs have different `stubOrder`
+- Stubs at the **same** `stubOrder` cannot share columns (prevents ambiguous headers)
+- Stubs at **different** `stubOrder` values can overlap freely (enables hierarchical structure)
+- Multiple stubs at the same order are allowed as long as their column sets don't overlap
 - Use `add_style()` to style stub labels
 
 See [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for styling stubs.
@@ -517,7 +531,7 @@ You now understand ksTFL's core workflow. Next steps:
 | Set document properties | `set_document(spec, docPrefix = ..., hasData = ...)` | Optional: configure doc prefix, content width, placement |
 | Customize columns | `define_cols(spec, cols, ...)` | Use `c()` for multiple columns |
 | Define styles | `add_style(spec, id = "name", ...)` | Use `s_font()`, `s_paragraph()`, `s_table_style()` |
-| Add spanning header | `add_stub_column(spec, cols, label, ...)` | Controls multi-level headers |
+| Add spanning header | `add_span_header(spec, cols, label, ...)` | Supports tidyselect; multi-level headers |
 | Add titles/content | `add_title()`, `add_footnote()`, `add_body_text()` | Layer document content |
 | Add page headers/footers | `add_header()`, `add_footer()` | 3 parts: left/center/right |
 | Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |

@@ -40,7 +40,7 @@ ksTFL uses a **named style system**: you declare styles with `add_style()` givin
 ### Best practices workflow
 
 1. **Define atomic styles first**: Create small, focused styles (bold headers, right-aligned text, light gray background)
-2. **Reference by name**: In `define_cols()`, `add_title()`, `add_stub_column()`, use `labelStyleRef` or `valueStyleRef` to point to styles by id
+2. **Reference by name**: In `define_cols()`, `add_title()`, `add_span_header()` (with tidyselect support), use `labelStyleRef` or `valueStyleRef` to point to styles by id
 3. **Combine when needed**: Use `f_combine()` to merge multiple styles on-the-fly for ad-hoc combinations
 4. **Let `create_report()` consolidate**: The report builder automatically merges combined styles so the renderer receives clean, consolidated styles
 5. **Never inspect internal fields**: Don't manually look at `spec$attribs$styles` — let the package manage consolidation
@@ -322,7 +322,7 @@ spec <- add_style(spec, id = "numeric_right", s_paragraph(alignment = "right"))
 spec <- define_cols(spec, mpg, type = "numeric", valueStyleRef = "numeric_right")
 ```
 
-### 3. Spanning headers — `labelStyleRef` in `add_stub_column()`
+### 3. Spanning headers — `labelStyleRef` in `add_span_header()`
 
 Apply styles to **stub (spanning header) labels**:
 
@@ -333,7 +333,7 @@ spec <- add_style(spec, id = "stub_label",
   s_font(bold = TRUE, font_size = "11pt"),
   s_table_style(background_color = "#EFEFEF"))
 
-spec <- add_stub_column(spec, cols = c("mpg", "cyl"), label = "Engine",
+spec <- add_span_header(spec, cols = c("mpg", "cyl"), label = "Engine",
   labelStyleRef = "stub_label")
 ```
 
@@ -503,10 +503,10 @@ spec <- add_style(spec, id = "level2_stub",
   s_font(bold = TRUE, font_size = "11pt"),
   s_table_style(background_color = "#CCCCCC", vertical_alignment = "center"))
 
-spec <- add_stub_column(spec, cols = c("var1", "var2", "var3"), label = "Baseline",
+spec <- add_span_header(spec, cols = c("var1", "var2", "var3"), label = "Baseline",
   stubOrder = 1, labelStyleRef = "level1_stub")
 
-spec <- add_stub_column(spec, cols = c("var1", "var2"), label = "Safety",
+spec <- add_span_header(spec, cols = c("var1", "var2"), label = "Safety",
   stubOrder = 2, labelStyleRef = "level2_stub")
 ```
 
@@ -589,4 +589,5 @@ Style references are resolved in this order:
 - Function documentation: `?add_style`, `?s_font`, `?s_paragraph`, `?f_combine`
 - [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — working examples with styles
 - [Getting Started](Getting_Started_with_ksTFL.Rmd) — quick overview
+
 

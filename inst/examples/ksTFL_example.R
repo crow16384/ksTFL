@@ -79,14 +79,14 @@ spec_stub <- spec_stub |> define_cols(c(mpg, hp, wt), label = c("MPG","HP","Weig
 # Multi-level stubs example:
 #  - top-level stub spans all three columns (stubOrder = 1)
 #  - second-level stubs create two spans on the next row (stubOrder = 2)
-spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp", "wt"), label = "Vitals", stubOrder = 1)
-spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp"), label = "Engine metrics", stubOrder = 2)
-spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass", stubOrder = 2)
+spec_stub <- spec_stub |> add_span_header(cols = c("mpg", "hp", "wt"), label = "Vitals", stubOrder = 1)
+spec_stub <- spec_stub |> add_span_header(cols = c("mpg", "hp"), label = "Engine metrics", stubOrder = 2)
+spec_stub <- spec_stub |> add_span_header(cols = "wt", label = "Mass", stubOrder = 2)
 
 # style for stub labels
 spec_stub <- spec_stub |> add_style("stub_label", s_font(bold = TRUE))
 # apply style by re-adding a stub with labelStyleRef (shows labelStyleRef usage)
-spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass", stubOrder = 2, labelStyleRef = "stub_label")
+spec_stub <- spec_stub |> add_span_header(cols = "wt", label = "Mass", stubOrder = 2, labelStyleRef = "stub_label")
 
 cat("Multi-level stub columns defined:\n")
 print(spec_stub$stubColumns)
@@ -114,3 +114,4 @@ report2 <- create_report(spec_stub, spec_text)
 res2 <- save_report(report2, docFileName = "example_stub_report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
 cat("Saved stub report files:\n")
 print(res2)
+

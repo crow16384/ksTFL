@@ -353,3 +353,162 @@ test_that("Reported Issue: locked% columns stay locked, not recalculated", {
   widths_numeric <- as.numeric(sub("%", "", col_widths_str))
   expect_equal(sum(widths_numeric), 100)
 })
+test_that("define_cols() rejects 100% width when unlocked columns need space", {
+  spec <- create_table(test_df_simple)  # 3 columns: id, value, ratio
+  
+  # Try to set one column to 100%
+  # With 3 columns and minColWidth=0.5%, 2 unlocked columns need 1% total
+  # So 100% is invalid
+  expect_error(
+    define_cols(spec, id, colWidth = "100%"),
+    "Cannot set column"
+  )
+})
+
+test_that("define_cols() rejects colWidth that exceeds maximum allowed", {
+  spec <- create_table(test_df_simple)  # 3 columns: id, value, ratio
+  print(spec)
+  # Lock first column at 99% (leaves 1% for 2 unlocked @ 0.5% each)
+  # This should fail because we can't fit 2 columns @ minimum 0.5%
+  expect_error(
+    define_cols(spec, id, colWidth = "99.5%"),
+    "Cannot set column"
+  )
+})
+
+test_that("define_cols() allows valid relative widths", {
+  spec <- create_table(test_df_simple)  # 3 columns: id, value, ratio
+  
+  # Set id to 49% leaves 51% for 2 unlocked columns at 25.5% each
+  # This should succeed
+  expect_no_error(
+    spec <- define_cols(spec, id, colWidth = "49%")
+  )
+  
+  id_width <- as.numeric(sub("%", "", spec$columns$id$format$colWidth))
+  expect_equal(id_width, 49)
+})
+
+test_that("define_cols() error message includes helpful details", {
+  spec <- create_table(test_df_simple)  # 3 columns
+  
+  # Try to set to invalid width and capture error
+  error <- tryCatch(
+    define_cols(spec, id, colWidth = "100%"),
+    error = function(e) e
+  )
+  
+  # Check error message contains key information
+  error_msg <- conditionMessage(error)
+  expect_true(grepl("Cannot set column", error_msg))
+  expect_true(grepl("insufficient space", error_msg))
+})
+
+test_that("minColWidth option can be customized", {
+  # Set higher minimum
+  old_min <- tfl_get_option("minColWidth")
+  tfl_set_options(minColWidth = 2.0)
+  
+  on.exit(tfl_set_options(minColWidth = old_min))
+  tfl_get_option('minColWidth')
+  spec <- create_table(test_df_simple)  # 3 columns: id, value, ratio
+  
+  # With minColWidth = 2.0%, 2 unlocked need 4% total
+  # So max for first column is 96%
+  expect_error(
+    define_cols(spec, id, colWidth = "98%"),
+    "Cannot set column"
+  )
+  
+  # But 96% should work
+  expect_no_error(
+    spec <- define_cols(spec, id, colWidth = "96%")
+  )
+})
+
+test_that("define_cols() with fixed-unit width (cm) doesn't validate relative constraints", {
+  # Fixed-unit columns (cm, in, mm) are not affected by relative percentage constraints
+  spec <- create_table(test_df_simple)  # 3 columns
+  
+  # Set a column to a fixed width - should not trigger percentage validation
+  expect_no_error(
+    spec <- define_cols(spec, id, colWidth = "5cm")
+  )
+  
+  # Verify metadata shows it's fixed unit
+  expect_equal(spec$.metadata$colWidths$id$unit, "cm")
+})
+
+test_that("define_cols() rejects relative width below 0.5%", {
+  spec <- create_table(test_df_simple)
+  
+  # Try to set relative width below minimum (0.5%)
+  expect_error(
+    define_cols(spec, id, colWidth = "0.3%"),
+    "below minimum allowed"
+  )
+  
+  expect_error(
+    define_cols(spec, id, colWidth = "0%"),
+    "below minimum allowed"
+  )
+  
+  # 0.5% should work (is the minimum)
+  expect_no_error(
+    spec <- define_cols(spec, id, colWidth = "0.5%")
+  )
+})
+
+test_that("define_cols() rejects fixed width below 0.2cm", {
+  spec <- create_table(test_df_simple)
+  
+  # Try to set fixed width below minimum (0.2cm)
+  expect_error(
+    define_cols(spec, id, colWidth = "0.1cm"),
+    "below minimum allowed"
+  )
+  
+  expect_error(
+    define_cols(spec, id, colWidth = "0cm"),
+    "below minimum allowed"
+  )
+  
+  # 0.2cm should work (is the minimum)
+  expect_no_error(
+    spec <- define_cols(spec, id, colWidth = "0.2cm")
+  )
+})
+
+test_that("define_cols() accepts equivalent fixed widths (cm, in, mm conversions)", {
+  spec <- create_table(test_df_simple)
+  
+  # These should all be approximately equivalent to 0.2cm and should pass
+  # 0.2cm = 0.0787in ≈ 0.079in
+  # 0.2cm = 2mm
+  
+  expect_no_error(spec <- define_cols(spec, id, colWidth = "0.2cm"))
+  
+
+  spec <- create_table(test_df_simple)
+  expect_no_error(spec <- define_cols(spec, id, colWidth = "0.08in"))
+  
+  # Below minimum in equivalent units should fail
+  expect_error(
+    define_cols(spec, id, colWidth = "0.15cm"),  # 0.15cm < 0.2cm
+    "below minimum allowed"
+  )
+})
+
+test_that("minimum width error messages show helpful conversion info", {
+  spec <- create_table(test_df_simple)
+  
+  # Capture error for fixed width
+  error <- tryCatch(
+    define_cols(spec, id, colWidth = "0.1cm"),
+    error = function(e) e
+  )
+  
+  error_msg <- conditionMessage(error)
+  expect_true(grepl("below minimum allowed", error_msg))
+  expect_true(grepl("0.2cm", error_msg))
+})

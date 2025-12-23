@@ -49,7 +49,7 @@ export(
   add_footer,
   
   # Stub column definition
-  add_stub_column,
+  add_span_header,
   
   # Document configuration
   set_document,

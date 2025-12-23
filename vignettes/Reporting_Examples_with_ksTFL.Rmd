@@ -378,6 +378,54 @@ print(spec_mixed)
 
 **Important**: When mixing units (cm, in, pt) with percentages, the absolute widths are reserved first, then percentages are calculated from remaining space.
 
+### Example 5: Width validation and constraints
+
+The package validates column widths to prevent invalid configurations:
+
+```{r example_colwidth_validation, eval = FALSE}
+spec_valid <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
+
+# VALID: Set a reasonable relative width
+spec_valid <- define_cols(spec_valid, ALT,
+                          colWidth = "30%")  # OK: 30% is valid
+
+# INVALID: Cannot set 100% relative width (leaves no space for other columns)
+# This will raise an error:
+# spec_valid <- define_cols(spec_valid, ALT, colWidth = "100%")
+# Error: relative width 100.0% exceeds maximum allowed 75.0% 
+#        (accounting for locked columns and minimum 0.5% for other columns)
+
+# INVALID: Cannot set width below minimum threshold
+# spec_valid <- define_cols(spec_valid, AST, colWidth = "0.2%")
+# Error: relative width 0.2% is below minimum 0.5%
+
+# Minimum width constraints (can be customized via package options):
+# - Relative widths (%): minimum 0.5%
+# - Fixed widths (cm, in, pt): minimum 0.2cm (~2mm, ~0.08in)
+
+# Configure minimum width via package options:
+tfl_set_options(minColWidth = 1.0)  # Set minimum relative width to 1.0%
+
+# Now 0.5% will fail, but 1.0% will succeed
+spec_valid <- define_cols(spec_valid, AST,
+                          colWidth = "1.0%")  # OK with new minimum
+
+print(spec_valid)
+```
+
+**Width validation rules**:
+- **Relative width (%)**: Must be ≥ `minColWidth` (default 0.5%)
+- **Relative width (%)**: Cannot exceed max allowed considering locked columns and other column minimums
+- **Fixed width**: Must be ≥ 0.2cm (all units: cm, in, pt, mm automatically converted)
+- **Incompatible widths**: Cannot set width to 100% (would exclude all other columns)
+
+**Error messages** are detailed and show the maximum allowed width when you exceed limits:
+```
+Error: relative width 100.0% exceeds maximum allowed 75.0% 
+       (accounting for 2 locked columns requiring 25% total, 
+        and minimum 0.5% for remaining 1 unlocked column)
+```
+
 ---
 
 ## 8 — Table with multiple levels (headers/subheaders), titles and footnotes
@@ -411,7 +459,7 @@ res_multi
 
 ## 9 — Stub columns (spanning headers)
 
-Goal: demonstrate `add_stub_column()` to create stacked/spanning stub headers above groups of columns.
+Goal: demonstrate `add_span_header()` to create stacked/spanning stub headers above groups of columns.
 
 ### Why spanning headers?
 
@@ -433,7 +481,7 @@ spec_stub_simple <- define_cols(spec_stub_simple,
                                 label = c("Subject","Age","Sex","Treatment"))
 
 # Add a spanning header for "Demographics" above age and sex
-spec_stub_simple <- add_stub_column(spec_stub_simple, 
+spec_stub_simple <- add_span_header(spec_stub_simple, 
                                     cols = c("age", "sex"), 
                                     label = "Demographics")
 
@@ -442,6 +490,49 @@ print(spec_stub_simple)
 ```
 
 **Result**: A table with column labels on one row and a "Demographics" header spanning age+sex columns above it.
+
+### Example 1b: Using tidyselect helpers with spanning headers
+
+`add_span_header()` supports all tidyselect expressions — use helpers for flexible column selection:
+
+```{r example_stubs_tidyselect, eval = FALSE}
+# Table with mixed column types
+mixed_data <- data.frame(
+  id = 1:10,
+  age_baseline = rnorm(10, 45, 10),
+  age_follow = rnorm(10, 46, 10),
+  weight_baseline = rnorm(10, 70, 10),
+  weight_follow = rnorm(10, 71, 10)
+)
+
+spec_tidysel <- create_table(mixed_data)
+
+# Using starts_with() helper
+spec_tidysel <- add_span_header(spec_tidysel, 
+                                cols = starts_with("age"),
+                                label = "Age Measurements",
+                                stubOrder = 0)
+
+# Using negation (-) to exclude columns
+spec_tidysel <- add_span_header(spec_tidysel,
+                                cols = -id,
+                                label = "Baseline and Follow",
+                                stubOrder = 1)
+
+# Using matches() regex pattern
+spec_tidysel <- add_span_header(spec_tidysel,
+                                cols = matches("_baseline$"),
+                                label = "Baseline Visits",
+                                stubOrder = 2)
+
+print(spec_tidysel)
+```
+
+**Tidyselect expressions supported**:
+- **Ranges**: `cols = age:weight` (all columns between age and weight)
+- **Helpers**: `cols = starts_with("age")`, `contains("baseline")`, `matches("^w")`
+- **Negation**: `cols = -id` (all columns except id)
+- **Combinations**: `cols = c(starts_with("age"), weight_baseline)`
 
 ### Example 2: Multiple stubs at different levels
 
@@ -465,13 +556,13 @@ spec_stubs_multi <- define_cols(spec_stubs_multi,
                                 label = c("Subject ID", "SBP", "DBP", "SBP", "DBP"))
 
 # Add first stub spanning baseline measurements
-spec_stubs_multi <- add_stub_column(spec_stubs_multi,
+spec_stubs_multi <- add_span_header(spec_stubs_multi,
                                     cols = c("baseline_sbp", "baseline_dbp"),
                                     label = "Baseline",
                                     stubOrder = 1)
 
 # Add second stub spanning week 12 measurements
-spec_stubs_multi <- add_stub_column(spec_stubs_multi,
+spec_stubs_multi <- add_span_header(spec_stubs_multi,
                                     cols = c("week12_sbp", "week12_dbp"),
                                     label = "Week 12",
                                     stubOrder = 2)
@@ -505,7 +596,7 @@ spec_stubs_style <- define_cols(spec_stubs_style,
                                 label = c("Subject ID", "Age", "Sex", "Treatment"))
 
 # Add stub with style reference
-spec_stubs_style <- add_stub_column(spec_stubs_style,
+spec_stubs_style <- add_span_header(spec_stubs_style,
                                     cols = c("age", "sex"),
                                     label = "Demographics",
                                     labelStyleRef = "stub_header")
@@ -517,7 +608,7 @@ print(spec_stubs_style)
 Notes: 
 - `labelStyleRef` can be a single style name or multiple styles combined with `f_combine()`
 - Stub labels inherit the applied style, making grouped columns visually distinct
-- Styles must be defined before referencing them in `add_stub_column()`
+- Styles must be defined before referencing them in `add_span_header()`
 
 ```{r save_stub, eval = FALSE}
 # Save stubbed table report
@@ -798,3 +889,4 @@ This comprehensive vignette demonstrates the complete ksTFL reporting pipeline u
 **Running examples locally**: Set the top chunk `eval=TRUE` to generate sample data, then execute examples in order. All code uses exported functions only — no internal API manipulation needed.
 
 For more details on function parameters, see the roxygen documentation: `?create_table`, `?define_cols`, `?add_style`, `?save_report`, etc.
+

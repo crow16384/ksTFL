@@ -411,6 +411,168 @@ utils::globalVariables(
   list(unit = unit, value = value)
 }
 
+#' Validate Column Width Against Minimum Thresholds
+#'
+#' Checks if a proposed column width meets the minimum allowed value.
+#' Minimums differ by unit:
+#' - Relative widths (%): minimum 0.5%
+#' - Fixed widths (cm): minimum 0.2cm
+#' - Other fixed units (in, mm, pt): converted to equivalent cm and checked
+#'
+#' @param width_info List from `.parse_colwidth()` with `unit` and `value` fields
+#' @param proposed_col_width_str Original width string for error messaging (e.g., "0.1%")
+#'
+#' @return Invisibly returns TRUE if valid. Throws cli_abort() if invalid.
+#'
+#' @keywords internal
+#' @noRd
+.validate_colwidth_minimum <- function(width_info, proposed_col_width_str) {
+  
+  unit <- tolower(width_info$unit)
+  value <- width_info$value
+  
+  if (unit == "%") {
+    min_width <- 0.5
+    if (value < min_width) {
+      cli_abort(c(
+        "Column width {.str {proposed_col_width_str}} is below minimum allowed",
+        x = "Relative widths must be at least {min_width}%",
+        i = "Proposed: {value}%"
+      ))
+    }
+  } else {
+    # Fixed-unit widths: convert to cm and check minimum of 0.2cm
+    min_width_cm <- 0.2
+    
+    # Convert to cm for comparison
+    value_cm <- switch(unit,
+      "cm" = value,
+      "in" = value * 2.54,        # 1 inch = 2.54 cm
+      "mm" = value / 10,          # 10 mm = 1 cm
+      "pt" = value * 0.0353,      # 1 point ≈ 0.0353 cm
+      value  # fallback to original if unknown unit
+    )
+    
+    if (value_cm < min_width_cm) {
+      # Display error in original units
+      cli_abort(c(
+        "Column width {.str {proposed_col_width_str}} is below minimum allowed",
+        x = "Fixed-unit widths must be at least {min_width_cm}cm (≈ 0.08in)",
+        i = "Proposed: {value}{unit} (≈ {format(round(value_cm, 2), nsmall = 2)}cm)"
+      ))
+    }
+  }
+  
+  invisible(TRUE)
+}
+
+#' Validate Relative Column Width Against Constraints
+#'
+#' Checks if setting a relative width on one column would leave insufficient
+#' space for other unlocked columns to meet the minimum width threshold.
+#'
+#' @param spec TFL_spec object with columns and metadata
+#' @param col_id Column ID being locked
+#' @param proposed_width_pct Proposed relative width as numeric (e.g., 100 for "100%")
+#' @param proposed_col_width_str Original width string for error messaging (e.g., "100%")
+#'
+#' @return Invisibly returns TRUE if valid. Throws cli_abort() if invalid.
+#'
+#' @details
+#' Algorithm:
+#' 1. Count total columns in spec
+#' 2. Identify already-locked relative-width columns
+#' 3. Calculate total locked % width
+#' 4. Identify remaining unlocked columns
+#' 5. Check if remaining space can accommodate unlocked columns at minimum width
+#' 6. If not, provide detailed error message with maximum allowed width
+#'
+#' @keywords internal
+#' @noRd
+.validate_relative_colwidth <- function(spec, col_id, proposed_width_pct, 
+                                        proposed_col_width_str) {
+  
+  # Get minimum width threshold from options
+  min_width <- tfl_get_option("minColWidth")
+  
+  # Count total columns
+  total_cols <- length(spec$columns)
+  
+  # Get column width metadata
+  col_meta <- spec$.metadata$colWidths
+  if (is.null(col_meta)) {
+    return(invisible(TRUE))
+  }
+  
+  col_ids <- names(col_meta)
+  
+  # Find already-locked relative-width columns (excluding the one being set now)
+  locked_relative_total <- 0
+  locked_count <- 0
+  
+  for (cid in col_ids) {
+    if (cid == col_id) next  # Skip the column being set
+    meta <- col_meta[[cid]]
+    if (!is.null(meta$locked) && meta$locked && meta$unit == "%") {
+      locked_relative_total <- locked_relative_total + meta$value
+      locked_count <- locked_count + 1
+    }
+  }
+  
+  # Calculate space after the NEW width is locked
+  new_locked_total <- locked_relative_total + proposed_width_pct
+  remaining_space <- 100 - new_locked_total
+  
+  # Count unlocked columns (excluding the one being set, which will become locked)
+  unlocked_count <- total_cols - locked_count - 1L  # -1 for the column being set
+  
+  # Check constraint: can remaining unlocked columns fit at minimum width?
+  required_space <- unlocked_count * min_width
+  
+  if (remaining_space < required_space) {
+    # Calculate maximum allowed width for this column
+    max_allowed <- 100 - (locked_relative_total + unlocked_count * min_width)
+    
+    # Build error message parts conditionally
+    error_parts <- c(
+      "Cannot set column {.arg {col_id}} to {.str {proposed_col_width_str}}",
+      x = paste0(
+        "This would leave insufficient space for the remaining {unlocked_count} ",
+        "unlocked column{if (unlocked_count != 1) 's' else ''} to meet the minimum ",
+        "width of {min_width}%."
+      )
+    )
+    
+    # Only include locked columns info if there are actually locked columns
+    if (locked_count > 0) {
+      error_parts <- c(
+        error_parts,
+        i = paste0(
+          "Currently {locked_count} column{if (locked_count != 1) 's are' else ' is'} ",
+          "already locked at {locked_relative_total}%."
+        )
+      )
+    }
+    
+    # Add remaining constraint and solution info
+    error_parts <- c(
+      error_parts,
+      i = paste0(
+        "After this change, {unlocked_count} column{if (unlocked_count != 1) 's need' else ' needs'} ",
+        "{required_space}% total. Remaining space available: {remaining_space}%."
+      ),
+      i = paste0(
+        "Maximum allowed relative width for {.arg {col_id}}: {format(round(max_allowed, 1), nsmall = 1)}%"
+      ),
+      i = "Reduce the proposed width or adjust other locked widths"
+    )
+    
+    cli_abort(error_parts)
+  }
+  
+  invisible(TRUE)
+}
+
 #' Recalculate Column Widths Based on User Settings
 #'
 #' Implements the column width recalculation algorithm per spec in columns_width_recalc.txt.

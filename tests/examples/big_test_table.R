@@ -1,6 +1,6 @@
 set.seed(123)
 
-n <- 100000
+n <- 5000
 
 big_tbl <- tibble(
   id_int           = seq_len(n),
@@ -47,8 +47,9 @@ big_tbl <- tibble(
   id_chr           = paste0("ID-", sample(100000:999999, n, TRUE))
 )
 
+
 # add labels (optional but useful for testing)
 attr(big_tbl$id_int, "label") <- "Record identifier"
 attr(big_tbl$value_num, "label") <- "Measured value"
-attr(big_tbl$comment_chr, "label") <- "User comment (may span\nmultiple lines)"
+attr(big_tbl$comment_chr, "label") <- "User comment (may span multiple lines)"
 attr(big_tbl$text_utf8, "label") <- "International text"

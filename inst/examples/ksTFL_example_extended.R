@@ -8,8 +8,8 @@ spec_stub <- create_table(mtcars)
 spec_stub <- spec_stub |> define_cols(c(mpg, hp, wt), label = c("MPG","HP","Weight"))
 
 # Add a stub spanning mpg+hp and another for wt
-spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp"), label = "Engine metrics")
-spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass")
+spec_stub <- spec_stub |> add_span_header(cols = c("mpg", "hp"), label = "Engine metrics")
+spec_stub <- spec_stub |> add_span_header(cols = "wt", label = "Mass")
 
 cat("Stub columns defined:\n")
 print(spec_stub$stubColumns)
@@ -37,3 +37,4 @@ report2 <- create_report(spec_stub, spec_text)
 res2 <- save_report(report2, docFileName = "example_stub_report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
 cat("Saved stub report files:\n")
 print(res2)
+

@@ -739,10 +739,15 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @noRd
 .col_format_spec <- function(type=NULL, format = NULL, missings = NULL, 
                              colWidth = NULL, valueStyleRef = NULL) {
-  .validate_enum(type, .const_column_types, "type", "col_format_spec")
+  # Only validate and include type if it's provided (not NULL)
+  if (!is.null(type)) {
+    .validate_enum(type, .const_column_types, "type", "col_format_spec")
+  }
   
-  params <- list(type = type)
+  params <- list()
   
+  # Only include non-NULL parameters
+  if (!is.null(type)) params$type <- type
   if (!is.null(format)) params$format <- format
   if (!is.null(missings)) params$missings <- missings
   
@@ -1818,6 +1823,14 @@ define_cols <- function(spec, cols,
         ))
       }
       
+      # Validate minimum width threshold
+      .validate_colwidth_minimum(width_info, col_colwidth)
+      
+      # If this is a relative width (%), validate it against column constraints
+      if (width_info$unit == "%") {
+        .validate_relative_colwidth(spec, col_id, width_info$value, col_colwidth)
+      }
+      
       if (!is.null(spec$.metadata$colWidths[[col_id]])) {
         spec$.metadata$colWidths[[col_id]]$locked <- TRUE
         spec$.metadata$colWidths[[col_id]]$unit <- width_info$unit
@@ -2391,32 +2404,98 @@ add_footer.default <- function(spec, ...) {
 
 #' Add stub (spanning) column definition
 #' 
-#' Define a spanning header that covers multiple columns.
+#' Define a spanning header that covers multiple columns. Can be used to create
+#' multi-level headers by specifying different `stubOrder` values.
 #' 
 #' @param spec TFL spec object
-#' @param cols Character vector of column IDs to span
+#' @param cols Columns to span using tidyselect syntax. Accepts:
+#'   \itemize{
+#'     \item Named columns: \code{c("age", "sex")}
+#'     \item Column ranges: \code{age:sex}
+#'     \item Helper functions: \code{starts_with("age_")}, \code{contains("_pct")}
+#'     \item Negation: \code{-id} or \code{!matches("^temp")}
+#'   }
 #' @param label Spanning header label
-#' @param stubOrder Order of stub header (auto-generated if NULL)
+#' @param stubOrder Order of stub header (auto-generated if NULL). Used to create
+#'   multi-level headers: lower numbers appear abbelowove higher numbers. Multiple stubs
+#'   at the same order are allowed if their column sets do not overlap.
 #' @param id Stub column identifier (auto-generated if NULL)
 #' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' 
 #' @return Updated spec object
 #' @export
 #' 
+#' @details
+#' ## Column Overlap Rules
+#' 
+#' Stubs at the **same** `stubOrder` cannot share columns (to avoid ambiguous headers).
+#' However, stubs at **different** `stubOrder` values can overlap freely.
+#'
+#' This allows hierarchical header structures:
+#' - `stubOrder = 1`: first-level grouping above the column headers
+#' - `stubOrder = 2`: next-level grouping above the first-level etc..
+#'
+#'
 #' @examples
 #' \dontrun{
-#' data <- data.frame(id = 1:10, age = rnorm(10, 45, 10), sex = sample(c("M", "F"), 10, TRUE))
+#' data <- data.frame(
+#'   id = 1:10, 
+#'   age = rnorm(10, 45, 10), 
+#'   sex = sample(c("M", "F"), 10, TRUE),
+#'   weight = rnorm(10, 70, 10),
+#'   height = rnorm(10, 170, 10)
+#' )
+#' 
+#' # Example 1: Single-level spanning header
 #' spec <- create_table(data) |>
-#'   add_stub_column(
-#'     cols = c("age", "sex"),
+#'   add_span_header(
+#'     cols = c(age, sex),  # Using tidyselect (unquoted column names)
 #'     label = "Demographics",
 #'     labelStyleRef = c("stub_label_style", "bold")
 #'   )
+#'
+#' # Example 2: Two-level header hierarchy
+#' spec <- create_table(data) |>
+#'   add_span_header(cols = c(age, sex, weight, height), label = "All Measurements", stubOrder = 0) |>
+#'   add_span_header(cols = c(age, sex), label = "Demographics", stubOrder = 1) |>
+#'   add_span_header(cols = c(weight, height), label = "Physical", stubOrder = 1)
+#'
+#' # Example 3: Three-level header hierarchy
+#' spec <- create_table(data) |>
+#'   add_span_header(cols = starts_with("a") | starts_with("w") | starts_with("h"), 
+#'                   label = "Main Data", stubOrder = 0) |>
+#'   add_span_header(cols = c(age, sex), label = "Demographics", stubOrder = 1) |>
+#'   add_span_header(cols = c(weight, height), label = "Physical", stubOrder = 1) |>
+#'   add_span_header(cols = age, label = "Age Details", stubOrder = 2)
+#'
+#' # Example 4: Using tidyselect helpers
+#' spec <- create_table(data) |>
+#'   add_span_header(cols = contains("age"), label = "Age-related", stubOrder = 0) |>
+#'   add_span_header(cols = matches("^w"), label = "Weight", stubOrder = 0)
+#'
+#' # Example 5: Negation to exclude columns
+#' spec <- create_table(data) |>
+#'   add_span_header(cols = -id, label = "Measurements", stubOrder = 0)
+#'
+#' # Example 6: Multiple non-overlapping stubs at same level
+#' spec <- create_table(data) |>
+#'   add_span_header(cols = c(age, sex), label = "Group1", stubOrder = 1) |>
+#'   add_span_header(cols = c(weight, height), label = "Group2", stubOrder = 1)  # OK: no overlap
 #' }
-add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL, 
+#' 
+#' @details
+#' Multiple calls with the same `stubOrder` are allowed as long as their column sets 
+#' do not overlap. This enables building complex header structures incrementally.
+add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL, 
                             labelStyleRef = NULL) {
   assert_class(spec, "TFL_spec")
-  assert_character(cols)
+  
+  # Process tidyselect expressions
+  cols <- enquos(cols)
+  cols <- .get_data_column_names(spec$.metadata$data_env$`__data__`, !!!cols)
+  
+  cols <- intersect(cols, names(spec$columns))  # keep only columns that exist in spec definition
+  assert_character(cols, min.len = 1)
   
   if (is.null(id)) {
     id <- .auto_id("stub_", spec$stubColumns)
@@ -2425,7 +2504,7 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
   # Validate required fields
   required <- c("cols", "label")
   provided <- list(cols = cols, label = label)
-  .validate_required(provided, required, "add_stub_column")
+  .validate_required(provided, required, "add_span_header")
   
   # Auto-generate stubOrder if NULL
   if (is.null(stubOrder)) {
@@ -2463,7 +2542,7 @@ add_stub_column <- function(spec, cols, label, stubOrder = NULL, id = NULL,
   }
 
   # Validate params against schema (stub_column)
-  .validate_params(params, "stub_column", "add_stub_column")
+  .validate_params(params, "stub_column", "add_span_header")
 
   # Merge with existing stub if present
   spec$stubColumns[[id]] <- .merge_recursive(spec$stubColumns[[id]], params)
