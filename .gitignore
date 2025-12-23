@@ -47,4 +47,5 @@ coverage/
 # Testing
 tests/testthat/test-results/
 /doc/
+/docs/
 /Meta/

@@ -88,6 +88,10 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   ellipsize <- function(x, max_len) {
     s <- as.character(x)
     if (is.na(s) || s == "") return("")
+    # Replace control characters that could break table formatting
+    s <- gsub("[\n\r\t]", " ", s, fixed = FALSE)
+    # Collapse multiple spaces to single space
+    s <- gsub(" +", " ", s)
     if (nchar(s) > max_len) paste0(substr(s, 1, max_len - 1), "\u2026") else s
   }
 
@@ -100,6 +104,8 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   # Extract column metadata from spec
   .extract_column_info <- function(cn, cs) {
     lab <- cs$label %||% cs$colLabel %||% ""
+    # Replace newlines and other control characters with spaces to prevent table misalignment
+    lab <- gsub("[\n\r\t]", " ", lab, fixed = FALSE)
     fmt_val <- cs$format %||% cs$c_format %||% NULL
     ftype <- ""
     ffmt <- ""
@@ -228,6 +234,30 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
 
   render_text_list(x$titles, "Titles")
   render_text_list(x$subtitles, "Subtitles")
+
+  # Stub columns (spanning headers) - displayed before columns table
+  if (length(x$stubColumns %||% list()) > 0) {
+    .colored_rule("Spanning Headers (Stubs)", col_magenta)
+    
+    stub_list <- x$stubColumns
+    # Sort by stubOrder for display
+    stub_orders <- vapply(stub_list, function(s) s$stubOrder %||% 0, numeric(1))
+    stub_idx <- order(stub_orders)
+    
+    for (i in stub_idx) {
+      stub <- stub_list[[i]]
+      stub_order <- stub$stubOrder %||% "N/A"
+      cols_spanned <- paste(stub$cols, collapse = ", ")
+      style_ref <- if (!is.null(stub$labelStyleRef)) {
+        style_vec <- if (is.list(stub$labelStyleRef)) unlist(stub$labelStyleRef) else as.character(stub$labelStyleRef)
+        style_vec <- style_vec[!is.na(style_vec) & nzchar(style_vec)]
+        if (length(style_vec) > 0) paste0(" [style: ", col_magenta(paste(style_vec, collapse = ", ")), "]") else ""
+      } else ""
+      
+      label_display <- ellipsize(stub$label %||% "", .const_max_label_width)
+      cli::cli_text("{.strong Level {stub_order}:} {label_display}, {.em Spans:} {cols_spanned}{style_ref}")
+    }
+  }
 
   # Columns: Complete table with flags and styles
   if (n_cols > 0) {

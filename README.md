@@ -38,8 +38,8 @@ save_report(report, docFileName = "clinical_report.json", outDir = "./output")
 
 ## Documentation
 
-- **[Complete Vignette](vignettes/ksTFL-vignette.Rmd)** - Comprehensive guide covering workflow, styling, options, and examples
-- **[API Reference](man/)** - Detailed roxygen documentation for all exported functions
+- **[Complete Vignette](articles/Getting_Started_with_ksTFL.html)** - Comprehensive guide covering workflow, styling, options, and examples
+- **[API Reference](reference/index.html)** - Detailed roxygen documentation for all exported functions
 - **Quick Reference**:
   - `create_table()`, `create_figure()`, `create_text()` — Initialize specs
   - `add_title()`, `add_subtitle()`, `add_body_text()`, `add_footnote()` — Add content

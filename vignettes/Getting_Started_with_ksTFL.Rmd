@@ -12,251 +12,517 @@ vignette: >
 knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
 ```
 
-**Introduction**
+## Introduction
 
-ksTFL is a lightweight R toolkit to build metadata specifications for clinical Tables, Figures and Text (TFLs). It focuses on declarative, reproducible metadata generation (a `TFL_spec` or combined `TFL_report`) that can be serialized and handed to an external renderer (for example a Python DOCX renderer).
+**What is ksTFL?**
 
-The package is designed for clinical reporting workflows where precise control over titles, headers/footers, column formatting and style templates is required. Unlike ad-hoc table formatters (e.g. `flextable`, `huxtable`, `officer`), ksTFL separates metadata generation from rendering: you describe "what" the document contains and how it should look, and the renderer produces the final file. This enables consistent styling across many documents and easier automation.
+ksTFL is a lightweight R toolkit for building metadata specifications for clinical Tables, Figures, and Text (TFLs). Unlike traditional table formatters (flextable, huxtable, officer), ksTFL separates *metadata generation* from *rendering*:
+- **You define**: Document structure, content, column formats, and styles in R
+- **ksTFL generates**: A structured specification (JSON metadata + data files)
+- **External renderer**: Consumes the specification and produces the final DOCX/PDF/HTML file
 
-Why use ksTFL vs other tools: ksTFL centralizes schema-driven metadata, provides tidyselect-based column selection, consistent cascading style resolution, and a pipeline to produce JSON metadata + data files for an external renderer — making it a good fit for clinical document automation.
+This separation enables:
+- **Consistency**: All tables follow the same style templates
+- **Automation**: Generate 50+ tables with consistent formatting and minimal code
+- **Reproducibility**: Specifications are version-controllable and auditable
+- **Flexibility**: Swap renderers without changing your R code
 
-**General workflow**
+**When to use ksTFL:**
+- Regulatory clinical reporting (FDA, EMA submissions)
+- Large-scale automated reporting (100+ tables from common data sources)
+- Complex styling requirements (multi-level headers, spanning columns, conditional formatting)
+- When you need JSON metadata for downstream processing
 
-At a high level the package builds a specification object for each document (table, figure, or text) and then combines them into a report. The main pieces of a document spec are:
+---
 
-- headers — page headers (left/center/right) rows
-- titles — document titles placed either in header or body
-- subtitles — secondary titles
-- document body — one of Table, Figure, or Text
-- footnotes — grouped footnotes
-- footers — page footers (left/center/right)
+## General workflow
 
-Each spec also includes `attribs` (document-level style/template settings) and `attribs$styles` where you define named styles and compose them. Styles are merged using a last-win strategy and style combinations are consolidated when you create a final report.
+### High-level pipeline
 
-Spanning (stub) columns are described in detail below in the "Stub columns and multi-level stub headers" section. See that section for examples and rules.
+```
+Data Frame / Image File
+       ↓
+create_table() / create_figure() / create_text()
+       ↓
+TFL_spec (customize with define_cols(), add_style(), add_title())
+       ↓
+create_report() (assemble specs, consolidate styles)
+       ↓
+TFL_report
+       ↓
+save_report() (validate, serialize, write JSON + data files)
+       ↓
+Metadata + Data Files → External Renderer → Final DOCX
+```
 
-**Introduction**
+### Anatomy of a TFL spec
 
-This short vignette explains the ksTFL end-to-end workflow and gives minimal examples to get started quickly. For focused styling details see the [Styling Guide](Styling_Guide_with_ksTFL.Rmd). For worked reporting examples see [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd).
+Each `TFL_spec` contains:
 
-## Quick pipeline (2-minute example)
+| Component | Purpose | How to modify |
+|-----------|---------|---------------|
+| **document** | Metadata (docType, title, page settings) | `set_document()`, `set_page_style()` |
+| **columns** | Column definitions, labels, formats, styles | `define_cols()` |
+| **stubColumns** | Spanning headers above column groups | `add_stub_column()` |
+| **headers** | Page header text (left/center/right) | `add_header()` |
+| **titles** | Main document titles | `add_title()` |
+| **subtitles** | Secondary titles | `add_subtitle()` |
+| **bodyText** | Narrative content | `add_body_text()` |
+| **footnotes** | Document footnotes | `add_footnote()` |
+| **footers** | Page footer text | `add_footer()` |
+| **styles** | Named styles defined with `add_style()` | `add_style()` |
 
-```r
-# 1) Create a table spec
+---
+
+## Quick 5-minute example
+
+Get a working spec in 5 minutes:
+
+```{r quick_pipeline, eval = FALSE}
+library(ksTFL)
+
+# 1. Create a table spec from data
+spec <- create_table(mtcars, cols = c(mpg, cyl, hp))
+
+# 2. Define a style and apply it
+spec <- add_style(spec, id = "header_bold",
+  s_font(bold = TRUE, font_size = "12pt"))
+
+# 3. Customize columns
+spec <- define_cols(spec, c(mpg, cyl, hp),
+  label = c("MPG", "Cylinders", "HP"),
+  type = c("numeric", "numeric", "numeric"),
+  format = c("%.1f", "%.0f", "%.0f"),
+  labelStyleRef = "header_bold")
+
+# 4. Add titles
+spec <- add_title(spec, "Motor Trends Dataset")
+spec <- add_footnote(spec, "Data from mtcars (1974).")
+
+# 5. Inspect the spec
+print(spec)
+
+# 6. Save for rendering
+report <- create_report(spec)
+save_report(report, docFileName = "my_table.docx", outDir = "./output", metaPath = tempdir())
+```
+
+---
+
+## Step 1: Create a TFL_spec
+
+Choose the document type and initialize:
+
+### Table spec (from data frame)
+
+```{r create_table_spec, eval = FALSE}
+# Simple: all columns
+spec_tbl <- create_table(mtcars)
+
+# Select specific columns with tidyselect
+spec_tbl <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
+
+# With prefix (used in file naming)
+spec_tbl <- create_table(mtcars, cols = c(mpg, cyl), docPrefix = "t01s01")
+```
+
+**What happens**: 
+- Data is copied into the spec's internal environment (not modifiable)
+- Columns are auto-analyzed (type detection, width calculation)
+- A `TFL_spec` object is returned ready for customization
+
+### Figure spec (from image file)
+
+```{r create_figure_spec, eval = FALSE}
+spec_fig <- create_figure(data = "path/to/plot.png")
+
+# Optional: with prefix
+spec_fig <- create_figure(data = "plots/figure1.png", docPrefix = "fig01")
+```
+
+**What happens**:
+- File path is validated (must exist and be readable)
+- Minimal metadata is created
+- Figure will be copied to output directory when saved
+
+### Text spec (narrative content)
+
+```{r create_text_spec, eval = FALSE}
+spec_txt <- create_text()
+
+# Add narrative content
+spec_txt <- add_body_text(spec_txt, "This analysis includes all subjects in the safety population.")
+```
+
+**What happens**:
+- Empty spec with no data
+- Ready for narrative content via `add_body_text()`
+
+---
+
+## Step 2: Customize columns (define_cols)
+
+After creating a table spec, customize columns with `define_cols()`:
+
+### Single column
+
+```{r define_single_column, eval = FALSE}
+spec <- define_cols(spec, mpg,
+  label = "Miles per Gallon",
+  type = "numeric",
+  format = "%.1f",
+  colWidth = "20%")
+```
+
+### Batch update (multiple columns with single values)
+
+```{r define_batch_single, eval = FALSE}
+# Apply same label format to all columns
+spec <- define_cols(spec, c(mpg, cyl, hp),
+  label = c("MPG", "Cylinders", "HP"),
+  type = "numeric",        # Recycled to all 3
+  format = "%.0f")         # Recycled to all 3
+```
+
+### Per-column customization
+
+```{r define_batch_mapped, eval = FALSE}
+# Different format for each column
+spec <- define_cols(spec, c(mpg, cyl, hp),
+  label = c("MPG", "Cylinders", "HP"),
+  type = c("numeric", "numeric", "numeric"),
+  format = c("%.1f", "%.0f", "%.0f"))
+```
+
+**Key parameters**:
+- `label`: Column header text
+- `type`: "numeric" or "string" (auto-detected if omitted)
+- `format`: Format string (e.g., "%.2f", "0.00")
+- `colWidth`: Column width (e.g., "20%", "2cm")
+- `isID`: TRUE if column repeats on page breaks
+- `labelStyleRef`: Style(s) to apply to column header
+- `valueStyleRef`: Style(s) to apply to cell values
+
+See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed column customization patterns.
+
+---
+
+## Step 4: Define styles (add_style)
+
+Create reusable named styles with `add_style()`:
+
+```{r define_styles, eval = FALSE}
 spec <- create_table(mtcars)
 
-# 2) Define a simple style and column formats
-spec <- spec |> add_style("numeric_right", s_paragraph(alignment = "right"))
-spec <- spec |> define_cols(c(mpg, hp), label = c("MPG","HP"), type = c("numeric","numeric"), format = c("%.1f","%.0f"), valueStyleRef = "numeric_right")
+# Header style: bold, 12pt, centered, gray background
+spec <- add_style(spec, id = "table_header",
+  s_font(font_name = "Arial", font_size = "12pt", bold = TRUE),
+  s_paragraph(alignment = "center"),
+  s_table_style(background_color = "#E0E0E0"))
 
-# 3) Add titles and combine into a report
-spec <- spec |> add_title("Demographics")
+# Numeric style: right-aligned
+spec <- add_style(spec, id = "numeric_right",
+  s_paragraph(alignment = "right"))
+
+# Apply to columns
+spec <- define_cols(spec, c(mpg, hp),
+  labelStyleRef = "table_header",
+  valueStyleRef = "numeric_right")
+```
+
+**Best practice**: Define styles once, reference by id (name) throughout your spec.
+
+For comprehensive styling details see [Styling Guide](Styling_Guide_with_ksTFL.Rmd).
+
+---
+
+## Step 5: Add spanning headers (stub columns)
+
+Create multi-level headers with `add_stub_column()`:
+
+```{r add_stubs, eval = FALSE}
+spec <- create_table(mtcars)
+spec <- define_cols(spec, c(mpg, cyl, hp, wt),
+  label = c("MPG", "Cyl", "HP", "Weight"))
+
+# Top-level stub spanning all columns
+spec <- add_stub_column(spec, cols = c("mpg", "cyl", "hp", "wt"),
+  label = "Motor Vehicle Specs",
+  stubOrder = 1)
+
+# Second-level stubs: finer grouping
+spec <- add_stub_column(spec, cols = c("mpg", "cyl", "hp"),
+  label = "Engine",
+  stubOrder = 2)
+spec <- add_stub_column(spec, cols = "wt",
+  label = "Weight",
+  stubOrder = 2)
+```
+
+**Key concepts**:
+- `cols`: Column names (from `spec$columns`) to span
+- `label`: Spanning header text
+- `stubOrder`: Vertical stacking order (lower = closer to top; auto-generated if NULL)
+- `labelStyleRef`: Style for the stub header label
+
+**Rules**:
+- Stubs with the same `stubOrder` sit on the same row
+- Overlapping columns only allowed if stubs have different `stubOrder`
+- Use `add_style()` to style stub labels
+
+See [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for styling stubs.
+
+---
+
+## Step 6: Add titles, footnotes, headers, footers
+
+Add document content layers:
+
+```{r add_content, eval = FALSE}
+spec <- create_table(mtcars)
+
+# Titles and subtitles
+spec <- add_title(spec, "Demographics")
+spec <- add_subtitle(spec, "Motor Vehicle Analysis")
+
+# Footnotes (document-level notes)
+spec <- add_footnote(spec, "Values are from 1974 Motor Trend magazine.")
+
+# Page headers (left/center/right)
+spec <- add_header(c("Study ABC", "CONFIDENTIAL", "Page {page}"))
+
+# Page footers (left/center/right)
+spec <- add_footer(c("Company", "Locked DB", "2025"))
+
+# Body text (narrative)
+spec <- add_body_text(spec, "This analysis includes all subjects in the safety population.")
+```
+
+**Notes**:
+- `add_header()` and `add_footer()` take 3 arguments: left-aligned, center-aligned, right-aligned
+- Placeholders like `{page}` are filled in by the renderer
+- Each call **replaces** previous headers/footers (does not append)
+- Multiple `add_footnote()` calls stack
+
+---
+
+## Step 7: Combine specs into a report
+
+Assemble multiple specs with `create_report()`:
+
+```{r create_report, eval = FALSE}
+# Create multiple specs
+spec_table <- create_table(mtcars)
+spec_table <- add_title(spec_table, "Table 1: Demographics")
+
+spec_text <- create_text()
+spec_text <- add_body_text(spec_text, "Analysis performed in R.")
+
+spec_fig <- create_figure("plots/histogram.png")
+
+# Combine into single report
+report <- create_report(spec_table, spec_text, spec_fig)
+
+# Inspect combined report
+print(report)
+```
+
+**What `create_report()` does**:
+1. Flattens inputs (supports nested reports)
+2. Validates structure
+3. Consolidates combined styles (if any used `f_combine()`)
+4. Assigns sequential `docOrder` (1, 2, 3, ...)
+5. Creates `dataRef` names for new specs
+6. Returns a `TFL_report` object
+
+**Result**: A single report combining all specs in input order.
+
+---
+
+## Step 9: Save for Rendering
+
+Export to JSON metadata + data files:
+
+```{r save_report, eval = FALSE}
+report <- create_report(spec_table, spec_text)
+
+# Save with validation and serialization
+result <- save_report(report,
+  docFileName = "my_report.docx",
+  outDir = "./output",
+  metaPath = tempdir(),
+  prettify = TRUE)
+
+# Inspect output
+str(result)
+```
+
+**Parameters**:
+- `report`: A `TFL_report` object
+- `docFileName`: Output file name (e.g., "report.docx")
+- `outDir`: Directory for final DOCX (where renderer writes output)
+- `metaPath`: Directory for JSON metadata + data files (consumed by renderer)
+- `prettify`: If TRUE, formats JSON nicely (useful for debugging)
+
+**Output files**:
+- `{metaPath}/{spec_hash}.json` — Main specification (consumed by renderer)
+- `{metaPath}/{dataRef}.json` — Table data files (one per table spec)
+- Figure files copied to `metaPath` as-is
+
+**Return value**: List with:
+- `spec_file`: Path to generated spec JSON
+- `data_files`: Named list of data file paths
+- `metadata`: Report metadata (timestamps, etc.)
+
+---
+
+## Understanding auto-generated values
+
+### Column widths (auto-calculation)
+
+When you create a table, widths are auto-calculated based on data characteristics:
+
+```r
+# Auto-calculated widths (example)
+# id = 20%, description = 50%, value = 30%
+spec <- create_table(my_data)
+
+# Lock id to 15%; others recalculate to fill 85%
+spec <- define_cols(spec, id, colWidth = "15%")
+```
+
+See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed width customization.
+
+### Data references (dataRef)
+
+Each table spec gets a `dataRef` name for its data file:
+
+```r
+# Auto-generated: "0001_abc123def456" (docOrder + hash)
+report <- create_report(spec_table1, spec_table2)
+
+# Manual control not needed — handled automatically
+save_report(report, ...)
+```
+
+---
+
+## Session-wide defaults with `tfl_options`
+
+Set defaults once, inherited by all new specs:
+
+```{r session_options, eval = FALSE}
+# Set session defaults
+tfl_set_options(
+  add_header(c("Study ABC", "Locked Database", "CONFIDENTIAL")),
+  add_footer(c("Company Name", "Page {page}", "2025")),
+  add_body_text("Analysis performed in R with ksTFL."))
+
+# All new specs created afterward inherit these settings
+spec1 <- create_table(data1)  # Automatically gets headers/footers/body text
+spec2 <- create_table(data2)  # Also inherits defaults
+
+# Check current options
+tfl_get_options()
+
+# Reset to package defaults
+tfl_reset_options()
+```
+
+---
+
+## Complete example: From data to document
+
+```{r complete_example, eval = FALSE}
+library(ksTFL)
+
+# --- Setup ---
+data <- data.frame(
+  subject = sprintf("S%03d", 1:10),
+  age = round(rnorm(10, 45, 10)),
+  sex = sample(c("M", "F"), 10, TRUE)
+)
+
+# --- Create & customize ---
+spec <- create_table(data, cols = c(subject, age, sex))
+
+spec <- add_style(spec, id = "header",
+  s_font(bold = TRUE, font_size = "11pt"),
+  s_paragraph(alignment = "center"),
+  s_table_style(background_color = "#DDDDDD"))
+
+spec <- define_cols(spec, c(subject, age, sex),
+  label = c("Subject ID", "Age (years)", "Sex"),
+  labelStyleRef = "header")
+
+spec <- define_cols(spec, age, type = "numeric", format = "%.0f")
+
+spec <- add_title(spec, "Demographics Table")
+spec <- add_subtitle(spec, "All subjects in safety population")
+spec <- add_footnote(spec, "Data are shown as observed.")
+
+# --- Export ---
 report <- create_report(spec)
+save_report(report, 
+  docFileName = "demographics.docx",
+  outDir = "./output",
+  metaPath = tempdir())
 
-# print a short preview
-print(spec)
+# Done!
 ```
 
-## What a spec contains
+---
 
-- `document`: metadata (docType, docPrefix, docOrder, hasData)
-- `columns`: column definitions (labels, formats, styles)
-- `attribs$styles`: named styles defined with `add_style()`
-- `headers`, `titles`, `subtitles`, `bodyText`, `footnotes`, `footers`
+## Key gotchas and tips
 
-Run the quick pipeline above to verify basic behavior; see the Styling and Reporting vignettes for detailed patterns and advanced scenarios.
-## 1) Create specs
-spec_tbl <- create_table(mtcars)
-spec_text <- create_text(docPrefix = "Narrative 1.1")
+| Gotcha | Solution |
+|--------|----------|
+| **Calling s_* helpers outside add_style()** | Always use s_* inside `add_style()` — they validate context |
+| **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
+| **Styles from f_combine() not consolidated** | Call `create_report()` before `save_report()` |
+| **Multiple add_header() calls stack** | Each call **replaces** previous headers (last-win) |
+| **Figure file not found** | Check path is absolute or relative to current working directory |
+| **create_text() with data argument** | `create_text()` requires `data = NULL` — no data for text specs |
+| **Overlapping stubs at same stubOrder** | Error; use different `stubOrder` or non-overlapping column sets |
 
-## 2) Style definitions
-spec_tbl <- spec_tbl |> 
-  add_style("title_header_style",
-            s_font(font_name = "Arial", font_size = "12pt", bold = TRUE),
-            s_paragraph(alignment = "center"),
-            s_table_style(background_color = "#F2F2F2")
-  ) |> 
-  add_style("numeric_right", s_paragraph(alignment = "right"))
+---
 
-## 3) Column definitions: lock one column width, format two others
-spec_tbl <- spec_tbl |> 
-  define_cols("cyl", label = "Cylinders", type = "numeric", colWidth = "20%")
+## Next steps
 
-spec_tbl <- spec_tbl |> 
-  define_cols(c(mpg, hp), label = c("MPG", "Horsepower"), type = c("numeric", "numeric"), format = c("%.1f", "%.0f"), valueStyleRef = "numeric_right")
+You now understand ksTFL's core workflow. Next steps:
 
-## Stub columns and multi-level stub headers
+1. **Run the quick example** above with your own data
+2. **Explore [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd)** for detailed patterns
+3. **Read [Styling Guide](Styling_Guide_with_ksTFL.Rmd)** for advanced styling
+4. **Check function docs**: `?create_table`, `?define_cols`, `?add_style`, `?create_report`
 
-ksTFL supports "stub" (spanning) columns via `add_stub_column()` for cases where you need one or more stacked stub header rows that span groups of data columns. Use `cols` to reference column *names* (not labels) defined in `spec$columns`. Key behaviors:
+---
 
-- `stubOrder` controls vertical stacking: lower values are placed above higher values. If `stubOrder` is `NULL` it is auto-assigned.
-- Stubs may span overlapping sets of columns only when their `stubOrder` values differ (different vertical levels). Overlaps at the same `stubOrder` are validated and will raise an error.
-- `labelStyleRef` applies a named style to the stub label (single name).
-- `id` is optional; when omitted the function auto-generates a stable id.
+## Resources
 
-Signature (short):
+- **Function reference**: `?ksTFL` (package overview) or `?create_table`, `?define_cols`, etc.
+- **Reporting Examples**: [Detailed working examples with explanations](Reporting_Examples_with_ksTFL.Rmd)
+- **Styling Guide**: [Comprehensive style reference](Styling_Guide_with_ksTFL.Rmd)
+- **GitHub**: [ksTFL repository](https://github.com/...)
 
-```r
-add_stub_column(spec, cols, label, stubOrder = NULL, id = NULL, labelStyleRef = NULL)
-```
+---
 
-Example — build two stacked stub rows where the top row spans all three columns and the second row creates two narrower spans:
+## Quick reference table
 
-```r
-spec_stub <- create_table(mtcars)
-spec_stub <- spec_stub |> define_cols(c(mpg, hp, wt), label = c("MPG", "HP", "Weight"))
-
-# top-level stub spans all three data columns
-spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp", "wt"), label = "Vitals", stubOrder = 1)
-
-# second-level stubs: one spans mpg+hp, the other spans wt (same stubOrder => they sit on the same row)
-spec_stub <- spec_stub |> add_stub_column(cols = c("mpg", "hp"), label = "Engine metrics", stubOrder = 2)
-spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass", stubOrder = 2)
-
-# optional: style the stub labels
-spec_stub <- spec_stub |> add_style("stub_label", s_font(bold = TRUE))
-spec_stub <- spec_stub |> add_stub_column(cols = "wt", label = "Mass", stubOrder = 2, labelStyleRef = "stub_label")
-
-print(spec_stub$stubColumns)
-```
-
-Notes:
-
-- The renderer uses `spec$stubColumns` and `spec$columns` (colOrder) to position and span header cells. Column names in `cols` must match the `spec$columns` keys (not the user-facing `label`).
-- If you attempt to add two stubs that overlap on the same `stubOrder`, `add_stub_column()` will `cli_abort()` with an informative message explaining the conflict and which columns overlap.
-- Call `create_report()` before `save_report()` to ensure any generated ids and consolidated styles are finalized; stub definitions are preserved into the exported JSON for the renderer to consume.
-
-
-## 4) Add titles/footnotes/headers
-spec_tbl <- spec_tbl |> 
-  add_title(c("Study ABC-123", "Demographics"), styleRef = "title_header_style") |> 
-  add_footnote("Data are shown as mean (SD).") |> 
-  add_header("Study ABC-123", "CONFIDENTIAL", "Page {PAGE}")
-
-## 5) Combine into a report and save
-report <- create_report(spec_tbl, spec_text)
-
-# Save to disk for external renderer (creates JSON spec and data files in metaPath)
-res <- save_report(report, docFileName = "my_report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-print(res)
-```
-
-Note: calling `print(spec)` on a `TFL_spec` invokes the package's custom `print.TFL_spec()` method which renders a readable preview (titles, columns, flags and a small sample of data).
-
-Notes:
-- `save_report()` will call `serialize_spec()` internally to validate against the schema and will write one JSON spec plus any data JSONs and copied figure files to `metaPath`.
-- After `create_report()` styles that were referenced as combinations will be consolidated and `spec$attribs$styles` will include merged styles with generated hash names.
-
-## For absolute beginners — a dummies walkthrough
-
-This section breaks the pipeline into tiny actionable steps with plain-English explanations and what to expect at each step.
-
-1) Create a table spec
-
-- Command: `spec_tbl <- create_table(my_data)`
-- What it does: copies your `data.frame` into an internal data environment inside the spec (not user-modifiable) and creates a `spec$columns` entry for each selected column. At this point nothing is written to disk.
-
-2) Tune columns and styles
-
-- Command: `spec_tbl <- spec_tbl |> define_cols("age", type = "numeric", format = "%.1f")`
-- What it does: updates `spec$columns$age$format` and optionally records locked column widths in the spec's internal bookkeeping (not user-facing). Styles you create with `add_style()` are stored in `spec$attribs$styles` (local to this spec).
-
-3) Add header/title/footnote text
-
-- Commands: `add_header()`, `add_title()`, `add_footnote()`
-- What it does: appends structured text groups to `spec$headers`, `spec$titles`, `spec$footnotes`. These are small lists (text vectors + optional `styleRef`).
-
-4) Combine specs into a report
-
-- Command: `report <- create_report(specA, specB)`
-- What it does:
-  - Flattens inputs and validates classes.
-  - Consolidates style combinations (if you used `f_combine()` or provided multiple style names) into merged styles stored in each spec's `attribs$styles`.
-  - Assigns `document$docOrder` sequentially and creates `dataRef` names for newly added specs.
-
-5) Save report (what actually writes files)
-
-- Command: `save_report(report, docFileName = "report.docx", outDir = "./out", metaPath = tempdir())`
-- What it does (step-by-step):
-  1. The `save_report()` function invokes the package's internal serializer to validate the `TFL_report` against the JSON schema and produce a `fixed` list ready for JSON export.
-    2. For each spec in `fixed`:
-      - If `document$docType == "Table"`: an internal helper extracts the original data stored inside the spec, filters it to the columns selected for the report, serializes that filtered data to JSON and saves it as `<dataRef>.json` in `metaPath`.
-    - If `document$docType == "Figure"`: copies the figure file from the spec's stored file path into `metaPath` using the `<dataRef>` name and original extension.
-     - For `Text` specs there are no data files.
-  3. Removes internal metadata entries from the `fixed` specs (so internal environments and hashes are not exported).
-  4. Creates a top-level `_metadata` object with `outDir`, `docFileName`, and `datetime` and prepends it to the exported object.
-  5. Serializes the combined object to JSON and writes it to `<hash>.json` under `metaPath` (where `<hash>` is the computed hash for the whole export).
-
-Where files end up and names
-
-- Main spec JSON: `{metaPath}/{spec_hash}.json` (this is the file you pass to the renderer). The filename is the generated spec hash + `.json`.
-- Table data files: `{metaPath}/{dataRef}.json` for each Table spec (dataRef is set by `create_report()`).
-- Figure files: `{metaPath}/{dataRef}.{ext}` — copied from the original figure path, preserving extension.
-
-Annotated example of exported JSON structure
-
-Below is a compact, annotated illustration of what the final JSON looks like after `save_report()` (keys and shapes reflect the serializer output). Replace `{...}` with actual values produced by your run.
-
-```json
-{
-  "_metadata": {
-    "outDir": "./out",
-    "docFileName": "report.docx",
-    "datetime": "2025-12-22T12:34:56"
-  },
-  "spec_table_abc123": {
-    "document": {
-      "docType": "Table",
-      "docPrefix": "Table 1",
-      "docOrder": 1,
-      "hasData": true,
-      "contentWidth": "100%"
-    },
-    "headers": [["Study ABC-123", "", "Page {PAGE}"]],
-    "titles": { "title_001": { "text": ["Study ABC-123", "Demographics"], "order": 1 } },
-    "columns": {
-      "cyl": { "colOrder": 1, "label": "Cylinders", "format": { "type": "numeric", "colWidth": "20%" } },
-      "mpg": { "colOrder": 2, "label": "MPG", "format": { "type": "numeric", "format": "%.1f" } }
-    },
-    "footnotes": {"footnote_001": {"text":["Data are shown as mean (SD)."], "order":1}},
-    "attribs": {
-      "documentStyle": { "docTemplate": "KeyStat_default" },
-      "styles": {
-         "title_header_style": { "font": {"font_name":"Arial","font_size":"12pt","bold":true}, "paragraph": {"alignment":"center"} },
-         "numeric_right": { "paragraph": {"alignment":"right"} }
-      }
-    },
-    "dataRef": ["0001_abcdef1234567890"]
-  },
-  "spec_text_def456": {
-    "document": { "docType": "Text", "docOrder": 2, "hasData": false },
-    "bodyText": { "body_001": { "text": ["Narrative content..."], "order": 1 } },
-    "attribs": { "documentStyle": { "docTemplate": "KeyStat_default" }, "styles": {} }
-  }
-}
-```
-
-Explanations:
-
-- `_metadata`: runtime metadata for the renderer (`outDir` where the final DOCX should be saved, `docFileName` and `datetime`).
-- Each `spec_*` key: one spec from the report; names come from the argument variable name plus a content hash for uniqueness (or preserved keys when merging reports).
-- `document`: document-level properties (type, prefix, order, hasData, etc.).
-- `columns`: column definitions; `format` objects are produced by the package's column-format detection logic and include `type`, `format`, `missings`, and optionally `colWidth` and `valueStyleRef`.
-- `attribs$styles`: consolidated style definitions referenced by the spec. Style combinations are merged and replaced with generated hashed names during `create_report()`.
-- `dataRef`: identifiers used to name external data files (table JSONs or figure files). For tables there will be a file `{dataRef}.json` saved into `metaPath` by `save_report()`.
-
-If you want me to produce a sample run output for your specific dataset (e.g., `mtcars`), run the `inst/examples/ksTFL_example.R` script in your R session and paste the printed `res` here; I will annotate the real generated JSON file contents for you.
-
-**Practical tips and gotchas**
-
-- When creating a `Figure` spec, provide a single readable file path. The initializer will error if the path is missing or unreadable.
-- `create_text()` requires `data = NULL`; passing data will raise an informative error.
-- Use tidyselect expressions inside `create_table(..., cols = ...)` and `define_cols()`; wrap multiple names with `c()` when passing bare names.
-- `define_cols()` accepts length-1 or length-N values for format parameters; lengths that do not match 1 or `length(cols)` raise errors.
-- `tfl_set_options()` should be used to set session defaults. To set headers/footers/styles as global defaults, pass the respective helper constructors within the same `tfl_set_options()` call.
-
-**Next steps**
-
-This vignette covered the essentials to create specs and reports using ksTFL. For advanced styling, nested style modifiers, conditional `styleRows` rules and JSON schema details consult the package reference documentation (see `?add_style`, `?define_cols`, `?serialize_spec`).
-
-Credits: ksTFL development team.
+| Task | Function | Notes |
+|------|----------|-------|
+| Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
+| Create figure spec | `create_figure(data = "path.png")` | Path must be readable |
+| Create text spec | `create_text()` | For narrative content only |
+| Set document properties | `set_document(spec, docPrefix = ..., hasData = ...)` | Optional: configure doc prefix, content width, placement |
+| Customize columns | `define_cols(spec, cols, ...)` | Use `c()` for multiple columns |
+| Define styles | `add_style(spec, id = "name", ...)` | Use `s_font()`, `s_paragraph()`, `s_table_style()` |
+| Add spanning header | `add_stub_column(spec, cols, label, ...)` | Controls multi-level headers |
+| Add titles/content | `add_title()`, `add_footnote()`, `add_body_text()` | Layer document content |
+| Add page headers/footers | `add_header()`, `add_footer()` | 3 parts: left/center/right |
+| Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |
+| Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
+| Export | `save_report(report, ...)` | Writes JSON + data files |
+| Set session defaults | `tfl_set_options(...)` | Inherited by new specs in session |
+| Check options | `tfl_get_options()`, `tfl_get_option(name)` | View current session settings |
+| Reset options | `tfl_reset_options()` | Back to package defaults |
