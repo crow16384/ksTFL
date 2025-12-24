@@ -1544,7 +1544,10 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   }
 #' @param label Column label (length 1 or length of cols)
 #' @param isID Whether column is identifier (length 1 or length of cols)
-#' @param isVisible Whether column is visible (length 1 or length of cols)
+#' @param isVisible Whether column is visible in report output (length 1 or length of cols).
+#'   When set to FALSE, column is hidden from output and automatically assigned width "0.0cm".
+#'   Invisible columns do NOT participate in width recalculation; only visible columns are included.
+#'   Cannot set `colWidth` for invisible columns (error raised if attempted).
 #' @param isGrouping Whether column defines groups (length 1 or length of cols)
 #' @param isPaging Whether column defines pages (length 1 or length of cols)
 #' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report. 
@@ -1565,16 +1568,34 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns). Optional.
 #' 
 #' @details
-#' Column Width Auto-Recalculation:
-#' When `colWidth` is specified, columns are marked as "locked" and remaining "unlocked" columns are 
-#' automatically recalculated (if `autoColWidth = TRUE`, the default). This uses a LOCKED/UNLOCKED 
-#' partitioning algorithm:
+#' Column Width Management:
+#' 
+#' Widths are managed through a LOCKED/UNLOCKED/VISIBLE partitioning system:
 #' \itemize{
-#'   \item Locked columns (any unit: %, cm, in) maintain their exact specified width
-#'   \item Unlocked columns normalize proportionally to fill remaining available space
-#'   \item All widths sum to 100% with 1 decimal place precision
+#'   \item VISIBLE columns: included in width calculations (isVisible != FALSE)
+#'   \item LOCKED columns: exact width specified via colWidth parameter (any unit: %, cm, in, mm, pt)
+#'   \item UNLOCKED columns: automatically recalculated to fill available space
+#'   \item INVISIBLE columns: hidden from output (isVisible = FALSE), assigned width "0.0cm", excluded from calculations
+#' }
+#'
+#' When `colWidth` is specified (or visibility changes), columns are marked as LOCKED and remaining 
+#' UNLOCKED columns are automatically recalculated (if `autoColWidth = TRUE`, the default):
+#' \itemize{
+#'   \item Only VISIBLE UNLOCKED columns participate in recalculation
+#'   \item Locked columns (any unit) maintain their exact specified width
+#'   \item Unlocked visible columns normalize proportionally to fill remaining available space
+#'   \item All visible columns' widths sum to 100% with 1 decimal place precision
+#'   \item Invisible columns stay at "0.0cm" and don't affect other widths
 #' }
 #' To disable auto-recalculation, use `tfl_set_options(autoColWidth = FALSE)`.
+#' 
+#' Invisible Column Behavior:
+#' \itemize{
+#'   \item `isVisible = FALSE` automatically sets `colWidth = "0.0cm"`
+#'   \item Cannot set `colWidth` on invisible columns (raises error)
+#'   \item Invisible columns are excluded from width recalculation entirely
+#'   \item Shown with "hidden" flag in spec preview
+#' }
 #' 
 #' @return Updated spec object
 #' @export
@@ -1675,6 +1696,13 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   define_cols(age:group,  # All columns from age to group
 #'     labelStyleRef = "emphasis"
 #'   )
+#' 
+#' # Hide column from output while keeping data for conditional logic
+#' spec <- create_table(data) |>
+#'   define_cols("age",
+#'     isVisible = FALSE  # Automatically sets width to "0.0cm"
+#'   )
+#'   # Result: age column hidden, other columns recalculated to sum to 100%
 #' }
 define_cols <- function(spec, cols, 
                         label = NULL, isID = NULL, 
@@ -1700,8 +1728,9 @@ define_cols <- function(spec, cols,
     ))
   }
   
-  # Track if user is setting colWidth so we can trigger recalculation later
+  # Track if user is setting colWidth or changing visibility (which affects width distribution)
   user_set_colwidth <- !is.null(colWidth)
+  user_changed_visibility <- !is.null(isVisible)  # Any visibility change should trigger recalc
   
   # Collect non-format parameters
   param_names <- c("label", "isID", "isVisible", "isGrouping", 
@@ -1808,6 +1837,31 @@ define_cols <- function(spec, cols,
     # Merge with last-win
     spec$columns[[col_id]] <- .merge_recursive(spec$columns[[col_id]], col_params)
     
+    # ---- Handle isVisible = FALSE cases ----
+    # Get the actual isVisible value for this column (after merge)
+    col_is_visible <- spec$columns[[col_id]]$isVisible
+    is_now_invisible <- !is.null(col_is_visible) && isFALSE(col_is_visible)
+    
+    # Check 1: User cannot set colWidth for invisible columns
+    if (is_now_invisible && user_set_colwidth && !is.null(colWidth)) {
+      col_colwidth <- if (length(colWidth) == 1) colWidth else colWidth[i]
+      cli_abort(c(
+        "Cannot set {.arg colWidth} for invisible column {.str {col_id}}",
+        x = "Column {.str {col_id}} has {.arg isVisible = FALSE}",
+        i = "Invisible columns automatically have {.arg colWidth = \"0.0cm\"}"
+      ))
+    }
+    
+    # Check 2: Auto-set colWidth = "0.0cm" for invisible columns
+    if (is_now_invisible) {
+      spec$columns[[col_id]]$format$colWidth <- "0.0cm"
+      if (!is.null(spec$.metadata$colWidths[[col_id]])) {
+        spec$.metadata$colWidths[[col_id]]$locked <- TRUE
+        spec$.metadata$colWidths[[col_id]]$unit <- "cm"
+        spec$.metadata$colWidths[[col_id]]$value <- 0.0
+      }
+    }
+    
     # If user set colWidth, update metadata to mark as locked
     if (user_set_colwidth && !is.null(colWidth)) {
       col_colwidth <- if (length(colWidth) == 1) colWidth else colWidth[i]
@@ -1839,8 +1893,8 @@ define_cols <- function(spec, cols,
     }
   }
   
-  # If user set colWidth and autoColWidth is enabled, recalculate remaining columns
-  if (user_set_colwidth) {
+  # If user set colWidth or changed visibility, and autoColWidth is enabled, recalculate remaining columns
+  if (user_set_colwidth || user_changed_visibility) {
     auto_col_width <- tfl_get_option("autoColWidth")
     if (auto_col_width) {
       spec <- .recalculate_col_widths(spec)

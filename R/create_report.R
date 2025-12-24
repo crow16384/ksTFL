@@ -456,6 +456,25 @@ create_report <- function(...) {
   row_style_schema_path <- .get_schema_file_path(.const_row_style_schema_file)
   row_style_schema <- .load_schema(row_style_schema_path)
   
+  # Helper function to recursively remove NULL values from nested lists
+  .remove_null_fields <- function(obj) {
+    if (!is.list(obj)) {
+      return(obj)
+    }
+    
+    # Recursively process all list elements
+    obj <- lapply(obj, function(x) {
+      if (is.list(x)) {
+        .remove_null_fields(x)
+      } else {
+        x
+      }
+    })
+    
+    # Remove NULL fields at this level
+    obj[!vapply(obj, is.null, logical(1))]
+  }
+  
   for (item in flattened) {
     spec <- item$spec
     
@@ -465,8 +484,10 @@ create_report <- function(...) {
         if (is.null(row_obj)) {
           return("{}")  # Empty string for no actions
         }
+        # Remove NULL fields before serialization to avoid empty objects in JSON
+        cleaned_row <- .remove_null_fields(row_obj)
         # Use serialize_json_internal to apply schema-aware type fixes and array protection
-        fixed_row <- .serialize_json_internal(row_obj, row_style_schema)
+        fixed_row <- .serialize_json_internal(cleaned_row, row_style_schema)
         jsonlite::toJSON(fixed_row, auto_unbox = TRUE)
       }, USE.NAMES = FALSE)
     }

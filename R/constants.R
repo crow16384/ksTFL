@@ -373,9 +373,6 @@ NULL
     font_underline = list(
       font = list(underline = TRUE)
     ),
-    font_bold_italic = list(
-      font = list(bold = TRUE, italic = TRUE)
-    ),
     
     # Color styles (commonly used in clinical programming)
     text_blue = list(
@@ -397,9 +394,6 @@ NULL
     ),
     text_left = list(
       paragraph = list(alignment = "left")
-    ),
-    numeric_right = list(
-      paragraph = list(alignment = "right")
     ),
     
     # Cell highlighting (warnings, out-of-range)
@@ -428,38 +422,17 @@ NULL
         )
       )
     ),
-    cell_border_double_bottom = list(
-      table_style = list(
-        borders = list(
-          bottom = list(width = "2pt", line_style = "double", color = "#000000")
-        )
-      )
-    ),
     
     # Combination styles (common in clinical reports)
-    header_bold = list(
-      font = list(bold = TRUE, font_size = "12pt")
+    indent_1 = list(
+      paragraph = list(indents = list(left = "0.5cm"))
     ),
-    header_bold_blue = list(
-      font = list(bold = TRUE, color = "#0000FF")
+    indent_2 = list(
+      paragraph = list(indents = list(left = "1.0cm"))
     ),
-    emphasis = list(
-      font = list(bold = TRUE, italic = TRUE)
-    ),
-    footnote_italic_small = list(
-      font = list(italic = TRUE, font_size = "9pt")
-    ),
-    total_bold = list(
-      font = list(bold = TRUE),
-      table_style = list(borders = list(top = list(width = "1pt", line_style = "single", color = "#000000")))
-    ),
-    result_numeric_right = list(
-      font = list(color = "#000000"),
-      paragraph = list(alignment = "right")
-    ),
-    warning_bold_red = list(
-      font = list(bold = TRUE, color = "#FF0000")
-    )
+    indent_3 = list(
+      paragraph = list(indents = list(left = "1.5cm")) 
+  )
   ),
   class = "TFL_options"
 )

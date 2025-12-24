@@ -17,11 +17,16 @@ NULL
 #'
 #' Declares a set of styling, merging, and row insertion actions to be applied
 #' to rows matching a condition. Actions are captured as unevaluated expressions
-#' and evaluated later during `create_report()`.
+#' and evaluated later during `create_report()`. Supports complex conditions using
+#' data columns and helper functions.
 #'
 #' @param spec A TFL_spec object (must have docType = "Table")
 #' @param cond An unquoted logical expression to be evaluated in the data environment.
-#'   Can reference data columns and helper functions (e.g., `firstOf()`, `col1 > 10`).
+#'   Can reference:
+#'   \itemize{
+#'     \item Data columns directly (e.g., `col1 > 10`, `Parameter == "Pulse"`)
+#'     \item Helper functions (e.g., `firstOf()`, `lastOf()`, `uniqueOf()`)
+#'   }
 #'   Must return a logical vector of length equal to `nrow(data)`.
 #' @param ... Action function calls: `c_style()`, `c_merge()`, `c_addrow()`.
 #'   Multiple actions allowed, including duplicates. Actions are captured unevaluated.
@@ -30,32 +35,50 @@ NULL
 #'   Invisibly returns the spec for piping.
 #'
 #' @details
-#' **Behavior:**
-#' - Does NOT evaluate condition or actions (deferred until `create_report()`)
-#' - Appends to `spec$.metadata$compute_cols` list
+#' **Execution Timeline:**
+#' 1. `compute_cols()` captures condition and actions (no evaluation)
+#' 2. Appends to `spec$.metadata$compute_cols` list
+#' 3. During `create_report()`, conditions are evaluated and matched rows identified
+#' 4. Actions are applied to matching rows (styling, merging, row insertion)
+#' 5. StyleRows are serialized to JSON
+#'
+#' **Constraints:**
 #' - Only allowed for docType = "Table"
 #' - Multiple `compute_cols()` calls accumulate on the same spec
+#' - Actions on the same row from different `compute_cols()` blocks are aggregated
+#' - Conditions must be deterministic (no NA values allowed)
 #'
 #' **Action Functions** (used inside `compute_cols()`):
-#' - `c_style(cols, styleRef)`: Apply style to columns
-#' - `c_merge(cols, styleRef = NULL)`: Merge adjacent columns
-#' - `c_addrow(pos, value_from, styleRef = NULL)`: Insert row above/below
+#' \itemize{
+#'   \item `c_style(cols, styleRef)`: Apply style(s) to columns in matching rows
+#'   \item `c_merge(cols, styleRef = NULL)`: Merge adjacent columns in matching rows
+#'   \item `c_addrow(pos, value_from = NULL, styleRef = NULL)`: Insert row above/below matching rows
+#' }
 #'
 #' @examples
 #' \dontrun{
 #'   spec <- create_table(mtcars)
 #'   spec <- add_style(spec, id = "bold", s_font(bold = TRUE))
 #'   spec <- add_style(spec, id = "red", s_font(color = "red"))
+#'   spec <- add_style(spec, id = "highlight", s_table_style(background_color = "yellow"))
 #'
-#'   # Make first group rows bold
-#'   spec <- compute_cols(spec, firstOf(cyl), c_style(mpg, styleRef = "bold"))
+#'   # Style columns in rows where cyl is first occurrence
+#'   spec <- compute_cols(spec, firstOf(cyl), c_style(c(mpg, hp), styleRef = "bold"))
 #'
-#'   # Make rows with high hp red
-#'   spec <- compute_cols(spec, hp > 200, c_style(hp, styleRef = "red"))
+#'   # Style and merge columns in rows with high hp
+#'   spec <- compute_cols(spec, hp > 200, 
+#'     c_style(hp, styleRef = "red"),
+#'     c_merge(c(wt, qsec), styleRef = "highlight")
+#'   )
+#'
+#'   # Add empty separator row above first occurrence
+#'   spec <- compute_cols(spec, firstOf(cyl), c_addrow(pos = "above"))
+#'
+#'   # Add row with content from a column
+#'   spec <- compute_cols(spec, lastOf(cyl), c_addrow(pos = "below", value_from = "mpg"))
 #' }
 #'
 #' @export
-#' @noRd
 compute_cols <- function(spec, cond, ...) {
   # Validate spec
   checkmate::assert_class(spec, "TFL_spec", .var.name = "spec")
@@ -110,13 +133,13 @@ compute_cols <- function(spec, cond, ...) {
 
 #' Apply Style to Columns in Conditional Rows
 #'
-#' Declares a style to be applied to specified columns in rows matching
-#' the parent `compute_cols()` condition.
+#' Declares a style or combination of styles to be applied to specified columns
+#' in rows matching the parent `compute_cols()` condition.
 #'
 #' @param cols Tidyselect expression for column selection
 #'   (e.g., `c(col1, col2)`, `everything()`, `starts_with("x")`)
-#' @param styleRef Character. Name of the style to apply.
-#'   Can be a single style name or result of `f_combine()` for multiple styles.
+#' @param styleRef Character. Name of the style to apply (defined via `add_style()`).
+#'   Can be a single style name or result of `f_combine()` for combining multiple styles.
 #'
 #' @return Quosure structure (internal use within `compute_cols()`)
 #'
@@ -125,13 +148,32 @@ compute_cols <- function(spec, cond, ...) {
 #' tidyselect syntax against the table data.
 #'
 #' **Behavior:**
-#' - Same column styled multiple times in one row: last style wins, warning issued
-#' - Same column styled from different `compute_cols()` calls on same row:
-#'   automatic style combination (deep merge, similar to `f_combine()`)
+#' \itemize{
+#'   \item Same column styled multiple times in one row: last style wins, warning issued
+#'   \item Same column styled from different `compute_cols()` calls on same row:
+#'     automatic style combination (merged via `create_report()`)
+#'   \item Multiple columns in one call: all receive the same style(s)
+#' }
+#'
+#' **Style Combination:**
+#' - Use `f_combine("style1", "style2")` to apply multiple styles together
+#' - During `create_report()`, combined styles are consolidated into a single hash
+#' - Consolidation only happens for new specs (not pre-processed reports)
 #'
 #' @examples
 #' \dontrun{
-#'   compute_cols(spec, hp > 150, c_style(c(hp, wt), styleRef = "bold"))
+#'   spec <- create_table(mtcars) |>
+#'     add_style("bold", s_font(bold = TRUE)) |>
+#'     add_style("red", s_font(color = "red"))
+#'
+#'   # Single style on one column
+#'   spec <- compute_cols(spec, cyl == 6, c_style(mpg, styleRef = "bold"))
+#'
+#'   # Single style on multiple columns
+#'   spec <- compute_cols(spec, hp > 100, c_style(c(mpg, wt), styleRef = "red"))
+#'
+#'   # Combined styles on columns
+#'   spec <- compute_cols(spec, cyl == 8, c_style(mpg, styleRef = f_combine("bold", "red")))
 #' }
 #'
 #' @export
@@ -164,7 +206,7 @@ c_style <- function(cols, styleRef) {
 #' Merge Adjacent Columns in Conditional Rows
 #'
 #' Declares adjacent columns to be merged in rows matching the parent
-#' `compute_cols()` condition.
+#' `compute_cols()` condition. Merged columns appear as a single spanned cell.
 #'
 #' @param cols Tidyselect expression for column selection. Must resolve
 #'   to at least 2 columns that are consecutive in the report column order.
@@ -178,13 +220,27 @@ c_style <- function(cols, styleRef) {
 #' final report column order.
 #'
 #' **Validation:**
-#' - Immediate: columns exist and are consecutive (error if not)
-#' - Deferred: overlapping merge ranges from multiple `compute_cols()` calls
-#'   (warning if resolvable, error if ambiguous)
+#' \itemize{
+#'   \item Immediate: columns exist and are consecutive (error if not)
+#'   \item Deferred: overlapping merge ranges from multiple `compute_cols()` calls
+#'     (warning if resolvable, error if ambiguous)
+#' }
+#'
+#' **Behavior:**
+#' - Multiple merge actions in one row: all applied if non-overlapping
+#' - Overlapping merges from different `compute_cols()` blocks: raises warning/error
 #'
 #' @examples
 #' \dontrun{
-#'   compute_cols(spec, group == "A", c_merge(c(col1, col2), styleRef = "group_header"))
+#'   spec <- create_table(mtcars) |>
+#'     add_style("group_header", s_table_style(background_color = "#D9D9D9"))
+#'
+#'   # Merge multiple columns for group header
+#'   spec <- compute_cols(spec, group == "A", 
+#'     c_merge(c(col1, col2, col3), styleRef = "group_header"))
+#'
+#'   # Merge without style
+#'   spec <- compute_cols(spec, group == "B", c_merge(c(disp, hp)))
 #' }
 #'
 #' @export
@@ -218,12 +274,12 @@ c_merge <- function(cols, styleRef = NULL) {
 #' Insert Additional Row in Conditional Rows
 #'
 #' Declares an additional row to be inserted above or below rows matching
-#' the parent `compute_cols()` condition, with content copied from a
-#' specified column.
+#' the parent `compute_cols()` condition. Content can optionally be copied from a
+#' specified column; if omitted, creates an empty separator row.
 #'
 #' @param pos Character. Position for insertion: "above" or "below".
-#' @param value_from Character or unquoted column name. Source column
-#'   for the inserted row's content.
+#' @param value_from Character or unquoted column name. Optional source column
+#'   for the inserted row's content. If NULL or missing, creates an empty separator row.
 #' @param styleRef Character. Optional style to apply to the inserted row.
 #'   If NULL, no special styling. Can be a single style or `f_combine()` result.
 #'
@@ -236,15 +292,17 @@ c_merge <- function(cols, styleRef = NULL) {
 #' - Multiple `c_addrow()` calls in one `compute_cols()` accumulate
 #' - Order of appearance is preserved
 #' - Coexists with other actions on same row
-#' - `value_from` must exist in spec columns (data_env reference)
+#' - If `value_from` is provided, must exist in spec columns (data_env reference)
+#' - If `value_from` is NULL or missing, creates an empty separator row
 #'
 #' @examples
 #' \dontrun{
 #'   compute_cols(spec, lastOf(treatment), c_addrow(pos = "below", value_from = "treatment"))
+#'   compute_cols(spec, firstOf(visit), c_addrow(pos = "above"))
 #' }
 #'
 #' @export
-c_addrow <- function(pos, value_from, styleRef = NULL) {
+c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
   # Validate context
   .assert_context("compute_cols", "c_addrow")
 
@@ -530,31 +588,36 @@ c_addrow <- function(pos, value_from, styleRef = NULL) {
   # Extract arguments from the call object
   args <- rlang::call_args(action_call)
   pos <- eval(args[[1]], envir = action_env)
-  value_from_expr <- args[[2]]
+  value_from_expr <- if (length(args) >= 2) args[[2]] else NULL
   styleRef <- if (length(args) > 2 && !is.null(args[[3]])) {
     eval(args[[3]], envir = action_env)
   } else {
     NULL
   }
 
-  # Resolve value_from to a single column name using existing helper
-  value_from <- .get_data_column_names(data, !!value_from_expr)
+  # Handle missing or NULL value_from (empty separator row)
+  value_from <- NULL
+  if (!is.null(value_from_expr)) {
+    # Resolve value_from to a single column name using existing helper
+    value_from <- .get_data_column_names(data, !!value_from_expr)
 
-  if (length(value_from) != 1) {
-    cli_abort(c(
-      "{.fn c_addrow} value_from must resolve to a single column",
-      x = "Got {length(value_from)} column(s): {paste(value_from, collapse = ', ')}",
-      i = "Use single column expression: c_addrow(pos = ..., value_from = col_name)"
-    ))
-  }
+    if (length(value_from) != 1) {
+      cli_abort(c(
+        "{.fn c_addrow} value_from must resolve to a single column",
+        x = "Got {length(value_from)} column(s): {paste(value_from, collapse = ', ')}",
+        i = "Use single column expression: c_addrow(pos = ..., value_from = col_name)",
+        i = "Or omit value_from to create an empty separator row"
+      ))
+    }
 
-  # Validate value_from exists in report_cols
-  if (!(value_from %in% report_cols)) {
-    cli_abort(c(
-      "{.fn c_addrow} value_from column not found in spec columns",
-      x = "Column {.val {value_from}} not found",
-      i = "Available columns: {paste(report_cols, collapse = ', ')}"
-    ))
+    # Validate value_from exists in report_cols
+    if (!(value_from %in% report_cols)) {
+      cli_abort(c(
+        "{.fn c_addrow} value_from column not found in spec columns",
+        x = "Column {.val {value_from}} not found",
+        i = "Available columns: {paste(report_cols, collapse = ', ')}"
+      ))
+    }
   }
 
   list(pos = pos, value_from = value_from, styleRef = styleRef)

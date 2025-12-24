@@ -199,9 +199,25 @@ spec <- define_cols(spec, c(mpg, cyl, hp),
 - `type`: "numeric" or "string" (auto-detected if omitted)
 - `format`: Format string (e.g., "%.2f", "0.00")
 - `colWidth`: Column width (e.g., "20%", "2cm")
+  - When set, column is locked to that width
+  - Other unlocked columns auto-recalculate to sum to 100%
+  - Disable with `tfl_set_options(autoColWidth = FALSE)`
+- `isVisible`: TRUE (default) or FALSE
+  - Set to FALSE to hide column from output
+  - Invisible columns show width "0.0cm" 
+  - Cannot set colWidth on invisible columns
+  - Invisible columns excluded from width recalculation
 - `isID`: TRUE if column repeats on page breaks
 - `labelStyleRef`: Style(s) to apply to column header
 - `valueStyleRef`: Style(s) to apply to cell values
+
+**Hiding Columns**:
+```r
+# Hide a column (e.g., for conditional logic that doesn't display)
+spec <- create_table(data) |>
+  define_cols(group_id, isVisible = FALSE)
+  # Result: group_id is hidden, other columns recalculated to fill 100%
+```
 
 See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed column customization patterns.
 
@@ -350,6 +366,65 @@ print(report)
 6. Returns a `TFL_report` object
 
 **Result**: A single report combining all specs in input order.
+
+---
+
+## Step 8: Apply conditional row actions (compute_cols)
+
+Beyond global column styling, apply **conditional actions** to specific rows that match a condition:
+
+```{r compute_cols_basic, eval = FALSE}
+spec <- create_table(mtcars)
+
+# Define a style for first group occurrences
+spec <- add_style(spec, id = "group_header", s_font(bold = TRUE, color = "#0000FF"))
+
+# Apply style conditionally: highlight first occurrence of each cyl group
+spec <- compute_cols(spec, firstOf(cyl), 
+  c_style(c(mpg, hp), styleRef = "group_header"))
+
+# Add a separator row above first group
+spec <- compute_cols(spec, firstOf(cyl), 
+  c_addrow(pos = "above"))
+```
+
+**Common use cases**:
+- **Highlight group headers**: Style first/last occurrence of a group
+- **Add separators**: Insert empty rows between groups
+- **Merge columns**: Create group headers by merging columns
+- **Conditional formatting**: Style rows meeting a threshold (e.g., `value > 100`)
+
+**Key action functions** (used inside `compute_cols()`):
+
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
+| `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
+| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
+
+**Condition syntax**:
+
+```{r compute_cols_conditions, eval = FALSE}
+# Direct column comparison
+compute_cols(spec, cyl > 6, c_style(mpg, styleRef = "emphasize"))
+
+# String matching
+compute_cols(spec, Parameter == "Pulse", c_style(value, styleRef = "numeric"))
+
+# Helper functions (firstOf, lastOf, uniqueOf)
+compute_cols(spec, firstOf(group), c_style(c(col1, col2), styleRef = "group_header"))
+
+# Combine conditions
+compute_cols(spec, cyl == 8 & hp > 100, c_style(mpg, styleRef = "high_power"))
+```
+
+**Key concepts**:
+- Conditions are evaluated during `create_report()` — at that point, all data is available
+- Multiple `compute_cols()` calls accumulate on the same spec
+- Actions on the same row from different `compute_cols()` blocks are combined (styles merge automatically)
+- `value_from = NULL` in `c_addrow()` creates an empty separator row
+
+For detailed examples see [Reporting Examples: Conditional Row Actions](Reporting_Examples_with_ksTFL.Rmd#conditional-row-actions).
 
 ---
 

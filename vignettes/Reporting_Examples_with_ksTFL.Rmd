@@ -729,7 +729,125 @@ res_styles
 
 ---
 
-## 11 — Save report (end-to-end export)
+## 11 — Conditional row actions with `compute_cols()`
+
+Goal: demonstrate conditional styling, merging, and row insertion using `compute_cols()`.
+
+**Overview**: While `define_cols()` sets properties globally for all rows, `compute_cols()` applies **conditional actions** to specific rows matching a condition. Common use cases:
+- Style rows where a specific value occurs (e.g., first/last occurrence, threshold-based)
+- Merge columns in certain rows (e.g., group headers)
+- Insert separator or summary rows programmatically
+
+### Example 1: Conditional styling
+
+Apply a style to columns in rows matching a condition:
+
+```{r compute_basic_style, eval = FALSE}
+# Sample data with groups
+data <- data.frame(
+  group = c("A", "A", "B", "B", "C"),
+  metric = c("Value 1", "Value 2", "Value 3", "Value 4", "Value 5"),
+  count = c(10, 20, 15, 25, 30)
+)
+
+# Create spec and define styles
+spec <- create_table(data) |>
+  add_style("group_header", s_font(bold = TRUE, color = "#0000FF")) |>
+  add_style("emphasize", s_table_style(background_color = "#FFFFCC"))
+
+# Apply conditional styling: bold+blue for first occurrence of each group
+spec <- spec |>
+  compute_cols(firstOf(group), c_style(c(metric, count), styleRef = "group_header"))
+
+# Apply conditional styling: highlight rows with high count
+spec <- spec |>
+  compute_cols(count > 20, c_style(count, styleRef = "emphasize"))
+
+print(spec)
+```
+
+### Example 2: Combining styles in conditional rows
+
+Apply multiple styles to a single column using `f_combine()`:
+
+```{r compute_combined_style, eval = FALSE}
+spec <- create_table(data) |>
+  add_style("bold", s_font(bold = TRUE)) |>
+  add_style("large", s_font(font_size = "14pt")) |>
+  add_style("highlight", s_table_style(background_color = "#FFFF00"))
+
+# Apply combined styles to first group occurrence
+spec <- spec |>
+  compute_cols(firstOf(group), 
+    c_style(metric, styleRef = f_combine("bold", "large", "highlight"))
+  )
+```
+
+### Example 3: Column merging in conditional rows
+
+Merge adjacent columns for rows matching a condition:
+
+```{r compute_merge, eval = FALSE}
+spec <- create_table(data) |>
+  add_style("group_label", s_table_style(background_color = "#D9D9D9"))
+
+# Merge metric and count columns for first occurrence (group header style)
+spec <- spec |>
+  compute_cols(firstOf(group), 
+    c_merge(c(metric, count), styleRef = "group_label")
+  )
+```
+
+### Example 4: Inserting separator rows
+
+Insert empty rows (separators) or rows with content from another column:
+
+```{r compute_addrow, eval = FALSE}
+spec <- create_table(data) |>
+  add_style("separator", s_table_style(background_color = "#E8E8E8"))
+
+# Insert empty separator above first group occurrence
+spec <- spec |>
+  compute_cols(firstOf(group), 
+    c_addrow(pos = "above")  # Empty row, no value_from
+  )
+
+# Insert summary row below last group occurrence (using a specific column as content)
+spec <- spec |>
+  compute_cols(lastOf(group), 
+    c_addrow(pos = "below", value_from = "group", styleRef = "separator")
+  )
+```
+
+### Example 5: Multiple actions on same rows
+
+Combine styling, merging, and row insertion in a single `compute_cols()` call:
+
+```{r compute_multi_action, eval = FALSE}
+spec <- create_table(data) |>
+  add_style("header", s_font(bold = TRUE)) |>
+  add_style("separator", s_table_style(background_color = "#E8E8E8"))
+
+# For first group occurrence: add separator, style, and merge
+spec <- spec |>
+  compute_cols(firstOf(group), 
+    c_addrow(pos = "above"),  # Add empty separator
+    c_style(metric, styleRef = "header"),  # Style metric column
+    c_merge(c(metric, count))  # Merge adjacent columns
+  )
+```
+
+**Key concepts**:
+- **Conditions** are unevaluated expressions evaluated at report generation time (during `create_report()`)
+- **Multiple calls accumulate**: calling `compute_cols()` multiple times on the same spec appends actions
+- **Multiple actions in one call**: same row can have styling, merging, and row insertion simultaneously
+- **Overlapping conditions**: if multiple conditions match the same row, all actions apply (styling aggregates, merging rules apply)
+- **value_from**: Optional in `c_addrow()` — omit for empty separator rows
+- **Performance**: Conditions evaluated once per row during report assembly; style consolidation happens automatically
+
+---
+
+## 12 — Save report (end-to-end export)
 
 Goal: show `save_report()` usage — it validates and serializes specs and writes metadata/data/figure files to `metaPath`.
 
@@ -785,7 +903,7 @@ Notes: `save_report()` is the public entrypoint to persist specs/data/figures fo
 
 ---
 
-## 12 — Session-wide `tfl_options`: common headers/footers and default body text
+## 13 — Session-wide `tfl_options`: common headers/footers and default body text
 
 Goal: set session defaults so multiple specs inherit common headers, footers, and default body text without repeating code.
 

@@ -577,7 +577,8 @@ utils::globalVariables(
 #'
 #' Implements the column width recalculation algorithm per spec in columns_width_recalc.txt.
 #' When user locks column widths, remaining unlocked columns are normalized to fill the available space.
-#' Locked columns (any unit) remain unchanged.
+#' Locked columns (any unit) remain unchanged. Invisible columns (isVisible = FALSE) are excluded
+#' from width calculations entirely.
 #'
 #' Only recalculates when:
 #' 1. User has set colWidth via define_cols() (marked as locked=TRUE)
@@ -591,14 +592,16 @@ utils::globalVariables(
 #'
 #' @details
 #' Algorithm:
-#' 1. Partition columns into LOCKED (locked=TRUE) and UNLOCKED (locked=FALSE)
-#' 2. LOCKED columns retain their exact value (whether % or fixed units)
-#' 3. For UNLOCKED columns:
+#' 1. Filter to VISIBLE columns only (exclude isVisible = FALSE)
+#' 2. Among visible columns, partition into LOCKED (locked=TRUE) and UNLOCKED (locked=FALSE)
+#' 3. LOCKED visible columns retain their exact value (whether % or fixed units)
+#' 4. For UNLOCKED visible columns:
 #'    - Calculate available space (100% - sum of locked% columns)
 #'    - Calculate weights based on auto_weight
 #'    - Normalize to fill available space
-#' 4. Round to 1 decimal place, apply drift correction to largest column
-#' 5. Update both spec and metadata
+#' 5. Round to 1 decimal place, apply drift correction to largest column
+#' 6. Update both spec and metadata
+#' 7. Invisible columns remain unchanged
 #'
 #' @keywords internal
 #' @noRd
@@ -616,20 +619,33 @@ utils::globalVariables(
   
   col_ids <- names(col_meta)
   
-  # ---- Step 1: Partition into LOCKED and UNLOCKED ----
+  # ---- Step 0: Filter to VISIBLE columns only ----
+  # Exclude columns where isVisible = FALSE
+  visible_ids <- col_ids[vapply(col_ids, function(cid) {
+    is_visible <- spec$columns[[cid]]$isVisible
+    # Default to TRUE if not specified (visible by default)
+    if (is.null(is_visible)) TRUE else isTRUE(is_visible)
+  }, logical(1))]
+  
+  # If no visible columns, nothing to recalculate
+  if (length(visible_ids) == 0) {
+    return(spec)
+  }
+  
+  # ---- Step 1: Partition VISIBLE columns into LOCKED and UNLOCKED ----
   # Locked columns: locked == TRUE (any unit)
   # Unlocked columns: locked == FALSE
-  locked_ids <- col_ids[vapply(col_ids, function(cid) {
+  locked_ids <- visible_ids[vapply(visible_ids, function(cid) {
     col_meta[[cid]]$locked
   }, logical(1))]
   
-  unlocked_ids <- col_ids[!vapply(col_ids, function(cid) {
+  unlocked_ids <- visible_ids[!vapply(visible_ids, function(cid) {
     col_meta[[cid]]$locked
   }, logical(1))]
   
-  # ---- Edge case: no unlocked columns ----
+  # ---- Edge case: no unlocked visible columns ----
   if (length(unlocked_ids) == 0) {
-    # All columns are locked, nothing to recalculate
+    # All visible columns are locked, nothing to recalculate
     return(spec)
   }
   
@@ -654,18 +670,18 @@ utils::globalVariables(
     return(spec)
   }
   
-  # ---- Step 3: Calculate weights for unlocked columns ----
+  # ---- Step 3: Calculate weights for unlocked VISIBLE columns ----
   weights <- numeric(length(unlocked_ids))
   names(weights) <- unlocked_ids
   
   for (i in seq_along(unlocked_ids)) {
     cid <- unlocked_ids[i]
     meta <- col_meta[[cid]]
-    # Unlocked columns always use auto_weight
+    # Unlocked visible columns always use auto_weight
     weights[i] <- meta$auto_weight
   }
   
-  # ---- Step 4: Normalize unlocked weights to fill available space ----
+  # ---- Step 4: Normalize unlocked visible weights to fill available space ----
   total_weight <- sum(weights)
   if (total_weight <= 0) {
     return(spec)
@@ -679,13 +695,13 @@ utils::globalVariables(
   # Compute rounding drift
   drift <- available_space - sum(pct_rounded)
   
-  # Apply drift to largest unlocked column
+  # Apply drift to largest unlocked visible column
   if (abs(drift) >= 0.05) {
     idx_max <- which.max(pct_rounded)
     pct_rounded[idx_max] <- pct_rounded[idx_max] + drift
   }
   
-  # ---- Step 6: Update spec with new widths for unlocked columns ----
+  # ---- Step 6: Update spec with new widths for unlocked VISIBLE columns ----
   for (i in seq_along(unlocked_ids)) {
     cid <- unlocked_ids[i]
     
@@ -696,7 +712,7 @@ utils::globalVariables(
     spec$.metadata$colWidths[[cid]]$value <- pct_rounded[i]
   }
   
-  # ---- Step 7: Locked columns remain unchanged ----
+  # ---- Step 7: Locked visible columns and all invisible columns remain unchanged ----
   # (Already have correct values in spec and metadata)
   
   spec
