@@ -130,11 +130,12 @@
   
   spec$columns <- columns
   
-  # Store metadata for later use (data environment, column mapping, and width metadata)
+  # Store metadata for later use (data environment, column mapping, width metadata, and rowstyle actions)
   spec$.metadata <- list(
     report_cols = data_cols,
     data_env = eval_env,
-    colWidths = widths_metadata
+    colWidths = widths_metadata,
+    compute_cols = list()  # Initialize for compute_cols() calls
   )
   
   # Add optional docPrefix if provided

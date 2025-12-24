@@ -29,7 +29,7 @@ NULL
   #  - all functions in `funcs`
   #  - the raw data under the name `__data__`
   # The parent environment is the caller's environment, so it can see variables there.
-  topmask <- list2env(append(funcs, list(`__data__` = data)), parent = .GlobalEnv)
+  topmask <- list2env(append(funcs, list(`__data__` = data)), parent = caller_env())
   
   # For each function in `funcs`, set its environment to `topmask`.
   # This means that when the function is called, it can access `__data__` and other functions in topmask.
@@ -48,7 +48,7 @@ NULL
   #  - the raw data as `__data__`
   #  - the data mask as `__mask__`
   # Its parent is the caller's environment
-  fn_env <- list2env(append(funcs, list(`__data__` = data, `__mask__` = mask)), parent = caller_env())
+  fn_env <- list2env(append(funcs, list(`__data__` = data, `__mask__` = mask)), parent = .GlobalEnv)
   
   # Set each function's environment inside `fn_env` to point to `fn_env` itself.
   # This ensures that when the function is called, it sees `__data__` and `__mask__` correctly.
@@ -115,8 +115,8 @@ NULL
   # Convert dots to a list of expressions, handling external vectors
   exprs <- lapply(dots, function(q) {
     expr <- quo_get_expr(q)
-    env <- quo_get_env(q)
-    
+    #env <- quo_get_env(q)
+    env <- caller_env()
     # Handle symbols that might be external vectors
     if (is_symbol(expr)) {
       # Try to evaluate the symbol
@@ -204,7 +204,7 @@ NULL
 #' }
 .env_eval <- function(expr, env=spec$.metadata$data_env) {
   expr <- enexpr(expr)
-  eval_tidy(expr, env = env$`__mask__`)
+  eval_tidy(expr, data=env$`__mask__`, env = env)
 }
 
 
@@ -321,7 +321,8 @@ NULL
 #' \dontrun{
 #'   .env_eval(get_names(cyl, am))  # Returns c("cyl", "am")
 #' }
-.eval_get_names <- function(..., .data=`__data__`, .selenv=NULL, .strict=T) {
+.eval_get_names <- function(..., .data=`__data__`, .selenv=`__mask__`, .strict=T) {
+   env <- caller_env()
    names(.get_data_columns(.data, ..., .selenv = .selenv, .strict = .strict))
   }
 
@@ -413,6 +414,7 @@ NULL
   get_names  = .eval_get_names,
   row_number = .eval_row_numbers,
   every_nth  = .eval_every_nth,
-  eval       = .eval_in_env
+  eval       = .eval_in_env,
+  .eval_change_of = .eval_change_of
 )
 
