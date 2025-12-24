@@ -1,428 +1,59 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://keystat.com/schemas/row-style-actions-v0.json",
-    "type": "object",
-    "title": "Row Style Actions Schema",
-    "description": "Schema for defining styling and layout actions applied to individual data rows in TFL reports",
-    "properties": {
-        "actions": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "style": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cols", "styleRef"],
+        "properties": {
+          "cols": {
             "type": "array",
-            "title": "Action List",
-            "description": "Ordered list of styling and layout actions to apply to this row",
-            "items": {
-                "anyOf": [
-                    {
-                        "$ref": "#/$defs/colStyleAction"
-                    },
-                    {
-                        "$ref": "#/$defs/mergeColsAction"
-                    },
-                    {
-                        "$ref": "#/$defs/insertRowAboveAction"
-                    },
-                    {
-                        "$ref": "#/$defs/insertRowBelowAction"
-                    }
-                ]
-            }
-        }
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "styleRef": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
     },
-    "required": [
-        "actions"
-    ],
-    "$defs": {
-        "colStyleAction": {
-            "type": "object",
-            "title": "Column Style Action",
-            "description": "Apply styling to specific columns or entire row",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "const": "col_style"
-                },
-                "cols": {
-                    "type": "array",
-                    "title": "Target Columns",
-                    "description": "Array of column names to style. If entire row, this includes all report columns.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "minItems": 1
-                },
-                "styleRef": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Style Reference",
-                    "description": "Reference to style ID in spec.attribs.styles"
-                },
-                "inlineStyle": {
-                    "$ref": "#/$defs/inlineStyleProperties"
-                }
-            },
-            "required": [
-                "type",
-                "cols"
-            ],
-            "additionalProperties": false
+    "merge": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cols"],
+        "properties": {
+          "cols": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 2
+          },
+          "styleRef": { "type": "string" }
         },
-        "mergeColsAction": {
-            "type": "object",
-            "title": "Merge Columns Action",
-            "description": "Merge cells horizontally across specified columns",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "const": "merge_cols"
-                },
-                "cols": {
-                    "type": "array",
-                    "title": "Columns to Merge",
-                    "description": "Array of consecutive column names to merge",
-                    "items": {
-                        "type": "string"
-                    },
-                    "minItems": 2
-                },
-                "valueFrom": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Value Source Column",
-                    "description": "Column name to take value from. If null, renderer uses first column."
-                },
-                "styleRef": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Style Reference",
-                    "description": "Reference to style ID in spec.attribs.styles"
-                },
-                "inlineStyle": {
-                    "$ref": "#/$defs/inlineStyleProperties"
-                }
-            },
-            "required": [
-                "type",
-                "cols"
-            ],
-            "additionalProperties": false
+        "additionalProperties": false
+      }
+    },
+    "add_row": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pos", "value_from"],
+        "properties": {
+          "pos": {
+            "type": "string",
+            "enum": ["above", "below"]
+          },
+          "value_from": {
+            "type": "string"
+          },
+          "styleRef": {
+            "type": "string"
+          }
         },
-        "insertRowAboveAction": {
-            "type": "object",
-            "title": "Insert Row Above Action",
-            "description": "Insert an additional row above the current data row with specified merge regions",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "const": "insert_row_above"
-                },
-                "merges": {
-                    "type": "array",
-                    "title": "Merge Specifications",
-                    "description": "Array of merge specifications defining the layout of the inserted row",
-                    "items": {
-                        "$ref": "#/$defs/mergeSpec"
-                    },
-                    "minItems": 1
-                }
-            },
-            "required": [
-                "type",
-                "merges"
-            ],
-            "additionalProperties": false
-        },
-        "insertRowBelowAction": {
-            "type": "object",
-            "title": "Insert Row Below Action",
-            "description": "Insert an additional row below the current data row with specified merge regions",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "const": "insert_row_below"
-                },
-                "merges": {
-                    "type": "array",
-                    "title": "Merge Specifications",
-                    "description": "Array of merge specifications defining the layout of the inserted row",
-                    "items": {
-                        "$ref": "#/$defs/mergeSpec"
-                    },
-                    "minItems": 1
-                }
-            },
-            "required": [
-                "type",
-                "merges"
-            ],
-            "additionalProperties": false
-        },
-        "mergeSpec": {
-            "type": "object",
-            "title": "Merge Specification",
-            "description": "Defines a merge region within an inserted row",
-            "properties": {
-                "cols": {
-                    "type": "array",
-                    "title": "Columns to Merge",
-                    "description": "Array of consecutive column names to merge in the inserted row",
-                    "items": {
-                        "type": "string"
-                    },
-                    "minItems": 1
-                },
-                "valueFrom": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Value Source Column",
-                    "description": "Column name to take value from for this merge. If null, renders empty cell."
-                },
-                "styleRef": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Style Reference",
-                    "description": "Reference to style ID in spec.attribs.styles"
-                },
-                "inlineStyle": {
-                    "$ref": "#/$defs/inlineStyleProperties"
-                }
-            },
-            "required": [
-                "cols"
-            ],
-            "additionalProperties": false
-        },
-        "inlineStyleProperties": {
-            "type": "object",
-            "title": "Inline Style Properties",
-            "description": "Direct style specifications that override styleRef and template styles",
-            "properties": {
-                "font": {
-                    "$ref": "#/$defs/fontProperties"
-                },
-                "paragraph": {
-                    "$ref": "#/$defs/paragraphProperties"
-                },
-                "borders": {
-                    "$ref": "#/$defs/borderProperties"
-                },
-                "background_color": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Background Color",
-                    "description": "Cell background color in hexadecimal format",
-                    "pattern": "^#[0-9A-Fa-f]{6}$"
-                },
-                "row_height": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Row Height",
-                    "description": "Height of the row",
-                    "pattern": "^([0-9]+(\\.[0-9]+)?mm)|(auto)$"
-                },
-                "vertical_alignment": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Vertical Alignment",
-                    "description": "Vertical alignment of content within cells",
-                    "enum": [
-                        "top",
-                        "center",
-                        "bottom"
-                    ]
-                },
-                "text_orientation": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Text Orientation",
-                    "description": "Orientation of text within cells",
-                    "enum": [
-                        "horizontal",
-                        "vertical_90",
-                        "vertical_270"
-                    ]
-                }
-            },
-            "additionalProperties": false
-        },
-        "fontProperties": {
-            "type": "object",
-            "title": "Font Properties",
-            "description": "Character-level formatting properties",
-            "properties": {
-                "font_name": {
-                    "type": "string",
-                    "title": "Font Family",
-                    "enum": [
-                        "Courier New",
-                        "Arial",
-                        "Times New Roman",
-                        "Calibri",
-                        "Aptos",
-                        "Cambria"
-                    ]
-                },
-                "font_size": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Font Size",
-                    "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
-                },
-                "bold": {
-                    "type": "boolean"
-                },
-                "italic": {
-                    "type": "boolean"
-                },
-                "underline": {
-                    "type": "boolean"
-                },
-                "color": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Font Color",
-                    "pattern": "^#[0-9A-Fa-f]{6}$"
-                },
-                "highlight": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "title": "Highlight Color",
-                    "pattern": "^#[0-9A-Fa-f]{6}$"
-                }
-            },
-            "additionalProperties": false
-        },
-        "paragraphProperties": {
-            "type": "object",
-            "title": "Paragraph Properties",
-            "description": "Paragraph-level formatting properties",
-            "properties": {
-                "alignment": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "enum": [
-                        "left",
-                        "right",
-                        "center",
-                        "justify",
-                        "distributed"
-                    ]
-                },
-                "spacing": {
-                    "type": "object",
-                    "properties": {
-                        "before": {
-                            "type": "string",
-                            "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
-                        },
-                        "after": {
-                            "type": "string",
-                            "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
-                        },
-                        "line_spacing": {
-                            "type": "number"
-                        }
-                    }
-                },
-                "indents": {
-                    "type": "object",
-                    "properties": {
-                        "left": {
-                            "type": "string",
-                            "pattern": "^[0-9]+(\\.[0-9]+)?mm$"
-                        },
-                        "right": {
-                            "type": "string",
-                            "pattern": "^[0-9]+(\\.[0-9]+)?mm$"
-                        },
-                        "first_line": {
-                            "type": "string",
-                            "pattern": "^[0-9]+(\\.[0-9]+)?mm$"
-                        }
-                    }
-                }
-            },
-            "additionalProperties": false
-        },
-        "borderProperties": {
-            "type": "object",
-            "title": "Border Properties",
-            "description": "Border styling for cell edges",
-            "properties": {
-                "top": {
-                    "$ref": "#/$defs/borderEdge"
-                },
-                "bottom": {
-                    "$ref": "#/$defs/borderEdge"
-                },
-                "left": {
-                    "$ref": "#/$defs/borderEdge"
-                },
-                "right": {
-                    "$ref": "#/$defs/borderEdge"
-                }
-            },
-            "additionalProperties": false
-        },
-        "borderEdge": {
-            "type": "object",
-            "title": "Border Edge",
-            "description": "Styling for a single border edge",
-            "properties": {
-                "color": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "pattern": "^#[0-9A-Fa-f]{6}$"
-                },
-                "width": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
-                },
-                "line_style": {
-                    "type": [
-                        "null",
-                        "string"
-                    ],
-                    "enum": [
-                        "single",
-                        "double",
-                        "dashed",
-                        "dotted",
-                        "thick",
-                        "none"
-                    ]
-                }
-            },
-            "additionalProperties": false
-        }
+        "additionalProperties": false
+      }
     }
+  },
+  "additionalProperties": false
 }

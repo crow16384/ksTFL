@@ -55,6 +55,12 @@ export(
   set_document,
   set_page_style,
   
+  # Row style actions (compute_cols and action builders)
+  compute_cols,
+  c_style,
+  c_merge,
+  c_addrow,
+  
   # Report creation and serialization
   create_report,
   save_report,

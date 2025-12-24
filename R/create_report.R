@@ -71,45 +71,9 @@
             }
           }
         }
-      } else if (name == "style") {
-        # Handle "style" field which can be:
-        # 1. A character vector with style references: c("style1", "style2")
-        # 2. A list of action objects: list(list(cols=..., style=c(...)), ...)
-        if (is.character(val)) {
-          # Direct character style reference
-          if (length(val) == 1) {
-            if (!(val %in% names(referenced_styles))) {
-              referenced_styles[[val]] <<- TRUE
-            }
-          } else if (length(val) > 1) {
-            # Direct combination
-            sorted_combo <- sort(val)
-            combo_str <- paste(sorted_combo, collapse = "|")
-            if (!(combo_str %in% names(style_combinations))) {
-              style_combinations[[combo_str]] <<- list(
-                original = val, sorted = sorted_combo, hash = NA_character_
-              )
-            }
-            for (s in val) {
-              if (!(s %in% names(referenced_styles))) {
-                referenced_styles[[s]] <<- TRUE
-              }
-            }
-          }
-        } else if (is.list(val) && length(val) > 0) {
-          # List of action objects - recurse into them
-          if (!is.null(names(val))) {
-            # Named list - recurse directly
-            extract_style_refs_from_obj(val)
-          } else if (all(sapply(val, is.list))) {
-            # Unnamed list of lists (style actions array)
-            for (action_obj in val) {
-              if (is.list(action_obj)) {
-                extract_style_refs_from_obj(action_obj)
-              }
-            }
-          }
-        }
+      } else if (is.list(val) && length(val) > 0) {
+        # Recurse into other list fields (handles nested action objects with styleRef)
+        extract_style_refs_from_obj(val)
       }
     }
     combos_found
@@ -215,7 +179,7 @@
       
       # Otherwise, process this list's named fields
       for (name in names(obj)) {
-        if (name %in% c("labelStyleRef", "valueStyleRef", "styleRef", "style")) {
+        if (name %in% c("labelStyleRef", "valueStyleRef", "styleRef")) {
           val <- obj[[name]]
           if (is.character(val) && length(val) > 1) {
             # This is a combination - replace with hash
@@ -225,7 +189,7 @@
               obj[[name]] <- merged_hashes[[combo_str]]
             }
           } else if (is.list(val)) {
-            # Recurse into list values (for nested style action objects)
+            # Recurse into list values (for nested action objects)
             obj[[name]] <- .replace_style_refs(val)
           }
         } else if (is.list(obj[[name]])) {
@@ -292,18 +256,6 @@
               updated_referenced[[s]] <<- TRUE
             }
           }
-        }
-      } else if (name == "style") {
-        # Handle style field - can be character vector or list of action objects
-        if (is.character(val) && length(val) >= 1) {
-          for (s in val) {
-            if (!is.na(s) && nzchar(s)) {
-              updated_referenced[[s]] <<- TRUE
-            }
-          }
-        } else if (is.list(val)) {
-          # Recurse into style list
-          .collect_final_refs(val)
         }
       } else if (is.list(val)) {
         # Recurse into other list fields
@@ -500,6 +452,10 @@ create_report <- function(...) {
   # ---- PHASE 6: Build result ----
   result <- list()
   
+  # Load row_style_actions schema for styleRows serialization
+  row_style_schema_path <- .get_schema_file_path(.const_row_style_schema_file)
+  row_style_schema <- .load_schema(row_style_schema_path)
+  
   for (item in flattened) {
     spec <- item$spec
     
@@ -509,7 +465,9 @@ create_report <- function(...) {
         if (is.null(row_obj)) {
           return("{}")  # Empty string for no actions
         }
-        jsonlite::toJSON(row_obj, auto_unbox = TRUE)
+        # Use serialize_json_internal to apply schema-aware type fixes and array protection
+        fixed_row <- .serialize_json_internal(row_obj, row_style_schema)
+        jsonlite::toJSON(fixed_row, auto_unbox = TRUE)
       }, USE.NAMES = FALSE)
     }
     
