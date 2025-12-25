@@ -465,7 +465,7 @@ utils::globalVariables(
       "cm" = value,
       "in" = value * 2.54,        # 1 inch = 2.54 cm
       "mm" = value / 10,          # 10 mm = 1 cm
-      "pt" = value * 0.0353,      # 1 point ≈ 0.0353 cm
+      "pt" = value * 0.0353,      # 1 point ~ 0.0353 cm
       value  # fallback to original if unknown unit
     )
     
@@ -473,8 +473,8 @@ utils::globalVariables(
       # Display error in original units
       cli_abort(c(
         "Column width {.str {proposed_col_width_str}} is below minimum allowed",
-        x = "Fixed-unit widths must be at least {min_width_cm}cm (≈ 0.08in)",
-        i = "Proposed: {value}{unit} (≈ {format(round(value_cm, 2), nsmall = 2)}cm)"
+        x = "Fixed-unit widths must be at least {min_width_cm}cm (~ 0.08in)",
+        i = "Proposed: {value}{unit} (~ {format(round(value_cm, 2), nsmall = 2)}cm)"
       ))
     }
   }

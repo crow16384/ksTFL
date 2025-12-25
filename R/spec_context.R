@@ -1889,7 +1889,8 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 .add_text_group_impl <- function(spec, target, text, id = NULL, styleRef = NULL, order = NULL,
                                 id_prefix = NULL, fn_name = NULL,
                                 remove_defaults = FALSE, default_prefix = NULL,
-                                default_order = NULL) {
+                                default_order = NULL, as_options_class = FALSE,
+                                options_class = NULL) {
   if (isTRUE(remove_defaults) && !is.null(text) && !is.null(default_prefix)) {
     default_ids <- grep(paste0("^", default_prefix, "_"), names(spec[[target]]), value = TRUE)
     for (d in default_ids) {
@@ -1900,8 +1901,11 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   if (is.null(id)) {
     if (!is.null(id_prefix)) {
       id <- .auto_id(id_prefix, spec[[target]])
+    } else if (!is.null(default_prefix)) {
+      # generate __default_NNN style id
+      id <- .generate_default_bodytext_id(spec[[target]])
     } else {
-      cli_abort("Internal error: id_prefix required for .add_text_group_impl")
+      cli_abort("Internal error: id_prefix or default_prefix required for .add_text_group_impl")
     }
   }
 
@@ -1922,6 +1926,11 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 
   .validate_params(new_data, "text_group", fn_name)
   spec[[target]][[id]] <- .merge_recursive(spec[[target]][[id]], new_data)
+
+  if (isTRUE(as_options_class) && !is.null(options_class)) {
+    class(spec) <- options_class
+  }
+
   spec
 }
 
@@ -1952,6 +1961,9 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
                                id_prefix = "subtitle_", fn_name = "add_subtitle")
   spec
 }
+
+
+
 
 #' Add a footnote
 #' 
@@ -2045,56 +2057,13 @@ add_body_text.TFL_spec <- function(spec, text = NULL, id = NULL, styleRef = NULL
 #' @return Updated options object
 #' @export
 add_body_text.TFL_options <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
-  assert_class(spec, "TFL_options")  
-  # When user sets custom bodyText in options, remove all existing defaults
-  # BUT first capture the max number to generate next sequential ID
-  if (!is.null(text)) {
-    default_ids <- grep(paste0("^", .const_bodytext_default_id_prefix, "_"), 
-                       names(spec$bodyText), value = TRUE)
-    
-    # Find the max number BEFORE removal
-    if (length(default_ids) > 0) {
-      numbers <- as.numeric(gsub(paste0(.const_bodytext_default_id_prefix, "_"), "", default_ids))
-      max_number <- max(numbers, na.rm = TRUE)
-    } else {
-      max_number <- 0
-    }
-    
-    # Remove all defaults
-    for (default_id in default_ids) {
-      spec$bodyText[[default_id]] <- NULL
-    }
-  }
-  
-  # Auto-generate ID using __default_NNN pattern if NULL
-  if (is.null(id)) {
-    if (!is.null(text) && exists("max_number") && max_number > 0) {
-      # User added custom text: generate next sequential ID
-      next_num <- max_number + 1
-      id <- sprintf("%s_%04d", .const_bodytext_default_id_prefix, next_num)
-    } else {
-      # No user text or no existing defaults: use the helper
-      id <- .generate_default_bodytext_id(spec$bodyText)
-    }
-  }
-  
-  if (is.null(order)) {
-    order <- .const_default_bodytext_order
-  }
-  
-  new_data <- list(
-    text = as.character(text),
-    styleRef = styleRef,
-    order = as.integer(order)
-  )
-  new_data <- new_data[!sapply(new_data, is.null)]
-  
-  if (!is.null(text)) {
-    .validate_params(new_data, "text_group", "add_body_text")
-  }
-  
-  spec$bodyText[[id]] <- .merge_recursive(spec$bodyText[[id]], new_data)
-  class(spec) <- "TFL_options_bodytext"
+  assert_class(spec, "TFL_options")
+  spec <- .add_text_group_impl(spec = spec, target = "bodyText", text = text, id = id,
+                               styleRef = styleRef, order = order,
+                               id_prefix = NULL, fn_name = "add_body_text",
+                               remove_defaults = TRUE, default_prefix = .const_bodytext_default_id_prefix,
+                               default_order = .const_default_bodytext_order,
+                               as_options_class = TRUE, options_class = "TFL_options_bodytext")
   spec
 }
 

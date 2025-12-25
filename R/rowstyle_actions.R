@@ -862,8 +862,6 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
 #'
 #' @return Character vector of JSON strings, length matching input
 #'
-#' @keywords internal
-#' @noRd
 #' Build styleRows List Structure
 #'
 #' Converts row_actions to a cleaner list structure for styleRows.
