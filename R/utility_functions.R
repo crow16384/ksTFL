@@ -200,6 +200,15 @@ utils::globalVariables(
   result <- vector("list", n)
   metadata <- vector("list", n)
 
+  # Deterministic sampling for width estimation on large datasets
+  nrows <- nrow(df)
+  sample_threshold <- 200L
+  if (nrows > sample_threshold) {
+    sample_idx <- unique(as.integer(round(seq(1, nrows, length.out = sample_threshold))))
+  } else {
+    sample_idx <- seq_len(nrows)
+  }
+
   # ---- helpers ----
 
   # scalar-per-cell validation
@@ -281,10 +290,17 @@ utils::globalVariables(
     }
 
     # ---- render once per column (performance critical) ----
-    rendered <- if (type == "numeric") {
-      format(sprintf(fmt, col), scientific = FALSE)
+    # Use a deterministic sample for rendering/width estimation to limit cost
+    col_sample <- if (length(sample_idx) > 0 && length(col) >= max(sample_idx)) col[sample_idx] else col
+    if (length(col_sample) == 0) {
+      # No data rows: use missing placeholder for width estimation
+      rendered <- as.character(missings)
     } else {
-      as.character(col)
+      rendered <- if (type == "numeric") {
+        format(sprintf(fmt, col_sample), scientific = FALSE)
+      } else {
+        as.character(col_sample)
+      }
     }
 
     # replace missings once

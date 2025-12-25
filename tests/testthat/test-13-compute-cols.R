@@ -284,7 +284,7 @@ test_that("non-matching rows result in empty JSON in styleRows", {
   row1_json <- spec_result$styleRows[1]
   expect_true(nzchar(row1_json))
   expect_false(row1_json=="{}")
-  expect_false(is_null(row1_json))
+  expect_false(is.null(row1_json))
   
   # Row 2 (Temp) should not match and be empty JSON
   row2_json <- spec_result$styleRows[2]

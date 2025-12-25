@@ -1149,55 +1149,7 @@ p_page <- function(size = .const_default_page_size,
   structure(spec, class = c("tfl_page", "tfl_document_modifier"))
 }
 
-#' Combine Multiple Style Names
-#' 
-#' Helper function to explicitly group multiple style names together for assignment to a single element.
-#' Useful with \code{\link{define_cols}} when mapping different styles to different columns.
-#' 
-#' @param ... Character strings representing style names to combine
-#' \itemize{
-#'   \item Each argument must be a single character string naming a style declared via `add_style()`.
-#'   \item Use `f_combine()` to group multiple style names that should be applied together.
-#'   \item The returned value is a character vector (or object of class `tfl_style_combine` in some variants).
-#' }
-#' 
-#' @return A character vector of style names
-#' @export
-#' 
-#' @examples
-#' \dontrun{
-#' # All columns get both styles
-#' spec <- create_table(data) |>
-#'   define_cols(c("age", "sex"),
-#'     labelStyleRef = f_combine("label_style", "emphasis")
-#'   )
-#' 
-#' # Different styles for different columns
-#' spec <- create_table(data) |>
-#'   define_cols(c("age", "sex"),
-#'     labelStyleRef = c(
-#'       f_combine("age_label_style", "numeric_emphasis"),
-#'       f_combine("sex_label_style", "categorical_emphasis")
-#'     )
-#'   )
-#' }
-f_combine <- function(...) {
-  styles <- list(...)
-  
-  # Ensure all arguments are character strings
-  for (i in seq_along(styles)) {
-    if (!is.character(styles[[i]]) || length(styles[[i]]) != 1) {
-      cli_abort(c(
-        "{.fn f_combine} requires character string arguments",
-        x = "Argument {i} is not a single character string",
-        i = "Use: {.fn f_combine}('style1', 'style2', ...)"
-      ))
-    }
-  }
-  
-  # Return as character vector
-  as.character(styles)
-}
+ 
 
 
  
@@ -1926,26 +1878,50 @@ define_cols <- function(spec, cols,
 #' }
 add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
-  
+  spec <- .add_text_group_impl(spec = spec, target = "titles", text = text, id = id,
+                               styleRef = styleRef, order = order,
+                               id_prefix = "title_", fn_name = "add_title")
+  spec
+}
+
+
+# Internal helper for adding title/subtitle/footnote/body text groups for TFL_spec
+.add_text_group_impl <- function(spec, target, text, id = NULL, styleRef = NULL, order = NULL,
+                                id_prefix = NULL, fn_name = NULL,
+                                remove_defaults = FALSE, default_prefix = NULL,
+                                default_order = NULL) {
+  if (isTRUE(remove_defaults) && !is.null(text) && !is.null(default_prefix)) {
+    default_ids <- grep(paste0("^", default_prefix, "_"), names(spec[[target]]), value = TRUE)
+    for (d in default_ids) {
+      spec[[target]][[d]] <- NULL
+    }
+  }
+
   if (is.null(id)) {
-    id <- .auto_id("title_", spec$titles)
+    if (!is.null(id_prefix)) {
+      id <- .auto_id(id_prefix, spec[[target]])
+    } else {
+      cli_abort("Internal error: id_prefix required for .add_text_group_impl")
+    }
   }
-  
+
   if (is.null(order)) {
-    order <- length(spec$titles) + 1L
+    if (!is.null(default_order)) {
+      order <- as.integer(default_order)
+    } else {
+      order <- length(spec[[target]]) + 1L
+    }
   }
-  
+
   new_data <- list(
     text = as.character(text),
     styleRef = styleRef,
     order = as.integer(order)
   )
   new_data <- new_data[!sapply(new_data, is.null)]
-  
-  # Merge with existing if ID exists
-  .validate_params(new_data, "text_group", "add_title")
-  spec$titles[[id]] <- .merge_recursive(spec$titles[[id]], new_data)
-  
+
+  .validate_params(new_data, "text_group", fn_name)
+  spec[[target]][[id]] <- .merge_recursive(spec[[target]][[id]], new_data)
   spec
 }
 
@@ -1971,25 +1947,9 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' }
 add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
-  
-  if (is.null(id)) {
-    id <- .auto_id("subtitle_", spec$subtitles)
-  }
-  
-  if (is.null(order)) {
-    order <- length(spec$subtitles) + 1L
-  }
-  
-  new_data <- list(
-    text = as.character(text),
-    styleRef = styleRef,
-    order = as.integer(order)
-  )
-  new_data <- new_data[!sapply(new_data, is.null)]
-  
-  .validate_params(new_data, "text_group", "add_subtitle")
-  spec$subtitles[[id]] <- .merge_recursive(spec$subtitles[[id]], new_data)
-  
+  spec <- .add_text_group_impl(spec = spec, target = "subtitles", text = text, id = id,
+                               styleRef = styleRef, order = order,
+                               id_prefix = "subtitle_", fn_name = "add_subtitle")
   spec
 }
 
@@ -2015,25 +1975,9 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' }
 add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
-  
-  if (is.null(id)) {
-    id <- .auto_id("footnote_", spec$footnotes)
-  }
-  
-  if (is.null(order)) {
-    order <- length(spec$footnotes) + 1L
-  }
-  
-  new_data <- list(
-    text = as.character(text),
-    styleRef = styleRef,
-    order = as.integer(order)
-  )
-  new_data <- new_data[!sapply(new_data, is.null)]
-  
-  .validate_params(new_data, "text_group", "add_footnote")
-  spec$footnotes[[id]] <- .merge_recursive(spec$footnotes[[id]], new_data)
-  
+  spec <- .add_text_group_impl(spec = spec, target = "footnotes", text = text, id = id,
+                               styleRef = styleRef, order = order,
+                               id_prefix = "footnote_", fn_name = "add_footnote")
   spec
 }
 
@@ -2080,32 +2024,11 @@ add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, 
 add_body_text.TFL_spec <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")  
   # Auto-remove default body text entries when user adds custom content
-  if (!is.null(text)) {
-    default_ids <- grep(paste0("^", .const_bodytext_default_id_prefix, "_"), 
-                       names(spec$bodyText), value = TRUE)
-    for (default_id in default_ids) {
-      spec$bodyText[[default_id]] <- NULL
-    }
-  }
-  
-  if (is.null(id)) {
-    id <- .auto_id("body_", spec$bodyText)
-  }
-  
-  if (is.null(order)) {
-    order <- length(spec$bodyText) + 1L
-  }
-  
-  new_data <- list(
-    text = as.character(text),
-    styleRef = styleRef,
-    order = as.integer(order)
-  )
-  new_data <- new_data[!sapply(new_data, is.null)]
-  
-  .validate_params(new_data, "text_group", "add_body_text")
-  spec$bodyText[[id]] <- .merge_recursive(spec$bodyText[[id]], new_data)
-  
+  assert_class(spec, "TFL_spec")
+  spec <- .add_text_group_impl(spec = spec, target = "bodyText", text = text, id = id,
+                               styleRef = styleRef, order = order,
+                               id_prefix = "body_", fn_name = "add_body_text",
+                               remove_defaults = TRUE, default_prefix = .const_bodytext_default_id_prefix)
   spec
 }
 
@@ -2226,6 +2149,36 @@ add_header <- function(spec = NULL, ..., level = NULL) {
   UseMethod("add_header", spec)
 }
 
+
+# Internal helper to add header/footer rows for both spec and options
+.add_header_footer_impl <- function(spec, parts, target = c("headers", "footers"), level = NULL, as_options_class = NULL) {
+  parts <- as.character(parts)
+
+  if (length(parts) > .const_max_header_footer_parts) {
+    cli_abort("{.fn add_header/add_footer} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
+  }
+
+  if (!is.null(level)) {
+    checkmate::assert_number(level, lower = 1, finite = TRUE)
+    level <- as.integer(level)
+    if (level <= length(spec[[target]])) {
+      spec[[target]][[level]] <- parts
+      return(spec)
+    }
+    # otherwise fall through and append
+  }
+
+  spec[[target]] <- c(spec[[target]] %||% list(), list(parts))
+
+  if (!is.null(as_options_class) && as_options_class) {
+    # For options variants, ensure class is set appropriately
+    if (identical(target, "headers")) class(spec) <- "TFL_options_header"
+    if (identical(target, "footers")) class(spec) <- "TFL_options_footer"
+  }
+
+  spec
+}
+
 #' Add a header row for TFL_spec
 #' 
 #' @param spec TFL_spec object
@@ -2239,31 +2192,9 @@ add_header <- function(spec = NULL, ..., level = NULL) {
 #' @return Updated spec object
 #' @export
 add_header.TFL_spec <- function(spec, ..., level = NULL) {
-  checkmate::assert_class(spec, "TFL_spec")  
+  checkmate::assert_class(spec, "TFL_spec")
   header_parts <- as.character(c(...))
-  
-  if (length(header_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_header} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
-  }
-  
-  # Handle level parameter
-  if (!is.null(level)) {
-    # Try to replace at specific level
-    checkmate::assert_number(level, lower = 1, finite = TRUE)
-    level <- as.integer(level)
-    
-    # Only replace if level exists
-    if (level <= length(spec$headers)) {
-      spec$headers[[level]] <- header_parts
-      return(spec)
-    }
-    # Otherwise ignore and treat as append
-  }
-  
-  # Add as new row
-  spec$headers <- c(spec$headers %||% list(), list(header_parts))
-  
-  spec
+  .add_header_footer_impl(spec = spec, parts = header_parts, target = "headers", level = level)
 }
 
 #' Add a header row for TFL_options
@@ -2283,30 +2214,8 @@ add_header.TFL_spec <- function(spec, ..., level = NULL) {
 #' @export
 add_header.TFL_options <- function(spec, ..., level = NULL) {
   checkmate::assert_class(spec, "TFL_options")
-  
   header_parts <- as.character(c(...))
-  
-  if (length(header_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_header} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
-  }
-  
-  # Handle level parameter
-  if (!is.null(level)) {
-    checkmate::assert_number(level, lower = 1, finite = TRUE)
-    level <- as.integer(level)
-    
-    # Only replace if level exists
-    if (level <= length(spec$headers)) {
-      spec$headers[[level]] <- header_parts
-      return(spec)
-    }
-    # Otherwise ignore and treat as append
-  }
-  
-  # Add as new row to headers list
-  spec$headers <- c(spec$headers %||% list(), list(header_parts))
-  class(spec) <- "TFL_options_header"
-  spec
+  .add_header_footer_impl(spec = spec, parts = header_parts, target = "headers", level = level, as_options_class = TRUE)
 }
 
 #' Default method for add_header
@@ -2375,30 +2284,9 @@ add_footer <- function(spec = NULL, ..., level = NULL) {
 #' @return Updated spec object
 #' @export
 add_footer.TFL_spec <- function(spec, ..., level = NULL) {
-  checkmate::assert_class(spec, "TFL_spec")  
+  checkmate::assert_class(spec, "TFL_spec")
   footer_parts <- as.character(c(...))
-  
-  if (length(footer_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_footer} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
-  }
-  
-  # Handle level parameter
-  if (!is.null(level)) {
-    checkmate::assert_number(level, lower = 1, finite = TRUE)
-    level <- as.integer(level)
-    
-    # Only replace if level exists
-    if (level <= length(spec$footers)) {
-      spec$footers[[level]] <- footer_parts
-      return(spec)
-    }
-    # Otherwise ignore and treat as append
-  }
-  
-  # Add as new row
-  spec$footers <- c(spec$footers %||% list(), list(footer_parts))
-  
-  spec
+  .add_header_footer_impl(spec = spec, parts = footer_parts, target = "footers", level = level)
 }
 
 #' Add a footer row for TFL_options
@@ -2413,29 +2301,8 @@ add_footer.TFL_spec <- function(spec, ..., level = NULL) {
 #' @export
 add_footer.TFL_options <- function(spec, ..., level = NULL) {
   checkmate::assert_class(spec, "TFL_options")
-  
   footer_parts <- as.character(c(...))
-  
-  if (length(footer_parts) > .const_max_header_footer_parts) {
-    cli_abort("{.fn add_footer} accepts maximum { .const_max_header_footer_parts} parts (left, center, right)")
-  }
-  
-  # Handle level parameter
-  if (!is.null(level)) {
-    checkmate::assert_number(level, lower = 1, finite = TRUE)
-    level <- as.integer(level)
-    
-    # Only replace if level exists
-    if (level <= length(spec$footers)) {
-      spec$footers[[level]] <- footer_parts
-      return(spec)
-    }
-    # Otherwise ignore and treat as append
-  }
-  # Add as new row to footers list
-  spec$footers <- c(spec$footers %||% list(), list(footer_parts))
-  class(spec) <- "TFL_options_footer"
-  spec
+  .add_header_footer_impl(spec = spec, parts = footer_parts, target = "footers", level = level, as_options_class = TRUE)
 }
 
 #' Default method for add_footer
