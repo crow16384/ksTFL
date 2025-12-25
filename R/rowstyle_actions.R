@@ -31,8 +31,10 @@ NULL
 #' @param ... Action function calls: `c_style()`, `c_merge()`, `c_addrow()`.
 #'   Multiple actions allowed, including duplicates. Actions are captured unevaluated.
 #'
-#' @return Modified `spec` object with appended action metadata.
-#'   Invisibly returns the spec for piping.
+#' @return Modified `spec` object with appended action metadata in `spec$.metadata$compute_cols`.
+#'   Invisibly returns the updated spec to enable piping workflows.
+#'
+#' @seealso [c_style()], [c_merge()], [c_addrow()] for action functions used within `compute_cols()`
 #'
 #' @details
 #' **Execution Timeline:**
@@ -147,6 +149,8 @@ compute_cols <- function(spec, cond, ...) {
 #' Must be called inside `compute_cols()`. Columns are resolved using
 #' tidyselect syntax against the table data.
 #'
+#' @seealso [compute_cols()] for conditional row actions, [c_merge()], [c_addrow()] for other action types
+#'
 #' **Behavior:**
 #' \itemize{
 #'   \item Same column styled multiple times in one row: last style wins, warning issued
@@ -217,6 +221,8 @@ c_style <- function(cols, styleRef) {
 #'
 #' @details
 #' Must be called inside `compute_cols()`. Columns must be adjacent in the
+#' @seealso [compute_cols()] for conditional row actions, [c_style()], [c_addrow()] for other action types
+#'
 #' final report column order.
 #'
 #' **Validation:**
@@ -284,7 +290,9 @@ c_merge <- function(cols, styleRef = NULL) {
 #'   If NULL, no special styling. Can be a single style or `f_combine()` result.
 #'
 #' @return Quosure structure (internal use within `compute_cols()`)
+#'@seealso [compute_cols()] for conditional row actions, [c_style()], [c_merge()] for other action types
 #'
+#' 
 #' @details
 #' Must be called inside `compute_cols()`.
 #'

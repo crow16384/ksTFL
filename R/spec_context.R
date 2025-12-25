@@ -783,6 +783,8 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return A font specification object (for internal use)
 #' @export
 #' 
+#' @seealso [add_style()] for applying styles, [s_paragraph()], [s_table_style()] for other style components
+#' 
 #' @examples
 #' \dontrun{
 #' spec <- create_text() |>
@@ -874,6 +876,9 @@ s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
 #' 
 #' @return A paragraph specification object
 #' @export
+#' 
+#' @seealso [add_style()] for applying styles, [s_spacing()], [s_indents()] for nested components,
+#'   [s_font()], [s_table_style()] for other style components
 #' 
 #' @examples
 #' \dontrun{
@@ -999,6 +1004,9 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
 #' @param vertical_alignment Vertical alignment: "top", "center", "bottom"
 #' @param text_orientation Text orientation: "horizontal", "vertical_90", "vertical_270"
 #' @param borders Borders object created with \code{\link{s_borders}}
+#' 
+#' @seealso [add_style()] for applying styles, [s_borders()], [s_border()] for border components,
+#'   [s_font()], [s_paragraph()] for other style components
 #' 
 #' @return A table style specification object
 #' @export
@@ -1405,7 +1413,9 @@ add_style.default <- function(spec, id = NULL, ...) {
 #'   \item Returned object has class `tfl_style_combine` to signal grouped style application.
 #' }
 #' 
-#' @return Object of class "tfl_style_combine" (character vector with special class)
+#' @return Character vector with class "tfl_style_combine" containing all provided style names.
+#'   This special class signals to style resolution functions that these styles should be
+#'   applied together as a group (merged with last-win strategy during `create_report()`).
 #' @export
 #' 
 #' @examples
@@ -1516,7 +1526,11 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   columns if `autoColWidth = TRUE` in `tfl_set_options()`. Locked columns maintain their exact width
 #'   while unlocked columns normalize to fill remaining available space.
 #' @param valueStyleRef Style names to apply to cell values. Provided styles will be merged with last-win strategy for report. 
-#'   Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
+#'  return Updated TFL_spec object with modified column definitions. Changes are merged with existing
+#'   column properties using last-win strategy. When `colWidth` is specified or `isVisible` changes,
+#'   automatic width recalculation is triggered (if `autoColWidth = TRUE`).
+#'   
+#' @ Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
 #'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns). Optional.
 #' 
 #' @details

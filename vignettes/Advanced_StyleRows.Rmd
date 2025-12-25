@@ -1,0 +1,788 @@
+---
+title: "Advanced StyleRows and Conditional Formatting"
+author: "ksTFL Development Team"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{Advanced StyleRows and Conditional Formatting}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Overview
+
+This vignette explains the powerful conditional row styling system in ksTFL, 
+centered around `compute_cols()` and its action functions: `c_style()`, `c_merge()`, 
+and `c_addrow()`. These tools enable sophisticated data-driven formatting without 
+manual post-processing.
+
+## Core Concept: Lazy Evaluation
+
+`compute_cols()` uses **lazy evaluation**—it captures your conditions and actions 
+as unevaluated expressions (quosures), storing them in the spec's metadata. The 
+actual evaluation happens later during `create_report()`, when all specs are 
+finalized and the data context is fully established.
+
+### Why Lazy Evaluation?
+
+1. **Deferred Context**: Column selections and data references are resolved when 
+   the report structure is complete
+2. **Tidyselect Support**: Use `everything()`, `starts_with()`, etc. without 
+   worrying about timing
+3. **Multi-Stage Processing**: Separate specification (design time) from execution 
+   (render time)
+
+## The Three Action Functions
+
+### `c_style()`: Conditional Styling
+
+Apply style references to cells based on conditions:
+
+```{r c-style-basic}
+library(ksTFL)
+
+data <- data.frame(
+  patient = sprintf("PAT-%03d", 1:20),
+  age = c(23, 45, 67, 34, 89, 56, 42, 71, 38, 29,
+          55, 66, 44, 52, 60, 48, 35, 70, 41, 58),
+  response = sample(c("CR", "PR", "SD", "PD"), 20, replace = TRUE)
+)
+
+# Define styles first
+spec <- create_table(data) |>
+  add_style("highlight_green", s_font(color = "#006400", bold = TRUE)) |>
+  add_style("highlight_red", s_font(color = "#8B0000", bold = TRUE))
+
+# Apply conditional styling
+spec <- spec |>
+  compute_cols(
+    response == "CR",
+    c_style(response, styleRef = "highlight_green")
+  ) |>
+  compute_cols(
+    response == "PD",
+    c_style(response, styleRef = "highlight_red")
+  )
+```
+
+**Result:** Rows where `response == "CR"` show green bold text; rows where 
+`response == "PD"` show red bold text.
+
+### `c_merge()`: Conditional Cell Merging
+
+Merge multiple columns into a single display cell:
+
+```{r c-merge-basic}
+data_groups <- data.frame(
+  group = c("Treatment A", "Treatment A", "Treatment A",
+            "Placebo", "Placebo"),
+  visit = c("Week 0", "Week 4", "Week 8", "Week 0", "Week 4"),
+  value = c(5.2, 6.1, 7.3, 4.8, 5.5)
+)
+
+spec <- create_table(data_groups) |>
+  compute_cols(
+    group == lag(group, default = ""),  # Same group as previous row
+    c_merge(c(group, visit), display_col = "group")
+  )
+```
+
+**Result:** When consecutive rows have the same `group`, their `group` and `visit` 
+cells merge, displaying the merged content in the `group` column.
+
+### `c_addrow()`: Conditional Row Insertion
+
+Insert new rows based on data patterns:
+
+```{r c-addrow-basic}
+spec <- create_table(data_groups) |>
+  compute_cols(
+    group != lag(group, default = ""),  # Group changes
+    c_addrow(
+      position = "before",
+      values = list(
+        group = paste0("=== ", group, " ==="),
+        visit = "",
+        value = NA
+      )
+    )
+  )
+```
+
+**Result:** A summary row is inserted before each new group, with formatted 
+group header text.
+
+## Evaluation Context
+
+### The Data Environment
+
+Conditions and actions are evaluated in `spec$.metadata$data_env`, which contains:
+
+1. **Data columns**: Direct access to all columns (even invisible ones)
+2. **Helper functions**: `lag()`, `lead()`, `row_number()`, etc.
+3. **Embedded functions**: Internal utilities for column access
+
+```{r data-env-example}
+# You can reference any column directly in conditions
+spec <- create_table(data) |>
+  compute_cols(
+    age > 60 & response %in% c("CR", "PR"),  # Multi-column condition
+    c_style(c(age, response), styleRef = "elderly_responder")
+  )
+```
+
+### Available Helper Functions
+
+ksTFL provides dplyr-like helpers evaluated in the data context:
+
+- **`lag(x, n = 1, default = NA)`**: Previous row value(s)
+- **`lead(x, n = 1, default = NA)`**: Next row value(s)
+- **`row_number()`**: Current row index (1-based)
+- **`n()`**: Total row count
+
+```{r helpers-example}
+# Highlight first and last rows
+spec <- create_table(data) |>
+  compute_cols(
+    row_number() == 1 | row_number() == n(),
+    c_style(everything(), styleRef = "border_emphasis")
+  )
+
+# Compare with previous row
+spec <- spec |>
+  compute_cols(
+    age > lag(age, default = 0),
+    c_style(age, styleRef = "increasing_trend")
+  )
+```
+
+## Advanced `c_style()` Patterns
+
+### Multiple Column Styling
+
+Use tidyselect to style multiple columns at once:
+
+```{r c-style-multi}
+data_lab <- data.frame(
+  patient = sprintf("PAT-%03d", 1:10),
+  hemoglobin = rnorm(10, 13.5, 1.5),
+  glucose = rnorm(10, 95, 15),
+  cholesterol = rnorm(10, 200, 30)
+)
+
+spec <- create_table(data_lab) |>
+  add_style("out_of_range", s_font(color = "#FF4500", bold = TRUE)) |>
+  compute_cols(
+    hemoglobin < 12 | hemoglobin > 16,
+    c_style(hemoglobin, styleRef = "out_of_range")
+  ) |>
+  compute_cols(
+    glucose < 70 | glucose > 140,
+    c_style(glucose, styleRef = "out_of_range")
+  ) |>
+  compute_cols(
+    cholesterol > 240,
+    c_style(cholesterol, styleRef = "out_of_range")
+  )
+```
+
+### Conditional Styling with Complex Logic
+
+Combine multiple conditions:
+
+```{r c-style-complex}
+spec <- create_table(data) |>
+  add_style("critical_senior", 
+            s_font(color = "#8B0000", bold = TRUE),
+            s_table_style(background_color = "#FFEBCD")) |>
+  compute_cols(
+    age >= 70 & response == "PD",
+    c_style(c(patient, age, response), styleRef = "critical_senior")
+  )
+```
+
+### Row-Level Styling
+
+Style entire rows by targeting all columns:
+
+```{r c-style-row}
+spec <- create_table(data) |>
+  add_style("alternate_row", 
+            s_table_style(background_color = "#F0F0F0")) |>
+  compute_cols(
+    row_number() %% 2 == 0,  # Even rows
+    c_style(everything(), styleRef = "alternate_row")
+  )
+```
+
+## Advanced `c_merge()` Patterns
+
+### Multi-Column Grouping Merges
+
+Merge across multiple grouping levels:
+
+```{r c-merge-multi}
+data_nested <- data.frame(
+  study = rep(c("Study A", "Study B"), each = 6),
+  phase = rep(c("Phase I", "Phase II", "Phase III"), 4),
+  site = rep(c("Site 1", "Site 2", "Site 1", "Site 2"), 3),
+  enrollment = sample(10:50, 12)
+)
+
+spec <- create_table(data_nested) |>
+  # Merge study column for consecutive same-study rows
+  compute_cols(
+    study == lag(study, default = ""),
+    c_merge(study, display_col = "study")
+  ) |>
+  # Merge phase column within same study
+  compute_cols(
+    study == lag(study, default = "") & phase == lag(phase, default = ""),
+    c_merge(phase, display_col = "phase")
+  )
+```
+
+### Conditional Display Column Content
+
+Customize merged cell content:
+
+```{r c-merge-custom}
+spec <- create_table(data_groups) |>
+  compute_cols(
+    group == lag(group, default = ""),
+    c_merge(
+      c(group, visit),
+      display_col = "group",
+      sep = " | "  # Custom separator for merged values
+    )
+  )
+```
+
+### Merging with Styling
+
+Combine merging with conditional styles:
+
+```{r c-merge-style}
+spec <- create_table(data_nested) |>
+  add_style("merged_header", 
+            s_font(bold = TRUE),
+            s_table_style(background_color = "#E0E0E0")) |>
+  compute_cols(
+    study == lag(study, default = ""),
+    c_merge(study, display_col = "study")
+  ) |>
+  compute_cols(
+    study != lag(study, default = ""),  # First row of group
+    c_style(study, styleRef = "merged_header")
+  )
+```
+
+## Advanced `c_addrow()` Patterns
+
+### Summary Rows
+
+Insert calculated summary rows:
+
+```{r c-addrow-summary}
+data_sales <- data.frame(
+  region = c("North", "North", "South", "South", "West", "West"),
+  product = rep(c("A", "B"), 3),
+  revenue = c(100, 150, 200, 120, 180, 160)
+)
+
+spec <- create_table(data_sales) |>
+  add_style("summary_row", 
+            s_font(bold = TRUE),
+            s_table_style(background_color = "#D3D3D3")) |>
+  compute_cols(
+    region != lead(region, default = ""),  # Last row of group
+    c_addrow(
+      position = "after",
+      values = list(
+        region = paste0(region, " Total"),
+        product = "",
+        revenue = sum(revenue[region == region])  # Will be calculated at eval time
+      ),
+      styleRef = "summary_row"
+    )
+  )
+```
+
+### Header Rows
+
+Insert section headers:
+
+```{r c-addrow-header}
+spec <- create_table(data_sales) |>
+  add_style("section_header",
+            s_font(bold = TRUE, font_size = 12),
+            s_table_style(background_color = "#4682B4")) |>
+  compute_cols(
+    region != lag(region, default = ""),  # First row of new region
+    c_addrow(
+      position = "before",
+      values = list(
+        region = toupper(region),
+        product = "REGION HEADER",
+        revenue = NA
+      ),
+      styleRef = "section_header"
+    )
+  )
+```
+
+### Conditional Row Insertion Logic
+
+Insert rows only when specific conditions are met:
+
+```{r c-addrow-conditional}
+spec <- create_table(data_sales) |>
+  compute_cols(
+    revenue > 150 & product == "A",  # Only for high-revenue product A
+    c_addrow(
+      position = "after",
+      values = list(
+        region = paste0("⚠ ", region, " - High Performance"),
+        product = "",
+        revenue = revenue * 1.1  # Projected next period
+      )
+    )
+  )
+```
+
+## Combining Actions
+
+### Sequential Actions
+
+Chain multiple `compute_cols()` calls for layered effects:
+
+```{r combine-sequential}
+spec <- create_table(data_sales) |>
+  # Step 1: Add summary rows
+  compute_cols(
+    region != lead(region, default = ""),
+    c_addrow(position = "after", 
+             values = list(region = paste(region, "Total"), 
+                          product = "", 
+                          revenue = NA))
+  ) |>
+  # Step 2: Style summary rows
+  add_style("bold_summary", s_font(bold = TRUE)) |>
+  compute_cols(
+    grepl("Total$", region),
+    c_style(region, styleRef = "bold_summary")
+  ) |>
+  # Step 3: Merge region cells
+  compute_cols(
+    region == lag(region, default = ""),
+    c_merge(region, display_col = "region")
+  )
+```
+
+### Multiple Actions in One `compute_cols()`
+
+**Note:** Currently, `compute_cols()` accepts one action function per call. To 
+apply multiple actions to the same condition, use separate calls with identical 
+conditions:
+
+```{r combine-same-condition}
+spec <- create_table(data) |>
+  # Action 1: Style cells
+  compute_cols(
+    age > 65,
+    c_style(age, styleRef = "elderly")
+  ) |>
+  # Action 2: Merge cells (same condition)
+  compute_cols(
+    age > 65,
+    c_merge(c(patient, age), display_col = "patient")
+  )
+```
+
+## Performance Tips
+
+### 1. Minimize `compute_cols()` Calls
+
+Each call adds evaluation overhead. Combine conditions when possible:
+
+```{r perf-minimize}
+# ❌ Less efficient:
+spec <- create_table(data) |>
+  compute_cols(age < 30, c_style(age, styleRef = "young")) |>
+  compute_cols(age >= 30 & age < 60, c_style(age, styleRef = "middle")) |>
+  compute_cols(age >= 60, c_style(age, styleRef = "senior"))
+
+# ✅ More efficient (single pass with case_when logic):
+spec <- create_table(data) |>
+  add_style("young", s_font(color = "#008000")) |>
+  add_style("middle", s_font(color = "#0000FF")) |>
+  add_style("senior", s_font(color = "#FF0000")) |>
+  compute_cols(
+    age < 30,
+    c_style(age, styleRef = "young")
+  ) |>
+  compute_cols(
+    age >= 30 & age < 60,
+    c_style(age, styleRef = "middle")
+  ) |>
+  compute_cols(
+    age >= 60,
+    c_style(age, styleRef = "senior")
+  )
+  
+# Note: Consider refactoring to reduce compute_cols() calls if performance is critical
+```
+
+### 2. Use Vectorized Conditions
+
+Avoid row-by-row operations in custom functions:
+
+```{r perf-vectorized}
+# ❌ Slower (scalar logic):
+spec <- create_table(data) |>
+  compute_cols(
+    sapply(response, function(x) x %in% c("CR", "PR")),  # Row-by-row
+    c_style(response, styleRef = "responder")
+  )
+
+# ✅ Faster (vectorized):
+spec <- create_table(data) |>
+  compute_cols(
+    response %in% c("CR", "PR"),  # Vectorized
+    c_style(response, styleRef = "responder")
+  )
+```
+
+### 3. Pre-Filter Data When Possible
+
+If conditions apply to a small subset, consider filtering data upfront:
+
+```{r perf-prefilter}
+# If only 5% of rows need special formatting:
+# Consider creating separate tables and combining in report
+
+data_outliers <- subset(data, age > 80)
+data_normal <- subset(data, age <= 80)
+
+spec_outliers <- create_table(data_outliers) |>
+  add_style("outlier", s_font(color = "#FF0000", bold = TRUE)) |>
+  compute_cols(TRUE, c_style(everything(), styleRef = "outlier"))
+
+spec_normal <- create_table(data_normal)
+
+# Combine in report
+report <- create_report(spec_normal, spec_outliers)
+```
+
+### 4. Style Consolidation
+
+ksTFL automatically consolidates identical styles, but you can help by reusing 
+style references:
+
+```{r perf-consolidation}
+# ✅ Define once, use many times:
+spec <- create_table(data) |>
+  add_style("critical", s_font(color = "#FF0000", bold = TRUE)) |>
+  compute_cols(age > 80, c_style(age, styleRef = "critical")) |>
+  compute_cols(response == "PD", c_style(response, styleRef = "critical"))
+
+# ❌ Avoid duplicate style definitions:
+# (This creates two identical but separate styles)
+spec <- create_table(data) |>
+  add_style("critical_age", s_font(color = "#FF0000", bold = TRUE)) |>
+  add_style("critical_response", s_font(color = "#FF0000", bold = TRUE))
+```
+
+## Debugging and Inspection
+
+### Viewing Captured Actions
+
+Inspect what `compute_cols()` has stored:
+
+```{r debug-inspect}
+spec <- create_table(data) |>
+  compute_cols(
+    age > 60,
+    c_style(age, styleRef = "elderly")
+  )
+
+# Examine metadata
+str(spec$.metadata$styleRows)
+# Shows captured quosures and action types
+```
+
+### Testing Conditions Manually
+
+Extract data and test conditions before adding to spec:
+
+```{r debug-test}
+# Get data from spec
+data_test <- spec$.metadata$data_env$`__data__`
+
+# Test your condition
+test_condition <- with(data_test, age > 60)
+sum(test_condition)  # How many rows match?
+
+# Verify subset
+data_test[test_condition, ]
+```
+
+### Incremental Building
+
+Add `compute_cols()` one at a time and inspect results:
+
+```{r debug-incremental}
+spec <- create_table(data)
+
+# Add first action
+spec <- spec |>
+  compute_cols(age > 60, c_style(age, styleRef = "elderly"))
+print(spec)  # Check structure
+
+# Add second action
+spec <- spec |>
+  compute_cols(response == "CR", c_style(response, styleRef = "success"))
+print(spec)  # Check again
+```
+
+## Common Patterns Library
+
+### Pattern 1: Alternating Row Colors
+
+```{r pattern-alternate}
+spec <- create_table(data) |>
+  add_style("gray_bg", s_table_style(background_color = "#F5F5F5")) |>
+  compute_cols(
+    row_number() %% 2 == 0,
+    c_style(everything(), styleRef = "gray_bg")
+  )
+```
+
+### Pattern 2: Grouped Section Headers with Merging
+
+```{r pattern-grouped}
+spec <- create_table(data_groups) |>
+  add_style("group_header", 
+            s_font(bold = TRUE, font_size = 11),
+            s_table_style(background_color = "#D0D0D0")) |>
+  # Insert header row before each new group
+  compute_cols(
+    group != lag(group, default = ""),
+    c_addrow(
+      position = "before",
+      values = list(group = paste("===", group, "==="), visit = "", value = NA),
+      styleRef = "group_header"
+    )
+  ) |>
+  # Merge consecutive same-group cells
+  compute_cols(
+    group == lag(group, default = ""),
+    c_merge(group, display_col = "group")
+  )
+```
+
+### Pattern 3: Conditional Highlighting with Thresholds
+
+```{r pattern-thresholds}
+spec <- create_table(data_lab) |>
+  add_style("low", s_font(color = "#0000FF")) |>
+  add_style("normal", s_font(color = "#008000")) |>
+  add_style("high", s_font(color = "#FF0000")) |>
+  compute_cols(
+    hemoglobin < 12,
+    c_style(hemoglobin, styleRef = "low")
+  ) |>
+  compute_cols(
+    hemoglobin >= 12 & hemoglobin <= 16,
+    c_style(hemoglobin, styleRef = "normal")
+  ) |>
+  compute_cols(
+    hemoglobin > 16,
+    c_style(hemoglobin, styleRef = "high")
+  )
+```
+
+### Pattern 4: Comparative Analysis (vs. Previous Row)
+
+```{r pattern-comparative}
+spec <- create_table(data) |>
+  add_style("improved", s_font(color = "#006400")) |>
+  add_style("worsened", s_font(color = "#8B0000")) |>
+  compute_cols(
+    !is.na(lag(age)) & age > lag(age),
+    c_style(age, styleRef = "improved")
+  ) |>
+  compute_cols(
+    !is.na(lag(age)) & age < lag(age),
+    c_style(age, styleRef = "worsened")
+  )
+```
+
+### Pattern 5: Summary Rows with Totals
+
+```{r pattern-totals}
+# Note: This pattern requires careful handling of aggregates
+# Currently, you can reference group-level calculations in values list
+
+spec <- create_table(data_sales) |>
+  add_style("total_row", 
+            s_font(bold = TRUE),
+            s_table_style(background_color = "#FFD700")) |>
+  compute_cols(
+    region != lead(region, default = ""),
+    c_addrow(
+      position = "after",
+      values = list(
+        region = "SUBTOTAL",
+        product = "",
+        revenue = NA  # Will be calculated during evaluation
+      ),
+      styleRef = "total_row"
+    )
+  )
+```
+
+## Limitations and Workarounds
+
+### Limitation 1: No Direct Aggregate Functions in Conditions
+
+You can't use `sum()`, `mean()`, etc. directly in conditions:
+
+```{r limit-aggregates, error=TRUE}
+# ❌ This won't work as expected:
+spec <- create_table(data) |>
+  compute_cols(
+    age > mean(age),  # Evaluates mean() at condition capture, not evaluation
+    c_style(age, styleRef = "above_average")
+  )
+```
+
+**Workaround:** Pre-calculate and add as a column:
+
+```{r workaround-aggregates}
+data$age_above_avg <- data$age > mean(data$age)
+
+spec <- create_table(data) |>
+  compute_cols(
+    age_above_avg,
+    c_style(age, styleRef = "above_average")
+  )
+```
+
+### Limitation 2: No Nested `c_*()` Functions
+
+You can't nest action functions:
+
+```{r limit-nested, error=TRUE}
+# ❌ This is invalid:
+spec <- create_table(data) |>
+  compute_cols(
+    age > 60,
+    c_style(age, styleRef = c_merge(patient, age))  # Not allowed
+  )
+```
+
+**Workaround:** Use separate `compute_cols()` calls:
+
+```{r workaround-nested}
+spec <- create_table(data) |>
+  compute_cols(age > 60, c_style(age, styleRef = "elderly")) |>
+  compute_cols(age > 60, c_merge(c(patient, age), display_col = "patient"))
+```
+
+### Limitation 3: Style References Must Exist
+
+`styleRef` must reference a previously defined style:
+
+```{r limit-styleref, error=TRUE}
+# ❌ This will error at evaluation time:
+spec <- create_table(data) |>
+  compute_cols(age > 60, c_style(age, styleRef = "undefined_style"))
+```
+
+**Workaround:** Always define styles before using them:
+
+```{r workaround-styleref}
+spec <- create_table(data) |>
+  add_style("elderly", s_font(bold = TRUE)) |>  # Define first
+  compute_cols(age > 60, c_style(age, styleRef = "elderly"))
+```
+
+## Integration with Other ksTFL Features
+
+### Using with `define_cols()`
+
+`compute_cols()` works alongside column definitions:
+
+```{r integrate-define}
+spec <- create_table(data) |>
+  define_cols(age, type = "numeric", format = "0.0", colWidth = "15%") |>
+  compute_cols(
+    age > 65,
+    c_style(age, styleRef = "elderly")
+  )
+```
+
+### Using with Invisible Columns
+
+Reference invisible columns in conditions:
+
+```{r integrate-invisible}
+data$flag <- sample(c(TRUE, FALSE), nrow(data), replace = TRUE)
+
+spec <- create_table(data) |>
+  define_cols(flag, isVisible = FALSE) |>  # Hide column
+  compute_cols(
+    flag == TRUE,  # But use it in condition
+    c_style(response, styleRef = "flagged")
+  )
+```
+
+### Using in Multi-Spec Reports
+
+Each spec can have independent `compute_cols()` logic:
+
+```{r integrate-report}
+spec1 <- create_table(data[1:10, ]) |>
+  compute_cols(age > 60, c_style(age, styleRef = "elderly"))
+
+spec2 <- create_table(data[11:20, ]) |>
+  compute_cols(response == "CR", c_style(response, styleRef = "success"))
+
+report <- create_report(spec1, spec2)
+```
+
+## Best Practices
+
+1. **Define styles first**: Use `add_style()` before `compute_cols()`
+2. **Test conditions incrementally**: Add one `compute_cols()` at a time
+3. **Use meaningful style names**: "elderly" is clearer than "style1"
+4. **Document complex logic**: Add comments explaining condition rationale
+5. **Prefer vectorized operations**: Avoid row-by-row functions where possible
+6. **Reuse styles**: Define once, reference many times for consistency
+7. **Keep conditions simple**: Complex logic is harder to debug
+8. **Check for NA values**: Use `!is.na()` when comparing with `lag()`/`lead()`
+
+## Summary
+
+- **`compute_cols()`**: Captures conditions and actions via lazy evaluation
+- **`c_style()`**: Apply conditional styling to cells
+- **`c_merge()`**: Merge cells across columns based on conditions
+- **`c_addrow()`**: Insert new rows dynamically
+- **Evaluation context**: Data environment with helper functions (`lag`, `lead`, `row_number`, `n`)
+- **Performance**: Minimize calls, use vectorized operations, consolidate styles
+- **Debugging**: Inspect metadata, test conditions manually, build incrementally
+
+For styling fundamentals, see `vignette("Styling_Guide_with_ksTFL")`.  
+For complete examples, see `vignette("Reporting_Examples_with_ksTFL")`.
