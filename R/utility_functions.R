@@ -275,6 +275,16 @@ utils::globalVariables(
   }
 
   # ---- main loop (column-wise, cache-friendly) ----
+  # Optimization: Pre-vectorize type detection across all columns
+  col_classes <- vapply(df, function(col) {
+    paste(class(col), collapse = "/")
+  }, character(1), USE.NAMES = FALSE)
+  
+  is_numeric_vec <- vapply(seq_len(n), function(i) {
+    col <- df[[i]]
+    is.numeric(col) && !inherits(col, c("Date", "POSIXct", "POSIXlt"))
+  }, logical(1), USE.NAMES = FALSE)
+  
   for (i in seq_len(n)) {
     col <- df[[i]]
     col_name <- names(df)[i]
@@ -282,7 +292,7 @@ utils::globalVariables(
 
     # ---- scalar validation (fast fail) ----
     if (is.list(col)) {
-      ok <- vapply(col, is_scalar_value, logical(1))
+      ok <- vapply(col, is_scalar_value, logical(1), USE.NAMES = FALSE)
       if (!all(ok)) {
         cli::cli_abort(
           "Column {.field {col_name}} contains non-scalar values and cannot be exported."
@@ -290,39 +300,44 @@ utils::globalVariables(
       }
     }
 
-    # ---- type detection ----
-    is_numeric <- is.numeric(col) &&
-      !inherits(col, c("Date", "POSIXct", "POSIXlt"))
-
+    # ---- type detection (pre-computed) ----
+    is_numeric <- is_numeric_vec[i]
     type <- if (is_numeric) "numeric" else "string"
 
-    # ---- format guessing ----
+    # ---- format guessing with caching ----
+    cache_key <- NULL
     if (type == "numeric") {
-      if (is_integerish(col)) {
-        fmt <- "%d"
+      # Check cache for numeric format (based on integerish and decimal places)
+      is_int <- is_integerish(col)
+      dp <- if (!is_int) min(decimal_places(col), 4L) else 0L
+      cache_key <- paste0("num_", is_int, "_", dp)
+      
+      if (exists(cache_key, envir = .format_spec_cache, inherits = FALSE)) {
+        fmt <- get(cache_key, envir = .format_spec_cache, inherits = FALSE)
       } else {
-        dp <- min(decimal_places(col), 4L)
-        fmt <- paste0("%.", dp, "f")
+        fmt <- if (is_int) "%d" else paste0("%.", dp, "f")
+        assign(cache_key, fmt, envir = .format_spec_cache)
       }
     } else {
       fmt <- "%s"
     }
 
-    # ---- render once per column (performance critical) ----
+    # ---- render with vectorized operations (performance critical) ----
     # Use a deterministic sample for rendering/width estimation to limit cost
     col_sample <- if (length(sample_idx) > 0 && length(col) >= max(sample_idx)) col[sample_idx] else col
     if (length(col_sample) == 0) {
       # No data rows: use missing placeholder for width estimation
       rendered <- as.character(missings)
     } else {
+      # Vectorized rendering
       rendered <- if (type == "numeric") {
-        format(sprintf(fmt, col_sample), scientific = FALSE)
+        sprintf(fmt, col_sample)  # sprintf is vectorized
       } else {
         as.character(col_sample)
       }
     }
 
-    # replace missings once
+    # replace missings once (vectorized)
     rendered[is.na(rendered)] <- missings
 
     # ---- width estimation ----
@@ -443,7 +458,7 @@ utils::globalVariables(
   # Normalize unit to lowercase
   unit <- tolower(unit)
   
-  list(unit = unit, value = value)
+  return(list(unit = unit, value = value))
 }
 
 #' Validate Column Width Against Minimum Thresholds

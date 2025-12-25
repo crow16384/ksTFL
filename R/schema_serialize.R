@@ -511,17 +511,19 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #' Resolve Schema $ref References
 #'
 #' @description Recursively resolve internal `$ref` pointers (#/path/to/def).
-#' Supports `$defs` and other top-level containers. Uses caching to avoid cycles.
+#' Supports `$defs` and other top-level containers. Now uses package-level
+#' cache (.schema_cache) to persist resolved references across multiple
+#' spec serializations, significantly improving performance.
 #'
 #' @param schema Schema fragment (or complete schema)
 #' @param root Root schema (for reference resolution)
-#' @param cache Environment used for caching resolved refs
+#' @param cache Environment used for caching resolved refs (defaults to package-level cache)
 #'
 #' @return Schema with $ref pointers resolved
 #'
 #' @keywords internal
 #' @noRd
-.resolve_refs <- function(schema, root = schema, cache = new.env(parent = emptyenv())) {
+.resolve_refs <- function(schema, root = schema, cache = .schema_cache) {
   if (!is.list(schema)) return(schema)
   
   # Handle $ref at this level
@@ -790,23 +792,27 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     cli::cli_abort(sprintf("Value null not in enum: [%s]", enum_str))
   }
   
-  # Check non-null values
+  # Check non-null values with strict type-aware comparison
   if (is.atomic(value) && length(value) == 1) {
     for (e in allowed) {
       if (is.null(e)) next
-      if (is.character(value) && is.character(e) && as.character(e) == value) return(value)
-      if (is.numeric(value)) {
-        vnum <- suppressWarnings(as.numeric(e))
-        if (!is.na(vnum) && vnum == value) return(value)
+      
+      # Strict type checking: both must be same type
+      if (is.character(value) && is.character(e)) {
+        if (identical(e, value)) return(value)
+      } else if (is.numeric(value) && is.numeric(e)) {
+        # Numeric comparison: both must be numeric (not coerced from string)
+        if (identical(e, value)) return(value)
+      } else if (is.logical(value) && is.logical(e)) {
+        # Logical comparison: both must be logical
+        if (identical(e, value)) return(value)
+      } else if (identical(e, value)) {
+        # Fallback for other types (Date, POSIXct, etc.)
+        return(value)
       }
-      if (is.logical(value)) {
-        lval <- tolower(as.character(e))
-        if ((value && lval %in% c("true", "1")) ||
-            (!value && lval %in% c("false", "0"))) return(value)
-      }
-      if (identical(e, value)) return(value)
     }
   } else {
+    # Complex values: use identical() only
     for (e in allowed) {
       if (identical(e, value)) return(value)
     }

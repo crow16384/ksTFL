@@ -198,6 +198,28 @@ assign("stack", character(0), envir = .context_marker_env)
   invisible(NULL)
 }
 
+#' Centralized Validation Wrapper
+#'
+#' @description Convenience wrapper for .validate_params that extracts
+#' context from the calling function automatically. Reduces boilerplate
+#' in functions that follow standard parameter validation patterns.
+#'
+#' @param params Named list of parameters to validate
+#' @param type Character. Type of schema element (e.g., "font", "paragraph")
+#' @param fn_name Optional character. Function name (auto-detected if NULL)
+#'
+#' @return Invisibly NULL if validation passes
+#'
+#' @keywords internal
+#' @noRd
+.validate <- function(params, type, fn_name = NULL) {
+  if (is.null(fn_name)) {
+    # Auto-detect calling function name
+    fn_name <- as.character(sys.call(-1)[[1]])
+  }
+  .validate_params(params, type, fn_name)
+}
+
 #' Validate Required Parameters
 #'
 #' Checks that all required parameters are present in the provided parameter list.
@@ -2710,18 +2732,30 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
 #' @keywords internal
 #' @noRd 
 ._resolve_style_refs <- function(style_refs, num_cols, param_name = "styleRef") {
+  # Memoization: cache results for repeated calls with identical inputs
+  cache_key <- paste0(
+    digest::digest(style_refs, algo = "xxhash32"),
+    "_",
+    num_cols,
+    "_",
+    param_name
+  )
+  
+  if (exists(cache_key, envir = .style_resolution_cache, inherits = FALSE)) {
+    return(get(cache_key, envir = .style_resolution_cache, inherits = FALSE))
+  }
+  
+  # Compute result
+  result <- NULL
+  
   if (is.null(style_refs)) {
-    return(rep(list(NULL), num_cols))
-  }
-  
-  # Case 1: Character vector (single style or f_combine result)
-  if (is.character(style_refs)) {
+    result <- rep(list(NULL), num_cols)
+  } else if (is.character(style_refs)) {
+    # Case 1: Character vector (single style or f_combine result)
     # Recycle to all columns
-    return(rep(list(style_refs), num_cols))
-  }
-  
-  # Case 2: List (assumed to be from f_combine results or explicit mapping)
-  if (is.list(style_refs)) {
+    result <- rep(list(style_refs), num_cols)
+  } else if (is.list(style_refs)) {
+    # Case 2: List (assumed to be from f_combine results or explicit mapping)
     # Validate all elements are either NULL or character vectors
     for (i in seq_along(style_refs)) {
       if (!is.null(style_refs[[i]]) && !is.character(style_refs[[i]])) {
@@ -2735,10 +2769,10 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
     # Check if this is a mapping (one element per column) or recycling (one element)
     if (length(style_refs) == 1) {
       # Single element - recycle to all columns
-      return(rep(list(style_refs[[1]]), num_cols))
+      result <- rep(list(style_refs[[1]]), num_cols)
     } else if (length(style_refs) == num_cols) {
       # One-to-one mapping
-      return(style_refs)
+      result <- style_refs
     } else {
       # Length mismatch
       cli_abort(c(
@@ -2747,13 +2781,17 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
         i = "For explicit mapping, provide exactly {num_cols} elements in a list or vector"
       ))
     }
+  } else {
+    # Invalid type
+    cli_abort(c(
+      "{param_name} must be NULL, a character vector, or a list of character vectors",
+      i = "Got: {.cls {class(style_refs)[1]}}"
+    ))
   }
   
-  # Invalid type
-  cli_abort(c(
-    "{param_name} must be NULL, a character vector, or a list of character vectors",
-    i = "Got: {.cls {class(style_refs)[1]}}"
-  ))
+  # Cache and return
+  assign(cache_key, result, envir = .style_resolution_cache)
+  result
 }
 
 #' Validate TFL specification for consistency

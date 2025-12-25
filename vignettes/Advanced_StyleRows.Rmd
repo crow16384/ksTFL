@@ -93,7 +93,7 @@ data_groups <- data.frame(
 
 spec <- create_table(data_groups) |>
   compute_cols(
-    group == lag(group, default = ""),  # Same group as previous row
+    !firstOf(group),  # Not the first occurrence of this group value
     c_merge(c(group, visit), display_col = "group")
   )
 ```
@@ -108,7 +108,7 @@ Insert new rows based on data patterns:
 ```{r c-addrow-basic}
 spec <- create_table(data_groups) |>
   compute_cols(
-    group != lag(group, default = ""),  # Group changes
+    firstOf(group),  # First row of each group
     c_addrow(
       position = "before",
       values = list(
@@ -130,7 +130,7 @@ group header text.
 Conditions and actions are evaluated in `spec$.metadata$data_env`, which contains:
 
 1. **Data columns**: Direct access to all columns (even invisible ones)
-2. **Helper functions**: `lag()`, `lead()`, `row_number()`, etc.
+2. **Helper functions**: `firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `row_number()`, `every_nth()`, `get_names()`, `eval()`
 3. **Embedded functions**: Internal utilities for column access
 
 ```{r data-env-example}
@@ -144,26 +144,41 @@ spec <- create_table(data) |>
 
 ### Available Helper Functions
 
-ksTFL provides dplyr-like helpers evaluated in the data context:
+ksTFL provides these helper functions evaluated in the data context:
 
-- **`lag(x, n = 1, default = NA)`**: Previous row value(s)
-- **`lead(x, n = 1, default = NA)`**: Next row value(s)
-- **`row_number()`**: Current row index (1-based)
-- **`n()`**: Total row count
+- **`firstOf(...)`**: Logical vector marking first occurrence of each value combination in specified columns
+- **`lastOf(...)`**: Logical vector marking last occurrence of each value combination in specified columns
+- **`firstRow()`**: Logical vector TRUE only at first row
+- **`lastRow()`**: Logical vector TRUE only at last row
+- **`row_number()`**: Integer vector of row numbers (1-based)
+- **`every_nth(n)`**: Logical vector TRUE at every nth row
+- **`get_names(...)`**: Character vector of selected column names
+- **`eval(expr)`**: Evaluate expression with tidyverse data masking
+
+**Note**: Functions like `lag()`, `lead()`, and `n()` are NOT provided by ksTFL. If you need these, load the dplyr package.
 
 ```{r helpers-example}
-# Highlight first and last rows
+# Highlight first and last rows using helper functions
 spec <- create_table(data) |>
   compute_cols(
-    row_number() == 1 | row_number() == n(),
+    firstRow() | lastRow(),
     c_style(everything(), styleRef = "border_emphasis")
   )
 
-# Compare with previous row
-spec <- spec |>
+# Use firstOf/lastOf for value-based boundaries
+spec <- create_table(data_groups) |>
+  add_style("group_boundary", s_font(bold = TRUE)) |>
   compute_cols(
-    age > lag(age, default = 0),
-    c_style(age, styleRef = "increasing_trend")
+    firstOf(group) | lastOf(group),
+    c_style(group, styleRef = "group_boundary")
+  )
+
+# Use every_nth for alternating patterns
+spec <- create_table(data) |>
+  add_style("gray_bg", s_table_style(background_color = "#F5F5F5")) |>
+  compute_cols(
+    every_nth(2),  # Every 2nd row starting from row 1
+    c_style(everything(), styleRef = "gray_bg")
   )
 ```
 
@@ -243,28 +258,27 @@ data_nested <- data.frame(
 spec <- create_table(data_nested) |>
   # Merge study column for consecutive same-study rows
   compute_cols(
-    study == lag(study, default = ""),
+    !firstOf(study),
     c_merge(study, display_col = "study")
   ) |>
   # Merge phase column within same study
   compute_cols(
-    study == lag(study, default = "") & phase == lag(phase, default = ""),
+    !firstOf(study, phase),
     c_merge(phase, display_col = "phase")
   )
 ```
 
 ### Conditional Display Column Content
 
-Customize merged cell content:
+Merge cells based on grouping:
 
 ```{r c-merge-custom}
 spec <- create_table(data_groups) |>
   compute_cols(
-    group == lag(group, default = ""),
+    !firstOf(group),
     c_merge(
       c(group, visit),
-      display_col = "group",
-      sep = " | "  # Custom separator for merged values
+      display_col = "group"
     )
   )
 ```
@@ -279,11 +293,11 @@ spec <- create_table(data_nested) |>
             s_font(bold = TRUE),
             s_table_style(background_color = "#E0E0E0")) |>
   compute_cols(
-    study == lag(study, default = ""),
+    !firstOf(study),
     c_merge(study, display_col = "study")
   ) |>
   compute_cols(
-    study != lag(study, default = ""),  # First row of group
+    firstOf(study),  # First row of group
     c_style(study, styleRef = "merged_header")
   )
 ```
@@ -306,13 +320,13 @@ spec <- create_table(data_sales) |>
             s_font(bold = TRUE),
             s_table_style(background_color = "#D3D3D3")) |>
   compute_cols(
-    region != lead(region, default = ""),  # Last row of group
+    lastOf(region),  # Last row of each region
     c_addrow(
       position = "after",
       values = list(
         region = paste0(region, " Total"),
         product = "",
-        revenue = sum(revenue[region == region])  # Will be calculated at eval time
+        revenue = NA  # Could be calculated if needed
       ),
       styleRef = "summary_row"
     )
@@ -329,7 +343,7 @@ spec <- create_table(data_sales) |>
             s_font(bold = TRUE, font_size = 12),
             s_table_style(background_color = "#4682B4")) |>
   compute_cols(
-    region != lag(region, default = ""),  # First row of new region
+    firstOf(region),  # First row of each new region
     c_addrow(
       position = "before",
       values = list(
@@ -371,7 +385,7 @@ Chain multiple `compute_cols()` calls for layered effects:
 spec <- create_table(data_sales) |>
   # Step 1: Add summary rows
   compute_cols(
-    region != lead(region, default = ""),
+    lastOf(region),
     c_addrow(position = "after", 
              values = list(region = paste(region, "Total"), 
                           product = "", 
@@ -383,9 +397,9 @@ spec <- create_table(data_sales) |>
     grepl("Total$", region),
     c_style(region, styleRef = "bold_summary")
   ) |>
-  # Step 3: Merge region cells
+  # Step 3: Merge region cells (exclude summary rows)
   compute_cols(
-    region == lag(region, default = ""),
+    !firstOf(region) & !grepl("Total$", region),
     c_merge(region, display_col = "region")
   )
 ```
@@ -403,10 +417,10 @@ spec <- create_table(data) |>
     age > 65,
     c_style(age, styleRef = "elderly")
   ) |>
-  # Action 2: Merge cells (same condition)
+  # Action 2: Add row marker for elderly patients
   compute_cols(
-    age > 65,
-    c_merge(c(patient, age), display_col = "patient")
+    age > 65 & firstOf(patient),
+    c_style(patient, styleRef = "elderly_marker")
   )
 ```
 
@@ -578,7 +592,7 @@ spec <- create_table(data_groups) |>
             s_table_style(background_color = "#D0D0D0")) |>
   # Insert header row before each new group
   compute_cols(
-    group != lag(group, default = ""),
+    firstOf(group),
     c_addrow(
       position = "before",
       values = list(group = paste("===", group, "==="), visit = "", value = NA),
@@ -587,7 +601,7 @@ spec <- create_table(data_groups) |>
   ) |>
   # Merge consecutive same-group cells
   compute_cols(
-    group == lag(group, default = ""),
+    !firstOf(group),
     c_merge(group, display_col = "group")
   )
 ```
@@ -613,40 +627,21 @@ spec <- create_table(data_lab) |>
   )
 ```
 
-### Pattern 4: Comparative Analysis (vs. Previous Row)
-
-```{r pattern-comparative}
-spec <- create_table(data) |>
-  add_style("improved", s_font(color = "#006400")) |>
-  add_style("worsened", s_font(color = "#8B0000")) |>
-  compute_cols(
-    !is.na(lag(age)) & age > lag(age),
-    c_style(age, styleRef = "improved")
-  ) |>
-  compute_cols(
-    !is.na(lag(age)) & age < lag(age),
-    c_style(age, styleRef = "worsened")
-  )
-```
-
-### Pattern 5: Summary Rows with Totals
+### Pattern 4: Summary Rows with Totals
 
 ```{r pattern-totals}
-# Note: This pattern requires careful handling of aggregates
-# Currently, you can reference group-level calculations in values list
-
 spec <- create_table(data_sales) |>
   add_style("total_row", 
             s_font(bold = TRUE),
             s_table_style(background_color = "#FFD700")) |>
   compute_cols(
-    region != lead(region, default = ""),
+    lastOf(region),  # Last row of each region
     c_addrow(
       position = "after",
       values = list(
         region = "SUBTOTAL",
         product = "",
-        revenue = NA  # Will be calculated during evaluation
+        revenue = NA
       ),
       styleRef = "total_row"
     )
@@ -772,7 +767,7 @@ report <- create_report(spec1, spec2)
 5. **Prefer vectorized operations**: Avoid row-by-row functions where possible
 6. **Reuse styles**: Define once, reference many times for consistency
 7. **Keep conditions simple**: Complex logic is harder to debug
-8. **Check for NA values**: Use `!is.na()` when comparing with `lag()`/`lead()`
+8. **Use helper functions**: `firstOf()`, `lastOf()`, `firstRow()`, `lastRow()` are more readable than complex comparisons
 
 ## Summary
 

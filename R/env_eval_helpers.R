@@ -298,6 +298,48 @@ NULL
   .eval_change_of("last", ..., data = data)
 }
 
+#' Check if Current Row is First Row
+#'
+#' Returns a logical vector with `TRUE` only for the first row of the data.
+#'
+#' @param data The data frame to evaluate (default: `__data__` from environment)
+#'
+#' @return A logical vector with `TRUE` at the first row, `FALSE` elsewhere.
+#'   Returns logical(0) for empty data, and `TRUE` for single-row data.
+#'
+#' @keywords internal
+#' @noRd
+#' @examples
+#' \dontrun{
+#'   .env_eval(firstRow())
+#' }
+.eval_firstRow <- function(data=`__data__`) {
+  n <- nrow(data)
+  if (n == 0) return(logical(0))
+  c(TRUE, rep(FALSE, n - 1))
+}
+
+#' Check if Current Row is Last Row
+#'
+#' Returns a logical vector with `TRUE` only for the last row of the data.
+#'
+#' @param data The data frame to evaluate (default: `__data__` from environment)
+#'
+#' @return A logical vector with `TRUE` at the last row, `FALSE` elsewhere.
+#'   Returns logical(0) for empty data, and `TRUE` for single-row data.
+#'
+#' @keywords internal
+#' @noRd
+#' @examples
+#' \dontrun{
+#'   .env_eval(lastRow())
+#' }
+.eval_lastRow <- function(data=`__data__`) {
+  n <- nrow(data)
+  if (n == 0) return(logical(0))
+  c(rep(FALSE, n - 1), TRUE)
+}
+
 #' Get Names of Selected Columns in Environment
 #'
 #' Returns the names of the selected data columns using tidyselect syntax.
@@ -397,6 +439,8 @@ NULL
 #' \describe{
 #'   \item{`firstOf(...)`}{Returns logical vector marking first occurrence of each value combination}
 #'   \item{`lastOf(...)`}{Returns logical vector marking last occurrence of each value combination}
+#'   \item{`firstRow()`}{Returns logical vector with TRUE only at the first row}
+#'   \item{`lastRow()`}{Returns logical vector with TRUE only at the last row}
 #'   \item{`get_names(...)`}{Returns character vector of selected column names}
 #'   \item{`row_number()`}{Returns integer vector of row numbers}
 #'   \item{`every_nth(n)`}{Returns logical vector for every nth row}
@@ -411,6 +455,8 @@ NULL
 .env_func_list <- list(
   firstOf    = .eval_firstOf,
   lastOf     = .eval_lastOf,
+  firstRow   = .eval_firstRow,
+  lastRow    = .eval_lastRow,
   get_names  = .eval_get_names,
   row_number = .eval_row_numbers,
   every_nth  = .eval_every_nth,

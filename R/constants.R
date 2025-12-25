@@ -437,3 +437,37 @@ NULL
   class = "TFL_options"
 )
 
+# ============================================================
+# PACKAGE-LEVEL CACHE ENVIRONMENTS
+# ============================================================
+
+#' Package-level cache for schema resolution
+#' 
+#' Used by .resolve_refs() in schema_serialize.R to cache resolved
+#' schema references across multiple spec serializations, reducing
+#' redundant JSON pointer resolution.
+#' 
+#' @keywords internal
+#' @noRd
+.schema_cache <- new.env(parent = emptyenv())
+
+#' Package-level cache for style resolution
+#' 
+#' Used by ._resolve_style_refs() in spec_context.R to memoize
+#' repeated style lookups with identical inputs, reducing redundant
+#' recursive merges during spec validation.
+#' 
+#' @keywords internal
+#' @noRd
+.style_resolution_cache <- new.env(parent = emptyenv())
+
+#' Package-level cache for format specifications
+#' 
+#' Used by .guess_col_formats() in utility_functions.R to cache
+#' format specs by column type, avoiding repeated type detection
+#' and format string construction for columns with same characteristics.
+#' 
+#' @keywords internal
+#' @noRd
+.format_spec_cache <- new.env(parent = emptyenv())
+

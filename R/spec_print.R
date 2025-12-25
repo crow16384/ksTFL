@@ -104,6 +104,8 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   # Extract column metadata from spec
   .extract_column_info <- function(cn, cs) {
     lab <- cs$label %||% cs$colLabel %||% ""
+    # Handle NULL/NA safely
+    if (is.null(lab) || (length(lab) == 1 && is.na(lab))) lab <- ""
     # Replace newlines and other control characters with spaces to prevent table misalignment
     lab <- gsub("[\n\r\t]", " ", lab, fixed = FALSE)
     fmt_val <- cs$format %||% cs$c_format %||% NULL
