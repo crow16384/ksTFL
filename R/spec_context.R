@@ -1551,9 +1551,6 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'  return Updated TFL_spec object with modified column definitions. Changes are merged with existing
 #'   column properties using last-win strategy. When `colWidth` is specified or `isVisible` changes,
 #'   automatic width recalculation is triggered (if `autoColWidth = TRUE`).
-#'   
-#' @ Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
-#'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns). Optional.
 #' 
 #' @details
 #' Column Width Management:

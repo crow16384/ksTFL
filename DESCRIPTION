@@ -16,7 +16,9 @@ Imports:
 	rlang,
 	tidyselect,
 	utils,
-	digest
+	digest,
+	htmltools,
+	rstudioapi
 Suggests:
 	testthat (>= 3.0.0),
 	knitr,

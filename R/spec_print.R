@@ -633,7 +633,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     ),
     if (has_flags) {
       h$div(class = "flags-legend",
-        h$h5("📋 Column Flags Legend"),
+        h$h5("Column Flags Legend"),
         h$div(class = "flags-grid",
           h$div(class = "flag-item", h$span(class = "flag-symbol", "*"), " = ID column"),
           h$div(class = "flag-item", h$span(class = "flag-symbol", "x"), " = Hidden column"),
@@ -747,7 +747,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     h$body(
       h$div(class = "container",
         h$div(class = "header",
-          h$h1("📋 TFL Specification Preview"),
+          h$h1("TFL Specification Preview"),
           h$p("Comprehensive overview of your TFL specification with all metadata and styling information.")
         ),
 
@@ -759,7 +759,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
           ),
           h$div(class = "summary-card",
             h$h3("Has Data"), 
-            h$div(class = "value", if (isTRUE(x$document$hasData)) "✅ Yes" else "❌ No")
+            h$div(class = "value", if (isTRUE(x$document$hasData)) "Yes" else "No")
           ),
           h$div(class = "summary-card",
             h$h3("Columns"), 
@@ -779,7 +779,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
 
         # Document Properties
         h$details(
-          h$summary("📄 Document Properties"),
+          h$summary("Document Properties"),
           h$div(class = "content",
             h$div(class = "prop-grid",
               h$div(class = "prop-item", h$strong("Type: "), .scalar_text(x$document$docType)),
@@ -799,7 +799,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
         # Page Settings
         if (!is.null(x$attribs$documentStyle$page)) {
           h$details(
-            h$summary("📄 Page Settings"),
+            h$summary("Page Settings"),
             h$div(class = "content",
               h$div(class = "prop-grid",
                 {
@@ -824,7 +824,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
         # Defined Styles
         if (!is.null(x$attribs$styles) && length(x$attribs$styles) > 0) {
           h$details(
-            h$summary("🎨 Defined Styles"),
+            h$summary("Defined Styles"),
             h$div(class = "content",
               h$div(class = "styles-grid",
                 lapply(names(x$attribs$styles), function(style_id) {
@@ -882,7 +882,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
         # Data References
         if (!is.null(x$dataRef) && length(x$dataRef) > 0) {
           h$details(
-            h$summary("💾 Data References"),
+            h$summary("Data References"),
             h$div(class = "content",
               h$ul(lapply(seq_along(x$dataRef), function(i) h$li("Ref ", i, ": ", x$dataRef[i])))
             )
@@ -892,7 +892,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
         # Row Styles
         if (!is.null(x$styleRows) && length(x$styleRows) > 0) {
           h$details(
-            h$summary("📊 Row Styles"),
+            h$summary("Row Styles"),
             h$div(class = "content",
               lapply(seq_along(x$styleRows), function(i) {
                 row_style <- x$styleRows[i]
@@ -920,13 +920,13 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
         },
 
         # Existing sections
-        h$details(h$summary("📋 Headers"), .render_rows(x$headers)),
-        h$details(h$summary("📝 Titles"), .render_text_object(x$titles)),
-        h$details(h$summary("📝 Subtitles"), .render_text_object(x$subtitles)),
-        h$details(h$summary("📊 Columns"), h$div(class = "content", .render_columns(x$columns))),
-        h$details(h$summary("📝 Footnotes"), .render_text_object(x$footnotes)),
-        h$details(h$summary("📋 Footers"), .render_rows(x$footers)),
-        h$details(h$summary("📄 Body Text"), .render_text_object(x$bodyText))
+        h$details(h$summary("Headers"), .render_rows(x$headers)),
+        h$details(h$summary("Titles"), .render_text_object(x$titles)),
+        h$details(h$summary("Subtitles"), .render_text_object(x$subtitles)),
+        h$details(h$summary("Columns"), h$div(class = "content", .render_columns(x$columns))),
+        h$details(h$summary("Footnotes"), .render_text_object(x$footnotes)),
+        h$details(h$summary("Footers"), .render_rows(x$footers)),
+        h$details(h$summary("Body Text"), .render_text_object(x$bodyText))
       )
     )
   )
