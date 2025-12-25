@@ -291,7 +291,7 @@ assign("stack", character(0), envir = .context_marker_env)
     cli_abort("Internal error: {.arg pattern} must be a single character string")
   }
   
-  if (!grepl(pattern, value)) {
+  if (!grepl(pattern, value, perl = TRUE)) {
     msg <- c(
       "Invalid format for {.arg {param_name}} in {.fn {fn_name}}:",
       x = paste0("Got: {.str {value}}")
@@ -329,7 +329,7 @@ assign("stack", character(0), envir = .context_marker_env)
   }
   
   # Check if it's a hex code
-  if (grepl(.const_pattern_hex_color, value)) {
+  if (grepl(.const_pattern_hex_color, value, perl = TRUE)) {
     return(invisible(NULL))
   }
   
@@ -376,7 +376,7 @@ assign("stack", character(0), envir = .context_marker_env)
   }
   
   # Check if it's already a hex code
-  if (grepl(.const_pattern_hex_color, color)) {
+  if (grepl(.const_pattern_hex_color, color, perl = TRUE)) {
     return(color)
   }
   

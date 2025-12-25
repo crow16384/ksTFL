@@ -185,7 +185,7 @@ NULL
 
 #' Pattern for row height (allows pt, cm, in, mm, or auto)
 #' @noRd
-.const_pattern_row_height <- "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm)|(auto)$"
+.const_pattern_row_height <- "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm)|auto)$"
 
 #' Pattern for column width (allows %, in, cm)
 #' @noRd

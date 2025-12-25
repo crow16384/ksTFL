@@ -27,7 +27,7 @@
 #'   \item Page settings (size, orientation)
 #'   \item Headers and footers content
 #'   \item Titles, subtitles, and footnotes
-#'   \item Column metadata table with flags and styles
+#'   \item Column metadata table (Name, Label, Type, Format, Missings, Width, Flags, Styles)
 #'   \item Flag legend explaining special column properties
 #'   \item Body text content
 #'   \item Sample data (first 3 rows)
@@ -110,6 +110,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     ftype <- ""
     ffmt <- ""
     colw <- ""
+    miss <- ""
     if (is.list(fmt_val)) {
       ftype <- fmt_val$type %||% ""
       ffmt <- fmt_val$format %||% ""
@@ -117,6 +118,10 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     } else if (is.character(fmt_val) && length(fmt_val) == 1) {
       ffmt <- fmt_val
     }
+
+    # Direct fields from define_cols
+    if (!is.null(cs$colWidth)) colw <- as.character(cs$colWidth)
+    if (!is.null(cs$missings)) miss <- as.character(cs$missings)
 
     # Collect flags
     flags <- c()
@@ -128,26 +133,48 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     if (!is.null(cs$dedupe) && isTRUE(cs$dedupe)) flags <- c(flags, "dedupe")
     if (!is.null(cs$blankAfter) && isTRUE(cs$blankAfter)) flags <- c(flags, "blank_after")
 
-    # Collect styles from all style references
-    style_sources <- list(
-      cs$valueStyleRef,
-      cs$labelStyleRef,
-      cs$styleRef
-    )
-
-    style_vec <- character(0)
-    for (style_src in style_sources) {
-      if (!is.null(style_src)) {
-        if (is.list(style_src)) {
-          style_vec <- c(style_vec, unlist(style_src))
-        } else if (is.character(style_src)) {
-          style_vec <- c(style_vec, as.character(style_src))
-        }
+    # Collect styles from all style references, separated by type
+    label_styles <- character(0)
+    value_styles <- character(0)
+    other_styles <- character(0)
+    
+    # Label styles
+    if (!is.null(cs$labelStyleRef)) {
+      if (is.list(cs$labelStyleRef)) {
+        label_styles <- c(label_styles, unlist(cs$labelStyleRef))
+      } else if (is.character(cs$labelStyleRef)) {
+        label_styles <- c(label_styles, as.character(cs$labelStyleRef))
+      }
+    }
+    
+    # Value styles (from format object or direct)
+    if (!is.null(cs$valueStyleRef)) {
+      if (is.list(cs$valueStyleRef)) {
+        value_styles <- c(value_styles, unlist(cs$valueStyleRef))
+      } else if (is.character(cs$valueStyleRef)) {
+        value_styles <- c(value_styles, as.character(cs$valueStyleRef))
+      }
+    } else if (!is.null(cs$format$valueStyleRef)) {
+      if (is.list(cs$format$valueStyleRef)) {
+        value_styles <- c(value_styles, unlist(cs$format$valueStyleRef))
+      } else if (is.character(cs$format$valueStyleRef)) {
+        value_styles <- c(value_styles, as.character(cs$format$valueStyleRef))
+      }
+    }
+    
+    # Other styles (from styleRef)
+    if (!is.null(cs$styleRef)) {
+      if (is.list(cs$styleRef)) {
+        other_styles <- c(other_styles, unlist(cs$styleRef))
+      } else if (is.character(cs$styleRef)) {
+        other_styles <- c(other_styles, as.character(cs$styleRef))
       }
     }
 
     # Remove duplicates and empty values
-    style_vec <- unique(style_vec[!is.na(style_vec) & nzchar(style_vec)])
+    label_styles <- unique(label_styles[!is.na(label_styles) & nzchar(label_styles)])
+    value_styles <- unique(value_styles[!is.na(value_styles) & nzchar(value_styles)])
+    other_styles <- unique(other_styles[!is.na(other_styles) & nzchar(other_styles)])
 
     list(
       name = cn,
@@ -155,8 +182,11 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
       type = ftype,
       format = ellipsize(ffmt, .const_max_format_width),
       width = colw,
+      missings = ellipsize(miss, .const_max_format_width),
       flags = flags,
-      styles = style_vec
+      label_styles = label_styles,
+      value_styles = value_styles,
+      other_styles = other_styles
     )
   }
 
@@ -178,9 +208,9 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
 
   # Summary header
   .colored_rule("TFL Specification Preview", col_cyan)
-  cli::cli_text("{.strong TFL Specification Preview}")
+  cli::cli_text("{.strong \U0001F4DD TFL Specification Preview}")
   doc_type <- if (!is.null(x$document$docType)) x$document$docType else "<not set>"
-  has_data <- if (is.null(x$document$hasData)) "<not set>" else if (isTRUE(x$document$hasData)) "Yes" else "No"
+  has_data <- if (is.null(x$document$hasData)) "<not set>" else if (isTRUE(x$document$hasData)) "\U00002705 Yes" else "\U0000274C No"
   n_cols <- length(x$columns %||% list())
   n_titles <- length(x$titles %||% list())
   n_sub <- length(x$subtitles %||% list())
@@ -188,8 +218,10 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   n_hdr <- length(x$headers %||% list())
   n_ftr <- length(x$footers %||% list())
   n_body <- length(x$bodyText %||% list())
-  cli::cli_text("{.strong Document Type:} {doc_type}   {.strong Has Data:} {has_data}")
-  cli::cli_text("{.strong Summary:} Columns: {n_cols} | Titles: {n_titles} | Subtitles: {n_sub} | Footnotes: {n_fn} | Headers: {n_hdr} | Footers: {n_ftr} | Body: {n_body}")
+  n_styles <- length(x$attribs$styles %||% list())
+  cli::cli_text("{.strong \U0001F5B9 Document Type:} {col_blue(doc_type)}   {.strong \U0001F4BE Has Data:} {col_green(has_data)}")
+  cli::cli_text("{.strong \U0001F4C3 Content:} Columns: {col_red(n_cols)} | Titles: {col_red(n_titles)} | Subtitles: {col_red(n_sub)} | Footnotes: {col_red(n_fn)}")
+  cli::cli_text("{.strong \U0001F4D1 Sections:} Headers: {col_red(n_hdr)} | Footers: {col_red(n_ftr)} | Body Text: {col_red(n_body)} | Styles: {col_red(n_styles)}")
 
   # Compact layout: brief overview
   if (identical(layout, "compact")) {
@@ -197,12 +229,49 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   }
 
   # Full layout: detailed sections
-  # Page settings
-  if (!is.null(x$attribs$documentStyle$page)) {
-    pg <- x$attribs$documentStyle$page
-    size <- pg$size %||% "<default>"
-    orient <- pg$orientation %||% "<default>"
-    cli::cli_text("{.strong Page settings:} size={size}, orientation={orient}")
+  # Document Properties
+  .colored_rule("Document Properties", col_blue)
+  doc_props <- x$document
+  cli::cli_text("{.strong Type:} {doc_props$docType %||% '<not set>'}")
+  cli::cli_text("{.strong Has Data:} {if (is.null(doc_props$hasData)) '<not set>' else if (doc_props$hasData) 'Yes' else 'No'}")
+  if (!is.null(doc_props$docPrefix)) cli::cli_text("{.strong Prefix:} {doc_props$docPrefix}")
+  if (!is.null(doc_props$glueNumType)) cli::cli_text("{.strong Glue Num Type:} {if (doc_props$glueNumType) 'Yes' else 'No'}")
+  if (!is.null(doc_props$docOrder)) cli::cli_text("{.strong Order:} {doc_props$docOrder}")
+  if (!is.null(doc_props$isContinues)) cli::cli_text("{.strong Continues:} {if (doc_props$isContinues) 'Yes' else 'No'}")
+  if (!is.null(doc_props$contentWidth)) cli::cli_text("{.strong Content Width:} {doc_props$contentWidth}")
+  if (!is.null(doc_props$bodyTitles)) cli::cli_text("{.strong Body Titles:} {if (doc_props$bodyTitles) 'Yes' else 'No'}")
+  if (!is.null(doc_props$bodySubtitles)) cli::cli_text("{.strong Body Subtitles:} {if (doc_props$bodySubtitles) 'Yes' else 'No'}")
+  if (!is.null(doc_props$bodyFootnotes)) cli::cli_text("{.strong Body Footnotes:} {if (doc_props$bodyFootnotes) 'Yes' else 'No'}")
+
+  # Document Style Template
+  if (!is.null(x$attribs$documentStyle$docTemplate)) {
+    .colored_rule("Document Style Template", col_magenta)
+    cli::cli_text("{.strong Template:} {x$attribs$documentStyle$docTemplate}")
+  }
+
+  # Row Styles
+  if (!is.null(x$styleRows) && length(x$styleRows) > 0) {
+    .colored_rule("Row Styles", col_yellow)
+    for (i in seq_along(x$styleRows)) {
+      row_style <- x$styleRows[i]
+      if (row_style != "{}") {
+        # Parse JSON to display nicely
+        try({
+          parsed <- jsonlite::fromJSON(row_style)
+          actions <- names(parsed)
+          cli::cli_text("{.strong Row {i}:}")
+          for (action in actions) {
+            val <- parsed[[action]]
+            if (is.list(val)) {
+              val_str <- paste(names(val), sapply(val, function(v) if (is.list(v)) paste(unlist(v), collapse = ", ") else v), sep = "=", collapse = "; ")
+            } else {
+              val_str <- as.character(val)
+            }
+            cli::cli_text("  {action}: {val_str}")
+          }
+        }, silent = TRUE)
+      }
+    }
   }
 
   # Headers (all rows)
@@ -271,7 +340,20 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     # Add formatted flags and styles to each column info
     col_infos <- lapply(col_infos, function(info) {
       info$flags_str <- .format_flags(info$flags)
-      info$styles_str <- if (length(info$styles) > 0) paste(info$styles, collapse = ", ") else ""
+      
+      # Format styles with L: and V: prefixes
+      styles_parts <- character(0)
+      if (length(info$label_styles) > 0) {
+        styles_parts <- c(styles_parts, paste0("L: ", paste(info$label_styles, collapse = ", ")))
+      }
+      if (length(info$value_styles) > 0) {
+        styles_parts <- c(styles_parts, paste0("V: ", paste(info$value_styles, collapse = ", ")))
+      }
+      if (length(info$other_styles) > 0) {
+        styles_parts <- c(styles_parts, paste(info$other_styles, collapse = ", "))
+      }
+      info$styles_str <- paste(styles_parts, collapse = "; ")
+      
       info
     })
 
@@ -280,6 +362,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     max_label <- min(.const_max_label_width, max(c(5L, max(nchar(vapply(col_infos, `[[`, "label", FUN.VALUE = ""), type = "width")))))
     max_type <- max(c(4L, max(nchar(vapply(col_infos, `[[`, "type", FUN.VALUE = ""), type = "width"))))
     max_format <- min(.const_max_format_width, max(c(6L, max(nchar(vapply(col_infos, `[[`, "format", FUN.VALUE = ""), type = "width")))))
+    max_missings <- min(.const_max_format_width, max(c(7L, max(nchar(vapply(col_infos, `[[`, "missings", FUN.VALUE = ""), type = "width")))))
     max_width <- max(c(5L, max(nchar(vapply(col_infos, `[[`, "width", FUN.VALUE = ""), type = "width"))))
     # Add extra padding for flags column to account for Unicode width issues
     max_flags <- max(c(5L, max(nchar(vapply(col_infos, `[[`, "flags_str", FUN.VALUE = ""), type = "width"))))
@@ -291,6 +374,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
       format("Label", width = max_label, justify = "left"), " | ",
       format("Type", width = max_type, justify = "left"), " | ",
       format("Format", width = max_format, justify = "left"), " | ",
+      format("Missings", width = max_missings, justify = "left"), " | ",
       format("Width", width = max_width, justify = "left"), " | ",
       format("Flags", width = max_flags, justify = "left"), " | ",
       format("Styles", width = max_styles, justify = "left")
@@ -308,6 +392,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
       pad_label <- max(0, max_label - nchar(info$label, type = "width"))
       pad_type <- max(0, max_type - nchar(info$type, type = "width"))
       pad_format <- max(0, max_format - nchar(info$format, type = "width"))
+      pad_missings <- max(0, max_missings - nchar(info$missings, type = "width"))
       pad_width <- max(0, max_width - nchar(info$width, type = "width"))
       pad_flags <- max(0, max_flags - nchar(info$flags_str, type = "width"))
       pad_styles <- max(0, max_styles - nchar(info$styles_str, type = "width"))
@@ -317,6 +402,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
         info$label, strrep(" ", pad_label), " | ",
         info$type, strrep(" ", pad_type), " | ",
         info$format, strrep(" ", pad_format), " | ",
+        info$missings, strrep(" ", pad_missings), " | ",
         info$width, strrep(" ", pad_width), " | ",
         info$flags_str, strrep(" ", pad_flags), " | ",
         info$styles_str, strrep(" ", pad_styles)
@@ -370,5 +456,482 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     }
   }, silent = TRUE)
 
+
+   # Optional interactive viewer
+  if (isTRUE(getOption("TFL.viewer", FALSE))) {
+    try(
+      .render_TFL_spec_viewer(x),
+      silent = TRUE
+    )
+  }
+
   invisible(x)
+}
+
+.scalar_text <- function(x) {
+  if (is.null(x)) return("")
+  paste(as.character(x), collapse = " ")
+}
+
+.render_text_object <- function(obj) {
+  if (is.null(obj) || length(obj) == 0) return(NULL)
+
+  h <- htmltools::tags
+
+  # order by $order
+  items <- unname(obj)
+  ord <- vapply(items, function(x) x$order %||% 0L, integer(1))
+  items <- items[order(ord)]
+
+  h$div(
+    lapply(items, function(it) {
+      txt <- it$text
+      if (length(txt) > 1) {
+        txt_display <- paste(txt, collapse = " | ")
+      } else {
+        txt_display <- .scalar_text(txt)
+      }
+      styles <- it$styleRef
+      if (!is.null(styles) && length(styles) > 0) {
+        styles_display <- paste(styles, collapse = ", ")
+      } else {
+        styles_display <- ""
+      }
+
+      h$div(class = "text-item",
+        h$div(class = "text-content", txt_display),
+        if (nzchar(styles_display)) h$div(class = "text-styles", "Styles: ", h$code(styles_display))
+      )
+    })
+  )
+}
+
+.render_rows <- function(rows) {
+  if (is.null(rows) || length(rows) == 0) return(NULL)
+
+  h <- htmltools::tags
+
+  h$div(
+    lapply(seq_along(rows), function(i) {
+      row <- rows[[i]]
+      if (length(row) == 3) {
+        # Left | Center | Right
+        h$div(class = "header-row",
+          h$div(class = "header-cell", row[1]),
+          h$div(class = "header-cell", row[2]),
+          h$div(class = "header-cell", row[3])
+        )
+      } else if (length(row) == 2) {
+        # Left | Right
+        h$div(class = "header-row",
+          h$div(class = "header-cell", row[1]),
+          h$div(class = "header-cell", ""),
+          h$div(class = "header-cell", row[2])
+        )
+      } else if (length(row) == 1) {
+        # Left only
+        h$div(class = "header-row",
+          h$div(class = "header-cell", row[1]),
+          h$div(class = "header-cell", ""),
+          h$div(class = "header-cell", "")
+        )
+      } else {
+        # Fallback
+        h$div(class = "text-item", paste(row, collapse = " | "))
+      }
+    })
+  )
+}
+
+.render_columns <- function(cols) {
+  if (is.null(cols) || length(cols) == 0) return(NULL)
+  h <- htmltools::tags
+
+  # Check if any columns have flags
+  has_flags <- any(vapply(cols, function(cs) {
+    !is.null(cs$isID) && isTRUE(cs$isID) ||
+    !is.null(cs$isVisible) && isFALSE(cs$isVisible) ||
+    !is.null(cs$isGrouping) && isTRUE(cs$isGrouping) ||
+    !is.null(cs$isPaging) && isTRUE(cs$isPaging) ||
+    !is.null(cs$isColBreak) && isTRUE(cs$isColBreak) ||
+    !is.null(cs$dedupe) && isTRUE(cs$dedupe) ||
+    !is.null(cs$blankAfter) && isTRUE(cs$blankAfter)
+  }, logical(1)))
+
+  rows <- lapply(names(cols), function(nm) {
+    cs <- cols[[nm]]
+
+    # Collect styles
+    label_styles <- character(0)
+    value_styles <- character(0)
+
+    if (!is.null(cs$labelStyleRef)) {
+      if (is.list(cs$labelStyleRef)) {
+        label_styles <- c(label_styles, unlist(cs$labelStyleRef))
+      } else if (is.character(cs$labelStyleRef)) {
+        label_styles <- c(label_styles, as.character(cs$labelStyleRef))
+      }
+    }
+
+    if (!is.null(cs$valueStyleRef)) {
+      if (is.list(cs$valueStyleRef)) {
+        value_styles <- c(value_styles, unlist(cs$valueStyleRef))
+      } else if (is.character(cs$valueStyleRef)) {
+        value_styles <- c(value_styles, as.character(cs$valueStyleRef))
+      }
+    } else if (!is.null(cs$format$valueStyleRef)) {
+      if (is.list(cs$format$valueStyleRef)) {
+        value_styles <- c(value_styles, unlist(cs$format$valueStyleRef))
+      } else if (is.character(cs$format$valueStyleRef)) {
+        value_styles <- c(value_styles, as.character(cs$format$valueStyleRef))
+      }
+    }
+
+    label_styles <- unique(label_styles[!is.na(label_styles) & nzchar(label_styles)])
+    value_styles <- unique(value_styles[!is.na(value_styles) & nzchar(value_styles)])
+
+    badges <- list()
+    if (isTRUE(cs$isID)) badges <- c(badges, paste0('<span class="badge badge-id">', "*", '</span>'))
+    if (isFALSE(cs$isVisible)) badges <- c(badges, paste0('<span class="badge badge-hidden">', "x", '</span>'))
+    if (isTRUE(cs$isGrouping)) badges <- c(badges, paste0('<span class="badge badge-group">', "#", '</span>'))
+    if (isTRUE(cs$isPaging)) badges <- c(badges, paste0('<span class="badge badge-page">', ">", '</span>'))
+    if (isTRUE(cs$isColBreak)) badges <- c(badges, paste0('<span class="badge badge-col">', "v", '</span>'))
+    if (isTRUE(cs$dedupe)) badges <- c(badges, paste0('<span class="badge badge-dedupe">', "d", '</span>'))
+    if (isTRUE(cs$blankAfter)) badges <- c(badges, paste0('<span class="badge badge-blank">', "_", '</span>'))
+
+    h$tr(
+      h$td(nm),
+      h$td(.scalar_text(cs$label)),
+      h$td(.scalar_text(cs$format$type)),
+      h$td(.scalar_text(cs$format$format)),
+      h$td(.scalar_text(cs$format$missings)),
+      h$td(if (nzchar(.scalar_text(cs$format$colWidth))) .scalar_text(cs$format$colWidth) else "-"),
+      h$td(if (length(value_styles) > 0) paste(value_styles, collapse = ", ") else ""),
+      h$td(if (length(label_styles) > 0) paste(label_styles, collapse = ", ") else ""),
+      h$td( h$div( htmltools::HTML( paste(badges, collapse = "") ) ) )
+    )
+  })
+
+  list(
+    h$table(
+      h$thead(
+        h$tr(
+          h$th("Name"),
+          h$th("Label"),
+          h$th("Type"),
+          h$th("Format"),
+          h$th("Missings"),
+          h$th("Width"),
+          h$th("ValueStyle"),
+          h$th("LabelStyle"),
+          h$th("Flags")
+        )
+      ),
+      h$tbody(rows)
+    ),
+    if (has_flags) {
+      h$div(class = "flags-legend",
+        h$h5("📋 Column Flags Legend"),
+        h$div(class = "flags-grid",
+          h$div(class = "flag-item", h$span(class = "flag-symbol", "*"), " = ID column"),
+          h$div(class = "flag-item", h$span(class = "flag-symbol", "x"), " = Hidden column"),
+          h$div(class = "flag-item", h$span(class = "flag-symbol", "#"), " = Grouping column"),
+          h$div(class = "flag-item", h$span(class = "flag-symbol", ">"), " = Page break"),
+          h$div(class = "flag-item", h$span(class = "flag-symbol", "v"), " = Column break"),
+          h$div(class = "flag-item", h$span(class = "flag-symbol", "d"), " = Deduplicate"),
+          h$div(class = "flag-item", h$span(class = "flag-symbol", "_"), " = Blank after")
+        )
+      )
+    }
+  )
+}
+
+.render_TFL_spec_viewer <- function(x) {
+  if (!rstudioapi::isAvailable()) return(invisible(FALSE))
+  if (!requireNamespace("htmltools", quietly = TRUE)) return(invisible(FALSE))
+
+  h <- htmltools::tags
+
+  page <- h$html(
+    h$head(
+      h$style(htmltools::HTML("
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+          font-size: 14px; 
+          line-height: 1.5; 
+          margin: 0; 
+          padding: 20px; 
+          background: #f8f9fa; 
+          color: #212529; 
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { 
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+          color: white; 
+          padding: 20px; 
+          border-radius: 8px; 
+          margin-bottom: 20px; 
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        .header h1 { margin: 0; font-size: 24px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-card { 
+          background: white; 
+          padding: 15px; 
+          border-radius: 6px; 
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+          text-align: center; 
+        }
+        .summary-card h3 { margin: 0 0 5px 0; font-size: 16px; color: #6c757d; }
+        .summary-card .value { font-size: 24px; font-weight: bold; color: #495057; }
+        summary { 
+          font-weight: 600; 
+          cursor: pointer; 
+          background: #e9ecef; 
+          padding: 10px 15px; 
+          border-radius: 4px; 
+          margin-bottom: 5px; 
+          transition: background 0.2s; 
+        }
+        summary:hover { background: #dee2e6; }
+        details { margin-bottom: 15px; }
+        .content { background: white; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
+        th, td { border: 1px solid #dee2e6; padding: 8px 12px; text-align: left; }
+        th { background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%); font-weight: 600; color: #495057; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        tr:hover { background: #f1f3f4; }
+        .badge { 
+          display: inline-block; 
+          padding: 1px 4px; 
+          font-size: 10px; 
+          font-weight: bold; 
+          border-radius: 3px; 
+          text-transform: uppercase; 
+          margin-right: 2px;
+        }
+        .badge-id { background: #007bff; color: white; }
+        .badge-hidden { background: #6c757d; color: white; }
+        .badge-group { background: #28a745; color: white; }
+        .badge-page { background: #dc3545; color: white; }
+        .badge-col { background: #ffc107; color: black; }
+        .badge-dedupe { background: #17a2b8; color: white; }
+        .badge-blank { background: #6f42c1; color: white; }
+        .styles-display { font-family: monospace; font-size: 12px; background: #f8f9fa; padding: 5px; border-radius: 3px; }
+        .prop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
+        .prop-item { background: #f8f9fa; padding: 8px; border-radius: 4px; }
+        .prop-item strong { color: #495057; }
+        .styles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .style-card { background: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #007bff; }
+        .style-card h4 { margin: 0 0 10px 0; color: #007bff; }
+        .style-section { margin-bottom: 10px; }
+        .style-section strong { color: #495057; }
+        .style-section ul { margin: 5px 0; padding-left: 20px; }
+        .style-section li { margin-bottom: 3px; }
+        .style-value { font-family: monospace; background: #e9ecef; padding: 2px 4px; border-radius: 3px; }
+        .text-item { background: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 5px; }
+        .text-content { font-weight: 500; }
+        .text-styles { font-size: 12px; color: #6c757d; margin-top: 5px; }
+        .header-row { display: flex; justify-content: space-between; background: #f8f9fa; padding: 8px; border-radius: 4px; margin-bottom: 5px; }
+        .header-cell { flex: 1; text-align: center; font-weight: 500; }
+        .header-cell:not(:last-child) { border-right: 1px solid #dee2e6; }
+        .flags-legend { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; padding: 10px; margin-top: 10px; }
+        .flags-legend h5 { margin: 0 0 8px 0; color: #856404; }
+        .flags-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 5px; }
+        .flag-item { font-size: 12px; }
+        .flag-symbol { font-weight: bold; color: #856404; }
+      "))
+    ),
+    h$body(
+      h$div(class = "container",
+        h$div(class = "header",
+          h$h1("📋 TFL Specification Preview"),
+          h$p("Comprehensive overview of your TFL specification with all metadata and styling information.")
+        ),
+
+        # Summary Cards
+        h$div(class = "summary-grid",
+          h$div(class = "summary-card",
+            h$h3("Document Type"), 
+            h$div(class = "value", .scalar_text(x$document$docType))
+          ),
+          h$div(class = "summary-card",
+            h$h3("Has Data"), 
+            h$div(class = "value", if (isTRUE(x$document$hasData)) "✅ Yes" else "❌ No")
+          ),
+          h$div(class = "summary-card",
+            h$h3("Columns"), 
+            h$div(class = "value", length(x$columns %||% list()))
+          ),
+          h$div(class = "summary-card",
+            h$h3("Styles Defined"), 
+            h$div(class = "value",
+              paste0(length(x$attribs$styles %||% list())),
+              if (!is.null(x$attribs$documentStyle$docTemplate)) 
+                h$div(style = "font-size: smaller; color: #6c757d;", 
+                      paste0("Template: ", x$attribs$documentStyle$docTemplate)) 
+              else NULL
+            )
+          )
+        ),
+
+        # Document Properties
+        h$details(
+          h$summary("📄 Document Properties"),
+          h$div(class = "content",
+            h$div(class = "prop-grid",
+              h$div(class = "prop-item", h$strong("Type: "), .scalar_text(x$document$docType)),
+              h$div(class = "prop-item", h$strong("Has Data: "), .scalar_text(x$document$hasData)),
+              if (!is.null(x$document$docPrefix)) h$div(class = "prop-item", h$strong("Prefix: "), .scalar_text(x$document$docPrefix)),
+              if (!is.null(x$document$glueNumType)) h$div(class = "prop-item", h$strong("Glue Num Type: "), .scalar_text(x$document$glueNumType)),
+              if (!is.null(x$document$docOrder)) h$div(class = "prop-item", h$strong("Order: "), .scalar_text(x$document$docOrder)),
+              if (!is.null(x$document$isContinues)) h$div(class = "prop-item", h$strong("Continues: "), .scalar_text(x$document$isContinues)),
+              if (!is.null(x$document$contentWidth)) h$div(class = "prop-item", h$strong("Content Width: "), .scalar_text(x$document$contentWidth)),
+              if (!is.null(x$document$bodyTitles)) h$div(class = "prop-item", h$strong("Body Titles: "), .scalar_text(x$document$bodyTitles)),
+              if (!is.null(x$document$bodySubtitles)) h$div(class = "prop-item", h$strong("Body Subtitles: "), .scalar_text(x$document$bodySubtitles)),
+              if (!is.null(x$document$bodyFootnotes)) h$div(class = "prop-item", h$strong("Body Footnotes: "), .scalar_text(x$document$bodyFootnotes))
+            )
+          )
+        ),
+
+        # Page Settings
+        if (!is.null(x$attribs$documentStyle$page)) {
+          h$details(
+            h$summary("📄 Page Settings"),
+            h$div(class = "content",
+              h$div(class = "prop-grid",
+                {
+                  pg <- x$attribs$documentStyle$page
+                  props <- list()
+                  if (!is.null(pg$size)) props <- c(props, list(h$div(class = "prop-item", h$strong("Size: "), .scalar_text(pg$size))))
+                  if (!is.null(pg$orientation)) props <- c(props, list(h$div(class = "prop-item", h$strong("Orientation: "), .scalar_text(pg$orientation))))
+                  if (!is.null(pg$margins)) {
+                    mg <- pg$margins
+                    if (!is.null(mg$top)) props <- c(props, list(h$div(class = "prop-item", h$strong("Top Margin: "), .scalar_text(mg$top))))
+                    if (!is.null(mg$bottom)) props <- c(props, list(h$div(class = "prop-item", h$strong("Bottom Margin: "), .scalar_text(mg$bottom))))
+                    if (!is.null(mg$left)) props <- c(props, list(h$div(class = "prop-item", h$strong("Left Margin: "), .scalar_text(mg$left))))
+                    if (!is.null(mg$right)) props <- c(props, list(h$div(class = "prop-item", h$strong("Right Margin: "), .scalar_text(mg$right))))
+                  }
+                  props
+                }
+              )
+            )
+          )
+        },
+
+        # Defined Styles
+        if (!is.null(x$attribs$styles) && length(x$attribs$styles) > 0) {
+          h$details(
+            h$summary("🎨 Defined Styles"),
+            h$div(class = "content",
+              h$div(class = "styles-grid",
+                lapply(names(x$attribs$styles), function(style_id) {
+                  style_def <- x$attribs$styles[[style_id]]
+                  h$div(class = "style-card",
+                    h$h4(style_id),
+                    h$div(class = "style-props",
+                      if (!is.null(style_def$font)) {
+                        font_props <- style_def$font
+                        h$div(class = "style-section",
+                          h$strong("Font"),
+                          h$ul(lapply(names(font_props), function(prop) {
+                            h$li(h$code(prop), ": ", h$span(class = "style-value", .scalar_text(font_props[[prop]])))
+                          }))
+                        )
+                      },
+                      if (!is.null(style_def$paragraph)) {
+                        para_props <- style_def$paragraph
+                        h$div(class = "style-section",
+                          h$strong("Paragraph"),
+                          h$ul(lapply(names(para_props), function(prop) {
+                            val <- para_props[[prop]]
+                            val_str <- if (is.list(val)) {
+                              paste(sapply(names(val), function(subprop) paste0(subprop, ": ", .scalar_text(val[[subprop]])), USE.NAMES = FALSE), collapse = ", ")
+                            } else {
+                              .scalar_text(val)
+                            }
+                            h$li(h$code(prop), ": ", h$span(class = "style-value", val_str))
+                          }))
+                        )
+                      },
+                      if (!is.null(style_def$table_style)) {
+                        table_props <- style_def$table_style
+                        h$div(class = "style-section",
+                          h$strong("Table"),
+                          h$ul(lapply(names(table_props), function(prop) {
+                            val <- table_props[[prop]]
+                            val_str <- if (is.list(val)) {
+                              paste(sapply(names(val), function(subprop) paste0(subprop, ": ", .scalar_text(val[[subprop]])), USE.NAMES = FALSE), collapse = ", ")
+                            } else {
+                              .scalar_text(val)
+                            }
+                            h$li(h$code(prop), ": ", h$span(class = "style-value", val_str))
+                          }))
+                        )
+                      }
+                    )
+                  )
+                })
+              )
+            )
+          )
+        },
+
+        # Data References
+        if (!is.null(x$dataRef) && length(x$dataRef) > 0) {
+          h$details(
+            h$summary("💾 Data References"),
+            h$div(class = "content",
+              h$ul(lapply(seq_along(x$dataRef), function(i) h$li("Ref ", i, ": ", x$dataRef[i])))
+            )
+          )
+        },
+
+        # Row Styles
+        if (!is.null(x$styleRows) && length(x$styleRows) > 0) {
+          h$details(
+            h$summary("📊 Row Styles"),
+            h$div(class = "content",
+              lapply(seq_along(x$styleRows), function(i) {
+                row_style <- x$styleRows[i]
+                if (row_style != "{}") {
+                  tryCatch({
+                    parsed <- jsonlite::fromJSON(row_style)
+                    actions <- names(parsed)
+                    h$div(
+                      h$h4("Row ", i),
+                      lapply(actions, function(action) {
+                        val <- parsed[[action]]
+                        if (is.list(val)) {
+                          val_str <- paste(names(val), sapply(val, function(v) if (is.list(v)) paste(unlist(v), collapse = ", ") else v), sep = "=", collapse = "; ")
+                        } else {
+                          val_str <- as.character(val)
+                        }
+                        h$p(h$strong(action, ": "), val_str)
+                      })
+                    )
+                  }, error = function(e) h$p("Error parsing row style"))
+                }
+              })
+            )
+          )
+        },
+
+        # Existing sections
+        h$details(h$summary("📋 Headers"), .render_rows(x$headers)),
+        h$details(h$summary("📝 Titles"), .render_text_object(x$titles)),
+        h$details(h$summary("📝 Subtitles"), .render_text_object(x$subtitles)),
+        h$details(h$summary("📊 Columns"), h$div(class = "content", .render_columns(x$columns))),
+        h$details(h$summary("📝 Footnotes"), .render_text_object(x$footnotes)),
+        h$details(h$summary("📋 Footers"), .render_rows(x$footers)),
+        h$details(h$summary("📄 Body Text"), .render_text_object(x$bodyText))
+      )
+    )
+  )
+
+  tmp <- tempfile(fileext = ".html")
+  htmltools::save_html(page, tmp)
+  rstudioapi::viewer(tmp)
+
+  invisible(TRUE)
 }
