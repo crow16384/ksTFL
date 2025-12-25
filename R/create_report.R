@@ -1,14 +1,24 @@
 #' Consolidate Styles in a TFL Specification
 #'
-#' Internal helper function that consolidates style references within a single spec:
-#' \enumerate{
-#'   \item Collects all referenced styles from all locations (labelStyleRef, valueStyleRef, styleRef)
-#'   \item Identifies style combinations (character vectors with length \code{>} 1)
-#'   \item For each combination, merges component styles into one combined style
-#'   \item Replaces all references with the new combined style hash
-#'   \item Validates that all referenced styles exist
-#'   \item Removes unreferenced styles from the spec
+#' Internal helper function that consolidates style references within a single spec.
+#' Uses a two-pass visitor pattern for efficiency:
+#' 
+#' **Pass 1 (Collection)**: Walks spec once to:
+#' \itemize{
+#'   \item Collect all referenced styles from all locations (labelStyleRef, valueStyleRef, styleRef)
+#'   \item Identify style combinations (character vectors with length > 1)
+#'   \item Compute hashes for combinations deterministically
 #' }
+#' 
+#' **Pass 2 (Replacement)**: Walks spec once to:
+#' \itemize{
+#'   \item Replace all combination references with merged hash IDs
+#'   \item Update spec$attribs$styles with new merged styles
+#' }
+#' 
+#' This approach is optimal for the tree structure: a true single-pass would
+#' require complex state management and offer minimal performance gain while
+#' significantly increasing code complexity.
 #'
 #' @param spec A TFL_spec object
 #'
@@ -81,8 +91,16 @@
   
   # Process each major spec field
   # For each, recursively search all nested lists
-  process_spec_field <- function(field_obj, max_depth = 5) {
+  # max_depth prevents stack overflow from pathological nesting
+  process_spec_field <- function(field_obj, max_depth = 15) {
     if (is.null(field_obj)) return()
+    if (max_depth <= 0) {
+      cli::cli_warn(c(
+        "Maximum recursion depth reached in style extraction",
+        i = "Deeply nested structures (>15 levels) are not fully processed"
+      ))
+      return()
+    }
     
     # Process current level
     extract_style_refs_from_obj(field_obj)
@@ -120,7 +138,37 @@
   process_spec_field(spec$footers)
   process_spec_field(spec$styleRows)
   
-  # Now compute hashes and update referenced_styles
+  # Step 2: Validate component styles (before creating merged styles)
+  # Collect all component style names that need to exist
+  component_styles_needed <- list()
+  for (combo_str in names(style_combinations)) {
+    sorted_combo <- style_combinations[[combo_str]]$sorted
+    for (style_name in sorted_combo) {
+      component_styles_needed[[style_name]] <- TRUE
+    }
+  }
+  
+  # Also validate single (non-combination) style references
+  for (ref_name in names(referenced_styles)) {
+    # Skip combo strings (these will become merged styles)
+    if (!(ref_name %in% names(style_combinations))) {
+      component_styles_needed[[ref_name]] <- TRUE
+    }
+  }
+  
+  # Check if all component styles exist
+  all_style_names <- names(spec$attribs$styles)
+  invalid_refs <- setdiff(names(component_styles_needed), all_style_names)
+  
+  if (length(invalid_refs) > 0) {
+    cli_abort(c(
+      "Referenced styles not found in spec:",
+      x = "The following style(s) are referenced but not defined: {.str {invalid_refs}}",
+      i = "Add missing styles using {.fn add_style} before calling {.fn create_report}"
+    ))
+  }
+  
+  # Now compute hashes for combinations
   for (combo_str in names(style_combinations)) {
     sorted_combo <- style_combinations[[combo_str]]$sorted
     combo_hash <- paste0("style_", .generate_hash(sorted_combo))
@@ -129,8 +177,6 @@
     referenced_styles[[combo_str]] <- NULL
     referenced_styles[[combo_hash]] <- TRUE
   }
-  
-  # Step 2: Skip validation for now - we'll validate after creating consolidated styles in Step 3
   
   # Step 3: Create merged styles for combinations
   merged_hashes <- list() # Maps combo_str -> hash
@@ -145,22 +191,34 @@
     
     # Check if merged style already exists (shouldn't happen, but be safe)
     if (!(combo_hash %in% names(spec$attribs$styles))) {
-      # Merge component styles
+      # Merge component styles (all validated to exist in Step 2)
       merged_style <- list()
       
       for (style_name in sorted_combo) {
-        # Get style from spec if it exists, otherwise create empty
         base_style <- spec$attribs$styles[[style_name]]
-        if (is.null(base_style)) {
-          # Style reference doesn't exist - create empty placeholder
-          # (This allows f_combine() to reference non-existent styles gracefully)
-          base_style <- list()
-        }
         merged_style <- .merge_recursive(merged_style, base_style)
       }
       
-      # Add merged style to spec
-      spec$attribs$styles[[combo_hash]] <- merged_style
+      # Check if merged style is identical to any existing single style
+      # If yes, reuse that style instead of creating a duplicate
+      matching_style <- NULL
+      for (existing_name in names(spec$attribs$styles)) {
+        # Skip hash-based merged styles (only compare with original single styles)
+        if (!grepl("^style_", existing_name)) {
+          if (identical(merged_style, spec$attribs$styles[[existing_name]])) {
+            matching_style <- existing_name
+            break
+          }
+        }
+      }
+      
+      if (!is.null(matching_style)) {
+        # Reuse existing style instead of creating duplicate
+        merged_hashes[[combo_str]] <- matching_style
+      } else {
+        # Add merged style to spec
+        spec$attribs$styles[[combo_hash]] <- merged_style
+      }
     }
   }
   

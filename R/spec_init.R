@@ -302,20 +302,6 @@
   if (is.null(spec$document$gluePrefix)) {
     spec$document$gluePrefix <- settings$gluePrefix
   }
-  if (is.null(spec$document$bodyTitles)) {
-    spec$document$bodyTitles <- settings$bodyTitles
-  } 
-  if (is.null(spec$document$bodySubtitles)) {
-    spec$document$bodySubtitles <- settings$bodySubtitles
-  }
-  if (is.null(spec$document$bodyFootnotes)) {
-    spec$document$bodyFootnotes <- settings$bodyFootnotes
-  }
-  if (is.null(spec$document$contentWidth)) {
-    spec$document$contentWidth <- settings$contentWidth
-  }
-
-
   
   # Initialize documentStyle structure if needed
   if (is.null(spec$attribs$documentStyle)) {
@@ -432,7 +418,7 @@
   }
   
   label <- attr(col, "label")
-  if (is.null(label) || (is.character(label) && nchar(label) == 0L)) {
+  if (is.null(label) || is.na(label) || (is.character(label) && nchar(label) == 0L)) {
     return(NULL)
   }
   
