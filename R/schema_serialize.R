@@ -776,7 +776,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
 #'
 #' @keywords internal
 #' @noRd
-.check_enum <- function(value, schema, path = "") {
+.check_enum <- function(value, schema) {
   if (is.null(schema$enum)) return(value)
   
   allowed <- schema$enum

@@ -28,8 +28,48 @@
 #'
 #' @keywords internal
 #' @noRd
-.tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, docType = "Table") {
+.fill_spec_defaults <- function(spec) {
+  settings <- tfl_get_options()
   
+  spec$document$bodyTitles <- unclass(settings$bodyTitles)
+  spec$document$bodySubtitles <- unclass(settings$bodySubtitles)
+  spec$document$bodyFootnotes <- unclass(settings$bodyFootnotes)
+  spec$document$contentWidth <- unclass(settings$contentWidth)
+  
+  spec
+}
+  
+#' Internal: Initialize a TFL Specification Object
+#'
+#' This internal function creates and initializes a TFL (Tables, Figures,
+#' Listings and Text) specification object. It is intended to be called by the
+#' public facing wrappers `create_table()`, `create_figure()` and
+#' `create_text()`. Users should call the wrappers instead of this function.
+#'
+#' @param data A data frame to build the table from (for tables), a file path
+#'   for figures, or NULL for text documents.
+#' @param cols Tidyselect expression indicating which columns from `data` to
+#'   include in the spec. Defaults to `everything()` (all columns). This
+#'   argument is captured and passed from the public wrappers using
+#'   quosures.
+#' @param docPrefix Optional character string to prefix the document title
+#'   (e.g., "Table 14.1").
+#' @param docType Character. Document type: one of "Table", "Text", or
+#'   "Figure". Defaults to "Table".
+#'
+#' @return A TFL_spec object.
+#'
+#' @details
+#' The initializer enforces docType-specific rules:
+#' \itemize{
+#'   \item{Table:} `data` must be a `data.frame` and `cols` selects included columns via tidyselect; the original data is copied into a data environment stored in `spec$.metadata$data_env` for later evaluation (styles/conditions).
+#'   \item{Figure:} `data` must be a single file path string pointing to a readable file; no table columns are created.
+#'   \item{Text:} `data` must be `NULL`; the spec is created without tabular columns.
+#' }
+#'
+#' @keywords internal
+#' @noRd
+.tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, docType = "Table") {
   # Validate docType
   docType <- match.arg(docType, c("Table", "Text", "Figure"))
   

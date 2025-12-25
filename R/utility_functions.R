@@ -12,23 +12,19 @@ utils::globalVariables(
   )
 )
 
-#' Check if Input is a Readable File Path
+#' Check if Value is Scalar and Atomic
 #'
-#' Validates that input is a character string pointing to an existing,
-#' readable file (not a directory).
+#' Validates that input is a single atomic value (not a list or vector of length > 1).
+#' Used for type coercion validation to prevent composite structures.
 #'
 #' @param x The object to check
 #'
-#' @return Logical TRUE if valid file path, FALSE otherwise
+#' @return Logical TRUE if scalar atomic, FALSE otherwise
 #'
 #' @keywords internal
 #' @noRd
-.is_readable_file <- function(x) {
-  is.character(x) &&
-    length(x) == 1L &&
-    file.exists(x) &&
-    !dir.exists(x) &&
-    file.access(x, 4) == 0
+.is_scalar_atomic <- function(x) {
+  is.atomic(x) && length(x) <= 1L
 }
 
 #' Check if Input is a Readable File Path
@@ -46,6 +42,26 @@ utils::globalVariables(
   is.character(x) &&
     length(x) == 1L &&
     dir.exists(x) &&
+    file.access(x, 4) == 0
+}
+
+
+#' Check if Input is a Readable File Path
+#'
+#' Validates that input is a character string pointing to an existing,
+#' readable file (not a directory).
+#'
+#' @param x The object to check
+#'
+#' @return Logical TRUE if valid file path, FALSE otherwise
+#'
+#' @keywords internal
+#' @noRd
+.is_readable_file <- function(x) {
+  is.character(x) &&
+    length(x) == 1L &&
+    file.exists(x) &&
+    !dir.exists(x) &&
     file.access(x, 4) == 0
 }
 
