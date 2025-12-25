@@ -218,7 +218,7 @@ utils::globalVariables(
 
   # Deterministic sampling for width estimation on large datasets
   nrows <- nrow(df)
-  sample_threshold <- 200L
+  sample_threshold <- 10000L
   if (nrows > sample_threshold) {
     sample_idx <- unique(as.integer(round(seq(1, nrows, length.out = sample_threshold))))
   } else {
