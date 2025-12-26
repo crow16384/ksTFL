@@ -501,6 +501,9 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
   # Resolve column names using existing .get_data_column_names helper
   col_names <- .get_data_column_names(data, !!cols_expr)
 
+  col_names <- intersect(col_names, report_cols)  # keep only columns that exist in spec definition
+  assert_character(col_names, min.len = 1)
+
   # Validate all resolved columns exist in report_cols
   missing_cols <- setdiff(col_names, report_cols)
   if (length(missing_cols) > 0) {
@@ -541,7 +544,8 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
 
   # Resolve column names using existing .get_data_column_names helper
   col_names <- .get_data_column_names(data, !!cols_expr)
-
+  col_names <- intersect(col_names, report_cols)  # keep only columns that exist in spec definition
+  
   # Validate merge requirements
   if (length(col_names) < 2) {
     cli_abort(c(

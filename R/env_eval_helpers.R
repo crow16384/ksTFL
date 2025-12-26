@@ -29,7 +29,7 @@ NULL
   #  - all functions in `funcs`
   #  - the raw data under the name `__data__`
   # The parent environment is the caller's environment, so it can see variables there.
-  topmask <- list2env(append(funcs, list(`__data__` = data)), parent = caller_env())
+  topmask <- list2env(append(funcs, list(`__data__` = data)), parent = rlang::caller_env())
   
   # For each function in `funcs`, set its environment to `topmask`.
   # This means that when the function is called, it can access `__data__` and other functions in topmask.
@@ -101,7 +101,7 @@ NULL
 #'   .get_data_columns(mtcars, cyl, mpg, gear)
 #' }
 .get_data_columns <- function(.data, ..., .selenv = NULL, .strict = TRUE) {
-  dots <- enquos(..., .named = FALSE)
+  dots <- rlang::enquos(..., .named = FALSE)
   
   if (length(dots) == 0) {
     cli_abort(c(
@@ -110,15 +110,15 @@ NULL
     ))
   }
   
-  .selenv <- .selenv %||% caller_env()
+  .selenv <- .selenv %||% rlang::caller_env()
   
   # Convert dots to a list of expressions, handling external vectors
   exprs <- lapply(dots, function(q) {
-    expr <- quo_get_expr(q)
+    expr <- rlang::quo_get_expr(q)
     #env <- quo_get_env(q)
-    env <- caller_env()
+    env <- rlang::caller_env()
     # Handle symbols that might be external vectors
-    if (is_symbol(expr)) {
+    if (rlang::is_symbol(expr)) {
       # Try to evaluate the symbol
       value <- tryCatch(
         eval(expr, envir = env),
@@ -127,7 +127,7 @@ NULL
       
       # If it's a character vector, wrap in all_of()
       if (is.character(value)) {
-        return(expr(all_of(!!expr)))
+        return(rlang::expr(all_of(!!expr)))
       }
     }
     
@@ -203,8 +203,8 @@ NULL
 #'   .env_eval(!!exp)
 #' }
 .env_eval <- function(expr, env=spec$.metadata$data_env) {
-  expr <- enexpr(expr)
-  eval_tidy(expr, data=env$`__mask__`, env = env)
+  expr <- rlang::enexpr(expr)
+  rlang::eval_tidy(expr, data=env$`__mask__`, env = env)
 }
 
 
@@ -364,7 +364,7 @@ NULL
 #'   .env_eval(get_names(cyl, am))  # Returns c("cyl", "am")
 #' }
 .eval_get_names <- function(..., .data=`__data__`, .selenv=`__mask__`, .strict=T) {
-   env <- caller_env()
+   env <- rlang::caller_env()
    names(.get_data_columns(.data, ..., .selenv = .selenv, .strict = .strict))
   }
 
@@ -424,9 +424,9 @@ NULL
 #'   with(menv, eval(cyl + am))
 #' }
 .eval_in_env <- function(expr) {
-  expr <- enexpr(expr)
+  expr <- rlang::enexpr(expr)
 
-  eval_tidy(expr, env = `__mask__`)  # evaluate each in the data mask
+  rlang::eval_tidy(expr, env = `__mask__`)  # evaluate each in the data mask
 }
 
 #' Helper Functions for Data Environment Evaluation
@@ -460,7 +460,8 @@ NULL
   get_names  = .eval_get_names,
   row_number = .eval_row_numbers,
   every_nth  = .eval_every_nth,
-  eval       = .eval_in_env,
-  .eval_change_of = .eval_change_of
+  #eval       = .eval_in_env,
+  .eval_change_of = .eval_change_of,
+  .get_data_columns = .get_data_columns
 )
 
