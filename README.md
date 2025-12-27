@@ -119,11 +119,12 @@ Apply dynamic styling based on data conditions:
 **Helper Functions for Conditions**:
 - `firstOf(...)`: TRUE for first occurrence of each value combination
 - `lastOf(...)`: TRUE for last occurrence of each value combination
-- `firstRow()`: TRUE only for first data row
-- `lastRow()`: TRUE only for last data row
-- `every_nth(n)`: TRUE every n-th row (e.g., `every_nth(3)` for rows 1, 4, 7, ...)
-- `row_number()`: Row index (1-based)
-- `get_names(...)`: Returns column names as character vector
+- `firstRow()` : TRUE only for first data row
+- `lastRow()` : TRUE only for last data row
+- `everyNth(n)`: TRUE every n-th row (e.g., `everyNth(3)` for rows 1, 4, 7, ...)
+- `rowNumber()`: Row index (1-based)
+- `.get_names(...)`: Returns column names as character vector (hidden helper)
+- `firstOfBlock(col, n, offset)`: Logical vector marking first row of every n-th block defined by `col`
 - `eval(expr)`: Evaluate expression with data masking
 
 ### Style Definitions

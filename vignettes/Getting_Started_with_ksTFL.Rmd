@@ -411,7 +411,7 @@ compute_cols(spec, cyl > 6, c_style(mpg, styleRef = "emphasize"))
 # String matching
 compute_cols(spec, Parameter == "Pulse", c_style(value, styleRef = "numeric"))
 
-# Helper functions (firstOf, lastOf, every_nth)
+# Helper functions (firstOf, lastOf, everyNth)
 compute_cols(spec, firstOf(group), c_style(c(col1, col2), styleRef = "group_header"))
 
 # Combine conditions

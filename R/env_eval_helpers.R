@@ -21,7 +21,7 @@ NULL
 #' @examples
 #' \dontrun{
 #'   menv <- .create_data_env(mtcars, list())
-#'   with(menv, row_number())
+#'   with(menv, rowNumber())
 #'   with(menv, eval_tidy(quote(cyl + am), env = `__mask__`))
 #' }
 .create_data_env <- function(data, funcs) {
@@ -215,7 +215,7 @@ NULL
 # Internal helper to compute change flags for adjacent rows
 .eval_change_of <- function(which = c("first", "last"), ..., data = `__data__`) {
   which <- match.arg(which)
-  cols <- get_names(...)
+  cols <- .get_names(...)
   # Extract columns
   m <- data[cols]
 
@@ -340,6 +340,60 @@ NULL
   c(rep(FALSE, n - 1), TRUE)
 }
 
+#' Mark first row of every Nth group with optional offset
+#'
+#' Returns a logical vector with `TRUE` at the first row of every nth group
+#' defined by the specified column(s).
+#' @param col Column(s) to define groups (unquoted or character vector)
+#' \itemize{
+#'   \item Accepts tidyselect expressions e.g. `col1` or "col1".
+#'   \item Supports unquoted symbols that evaluate to external character vectors .
+#'   \item Expressions are evaluated in the data mask and must resolve to existing column names.
+#' }
+#' @param n Integer. The interval for selecting groups (default: 1)
+#' @param offset Integer. The number of groups to skip before starting selection can be negative(default: 0)
+#' @return A logical vector with `TRUE` at the first row of every nth group
+#' @keywords internal
+#' @examples
+#' \dontrun{
+#'  .env_eval(.group_by_nth(cyl, n = 2, offset = 0))  # Returns logical vector TRUE at first row of every 2nd group defined by 'cyl'
+#' }
+#' 
+#' @noRd
+.group_by_nth <- function(col, n = 1, offset = 0) {
+  col <- rlang::enexpr(col)
+  col <- .get_names(!!col)
+
+  if (length(col) == 0) {
+    cli_abort(c(
+      "No columns specified in {.fn firstOfBlock}",
+      i = "Provide one or more column names to define groups"
+    ))
+  }
+
+  if (length(col) > 1) {
+    cli_abort(c(
+      "Multiple columns specified in {.fn firstOfBlock}",
+      i = "Provide a single column name to define groups"
+    ))
+  }
+  
+  r <- rle(`__data__`[[col]])
+  gid <- seq_along(r$lengths)
+
+  # TRUE at the first group of each block (except the first block)
+  select_group <- ((gid - offset - 1) %% n == 0) & ((gid - offset - 1) >= n)
+
+  unlist(
+    Map(
+      function(len, sel) c(sel, rep(FALSE, len - 1)),
+      r$lengths,
+      select_group
+    ),
+    use.names = FALSE
+  )
+}
+
 #' Get Names of Selected Columns in Environment
 #'
 #' Returns the names of the selected data columns using tidyselect syntax.
@@ -361,7 +415,7 @@ NULL
 #' @keywords internal
 #' @examples
 #' \dontrun{
-#'   .env_eval(get_names(cyl, am))  # Returns c("cyl", "am")
+#'   .env_eval(.get_names(cyl, am))  # Returns c("cyl", "am")
 #' }
 .eval_get_names <- function(..., .data=`__data__`, .selenv=`__mask__`, .strict=T) {
    env <- rlang::caller_env()
@@ -380,7 +434,7 @@ NULL
 #' @keywords internal
 #' @examples
 #' \dontrun{
-#'   .env_eval(row_numbers())  # Returns c(1, 2, 3, ..., nrow(data))
+#'   .env_eval(rowNumber())  # Returns c(1, 2, 3, ..., nrow(data))
 #' }
 .eval_row_numbers <- function(.data=`__data__`) {
   seq_len(nrow(.data))
@@ -398,10 +452,10 @@ NULL
 #' @keywords internal
 #' @examples
 #' \dontrun{
-#'   .env_eval(every_nth(3))  # Returns logical vector TRUE at rows 1, 4, 7, 10, ...
+#'   .env_eval(everyNth(3))  # Returns logical vector TRUE at rows 1, 4, 7, 10, ...
 #' }
 .eval_every_nth <- function(n) {
-  ((row_number() - 1) %% n) == 0
+  ((rowNumber() - 1) %% n) == 0
 }
 
 #' Evaluate Expression in Data Mask
@@ -441,10 +495,11 @@ NULL
 #'   \item{`lastOf(...)`}{Returns logical vector marking last occurrence of each value combination}
 #'   \item{`firstRow()`}{Returns logical vector with TRUE only at the first row}
 #'   \item{`lastRow()`}{Returns logical vector with TRUE only at the last row}
-#'   \item{`get_names(...)`}{Returns character vector of selected column names}
-#'   \item{`row_number()`}{Returns integer vector of row numbers}
-#'   \item{`every_nth(n)`}{Returns logical vector for every nth row}
+#'   \item{`.get_names(...)`}{Returns character vector of selected column names}
+#'   \item{`rowNumber()`}{Returns integer vector of row numbers}
+#'   \item{`everyNth(n)`}{Returns logical vector for every nth row}
 #'   \item{`eval(expr)`}{Evaluate expression with tidyverse data masking}
+#'   \item{firstOfBlock(col, n, offset)}{Returns logical vector marking first row of every nth group defined by `col`}
 #' }
 #'
 #' @keywords internal
@@ -457,9 +512,10 @@ NULL
   lastOf     = .eval_lastOf,
   firstRow   = .eval_firstRow,
   lastRow    = .eval_lastRow,
-  get_names  = .eval_get_names,
-  row_number = .eval_row_numbers,
-  every_nth  = .eval_every_nth,
+  .get_names  = .eval_get_names,
+  rowNumber = .eval_row_numbers,
+  everyNth  = .eval_every_nth,
+  firstOfBlock = .group_by_nth,
   #eval       = .eval_in_env,
   .eval_change_of = .eval_change_of,
   .get_data_columns = .get_data_columns

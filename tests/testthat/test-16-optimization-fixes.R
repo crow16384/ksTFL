@@ -56,16 +56,16 @@ test_that("firstRow/lastRow handle single-row data", {
   expect_equal(with(test_env, lastRow()), TRUE)
 })
 
-test_that("every_nth() works correctly", {
+test_that("everyNth() works correctly", {
   data <- data.frame(a = 1:10)
   test_env <- ksTFL:::.create_data_env(data, ksTFL:::.env_func_list)
   
   # Every 2nd row (1, 3, 5, 7, 9)
-  result_2 <- with(test_env, every_nth(2))
+  result_2 <- with(test_env, everyNth(2))
   expect_equal(result_2, c(TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE, TRUE, FALSE))
   
   # Every 3rd row (1, 4, 7, 10)
-  result_3 <- with(test_env, every_nth(3))
+  result_3 <- with(test_env, everyNth(3))
   expect_equal(result_3, c(TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, TRUE, FALSE, FALSE, TRUE))
 })
 
@@ -85,6 +85,7 @@ test_that("firstOf/lastOf work with multiple columns", {
   expect_equal(result_last, c(TRUE, TRUE, FALSE, TRUE, TRUE, TRUE))
 })
 
+
 test_that("firstOf/lastOf handle all-same values", {
   data <- data.frame(a = rep("A", 5))
   test_env <- ksTFL:::.create_data_env(data, ksTFL:::.env_func_list)
@@ -92,6 +93,22 @@ test_that("firstOf/lastOf handle all-same values", {
   # All same: first is row 1, last is row 5
   expect_equal(with(test_env, firstOf(a)), c(TRUE, FALSE, FALSE, FALSE, FALSE))
   expect_equal(with(test_env, lastOf(a)), c(FALSE, FALSE, FALSE, FALSE, TRUE))
+})
+
+test_that("firstOfBlock test", {
+  data <- data.frame(
+    group = c("A", "A", "B", "B", "B", "C", "C", "C"),
+    subgroup = c("X", "Y", "X", "X", "Y", "X",  "Y", "X")
+  )
+  test_env <- ksTFL:::.create_data_env(data, ksTFL:::.env_func_list)
+  
+  # firstOf with two columns
+  result_first <- with(test_env, firstOfBlock(group, 2))
+  expect_equal(result_first, c(F,F,F,F,F,T,F,F))
+  
+  # lastOf with two columns
+  result_last <- with(test_env, firstOfBlock(group, 2, -1))
+  expect_equal(result_last, c(F,F,T,F,F,F,F,F))
 })
 
 # ----------------------------------------------------------------------------

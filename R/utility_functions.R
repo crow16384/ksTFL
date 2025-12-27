@@ -8,7 +8,7 @@ utils::globalVariables(
     "__data__",
     "__mask__",
     "spec",
-    "get_names", "row_number"
+    ".get_names", "rowNumber"
   )
 )
 

@@ -130,7 +130,7 @@ group header text.
 Conditions and actions are evaluated in `spec$.metadata$data_env`, which contains:
 
 1. **Data columns**: Direct access to all columns (even invisible ones)
-2. **Helper functions**: `firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `row_number()`, `every_nth()`, `get_names()`, `eval()`
+2. **Helper functions**: `firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`
 3. **Embedded functions**: Internal utilities for column access
 
 ```{r data-env-example}
@@ -150,12 +150,10 @@ ksTFL provides these helper functions evaluated in the data context:
 - **`lastOf(...)`**: Logical vector marking last occurrence of each value combination in specified columns
 - **`firstRow()`**: Logical vector TRUE only at first row
 - **`lastRow()`**: Logical vector TRUE only at last row
-- **`row_number()`**: Integer vector of row numbers (1-based)
-- **`every_nth(n)`**: Logical vector TRUE at every nth row
-- **`get_names(...)`**: Character vector of selected column names
-- **`eval(expr)`**: Evaluate expression with tidyverse data masking
+- **`rowNumber()`**: Integer vector of row numbers (1-based)
+- **`everyNth(n)`**: Logical vector TRUE at every nth row
+- **`firstOfBlock(col, n, offset)`**: Returns logical vector marking first row of every n-th block defined by `col`
 
-**Note**: Functions like `lag()`, `lead()`, and `n()` are NOT provided by ksTFL. If you need these, load the dplyr package.
 
 ```{r helpers-example}
 # Highlight first and last rows using helper functions
@@ -177,7 +175,7 @@ spec <- create_table(data_groups) |>
 spec <- create_table(data) |>
   add_style("gray_bg", s_table_style(background_color = "#F5F5F5")) |>
   compute_cols(
-    every_nth(2),  # Every 2nd row starting from row 1
+    everyNth(2),  # Every 2nd row starting from row 1
     c_style(everything(), styleRef = "gray_bg")
   )
 ```
@@ -236,7 +234,7 @@ spec <- create_table(data) |>
   add_style("alternate_row", 
             s_table_style(background_color = "#F0F0F0")) |>
   compute_cols(
-    row_number() %% 2 == 0,  # Even rows
+    rowNumber() %% 2 == 0,  # Even rows
     c_style(everything(), styleRef = "alternate_row")
   )
 ```
@@ -775,7 +773,7 @@ report <- create_report(spec1, spec2)
 - **`c_style()`**: Apply conditional styling to cells
 - **`c_merge()`**: Merge cells across columns based on conditions
 - **`c_addrow()`**: Insert new rows dynamically
-- **Evaluation context**: Data environment with helper functions (`lag`, `lead`, `row_number`, `n`)
+-- **Evaluation context**: Data environment with helper functions (`lag`, `lead`, `rowNumber`, `n`)
 - **Performance**: Minimize calls, use vectorized operations, consolidate styles
 - **Debugging**: Inspect metadata, test conditions manually, build incrementally
 
