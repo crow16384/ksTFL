@@ -401,6 +401,7 @@ spec <- compute_cols(spec, firstOf(cyl),
 | `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
 | `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
 | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
+| `c_pageBreak()` | Insert a page break at the matching row (no args) | `c_pageBreak()` |
 
 **Condition syntax**:
 

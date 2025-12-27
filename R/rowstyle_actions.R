@@ -55,6 +55,7 @@ NULL
 #'   \item `c_style(cols, styleRef)`: Apply style(s) to columns in matching rows
 #'   \item `c_merge(cols, styleRef = NULL)`: Merge adjacent columns in matching rows
 #'   \item `c_addrow(pos, value_from = NULL, styleRef = NULL)`: Insert row above/below matching rows
+#'   \item `c_pageBreak()`: Insert a page break at the matching row (no args)
 #' }
 #'
 #' @examples
@@ -341,6 +342,26 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
   )
 }
 
+
+#' Insert a Page Break before the matching row
+#'
+#' Declares a page break action for the parent `compute_cols()` condition.
+#' This action takes no arguments; it signals the renderer to start a new page
+#' at the given row.
+#'
+#' @return Quosure-style marker (internal use within `compute_cols()`)
+#' @export
+c_pageBreak <- function() {
+  .assert_context("compute_cols", "c_pageBreak")
+
+  structure(
+    list(
+      type = "page_break"
+    ),
+    class = "tfl_action_pagebreak"
+  )
+}
+
 # ============================================================
 # PART 3: INTERNAL FINALIZATION HELPERS
 # ============================================================
@@ -376,7 +397,8 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
     row_actions[[i]] <- list(
       style = list(),
       merge = list(),
-      add_row = list()
+      add_row = list(),
+      page_break = list()
     )
   }
 
@@ -458,6 +480,16 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
         for (i in matching_rows) {
           row_actions[[i]]$add_row <- .append_addrow_action(
             row_actions[[i]]$add_row,
+            parsed_action
+          )
+        }
+      } else if (is.call(action_obj) && as.character(action_obj[[1]]) == "c_pageBreak") {
+        # Page break has no arguments
+        parsed_action <- list()
+
+        for (i in matching_rows) {
+          row_actions[[i]]$page_break <- .append_pagebreak_action(
+            row_actions[[i]]$page_break,
             parsed_action
           )
         }
@@ -715,6 +747,22 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
   addrow_list
 }
 
+
+#' Append Page Break Action to Row Actions List
+#'
+#' Adds a page_break action to the row's page_break list.
+#'
+#' @param pb_list List of existing page_break actions for the row
+#' @param parsed_action Parsed action (unused, placeholder)
+#'
+#' @return Updated pb_list with new action appended
+#' @keywords internal
+#' @noRd
+.append_pagebreak_action <- function(pb_list, parsed_action) {
+  pb_list[[length(pb_list) + 1L]] <- list()
+  pb_list
+}
+
 #' Sanitize Row Actions - Resolve Conflicts and Combine Styles
 #'
 #' Post-processes row actions to:
@@ -891,8 +939,9 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
     has_style <- length(row_act$style) > 0
     has_merge <- length(row_act$merge) > 0
     has_addrow <- length(row_act$add_row) > 0
+    has_page_break <- length(row_act$page_break) > 0
 
-    if (!has_style && !has_merge && !has_addrow) {
+    if (!has_style && !has_merge && !has_addrow && !has_page_break) {
       return(NULL)  # No actions for this row
     }
 
@@ -909,6 +958,10 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
 
     if (has_addrow) {
       action_obj$add_row <- row_act$add_row
+    }
+
+    if (has_page_break) {
+      action_obj$page_break <- row_act$page_break
     }
 
     action_obj

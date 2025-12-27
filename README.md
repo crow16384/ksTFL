@@ -127,6 +127,10 @@ Apply dynamic styling based on data conditions:
 - `firstOfBlock(col, n, offset)`: Logical vector marking first row of every n-th block defined by `col`
 - `eval(expr)`: Evaluate expression with data masking
 
+Note: The `cols` argument passed to `c_merge()` must resolve to at least two consecutive
+columns in the final report column order. The merged cell's displayed value is taken
+from the first column in the `cols` sequence.
+
 ### Style Definitions
 
 Define and compose styles:

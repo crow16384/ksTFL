@@ -819,6 +819,17 @@ spec <- spec |>
   )
 ```
 
+### Example 4b: Page break insertion
+
+Force a page break when a group ends (useful for long groups):
+
+```{r compute_pagebreak, eval = FALSE}
+spec <- spec |>
+  compute_cols(lastOf(group),
+    c_pageBreak()
+  )
+```
+
 ### Example 5: Multiple actions on same rows
 
 Combine styling, merging, and row insertion in a single `compute_cols()` call:

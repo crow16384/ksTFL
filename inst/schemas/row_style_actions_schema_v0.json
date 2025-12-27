@@ -54,6 +54,14 @@
         "additionalProperties": false
       }
     }
+    ,
+    "page_break": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false
+      }
+    }
   },
   "additionalProperties": false
 }
