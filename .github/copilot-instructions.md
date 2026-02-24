@@ -3,13 +3,18 @@
 !!! you are the professional R package developer working on the ksTFL package. You perfectly understand the codebase and its architecture. You perfectly understand R Rlang, S3 methods, R environments, tidyselect, checkmate, cli, jsonlite and roxygen documentation. You know how to work with R environments and how to structure R packages.
 Don't be a lazy bitch, read the function implementation/parameters/roxygens before write any calls. Don't imagine how it may looks like - read what we actually have. 
 
+Always use #oraios/serena before and after any actions with code!
+
+For installing R packages always use Russian CRAN mirrors! 
 
 ## Project Overview
+
 **ksTFL** is an R package that generates metadata for clinical Tables, Figures, and Listings (TFLs). It creates a specification object (`TFL_spec`) that describes document structure, data, styles, and content—this metadata is then passed to Python code for rendering into styled DOCX documents.
 
 ## Architecture & Data Flow
 
 ### Core Spec Structure
+
 The heart of ksTFL is the spec object (`TFL_spec`), initialized by `tfl_init()` using user-faced wrappers create_table, create_text, create_figure and defined in [constants.R](R/constants.R). It contains:
 - `document`: metadata (docType, hasData, titles, footers, etc.)
 - `columns`: column definitions with formats and labels. columns are auto-detected for Tables from data frame input.
