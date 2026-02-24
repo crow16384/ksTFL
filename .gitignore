@@ -31,6 +31,7 @@ Thumbs.db
 # Temporary files
 .tmp/
 *.bak
+tmp
 
 # R development files
 .Rbuildignore
@@ -46,6 +47,4 @@ coverage/
 
 # Testing
 tests/testthat/test-results/
-/doc/
-/docs/
 /Meta/

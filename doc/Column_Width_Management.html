@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="ksTFL Development Team" />
+
+<meta name="date" content="2025-12-25" />
+
+<title>Column Width Management in ksTFL</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Column Width Management in ksTFL</h1>
+<h4 class="author">ksTFL Development Team</h4>
+<h4 class="date">2025-12-25</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#overview" id="toc-overview">Overview</a></li>
+<li><a href="#core-concepts" id="toc-core-concepts">Core Concepts</a>
+<ul>
+<li><a href="#the-three-column-states" id="toc-the-three-column-states">The Three Column States</a></li>
+<li><a href="#initial-width-distribution" id="toc-initial-width-distribution">Initial Width Distribution</a></li>
+<li><a href="#the-autocolwidth-option" id="toc-the-autocolwidth-option">The <code>autoColWidth</code>
+Option</a></li>
+</ul></li>
+<li><a href="#width-locking-workflow" id="toc-width-locking-workflow">Width Locking Workflow</a>
+<ul>
+<li><a href="#basic-locking" id="toc-basic-locking">Basic
+Locking</a></li>
+<li><a href="#multiple-locked-columns" id="toc-multiple-locked-columns">Multiple Locked Columns</a></li>
+<li><a href="#mixing-relative-and-absolute-units" id="toc-mixing-relative-and-absolute-units">Mixing Relative and Absolute
+Units</a></li>
+</ul></li>
+<li><a href="#width-recalculation-algorithm" id="toc-width-recalculation-algorithm">Width Recalculation Algorithm</a>
+<ul>
+<li><a href="#example-walkthrough" id="toc-example-walkthrough">Example
+Walkthrough</a></li>
+<li><a href="#drift-correction" id="toc-drift-correction">Drift
+Correction</a></li>
+</ul></li>
+<li><a href="#invisible-columns" id="toc-invisible-columns">Invisible
+Columns</a>
+<ul>
+<li><a href="#making-columns-invisible" id="toc-making-columns-invisible">Making Columns Invisible</a></li>
+<li><a href="#important-constraints" id="toc-important-constraints">Important Constraints</a></li>
+<li><a href="#using-invisible-columns-for-logic" id="toc-using-invisible-columns-for-logic">Using Invisible Columns for
+Logic</a></li>
+</ul></li>
+<li><a href="#manual-width-management" id="toc-manual-width-management">Manual Width Management</a>
+<ul>
+<li><a href="#disabling-auto-recalculation" id="toc-disabling-auto-recalculation">Disabling
+Auto-Recalculation</a></li>
+<li><a href="#why-use-manual-mode" id="toc-why-use-manual-mode">Why Use
+Manual Mode?</a></li>
+</ul></li>
+<li><a href="#validation-and-constraints" id="toc-validation-and-constraints">Validation and Constraints</a>
+<ul>
+<li><a href="#minimum-width-thresholds" id="toc-minimum-width-thresholds">Minimum Width Thresholds</a></li>
+<li><a href="#space-constraint-validation" id="toc-space-constraint-validation">Space Constraint
+Validation</a></li>
+<li><a href="#adjusting-minimum-width" id="toc-adjusting-minimum-width">Adjusting Minimum Width</a></li>
+</ul></li>
+<li><a href="#common-patterns" id="toc-common-patterns">Common
+Patterns</a>
+<ul>
+<li><a href="#pattern-1-id-column-auto-widths" id="toc-pattern-1-id-column-auto-widths">Pattern 1: ID Column + Auto
+Widths</a></li>
+<li><a href="#pattern-2-fixed-width-text-flex-numeric" id="toc-pattern-2-fixed-width-text-flex-numeric">Pattern 2: Fixed-Width
+Text + Flex Numeric</a></li>
+<li><a href="#pattern-3-all-manual-widths" id="toc-pattern-3-all-manual-widths">Pattern 3: All Manual
+Widths</a></li>
+<li><a href="#pattern-4-progressive-locking" id="toc-pattern-4-progressive-locking">Pattern 4: Progressive
+Locking</a></li>
+</ul></li>
+<li><a href="#troubleshooting" id="toc-troubleshooting">Troubleshooting</a>
+<ul>
+<li><a href="#issue-insufficient-space-for-remaining-columns" id="toc-issue-insufficient-space-for-remaining-columns">Issue:
+“Insufficient space for remaining columns”</a></li>
+<li><a href="#issue-widths-dont-sum-to-exactly-100" id="toc-issue-widths-dont-sum-to-exactly-100">Issue: Widths don’t sum to
+exactly 100%</a></li>
+<li><a href="#issue-cant-set-width-for-invisible-column" id="toc-issue-cant-set-width-for-invisible-column">Issue: Can’t set
+width for invisible column</a></li>
+<li><a href="#issue-widths-change-unexpectedly-after-define_cols" id="toc-issue-widths-change-unexpectedly-after-define_cols">Issue:
+Widths change unexpectedly after define_cols()</a></li>
+</ul></li>
+<li><a href="#advanced-width-metadata" id="toc-advanced-width-metadata">Advanced: Width Metadata</a></li>
+<li><a href="#best-practices" id="toc-best-practices">Best
+Practices</a></li>
+<li><a href="#summary" id="toc-summary">Summary</a></li>
+</ul>
+</div>
+
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>This vignette explains how column widths are managed in ksTFL,
+including the LOCKED/UNLOCKED/VISIBLE partitioning system, automatic
+recalculation behavior, and strategies for fine-tuning table
+layouts.</p>
+</div>
+<div id="core-concepts" class="section level2">
+<h2>Core Concepts</h2>
+<div id="the-three-column-states" class="section level3">
+<h3>The Three Column States</h3>
+<p>ksTFL partitions table columns into three categories that determine
+how widths are calculated:</p>
+<ol style="list-style-type: decimal">
+<li><strong>VISIBLE Columns</strong> (<code>isVisible != FALSE</code>)
+<ul>
+<li>Displayed in the report output</li>
+<li>Participate in width calculations</li>
+<li>This is the default state for all columns</li>
+</ul></li>
+<li><strong>LOCKED Columns</strong> (width explicitly set via
+<code>colWidth</code>)
+<ul>
+<li>Maintain their exact specified width (any unit: %, cm, in, mm,
+pt)</li>
+<li>Fixed during automatic recalculation</li>
+<li>Can use relative (%) or absolute (cm, in) units</li>
+</ul></li>
+<li><strong>UNLOCKED Columns</strong> (no <code>colWidth</code> set)
+<ul>
+<li>Automatically recalculated to fill available space</li>
+<li>Normalized proportionally based on initial auto-detected
+weights</li>
+<li>Only visible unlocked columns participate in recalculation</li>
+</ul></li>
+<li><strong>INVISIBLE Columns</strong> (<code>isVisible = FALSE</code>)
+<ul>
+<li>Hidden from output completely</li>
+<li>Automatically assigned width “0.0cm”</li>
+<li>Excluded from all width calculations</li>
+<li>Data still accessible for conditional logic (e.g.,
+<code>compute_cols()</code>)</li>
+</ul></li>
+</ol>
+</div>
+<div id="initial-width-distribution" class="section level3">
+<h3>Initial Width Distribution</h3>
+<p>When you create a table, ksTFL automatically:</p>
+<ol style="list-style-type: decimal">
+<li>Analyzes each column’s data type and content</li>
+<li>Estimates visual width based on:
+<ul>
+<li>Maximum value length</li>
+<li>Column name length</li>
+<li>Label length (if provided)</li>
+</ul></li>
+<li>Distributes widths proportionally so they sum to 100%</li>
+<li>Applies minimum width constraints (0.5% for relative widths)</li>
+</ol>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(ksTFL)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># Create sample data</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">patient_id =</span> <span class="fu">sprintf</span>(<span class="st">&quot;PAT-%04d&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="at">age =</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="dv">45</span>, <span class="dv">10</span>)),</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="at">weight_kg =</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(<span class="dv">100</span>, <span class="dv">70</span>, <span class="dv">15</span>), <span class="dv">1</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  <span class="at">treatment_group =</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="st">&quot;Placebo&quot;</span>, <span class="st">&quot;Treatment A&quot;</span>, <span class="st">&quot;Treatment B&quot;</span>), <span class="dv">100</span>, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="co"># Initial spec with auto-detected widths</span></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="fu">print</span>(spec)  <span class="co"># Shows auto-calculated widths for all columns</span></span></code></pre></div>
+</div>
+<div id="the-autocolwidth-option" class="section level3">
+<h3>The <code>autoColWidth</code> Option</h3>
+<p>The <code>autoColWidth</code> option (default: <code>TRUE</code>)
+controls whether widths are automatically recalculated when you lock
+columns:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Check current setting</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">tfl_get_option</span>(<span class="st">&quot;autoColWidth&quot;</span>)  <span class="co"># TRUE by default</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># Disable for manual width management</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">autoColWidth =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co"># Re-enable (restore default behavior)</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">autoColWidth =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="width-locking-workflow" class="section level2">
+<h2>Width Locking Workflow</h2>
+<div id="basic-locking" class="section level3">
+<h3>Basic Locking</h3>
+<p>When you set <code>colWidth</code> for a column, it becomes
+LOCKED:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Lock the &#39;id&#39; column at 15%</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;15%&quot;</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co"># Result:</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># - id: 15% (LOCKED)</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># - Other visible columns: auto-recalculated to fill remaining 85%</span></span></code></pre></div>
+</div>
+<div id="multiple-locked-columns" class="section level3">
+<h3>Multiple Locked Columns</h3>
+<p>You can lock multiple columns; unlocked columns fill the remaining
+space:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;10%&quot;</span>) <span class="sc">|&gt;</span>           <span class="co"># Lock at 10%</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(patient_id, <span class="at">colWidth =</span> <span class="st">&quot;20%&quot;</span>) <span class="sc">|&gt;</span>   <span class="co"># Lock at 20%</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="fu">define_cols</span>(treatment_group, <span class="at">colWidth =</span> <span class="st">&quot;25%&quot;</span>) <span class="co"># Lock at 25%</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co"># Result:</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># - id: 10% (LOCKED)</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co"># - patient_id: 20% (LOCKED)</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># - treatment_group: 25% (LOCKED)</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co"># - age, weight_kg: share remaining 45% proportionally</span></span></code></pre></div>
+</div>
+<div id="mixing-relative-and-absolute-units" class="section level3">
+<h3>Mixing Relative and Absolute Units</h3>
+<p>You can mix percentage widths with absolute units:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;2.5cm&quot;</span>) <span class="sc">|&gt;</span>      <span class="co"># Fixed width (doesn&#39;t reduce % space)</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(patient_id, <span class="at">colWidth =</span> <span class="st">&quot;20%&quot;</span>)   <span class="co"># Takes 20% of available</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co"># Result:</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co"># - id: 2.5cm (LOCKED, absolute)</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co"># - patient_id: 20% (LOCKED, relative)</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co"># - Other columns: share remaining 80% proportionally</span></span></code></pre></div>
+<p><strong>Important:</strong> Fixed-unit columns (cm, in, mm, pt) don’t
+reduce the available percentage space—only locked percentage columns
+do.</p>
+</div>
+</div>
+<div id="width-recalculation-algorithm" class="section level2">
+<h2>Width Recalculation Algorithm</h2>
+<p>When <code>autoColWidth = TRUE</code> and you lock a column,
+ksTFL:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Partitions columns</strong> into LOCKED and UNLOCKED</li>
+<li><strong>Calculates available space</strong>: 100% minus sum of
+locked percentage widths</li>
+<li><strong>Normalizes unlocked widths</strong> to fill available space
+proportionally</li>
+<li><strong>Rounds to 1 decimal place</strong> with drift
+correction</li>
+</ol>
+<div id="example-walkthrough" class="section level3">
+<h3>Example Walkthrough</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Initial auto-distribution (example values):</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># id: 15%, patient_id: 25%, age: 20%, weight_kg: 20%, treatment_group: 20%</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;10%&quot;</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  </span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co"># After locking id at 10%:</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co"># - Available space: 100% - 10% = 90%</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co"># - Unlocked weights: patient_id=25, age=20, weight_kg=20, treatment_group=20 (sum=85)</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co"># - Normalized: patient_id=26.5%, age=21.2%, weight_kg=21.2%, treatment_group=21.2%</span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co"># - Result sums to 100.1% (rounding), drift corrected to largest column</span></span></code></pre></div>
+</div>
+<div id="drift-correction" class="section level3">
+<h3>Drift Correction</h3>
+<p>To ensure widths sum exactly to 100%, ksTFL applies drift
+correction:</p>
+<ul>
+<li>Rounds all widths to 1 decimal place</li>
+<li>Calculates total rounding error (drift)</li>
+<li>Adds/subtracts drift from the largest unlocked column</li>
+</ul>
+<p>This guarantees valid output while maintaining proportions.</p>
+</div>
+</div>
+<div id="invisible-columns" class="section level2">
+<h2>Invisible Columns</h2>
+<div id="making-columns-invisible" class="section level3">
+<h3>Making Columns Invisible</h3>
+<p>Use <code>isVisible = FALSE</code> to hide columns from output:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">isVisible =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co"># Result:</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co"># - id: hidden, width = &quot;0.0cm&quot; (automatic)</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co"># - Other columns: recalculated to fill 100%</span></span></code></pre></div>
+</div>
+<div id="important-constraints" class="section level3">
+<h3>Important Constraints</h3>
+<p><strong>You cannot set <code>colWidth</code> for invisible
+columns:</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># This will error:</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">isVisible =</span> <span class="cn">FALSE</span>, <span class="at">colWidth =</span> <span class="st">&quot;15%&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  </span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co"># Error message:</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co"># &quot;Cannot set colWidth for invisible column &#39;id&#39;&quot;</span></span></code></pre></div>
+<p><strong>Why?</strong> Invisible columns are always “0.0cm”—setting a
+width would be contradictory.</p>
+</div>
+<div id="using-invisible-columns-for-logic" class="section level3">
+<h3>Using Invisible Columns for Logic</h3>
+<p>Invisible columns are perfect for conditional formatting:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="co"># Hide the flag column but keep data available</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(patient_id, <span class="at">isVisible =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="co"># Use it in compute_cols() for conditional styling</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>    <span class="fu">startsWith</span>(patient_id, <span class="st">&quot;PAT-001&quot;</span>),</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>    <span class="fu">c_style</span>(age, <span class="at">styleRef =</span> <span class="st">&quot;highlight_yellow&quot;</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  )</span></code></pre></div>
+</div>
+</div>
+<div id="manual-width-management" class="section level2">
+<h2>Manual Width Management</h2>
+<div id="disabling-auto-recalculation" class="section level3">
+<h3>Disabling Auto-Recalculation</h3>
+<p>For complete manual control:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Disable auto-recalculation</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">autoColWidth =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co"># Set exact widths - no automatic adjustment</span></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="fu">define_cols</span>(</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>    <span class="fu">c</span>(id, patient_id, age, weight_kg, treatment_group),</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>    <span class="at">colWidth =</span> <span class="fu">c</span>(<span class="st">&quot;10%&quot;</span>, <span class="st">&quot;25%&quot;</span>, <span class="st">&quot;20%&quot;</span>, <span class="st">&quot;20%&quot;</span>, <span class="st">&quot;25%&quot;</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  )</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co"># Widths stay exactly as specified (sum = 100%)</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co"># Re-enable for other tables</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">autoColWidth =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+<div id="why-use-manual-mode" class="section level3">
+<h3>Why Use Manual Mode?</h3>
+<ul>
+<li><strong>Precision</strong>: When you need exact widths without
+rounding</li>
+<li><strong>Complex layouts</strong>: Multi-level headers with specific
+alignments</li>
+<li><strong>Pre-calculated</strong>: When you’ve determined optimal
+widths externally</li>
+</ul>
+</div>
+</div>
+<div id="validation-and-constraints" class="section level2">
+<h2>Validation and Constraints</h2>
+<div id="minimum-width-thresholds" class="section level3">
+<h3>Minimum Width Thresholds</h3>
+<p>ksTFL enforces minimum widths to prevent unreadable columns:</p>
+<p><strong>Relative widths (%):</strong> - Minimum: 0.5%</p>
+<p><strong>Absolute widths (cm, in, mm, pt):</strong> - Minimum: 0.2cm
+(~0.08in)</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># This will error:</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;0.1%&quot;</span>)  <span class="co"># Below 0.5% minimum</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  </span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># Error: &quot;Column width &#39;0.1%&#39; is below minimum allowed&quot;</span></span></code></pre></div>
+</div>
+<div id="space-constraint-validation" class="section level3">
+<h3>Space Constraint Validation</h3>
+<p>ksTFL prevents you from locking widths that leave insufficient space
+for other columns:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># 5 columns with minColWidth = 0.5% (default)</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co"># Minimum space needed for 4 unlocked columns: 4 × 0.5% = 2%</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co"># This will error:</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;99%&quot;</span>)  <span class="co"># Leaves only 1% for 4 columns</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  </span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co"># Error: &quot;Cannot set column &#39;id&#39; to &#39;99%&#39;&quot;</span></span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="co"># &quot;This would leave insufficient space for the remaining 4 unlocked columns&quot;</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co"># &quot;Maximum allowed relative width for id: 98.0%&quot;</span></span></code></pre></div>
+</div>
+<div id="adjusting-minimum-width" class="section level3">
+<h3>Adjusting Minimum Width</h3>
+<p>You can customize the minimum width threshold:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Allow tighter columns (use with caution)</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">minColWidth =</span> <span class="fl">0.3</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># Now you can use narrower relative widths</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;95%&quot;</span>)  <span class="co"># More space for this column</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co"># Reset to default</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">minColWidth =</span> <span class="fl">0.5</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="common-patterns" class="section level2">
+<h2>Common Patterns</h2>
+<div id="pattern-1-id-column-auto-widths" class="section level3">
+<h3>Pattern 1: ID Column + Auto Widths</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;8%&quot;</span>, <span class="at">isID =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(patient_id, <span class="at">colWidth =</span> <span class="st">&quot;15%&quot;</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  </span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co"># Result: ID columns fixed, others auto-distribute</span></span></code></pre></div>
+</div>
+<div id="pattern-2-fixed-width-text-flex-numeric" class="section level3">
+<h3>Pattern 2: Fixed-Width Text + Flex Numeric</h3>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>    <span class="fu">c</span>(id, patient_id, treatment_group),</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>    <span class="at">colWidth =</span> <span class="fu">c</span>(<span class="st">&quot;8%&quot;</span>, <span class="st">&quot;20%&quot;</span>, <span class="st">&quot;22%&quot;</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  )</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="co"># age and weight_kg auto-fill remaining 50%</span></span></code></pre></div>
+</div>
+<div id="pattern-3-all-manual-widths" class="section level3">
+<h3>Pattern 3: All Manual Widths</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">autoColWidth =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="fu">define_cols</span>(</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>    <span class="fu">c</span>(id, patient_id, age, weight_kg, treatment_group),</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>    <span class="at">colWidth =</span> <span class="fu">c</span>(<span class="st">&quot;8%&quot;</span>, <span class="st">&quot;22%&quot;</span>, <span class="st">&quot;15%&quot;</span>, <span class="st">&quot;18%&quot;</span>, <span class="st">&quot;37%&quot;</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>  )  <span class="co"># Sum = 100% exactly</span></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="fu">tfl_set_options</span>(<span class="at">autoColWidth =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+<div id="pattern-4-progressive-locking" class="section level3">
+<h3>Pattern 4: Progressive Locking</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="co"># Lock columns one at a time, observing effects</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data)</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">print</span>(spec)  <span class="co"># See initial distribution</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> spec <span class="sc">|&gt;</span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;10%&quot;</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="fu">print</span>(spec)  <span class="co"># See after first lock</span></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>spec <span class="ot">&lt;-</span> spec <span class="sc">|&gt;</span></span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>  <span class="fu">define_cols</span>(patient_id, <span class="at">colWidth =</span> <span class="st">&quot;20%&quot;</span>)</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="fu">print</span>(spec)  <span class="co"># See after second lock</span></span></code></pre></div>
+</div>
+</div>
+<div id="troubleshooting" class="section level2">
+<h2>Troubleshooting</h2>
+<div id="issue-insufficient-space-for-remaining-columns" class="section level3">
+<h3>Issue: “Insufficient space for remaining columns”</h3>
+<p><strong>Cause:</strong> Locked columns leave &lt;
+<code>minColWidth</code> % per unlocked column</p>
+<p><strong>Solutions:</strong> 1. Reduce the locked width you’re trying
+to set 2. Lower <code>minColWidth</code> via
+<code>tfl_set_options(minColWidth = 0.3)</code> 3. Lock more columns
+explicitly to reduce unlocked count 4. Make some columns invisible to
+exclude them</p>
+</div>
+<div id="issue-widths-dont-sum-to-exactly-100" class="section level3">
+<h3>Issue: Widths don’t sum to exactly 100%</h3>
+<p><strong>Cause:</strong> Rounding errors from drift correction</p>
+<p><strong>Solution:</strong> This is expected and handled
+automatically. Drift is always ≤ 0.1% and applied to the largest column.
+The rendered output will be correct.</p>
+</div>
+<div id="issue-cant-set-width-for-invisible-column" class="section level3">
+<h3>Issue: Can’t set width for invisible column</h3>
+<p><strong>Cause:</strong> Trying to use <code>colWidth</code> with
+<code>isVisible = FALSE</code></p>
+<p><strong>Solution:</strong> Remove <code>colWidth</code>
+parameter—invisible columns are always “0.0cm”</p>
+</div>
+<div id="issue-widths-change-unexpectedly-after-define_cols" class="section level3">
+<h3>Issue: Widths change unexpectedly after define_cols()</h3>
+<p><strong>Cause:</strong> Auto-recalculation triggered by locking a
+column</p>
+<p><strong>Solution:</strong> - This is expected behavior when
+<code>autoColWidth = TRUE</code> - Disable with
+<code>tfl_set_options(autoColWidth = FALSE)</code> for manual control -
+Or lock all columns explicitly</p>
+</div>
+</div>
+<div id="advanced-width-metadata" class="section level2">
+<h2>Advanced: Width Metadata</h2>
+<p>ksTFL stores width metadata in
+<code>spec$.metadata$colWidths</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(data) <span class="sc">|&gt;</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(id, <span class="at">colWidth =</span> <span class="st">&quot;15%&quot;</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co"># Inspect metadata</span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="fu">str</span>(spec<span class="sc">$</span>.metadata<span class="sc">$</span>colWidths)</span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="co"># Structure for each column:</span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co"># $id</span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co">#   $unit: &quot;%&quot; or &quot;cm&quot; or &quot;in&quot; etc.</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co">#   $value: numeric value</span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="co">#   $locked: TRUE/FALSE</span></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="co">#   $auto_weight: initial proportion for recalculation</span></span></code></pre></div>
+<p>This metadata enables: - Recalculation without re-parsing width
+strings - Tracking which columns are locked vs. unlocked - Preserving
+initial proportions for normalization</p>
+</div>
+<div id="best-practices" class="section level2">
+<h2>Best Practices</h2>
+<ol style="list-style-type: decimal">
+<li><strong>Start with defaults</strong>: Let ksTFL auto-detect widths
+initially</li>
+<li><strong>Lock strategically</strong>: Fix only the columns that need
+exact widths</li>
+<li><strong>Use print()</strong>: Inspect the spec after each
+<code>define_cols()</code> call</li>
+<li><strong>Test rendering</strong>: Verify widths in actual output
+documents</li>
+<li><strong>Document intent</strong>: Add comments explaining width
+choices</li>
+<li><strong>Use invisibility</strong>: Hide helper columns instead of
+tiny widths</li>
+</ol>
+</div>
+<div id="summary" class="section level2">
+<h2>Summary</h2>
+<ul>
+<li><strong>Three states</strong>: VISIBLE/LOCKED/UNLOCKED determine
+width behavior</li>
+<li><strong>Auto-recalculation</strong>: Triggered when you lock widths
+(if enabled)</li>
+<li><strong>Validation</strong>: Minimum thresholds and space
+constraints prevent errors</li>
+<li><strong>Flexibility</strong>: Mix relative (%) and absolute (cm, in)
+units</li>
+<li><strong>Control</strong>: Disable auto-recalculation for manual
+width management</li>
+</ul>
+<p>For more examples, see
+<code>vignette(&quot;Reporting_Examples_with_ksTFL&quot;)</code>.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

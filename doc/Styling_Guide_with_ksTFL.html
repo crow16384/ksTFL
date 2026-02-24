@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="ksTFL Team" />
+
+
+<title>Styling Guide — ksTFL</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Styling Guide — ksTFL</h1>
+<h4 class="author">ksTFL Team</h4>
+
+
+
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>This guide covers the complete styling system in ksTFL: -
+<strong>Style primitives</strong> (<code>s_*</code> helpers) for fonts,
+paragraphs, spacing, indentation, tables, and borders -
+<strong>Declaring named styles</strong> with <code>add_style()</code> -
+<strong>Referencing and combining styles</strong> with style references
+and <code>f_combine()</code> - <strong>Applying styles</strong> to
+columns, labels, stubs, and content - <strong>Best practices</strong>
+for maintainable, reusable style systems</p>
+<p>For runnable reporting examples integrating styles see <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a>. For a
+quick start see <a href="Getting_Started_with_ksTFL.Rmd">Getting
+Started</a>.</p>
+<hr />
+</div>
+<div id="styling-philosophy-and-workflow" class="section level2">
+<h2>Styling philosophy and workflow</h2>
+<div id="why-declarative-styles" class="section level3">
+<h3>Why declarative styles?</h3>
+<p>Professional clinical documents require: -
+<strong>Consistency</strong>: All headers look the same, all numeric
+columns align right, all subtitles use the same font -
+<strong>Maintainability</strong>: Change one style definition, all
+references update automatically - <strong>Composability</strong>: Build
+complex styles from simple building blocks (font + paragraph alignment +
+table background) - <strong>Separation of concerns</strong>: Define
+styles once, apply them many times without repeating details</p>
+<p>ksTFL uses a <strong>named style system</strong>: you declare styles
+with <code>add_style()</code> giving each an <code>id</code>, then
+reference them by name where needed. Styles are composable
+(<code>f_combine()</code>) and consolidated automatically when you build
+reports.</p>
+</div>
+<div id="best-practices-workflow" class="section level3">
+<h3>Best practices workflow</h3>
+<ol style="list-style-type: decimal">
+<li><strong>Define atomic styles first</strong>: Create small, focused
+styles (bold headers, right-aligned text, light gray background)</li>
+<li><strong>Reference by name</strong>: In <code>define_cols()</code>,
+<code>add_title()</code>, <code>add_span_header()</code> (with
+tidyselect support), use <code>labelStyleRef</code> or
+<code>valueStyleRef</code> to point to styles by id</li>
+<li><strong>Combine when needed</strong>: Use <code>f_combine()</code>
+to merge multiple styles on-the-fly for ad-hoc combinations</li>
+<li><strong>Let <code>create_report()</code> consolidate</strong>: The
+report builder automatically merges combined styles so the renderer
+receives clean, consolidated styles</li>
+<li><strong>Never inspect internal fields</strong>: Don’t manually look
+at <code>spec$attribs$styles</code> — let the package manage
+consolidation</li>
+</ol>
+<hr />
+</div>
+</div>
+<div id="style-primitives-s_-helpers" class="section level2">
+<h2>Style primitives (s_* helpers)</h2>
+<p>All style primitives begin with <code>s_</code> and must be used
+<strong>only inside <code>add_style()</code></strong>. The helpers
+validate parameter names and values, raising informative errors if used
+incorrectly.</p>
+<div id="s_font-font-properties" class="section level3">
+<h3><code>s_font()</code> — Font properties</h3>
+<p>Control font appearance (name, size, weight, color, decorations).</p>
+<p><strong>Parameters</strong>: - <code>font_name</code>: Font family
+(e.g., “Arial”, “Courier New”, “Times New Roman”, “Calibri”) -
+<code>font_size</code>: Size with units (e.g., “12pt”, “11pt”) -
+<code>bold</code>: Logical (TRUE/FALSE) - <code>italic</code>: Logical
+(TRUE/FALSE) - <code>underline</code>: Logical (TRUE/FALSE) -
+<code>color</code>: Color as hex code (e.g., “#000000”, “#FF0000”) or
+color name (e.g., “red”, “black”, “blue”) - <code>highlight</code>:
+Background highlight color as hex code or color name</p>
+<p><strong>Example</strong>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co"># Bold, 12pt Arial, red text (using hex code)</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;header_bold_red&quot;</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">font_name =</span> <span class="st">&quot;Arial&quot;</span>, <span class="at">font_size =</span> <span class="st">&quot;12pt&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">color =</span> <span class="st">&quot;#CC0000&quot;</span>))</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Underlined, 10pt monospace, blue text (using color name)</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;code_style&quot;</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">font_name =</span> <span class="st">&quot;Courier New&quot;</span>, <span class="at">font_size =</span> <span class="st">&quot;10pt&quot;</span>, <span class="at">underline =</span> <span class="cn">TRUE</span>, <span class="at">color =</span> <span class="st">&quot;blue&quot;</span>))</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="co"># Yellow highlight with black text</span></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;highlighted&quot;</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">color =</span> <span class="st">&quot;black&quot;</span>, <span class="at">highlight =</span> <span class="st">&quot;yellow&quot;</span>))</span></code></pre></div>
+</div>
+<div id="s_paragraph-paragraph-properties" class="section level3">
+<h3><code>s_paragraph()</code> — Paragraph properties</h3>
+<p>Control text alignment, spacing before/after, line spacing, and
+indentation.</p>
+<p><strong>Parameters</strong>: - <code>alignment</code>: Text alignment
+— “left”, “right”, “center”, “justify”, “distributed” -
+<code>spacing</code>: Spacing before/after (use
+<code>s_spacing(...)</code>) - <code>indents</code>: Left/right
+indentation, first-line indent (use <code>s_indents(...)</code>)</p>
+<p><strong>Example</strong>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Centered text with 6pt spacing before/after</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;centered_spaced&quot;</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;center&quot;</span>, </span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>              <span class="at">spacing =</span> <span class="fu">s_spacing</span>(<span class="at">before =</span> <span class="st">&quot;6pt&quot;</span>, <span class="at">after =</span> <span class="st">&quot;6pt&quot;</span>)))</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># Right-aligned with left indent</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;right_indented&quot;</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;right&quot;</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>              <span class="at">indents =</span> <span class="fu">s_indents</span>(<span class="at">left =</span> <span class="st">&quot;10pt&quot;</span>)))</span></code></pre></div>
+</div>
+<div id="s_spacing-line-and-paragraph-spacing" class="section level3">
+<h3><code>s_spacing()</code> — Line and paragraph spacing</h3>
+<p>Controls spacing <strong>before</strong> a paragraph,
+<strong>after</strong> a paragraph, and <strong>between
+lines</strong>.</p>
+<p><strong>Parameters</strong>: - <code>before</code>: Space before
+paragraph (e.g., “6pt”, “12pt”) - <code>after</code>: Space after
+paragraph (e.g., “6pt”, “12pt”) - <code>line_spacing</code>: Line
+spacing multiplier (e.g., 1.0, 1.5, 2.0 for single/1.5-line/double
+spacing)</p>
+<p><strong>Note</strong>: <code>s_spacing()</code> is always used
+<strong>inside <code>s_paragraph()</code></strong>, never
+standalone.</p>
+<p><strong>Example</strong>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co"># Double-spaced with 12pt spacing after each paragraph</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;double_spaced&quot;</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">spacing =</span> <span class="fu">s_spacing</span>(<span class="at">after =</span> <span class="st">&quot;12pt&quot;</span>, <span class="at">line_spacing =</span> <span class="fl">2.0</span>)))</span></code></pre></div>
+</div>
+<div id="s_indents-indentation" class="section level3">
+<h3><code>s_indents()</code> — Indentation</h3>
+<p>Controls left/right margins and first-line indentation within a
+paragraph.</p>
+<p><strong>Parameters</strong>: - <code>left</code>: Left indent (e.g.,
+“10pt”, “1cm”) - <code>right</code>: Right indent (e.g., “10pt”) -
+<code>first_line</code>: First-line indent (e.g., “20pt” for hanging
+indent)</p>
+<p><strong>Note</strong>: <code>s_indents()</code> is always used
+<strong>inside <code>s_paragraph()</code></strong>, never
+standalone.</p>
+<p><strong>Example</strong>:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># Hanging indent (first line outdented, rest indented)</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;hanging_indent&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">indents =</span> <span class="fu">s_indents</span>(<span class="at">left =</span> <span class="st">&quot;20pt&quot;</span>, <span class="at">first_line =</span> <span class="st">&quot;-20pt&quot;</span>)))</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># Left and right margins with left indent</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;block_indent&quot;</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">indents =</span> <span class="fu">s_indents</span>(<span class="at">left =</span> <span class="st">&quot;30pt&quot;</span>, <span class="at">right =</span> <span class="st">&quot;30pt&quot;</span>)))</span></code></pre></div>
+</div>
+<div id="s_table_style-table-cell-properties" class="section level3">
+<h3><code>s_table_style()</code> — Table cell properties</h3>
+<p>Control cell background, row height, vertical alignment, text
+orientation, and borders.</p>
+<p><strong>Parameters</strong>: - <code>background_color</code>: Cell
+background color (hex, e.g., “#E8E8E8”) - <code>row_height</code>:
+Height of table row (e.g., “25pt”) - <code>vertical_alignment</code>:
+“top”, “center”, “bottom” - <code>text_orientation</code>: “horizontal”,
+“vertical_90”, “vertical_270” - <code>borders</code>: Border
+specification (use <code>s_borders(...)</code>)</p>
+<p><strong>Example</strong>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co"># Light gray background, centered vertically, fixed row height</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;header_cell&quot;</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#F2F2F2&quot;</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>                <span class="at">row_height =</span> <span class="st">&quot;30pt&quot;</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>                <span class="at">vertical_alignment =</span> <span class="st">&quot;center&quot;</span>))</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co"># Vertically rotated text (90 degrees)</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;rotated_header&quot;</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">text_orientation =</span> <span class="st">&quot;vertical_90&quot;</span>))</span></code></pre></div>
+</div>
+<div id="s_borders-border-specifications" class="section level3">
+<h3><code>s_borders()</code> — Border specifications</h3>
+<p>Define borders for all four sides of a cell. Each side takes
+<code>s_border()</code> with line style, width, and color.</p>
+<p><strong>Parameters</strong> (each side): - <code>top</code>: Top
+border (use <code>s_border(...)</code>) - <code>bottom</code>: Bottom
+border (use <code>s_border(...)</code>) - <code>left</code>: Left border
+(use <code>s_border(...)</code>) - <code>right</code>: Right border (use
+<code>s_border(...)</code>)</p>
+<p><strong>Note</strong>: <code>s_borders()</code> is always used
+<strong>inside <code>s_table_style()</code></strong>, never
+standalone.</p>
+</div>
+<div id="s_border-individual-border-line" class="section level3">
+<h3><code>s_border()</code> — Individual border line</h3>
+<p>Defines a single border line with style, width, and color.</p>
+<p><strong>Parameters</strong>: - <code>color</code>: Color as hex code
+(e.g., “#000000”) or color name (e.g., “black”, “red”) -
+<code>width</code>: Line width (e.g., “1pt”, “2pt”, “0.5pt”) -
+<code>line_style</code>: “single”, “double”, “dashed”, “dotted”,
+“thick”, “none”</p>
+<p><strong>Example</strong>:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co"># All borders: thin single lines in dark gray</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;all_borders&quot;</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="fu">s_table_style</span>(</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>    <span class="at">borders =</span> <span class="fu">s_borders</span>(</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>      <span class="at">top =</span> <span class="fu">s_border</span>(<span class="at">color =</span> <span class="st">&quot;grey40&quot;</span>, <span class="at">width =</span> <span class="st">&quot;1pt&quot;</span>, <span class="at">line_style =</span> <span class="st">&quot;single&quot;</span>),</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>      <span class="at">bottom =</span> <span class="fu">s_border</span>(<span class="at">color =</span> <span class="st">&quot;grey40&quot;</span>, <span class="at">width =</span> <span class="st">&quot;1pt&quot;</span>, <span class="at">line_style =</span> <span class="st">&quot;single&quot;</span>),</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>      <span class="at">left =</span> <span class="fu">s_border</span>(<span class="at">color =</span> <span class="st">&quot;grey40&quot;</span>, <span class="at">width =</span> <span class="st">&quot;1pt&quot;</span>, <span class="at">line_style =</span> <span class="st">&quot;single&quot;</span>),</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>      <span class="at">right =</span> <span class="fu">s_border</span>(<span class="at">color =</span> <span class="st">&quot;grey40&quot;</span>, <span class="at">width =</span> <span class="st">&quot;1pt&quot;</span>, <span class="at">line_style =</span> <span class="st">&quot;single&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>    )</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  )</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>)</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co"># Heavy bottom border in dark color (using hex code)</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;bottom_border_heavy&quot;</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  <span class="fu">s_table_style</span>(</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>    <span class="at">borders =</span> <span class="fu">s_borders</span>(</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>      <span class="at">bottom =</span> <span class="fu">s_border</span>(<span class="at">color =</span> <span class="st">&quot;#333333&quot;</span>, <span class="at">width =</span> <span class="st">&quot;2pt&quot;</span>, <span class="at">line_style =</span> <span class="st">&quot;thick&quot;</span>)</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>    )</span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>  )</span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>)</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="declaring-named-styles-with-add_style" class="section level2">
+<h2>Declaring named styles with <code>add_style()</code></h2>
+<p>Named styles are the foundation of the ksTFL styling system. Each
+style has a unique <code>id</code> and contains one or more style
+primitives.</p>
+<div id="basic-syntax" class="section level3">
+<h3>Basic syntax</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;style_name&quot;</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">s_font</span>(...),</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(...),</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="fu">s_table_style</span>(...)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>)</span></code></pre></div>
+<p><strong>Parameters</strong>: - <code>spec</code>: A
+<code>TFL_spec</code> object - <code>id</code>: Unique name for the
+style (e.g., “header_bold”, “numeric_right”) - <code>...</code>: One or
+more style primitives (<code>s_font()</code>,
+<code>s_paragraph()</code>, <code>s_table_style()</code>, etc.)</p>
+</div>
+<div id="example-define-a-complete-style" class="section level3">
+<h3>Example: Define a complete style</h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co"># Comprehensive header style: bold white text on gray background, centered</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;table_header&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">font_name =</span> <span class="st">&quot;Arial&quot;</span>, <span class="at">font_size =</span> <span class="st">&quot;12pt&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">color =</span> <span class="st">&quot;#FFFFFF&quot;</span>),</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;center&quot;</span>, <span class="at">spacing =</span> <span class="fu">s_spacing</span>(<span class="at">before =</span> <span class="st">&quot;6pt&quot;</span>, <span class="at">after =</span> <span class="st">&quot;6pt&quot;</span>)),</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#333333&quot;</span>, <span class="at">row_height =</span> <span class="st">&quot;30pt&quot;</span>, <span class="at">vertical_alignment =</span> <span class="st">&quot;center&quot;</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>)</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co"># Simple numeric style: right-aligned</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;numeric_right&quot;</span>,</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;right&quot;</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>)</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co"># ID/key style: bold</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;id_bold&quot;</span>,</span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>)</span></code></pre></div>
+</div>
+<div id="multiple-calls-merge-with-last-win-strategy" class="section level3">
+<h3>Multiple calls merge with last-win strategy</h3>
+<p>Calling <code>add_style()</code> multiple times with the same
+<code>id</code> merges the styles (last-win semantics):</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co"># First call: defines font</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;emphasis&quot;</span>, <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co"># Second call: adds paragraph alignment; bold is preserved</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;emphasis&quot;</span>, <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;center&quot;</span>))</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co"># Result: &quot;emphasis&quot; has both bold font AND center alignment</span></span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="referencing-and-applying-styles" class="section level2">
+<h2>Referencing and applying styles</h2>
+<p>Once you declare styles with <code>add_style()</code>, reference them
+by id in various places:</p>
+<div id="column-labels-labelstyleref-in-define_cols" class="section level3">
+<h3>1. Column labels — <code>labelStyleRef</code> in
+<code>define_cols()</code></h3>
+<p>Apply styles to <strong>column header labels</strong>:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;header_bold&quot;</span>, <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">font_size =</span> <span class="st">&quot;12pt&quot;</span>))</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="co"># Apply to single column</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, mpg, <span class="at">label =</span> <span class="st">&quot;MPG (miles/gallon)&quot;</span>, <span class="at">labelStyleRef =</span> <span class="st">&quot;header_bold&quot;</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co"># Apply to multiple columns with recycling</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, <span class="fu">c</span>(hp, cyl), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;HP&quot;</span>, <span class="st">&quot;Cylinders&quot;</span>), <span class="at">labelStyleRef =</span> <span class="st">&quot;header_bold&quot;</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="co"># Different styles for different columns</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, <span class="fu">c</span>(mpg, hp),</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;MPG&quot;</span>, <span class="st">&quot;HP&quot;</span>),</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  <span class="at">labelStyleRef =</span> <span class="fu">c</span>(<span class="st">&quot;header_bold&quot;</span>, <span class="st">&quot;header_italic&quot;</span>))</span></code></pre></div>
+</div>
+<div id="column-values-valuestyleref-in-define_cols" class="section level3">
+<h3>2. Column values — <code>valueStyleRef</code> in
+<code>define_cols()</code></h3>
+<p>Apply styles to <strong>data values</strong> in a column:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;numeric_right&quot;</span>, <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;right&quot;</span>))</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="co"># Right-align all numeric values in the mpg column</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, mpg, <span class="at">type =</span> <span class="st">&quot;numeric&quot;</span>, <span class="at">valueStyleRef =</span> <span class="st">&quot;numeric_right&quot;</span>)</span></code></pre></div>
+</div>
+<div id="spanning-headers-labelstyleref-in-add_span_header" class="section level3">
+<h3>3. Spanning headers — <code>labelStyleRef</code> in
+<code>add_span_header()</code></h3>
+<p>Apply styles to <strong>stub (spanning header) labels</strong>:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;stub_label&quot;</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">font_size =</span> <span class="st">&quot;11pt&quot;</span>),</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#EFEFEF&quot;</span>))</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_span_header</span>(spec, <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), <span class="at">label =</span> <span class="st">&quot;Engine&quot;</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="at">labelStyleRef =</span> <span class="st">&quot;stub_label&quot;</span>)</span></code></pre></div>
+</div>
+<div id="content-styleref-in-add_title-add_footnote" class="section level3">
+<h3>4. Content — <code>styleRef</code> in <code>add_title()</code>,
+<code>add_footnote()</code></h3>
+<p>Apply styles to titles, subtitles, footnotes:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;title_style&quot;</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">font_size =</span> <span class="st">&quot;14pt&quot;</span>),</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;center&quot;</span>))</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_title</span>(spec, <span class="st">&quot;Motor Trends Analysis&quot;</span>, <span class="at">styleRef =</span> <span class="st">&quot;title_style&quot;</span>)</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="combining-styles-with-f_combine" class="section level2">
+<h2>Combining styles with <code>f_combine()</code></h2>
+<p><code>f_combine()</code> lets you apply multiple styles to a single
+element without pre-defining a combined style.</p>
+<div id="basic-usage" class="section level3">
+<h3>Basic usage</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;bold&quot;</span>, <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;red&quot;</span>, <span class="fu">s_font</span>(<span class="at">color =</span> <span class="st">&quot;red&quot;</span>))  <span class="co"># Using color name</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;centered&quot;</span>, <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;center&quot;</span>))</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co"># Apply bold + red + centered to a column header</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, mpg, <span class="at">label =</span> <span class="st">&quot;MPG&quot;</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="at">labelStyleRef =</span> <span class="fu">f_combine</span>(<span class="st">&quot;bold&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;centered&quot;</span>))</span></code></pre></div>
+</div>
+<div id="when-to-use-f_combine-vs-named-styles" class="section level3">
+<h3>When to use <code>f_combine()</code> vs named styles</h3>
+<table>
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Use Case</th>
+<th>Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Reusable style</strong> (used in 3+ places)</td>
+<td>Define a named style with <code>add_style()</code></td>
+</tr>
+<tr class="even">
+<td><strong>One-off combination</strong> (used once or twice)</td>
+<td>Use <code>f_combine()</code> inline</td>
+</tr>
+<tr class="odd">
+<td><strong>Complex style</strong> (many properties)</td>
+<td>Define named style, then optionally combine with others</td>
+</tr>
+<tr class="even">
+<td><strong>Per-column variations</strong></td>
+<td>Use <code>f_combine()</code> with per-column vectors</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="combining-with-per-column-mapping" class="section level3">
+<h3>Combining with per-column mapping</h3>
+<p>Apply different combinations to different columns:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co"># Define base styles</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;bold&quot;</span>, <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;italic&quot;</span>, <span class="fu">s_font</span>(<span class="at">italic =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;centered&quot;</span>, <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;center&quot;</span>))</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;right&quot;</span>, <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;right&quot;</span>))</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co"># Apply different combinations per column</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, <span class="fu">c</span>(mpg, cyl, hp),</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>  <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;MPG&quot;</span>, <span class="st">&quot;Cylinders&quot;</span>, <span class="st">&quot;HP&quot;</span>),</span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>  <span class="at">labelStyleRef =</span> <span class="fu">c</span>(</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>    <span class="fu">f_combine</span>(<span class="st">&quot;bold&quot;</span>, <span class="st">&quot;centered&quot;</span>),      <span class="co"># mpg: bold + centered</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a>    <span class="fu">f_combine</span>(<span class="st">&quot;italic&quot;</span>, <span class="st">&quot;right&quot;</span>),       <span class="co"># cyl: italic + right</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a>    <span class="fu">f_combine</span>(<span class="st">&quot;bold&quot;</span>, <span class="st">&quot;italic&quot;</span>, <span class="st">&quot;centered&quot;</span>)  <span class="co"># hp: bold + italic + centered</span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a>  )</span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a>)</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="allowed-values-enumerations" class="section level2">
+<h2>Allowed values (enumerations)</h2>
+<div id="color-names" class="section level3">
+<h3>Color names</h3>
+<p>Color parameters accept both <strong>hex codes</strong> (e.g.,
+<code>&quot;#FF0000&quot;</code>) and <strong>named colors</strong>:</p>
+<p><strong>Basic colors</strong>: black, white, red, green, blue,
+yellow, orange, purple, pink, brown, cyan, magenta, navy, teal, lime,
+maroon, olive, silver, gold, coral, salmon, turquoise, violet, indigo,
+khaki, lavender, plum, tan</p>
+<p><strong>Grayscale</strong>: grey10, grey20, grey30, grey40, grey60,
+grey70, grey80, grey90 (or gray with ‘a’)</p>
+</div>
+<div id="font-names-common" class="section level3">
+<h3>Font names (common)</h3>
+<ul>
+<li>Arial</li>
+<li>Courier New</li>
+<li>Times New Roman</li>
+<li>Calibri</li>
+<li>Georgia</li>
+<li>Verdana</li>
+</ul>
+</div>
+<div id="alignment" class="section level3">
+<h3>Alignment</h3>
+<ul>
+<li>“left”</li>
+<li>“right”</li>
+<li>“center”</li>
+<li>“justify”</li>
+<li>“distributed”</li>
+</ul>
+</div>
+<div id="border-line-styles" class="section level3">
+<h3>Border line styles</h3>
+<ul>
+<li>“single” (solid line)</li>
+<li>“double” (two lines)</li>
+<li>“dashed” (dashed line)</li>
+<li>“dotted” (dotted line)</li>
+<li>“thick” (thicker solid line)</li>
+<li>“none” (no border)</li>
+</ul>
+</div>
+<div id="vertical-alignment" class="section level3">
+<h3>Vertical alignment</h3>
+<ul>
+<li>“top”</li>
+<li>“center”</li>
+<li>“bottom”</li>
+</ul>
+</div>
+<div id="text-orientation" class="section level3">
+<h3>Text orientation</h3>
+<ul>
+<li>“horizontal” (default)</li>
+<li>“vertical_90” (rotated 90 degrees clockwise)</li>
+<li>“vertical_270” (rotated 270 degrees clockwise)</li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="common-styling-patterns" class="section level2">
+<h2>Common styling patterns</h2>
+<div id="pattern-1-clinical-table-headers" class="section level3">
+<h3>Pattern 1: Clinical table headers</h3>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(my_data)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;clinical_header&quot;</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">font_name =</span> <span class="st">&quot;Arial&quot;</span>, <span class="at">font_size =</span> <span class="st">&quot;11pt&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">color =</span> <span class="st">&quot;#FFFFFF&quot;</span>),</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;center&quot;</span>),</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#003366&quot;</span>, <span class="at">row_height =</span> <span class="st">&quot;28pt&quot;</span>, <span class="at">vertical_alignment =</span> <span class="st">&quot;center&quot;</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>)</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, <span class="fu">c</span>(all columns), <span class="at">labelStyleRef =</span> <span class="st">&quot;clinical_header&quot;</span>)</span></code></pre></div>
+</div>
+<div id="pattern-2-right-aligned-numeric-columns" class="section level3">
+<h3>Pattern 2: Right-aligned numeric columns</h3>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;numeric_format&quot;</span>,</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">font_name =</span> <span class="st">&quot;Courier New&quot;</span>, <span class="at">font_size =</span> <span class="st">&quot;10pt&quot;</span>),</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;right&quot;</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>)</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, <span class="fu">c</span>(age, weight, dose), <span class="at">type =</span> <span class="st">&quot;numeric&quot;</span>, <span class="at">valueStyleRef =</span> <span class="st">&quot;numeric_format&quot;</span>)</span></code></pre></div>
+</div>
+<div id="pattern-3-idkey-columns-bold-wide" class="section level3">
+<h3>Pattern 3: ID/key columns (bold, wide)</h3>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;id_column&quot;</span>,</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">font_size =</span> <span class="st">&quot;11pt&quot;</span>),</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">&quot;left&quot;</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>)</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, subject_id, </span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="at">label =</span> <span class="st">&quot;Subject ID&quot;</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>  <span class="at">labelStyleRef =</span> <span class="st">&quot;id_column&quot;</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>  <span class="at">colWidth =</span> <span class="st">&quot;15%&quot;</span>,</span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>  <span class="at">isID =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+<div id="pattern-4-multi-level-headers-with-styled-stubs" class="section level3">
+<h3>Pattern 4: Multi-level headers with styled stubs</h3>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;level1_stub&quot;</span>,</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">font_size =</span> <span class="st">&quot;12pt&quot;</span>, <span class="at">color =</span> <span class="st">&quot;#FFFFFF&quot;</span>),</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#666666&quot;</span>, <span class="at">vertical_alignment =</span> <span class="st">&quot;center&quot;</span>))</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;level2_stub&quot;</span>,</span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">font_size =</span> <span class="st">&quot;11pt&quot;</span>),</span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#CCCCCC&quot;</span>, <span class="at">vertical_alignment =</span> <span class="st">&quot;center&quot;</span>))</span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_span_header</span>(spec, <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">&quot;var1&quot;</span>, <span class="st">&quot;var2&quot;</span>, <span class="st">&quot;var3&quot;</span>), <span class="at">label =</span> <span class="st">&quot;Baseline&quot;</span>,</span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a>  <span class="at">stubOrder =</span> <span class="dv">1</span>, <span class="at">labelStyleRef =</span> <span class="st">&quot;level1_stub&quot;</span>)</span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a></span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_span_header</span>(spec, <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">&quot;var1&quot;</span>, <span class="st">&quot;var2&quot;</span>), <span class="at">label =</span> <span class="st">&quot;Safety&quot;</span>,</span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a>  <span class="at">stubOrder =</span> <span class="dv">2</span>, <span class="at">labelStyleRef =</span> <span class="st">&quot;level2_stub&quot;</span>)</span></code></pre></div>
+<hr />
+</div>
+</div>
+<div id="troubleshooting" class="section level2">
+<h2>Troubleshooting</h2>
+<div id="error-context-error-or-can-only-be-used-inside-add_style" class="section level3">
+<h3>Error: “Context error” or “can only be used inside add_style()”</h3>
+<p><strong>Problem</strong>: You used an <code>s_*</code> helper outside
+<code>add_style()</code>.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># WRONG</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>my_style <span class="ot">&lt;-</span> <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>)  <span class="co"># ERROR</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="co"># CORRECT</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">&quot;my_style&quot;</span>, <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>))</span></code></pre></div>
+</div>
+<div id="error-invalid-parameter-or-allowed-values-are" class="section level3">
+<h3>Error: “Invalid parameter” or “Allowed values are…”</h3>
+<p><strong>Problem</strong>: You used an invalid parameter value (e.g.,
+“bolded” instead of TRUE).</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># WRONG</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="fu">s_font</span>(<span class="at">bold =</span> <span class="st">&quot;bolded&quot;</span>)  <span class="co"># ERROR: must be TRUE/FALSE</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="co"># CORRECT</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a><span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+</div>
+<div id="styles-not-applied-after-create_report" class="section level3">
+<h3>Styles not applied after <code>create_report()</code></h3>
+<p><strong>Problem</strong>: If you used <code>f_combine()</code>, you
+must call <code>create_report()</code> before the styles are
+consolidated.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, mpg, <span class="at">labelStyleRef =</span> <span class="fu">f_combine</span>(<span class="st">&quot;bold&quot;</span>, <span class="st">&quot;red&quot;</span>))</span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co"># WRONG: save directly without consolidation</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a><span class="fu">save_report</span>(spec, ...)  <span class="co"># Combined styles may not be consolidated</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a><span class="co"># CORRECT: consolidate first</span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>report <span class="ot">&lt;-</span> <span class="fu">create_report</span>(spec)  <span class="co"># Merges &quot;bold&quot; + &quot;red&quot;</span></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="fu">save_report</span>(report, ...)</span></code></pre></div>
+</div>
+<div id="styles-looking-different-in-renderer-than-expected" class="section level3">
+<h3>Styles looking different in renderer than expected</h3>
+<p><strong>Problem</strong>: Renderer may override or ignore certain
+style properties based on its own template system.</p>
+<p><strong>Solution</strong>: Test with simple styles first, then
+incrementally add properties. Contact your renderer maintainer for
+constraints.</p>
+<hr />
+</div>
+</div>
+<div id="advanced-notes" class="section level2">
+<h2>Advanced notes</h2>
+<div id="style-consolidation-in-create_report" class="section level3">
+<h3>Style consolidation in <code>create_report()</code></h3>
+<p>When you call <code>create_report()</code>, the package: 1. Collects
+all specs 2. For each spec, finds all style references used with
+<code>f_combine()</code> 3. Merges those combined styles into single
+consolidated styles 4. Generates unique hash-based names for
+consolidated styles 5. Updates all references to point to the
+consolidated style</p>
+<p>You don’t need to inspect or manipulate
+<code>spec$attribs$styles</code> — the consolidation is automatic and
+transparent.</p>
+</div>
+<div id="style-reference-resolution" class="section level3">
+<h3>Style reference resolution</h3>
+<p>Style references are resolved in this order: 1. <strong>Named
+styles</strong> defined in the same spec with <code>add_style()</code>
+2. <strong>Predefined clinical styles</strong> (if enabled in options)
+3. <strong>Error</strong>: If reference not found,
+<code>create_report()</code> will error with informative message</p>
+<hr />
+</div>
+</div>
+<div id="see-also" class="section level2">
+<h2>See also</h2>
+<ul>
+<li>Function documentation: <code>?add_style</code>,
+<code>?s_font</code>, <code>?s_paragraph</code>,
+<code>?f_combine</code></li>
+<li><a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a> —
+working examples with styles</li>
+<li><a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> — quick
+overview</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
