@@ -32,6 +32,7 @@ Thumbs.db
 .tmp/
 *.bak
 tmp
+._*
 
 # R development files
 .Rbuildignore
