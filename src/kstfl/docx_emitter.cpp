@@ -12,6 +12,7 @@
 #include <cmath>
 #include <cstring>
 #include <iomanip>
+#include <unordered_set>
 
 namespace kstfl {
 
@@ -381,10 +382,9 @@ void DocxEmitter::emit_run_props(XmlWriter& w,
 
     if (font.font_size.has_value()) {
         double size = font.font_size.value();
-        // Superscript/subscript at 65% size
-        if (run_style.superscript || run_style.subscript) {
-            size *= 0.65;
-        }
+        // Note: do NOT reduce font size for superscript/subscript here.
+        // Word handles the visual sizing via w:vertAlign; manual reduction
+        // would double-apply the size change.
         int half_pt = static_cast<int>(size * 2.0);
         w.element_with_attr("w:sz", "w:val", std::to_string(half_pt));
         w.element_with_attr("w:szCs", "w:val", std::to_string(half_pt));
@@ -952,7 +952,27 @@ std::string DocxEmitter::emit_hdr_ftr_xml_part(
 
 void DocxEmitter::emit_page_break(XmlWriter& w) const {
     w.start_element("w:p");
+    // Minimize height: tiny font + zero spacing so page break paragraph
+    // doesn't consume vertical space on the previous page.
+    w.start_element("w:pPr");
+    w.start_element("w:spacing");
+    w.attribute("w:before", "0");
+    w.attribute("w:after", "0");
+    w.attribute("w:line", "0");
+    w.attribute("w:lineRule", "exact");
+    w.end_element();  // w:spacing
+    w.start_element("w:rPr");
+    w.start_element("w:sz");
+    w.attribute("w:val", "2");  // 1pt
+    w.end_element();
+    w.end_element();  // w:rPr
+    w.end_element();  // w:pPr
     w.start_element("w:r");
+    w.start_element("w:rPr");
+    w.start_element("w:sz");
+    w.attribute("w:val", "2");
+    w.end_element();
+    w.end_element();  // w:rPr
     w.start_element("w:br");
     w.attribute("w:type", "page");
     w.end_element();
@@ -1022,9 +1042,14 @@ void DocxEmitter::emit_section_props(XmlWriter& w,
 void DocxEmitter::emit_table_header(XmlWriter& w,
                                      const HeaderGrid& header_grid,
                                      const HorizontalSegment& segment,
-                                     const StyleResolver& resolver) const {
+                                     const StyleResolver& resolver,
+                                     double width_scale) const {
     // Base header style: template cascade without column/stub refs
     StyleDef base_hdr = resolver.resolve_base_header_style();
+
+    // Build set of segment column indices for fast lookup
+    std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
+                                         segment.column_indices.end());
 
     for (const auto& header_row : header_grid.rows) {
         w.start_element("w:tr");
@@ -1035,27 +1060,55 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
         w.self_closing_element("w:cantSplit");
         w.end_element();
 
-        // Emit cells for this segment's columns
+        // Emit only cells whose columns belong to this segment.
+        // Track running column index to map cells → column ranges.
+        size_t running_col = 0;
         for (const auto& cell : header_row) {
-            w.start_element("w:tc");
+            size_t col_start = running_col;
+            size_t col_end = running_col + static_cast<size_t>(cell.col_span);
 
-            // Resolve per-cell style: base cascade + cell.style_ref override
-            StyleDef cell_style = base_hdr;
-            if (cell.style_ref.has_value()) {
-                const StyleDef* ref_style = resolver.find_style(*cell.style_ref);
-                if (ref_style) {
-                    cell_style = cell_style.merged_with(*ref_style);
+            // Count how many of this cell's columns are in the segment
+            int visible_span = 0;
+            for (size_t ci = col_start; ci < col_end; ++ci) {
+                if (seg_cols.count(ci)) {
+                    visible_span++;
                 }
             }
 
-            // Cell properties from resolved table_style
-            TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
-            emit_cell_props(w, tcp, cell.width, cell.col_span, cell.v_merge);
+            // Skip cells entirely outside this segment
+            if (visible_span > 0) {
+                // Scale the visible portion of the cell width
+                int64_t unscaled_emu = cell.width.emu;
+                if (cell.col_span > 0 && visible_span < cell.col_span) {
+                    // Partial span: proportional fraction of the original width
+                    unscaled_emu = cell.width.emu * visible_span / cell.col_span;
+                }
+                int64_t scaled_emu = static_cast<int64_t>(
+                    static_cast<double>(unscaled_emu) * width_scale);
+                Length visible_width{scaled_emu};
 
-            // Cell content (empty for vMerge continuation cells)
-            emit_paragraph(w, cell.label, cell_style);
+                w.start_element("w:tc");
 
-            w.end_element();  // w:tc
+                // Resolve per-cell style: base cascade + cell.style_ref override
+                StyleDef cell_style = base_hdr;
+                if (cell.style_ref.has_value()) {
+                    const StyleDef* ref_style = resolver.find_style(*cell.style_ref);
+                    if (ref_style) {
+                        cell_style = cell_style.merged_with(*ref_style);
+                    }
+                }
+
+                // Cell properties from resolved table_style
+                TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
+                emit_cell_props(w, tcp, visible_width, visible_span, cell.v_merge);
+
+                // Cell content (empty for vMerge continuation cells)
+                emit_paragraph(w, cell.label, cell_style);
+
+                w.end_element();  // w:tc
+            }
+
+            running_col = col_end;
         }
 
         w.end_element();  // w:tr
@@ -1071,7 +1124,8 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
                                   const HorizontalSegment& segment,
                                   const TFLSpec& spec,
                                   const StyleResolver& resolver,
-                                  bool is_last_row) const {
+                                  bool is_last_row,
+                                  double width_scale) const {
     w.start_element("w:tr");
 
     // Row properties
@@ -1112,10 +1166,14 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
             }
         }
 
-        // Cell properties
+        // Cell properties — scale width for horizontal segment
         Length cell_width = cell.is_merge_leader
             ? cell.merged_width
             : (col_idx < spec.columns.size() ? spec.columns[col_idx].resolved_width : Length{0});
+        if (width_scale != 1.0) {
+            cell_width = Length{static_cast<int64_t>(
+                static_cast<double>(cell_width.emu) * width_scale)};
+        }
 
         TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
 
@@ -1159,15 +1217,35 @@ void DocxEmitter::emit_table(XmlWriter& w,
     w.attribute("w:type", "fixed");
     w.end_element();
 
-    // Table width
-    Length total_width{0};
+    // ---- Horizontal-segment width scaling ----
+    // When isColBreak splits columns into segments, each segment only
+    // displays a subset of all columns.  We must scale widths so that
+    // each segment fills the full table width.
+    Length full_table_width{0};
+    for (const auto& col : spec.columns) {
+        full_table_width = full_table_width + col.resolved_width;
+    }
+
+    Length raw_segment_width{0};
     for (size_t col_idx : segment.column_indices) {
         if (col_idx < spec.columns.size()) {
-            total_width = total_width + spec.columns[col_idx].resolved_width;
+            raw_segment_width = raw_segment_width + spec.columns[col_idx].resolved_width;
         }
     }
+
+    // Scale factor: only apply when the segment is a true subset
+    double width_scale = 1.0;
+    if (raw_segment_width.emu > 0 &&
+        segment.column_indices.size() < spec.columns.size()) {
+        width_scale = static_cast<double>(full_table_width.emu)
+                    / static_cast<double>(raw_segment_width.emu);
+    }
+
+    // Table width = scaled segment width (== full_table_width when scaling)
+    Length table_width = (width_scale != 1.0) ? full_table_width
+                                              : raw_segment_width;
     w.start_element("w:tblW");
-    w.attribute("w:w", std::to_string(total_width.to_twips()));
+    w.attribute("w:w", std::to_string(table_width.to_twips()));
     w.attribute("w:type", "dxa");
     w.end_element();
 
@@ -1225,19 +1303,21 @@ void DocxEmitter::emit_table(XmlWriter& w,
 
     w.end_element();  // w:tblPr
 
-    // Grid definition (spec §19.3: gridCol widths in twips)
+    // Grid definition (spec §19.3: gridCol widths in twips, scaled per segment)
     w.start_element("w:tblGrid");
     for (size_t col_idx : segment.column_indices) {
         if (col_idx < spec.columns.size()) {
+            int64_t scaled_emu = static_cast<int64_t>(
+                spec.columns[col_idx].resolved_width.emu * width_scale);
             w.start_element("w:gridCol");
-            w.attribute("w:w", std::to_string(spec.columns[col_idx].resolved_width.to_twips()));
+            w.attribute("w:w", std::to_string(Length{scaled_emu}.to_twips()));
             w.end_element();
         }
     }
     w.end_element();
 
     // Header rows
-    emit_table_header(w, header_grid, segment, resolver);
+    emit_table_header(w, header_grid, segment, resolver, width_scale);
 
     // Body rows for this page slice
     // Find effective last data row (skip trailing GroupBreak rows)
@@ -1251,7 +1331,7 @@ void DocxEmitter::emit_table(XmlWriter& w,
     for (size_t ri = page.first_row; ri <= page.last_row && ri < rows.size(); ++ri) {
         if (rows[ri].type == LogicalRowType::GroupBreak) continue;
         bool is_last = (ri == effective_last_row);
-        emit_table_row(w, rows[ri], segment, spec, resolver, is_last);
+        emit_table_row(w, rows[ri], segment, spec, resolver, is_last, width_scale);
     }
 
     w.end_element();  // w:tbl

@@ -194,7 +194,7 @@
         "line_style": "single"
       },
       "allHeaders": {
-        "vertical_alignment": "bottom"
+        "vertical_alignment": "center"
       },
       "tableBody": {
         "vertical_alignment": "top"

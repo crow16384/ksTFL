@@ -76,18 +76,23 @@ private:
                     const StyleResolver& resolver) const;
 
     /// Emit table header rows.
+    /// @param width_scale  Scaling factor to apply to column widths so the
+    ///                     horizontal segment fills the full table width.
     void emit_table_header(XmlWriter& w,
                            const HeaderGrid& header_grid,
                            const HorizontalSegment& segment,
-                           const StyleResolver& resolver) const;
+                           const StyleResolver& resolver,
+                           double width_scale) const;
 
     /// Emit a single table body row.
+    /// @param width_scale  Scaling factor for column widths (horizontal segments).
     void emit_table_row(XmlWriter& w,
                         const LogicalRow& row,
                         const HorizontalSegment& segment,
                         const TFLSpec& spec,
                         const StyleResolver& resolver,
-                        bool is_last_row = false) const;
+                        bool is_last_row = false,
+                        double width_scale = 1.0) const;
 
     /// Emit a paragraph with styled content.
     void emit_paragraph(XmlWriter& w,

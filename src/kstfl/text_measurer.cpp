@@ -166,10 +166,9 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
             space_after = base_pp.spacing->after.value_or(Length{0});
         }
 
-        // Don't add spacing_before on very first paragraph
-        if (pi > 0) {
-            total_height = total_height + space_before;
-        }
+        // OOXML: paragraph spacing is additive (not collapsed like CSS).
+        // Every paragraph gets its full space_before and space_after.
+        total_height = total_height + space_before;
 
         // Build a single-pass word-wrap across all runs in this paragraph.
         // We need to iterate through runs, measuring word by word, wrapping
@@ -182,6 +181,17 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
 
         for (const auto& run : para.runs) {
             if (run.text.empty()) continue;
+
+            // Handle line break runs (from <br> inline markup)
+            if (run.text == "\n") {
+                if (current_line_width > max_line_width) {
+                    max_line_width = current_line_width;
+                }
+                total_height = total_height + base_lh;
+                para_lines++;
+                current_line_width = Length{0};
+                continue;
+            }
 
             double eff_size = effective_font_size(base_font, run.style);
             FontProps run_font = base_font;
@@ -224,10 +234,8 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
 
         total_lines += para_lines;
 
-        // Spacing after paragraph (not on last paragraph)
-        if (pi < parsed.paragraphs.size() - 1) {
-            total_height = total_height + space_after;
-        }
+        // OOXML: space_after on every paragraph (additive, not collapsed)
+        total_height = total_height + space_after;
     }
 
     // Add cell margins top/bottom

@@ -136,7 +136,7 @@ spec2 <- spec2 |>
   add_title(c("Study ABC-123", "Demographics and Baseline Characteristics")) |>
   add_subtitle("Full Analysis Set") |>
   add_footnote(c(
-    "BMI = Body Mass Index (weight / height^2).",
+    "BMI = Body Mass Index (weight / height<sup>2</sup>).",
     "Subjects with BMI > 30 are highlighted."
   ))
 
@@ -757,6 +757,8 @@ big_data <- data.frame(
 )
 # Replicate to ensure it's big enough to paginate
 big_data <- rbind(big_data, big_data, big_data)
+# Sort so same-Visit rows are contiguous (meaningful for isPaging)
+big_data <- big_data[order(big_data$VISIT, big_data$PARAM, big_data$SUBJID), ]
 
 spec9 <- create_table(big_data, docPrefix = "Table 14.5.1")
 spec9 <- spec9 |>
@@ -767,9 +769,10 @@ spec9 <- spec9 |>
     dedupe     = TRUE
   ) |>
   define_cols(PARAM,
-    label  = "Parameter",
-    isID   = TRUE,
-    dedupe = TRUE
+    label      = "Parameter",
+    isID       = TRUE,
+    isGrouping = TRUE,
+    dedupe     = TRUE
   ) |>
   define_cols(SUBJID, label = "Subject") |>
   define_cols(VALUE,

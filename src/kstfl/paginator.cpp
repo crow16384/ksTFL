@@ -234,22 +234,45 @@ PaginationResult Paginator::paginate(
         footer_section_height = footer_section_height + m.height;
     }
 
-    // Titles height
+    // Titles height.
+    // The emitter combines ALL titles + optional prefix into ONE paragraph
+    // (emit_text_groups_combined), so we measure them as a single block.
     Length titles_height{0};
-    for (const auto& tg : spec.titles) {
-        StyleDef style = resolver.resolve_title_style(tg.style_ref);
-        for (const auto& line : tg.text) {
-            MeasuredText m = measurer.measure_plain(line, style, page_config.usable_width());
-            titles_height = titles_height + m.height;
+    {
+        // Build combined title text matching emitter's structure:
+        // prefix + <br> + group1_line1 + <br> + group1_line2 + ...
+        std::string combined_title;
+        if (!spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
+            combined_title = spec.document.doc_prefix;
+        }
+        for (const auto& tg : spec.titles) {
+            for (const auto& line : tg.text) {
+                if (!combined_title.empty()) combined_title += "<br>";
+                combined_title += line;
+            }
+        }
+        if (!combined_title.empty()) {
+            StyleDef style = resolver.resolve_title_style();
+            MeasuredText m = measurer.measure_plain(combined_title, style,
+                                                     page_config.usable_width());
+            titles_height = m.height;
         }
     }
 
-    // Subtitles base height (may be dynamic per page with #ByGroupX)
+    // Subtitles base height (may be dynamic per page with #ByGroupX).
+    // The emitter (emit_text_groups) creates one paragraph per text group,
+    // joining lines within each group with <br> soft breaks.
     Length subtitles_height{0};
     for (const auto& tg : spec.subtitles) {
         StyleDef style = resolver.resolve_subtitle_style(tg.style_ref);
-        for (const auto& line : tg.text) {
-            MeasuredText m = measurer.measure_plain(line, style, page_config.usable_width());
+        std::string combined;
+        for (size_t i = 0; i < tg.text.size(); ++i) {
+            if (i > 0) combined += "<br>";
+            combined += tg.text[i];
+        }
+        if (!combined.empty()) {
+            MeasuredText m = measurer.measure_plain(combined, style,
+                                                     page_config.usable_width());
             subtitles_height = subtitles_height + m.height;
         }
     }
@@ -263,12 +286,18 @@ PaginationResult Paginator::paginate(
         table_header_height = line_h * static_cast<double>(header_grid.rows.size());
     }
 
-    // Footnotes height
+    // Footnotes height — same pattern as subtitles (one paragraph per group).
     Length footnotes_height{0};
     for (const auto& tg : spec.footnotes) {
         StyleDef style = resolver.resolve_footnote_style(tg.style_ref);
-        for (const auto& line : tg.text) {
-            MeasuredText m = measurer.measure_plain(line, style, page_config.usable_width());
+        std::string combined;
+        for (size_t i = 0; i < tg.text.size(); ++i) {
+            if (i > 0) combined += "<br>";
+            combined += tg.text[i];
+        }
+        if (!combined.empty()) {
+            MeasuredText m = measurer.measure_plain(combined, style,
+                                                     page_config.usable_width());
             footnotes_height = footnotes_height + m.height;
         }
     }
@@ -314,6 +343,7 @@ PaginationResult Paginator::paginate(
                 false,
                 body_footnotes);
 
+
             // Fill rows into this page
             Length used_height{0};
             size_t last_row = row_idx;
@@ -351,10 +381,17 @@ PaginationResult Paginator::paginate(
                 used_height = used_height + rh;
                 last_row = row_idx;
 
-                // Capture grouping values for dynamic subtitles (first row only)
+                // Capture grouping values for dynamic subtitles (first row only).
+                // Iterate spec.columns in definition order to ensure deterministic
+                // mapping: #ByGroup1 = first grouping/paging column, etc.
                 if (row_idx == page.first_row && !rows[row_idx].group_values.empty()) {
-                    for (const auto& [col_id, val] : rows[row_idx].group_values) {
-                        page.dynamic_subtitle_values.push_back(val);
+                    for (const auto& col : spec.columns) {
+                        if (col.is_grouping || col.is_paging) {
+                            auto it = rows[row_idx].group_values.find(col.id);
+                            if (it != rows[row_idx].group_values.end()) {
+                                page.dynamic_subtitle_values.push_back(it->second);
+                            }
+                        }
                     }
                 }
 
@@ -366,6 +403,7 @@ PaginationResult Paginator::paginate(
 
             // Determine if this is the last page
             page.is_last_page = (row_idx >= rows.size());
+
 
             segment.pages.push_back(std::move(page));
             is_first = false;
