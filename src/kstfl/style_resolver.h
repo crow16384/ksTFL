@@ -52,6 +52,10 @@ public:
     /// Resolve a style for footnotes.
     StyleDef resolve_footnote_style(const std::optional<std::string>& custom_ref = std::nullopt) const;
 
+    /// Resolve the base table header style (template cascade only, no column/stub refs).
+    /// Cascade: default -> tableHeader textStyle -> header_row -> structural.allHeaders.
+    StyleDef resolve_base_header_style() const;
+
     /// Resolve a style for doc headers.
     StyleDef resolve_doc_header_style() const;
 

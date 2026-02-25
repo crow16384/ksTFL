@@ -195,6 +195,30 @@ StyleDef StyleResolver::resolve_body_cell_style(
 }
 
 // ---------------------------------------------------------------------------
+// Base header style (template cascade only — no column/stub refs)
+// ---------------------------------------------------------------------------
+
+StyleDef StyleResolver::resolve_base_header_style() const {
+    // 1. Template default text style
+    StyleDef result = tmpl_.text_styles.default_style;
+
+    // 2. Region style: tableHeader
+    result = result.merged_with(tmpl_.text_styles.table_header);
+
+    // 3. Template header row defaults
+    if (tmpl_.table_style.header_row.has_value()) {
+        result = result.merged_with(*tmpl_.table_style.header_row);
+    }
+
+    // 4. Structural: allHeaders
+    if (tmpl_.table_style.structural.all_headers.has_value()) {
+        result = result.merged_with(*tmpl_.table_style.structural.all_headers);
+    }
+
+    return result;
+}
+
+// ---------------------------------------------------------------------------
 // Content style resolvers
 // ---------------------------------------------------------------------------
 

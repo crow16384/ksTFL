@@ -17,6 +17,14 @@
 
 namespace kstfl {
 
+/// Header/footer part info for DOCX package assembly.
+struct HdrFtrPartInfo {
+    std::string part_path;  ///< e.g., "word/header1.xml"
+    std::string rid;        ///< e.g., "rId4"
+    std::string xml;        ///< the XML content
+    bool is_header;         ///< true = header, false = footer
+};
+
 /// Emits OOXML for a complete TFL document.
 class DocxEmitter {
 public:
@@ -39,9 +47,11 @@ public:
 
 private:
     // ---- Static package files ----
-    std::string emit_content_types(const TFLDocument& doc) const;
+    std::string emit_content_types(const TFLDocument& doc,
+                                    const std::vector<HdrFtrPartInfo>& hdr_ftr_parts) const;
     std::string emit_rels() const;
-    std::string emit_document_rels(const TFLDocument& doc) const;
+    std::string emit_document_rels(const TFLDocument& doc,
+                                    const std::vector<HdrFtrPartInfo>& hdr_ftr_parts) const;
     std::string emit_styles() const;
     std::string emit_settings() const;
     std::string emit_font_table() const;
@@ -54,8 +64,7 @@ private:
                    const HorizontalSegment& segment,
                    const std::vector<LogicalRow>& rows,
                    const HeaderGrid& header_grid,
-                   const StyleResolver& resolver,
-                   size_t total_pages) const;
+                   const StyleResolver& resolver) const;
 
     /// Emit a table element.
     void emit_table(XmlWriter& w,
@@ -77,7 +86,8 @@ private:
                         const LogicalRow& row,
                         const HorizontalSegment& segment,
                         const TFLSpec& spec,
-                        const StyleResolver& resolver) const;
+                        const StyleResolver& resolver,
+                        bool is_last_row = false) const;
 
     /// Emit a paragraph with styled content.
     void emit_paragraph(XmlWriter& w,
@@ -101,13 +111,23 @@ private:
     void emit_cell_props(XmlWriter& w,
                          const TableCellProps& tcp,
                          Length cell_width,
-                         int grid_span = 1) const;
+                         int grid_span = 1,
+                         VMergeState v_merge = VMergeState::None) const;
 
     /// Emit titles/subtitles block.
     void emit_text_groups(XmlWriter& w,
                           const std::vector<TextGroup>& groups,
                           const StyleDef& base_style,
                           const StyleResolver& resolver) const;
+
+    /// Emit all text groups concatenated in a single paragraph with soft breaks.
+    /// Each group retains its own font style; paragraph props come from base_style.
+    /// Optional prefix is prepended before first group.
+    void emit_text_groups_combined(XmlWriter& w,
+                                   const std::vector<TextGroup>& groups,
+                                   const StyleDef& base_style,
+                                   const StyleResolver& resolver,
+                                   const std::string& prefix = "") const;
 
     /// Emit header/footer section.
     void emit_header_footer_section(XmlWriter& w,
@@ -122,13 +142,27 @@ private:
     void emit_page_break(XmlWriter& w) const;
 
     /// Emit section properties.
-    void emit_section_props(XmlWriter& w, const PageConfig& page, bool continuous = false) const;
+    void emit_section_props(XmlWriter& w, const PageConfig& page,
+                            const std::string& header_rid = "",
+                            const std::string& footer_rid = "",
+                            bool continuous = false) const;
 
     // ---- Fields ----
     /// Emit PAGE field code.
     void emit_page_field(XmlWriter& w) const;
     /// Emit NUMPAGES field code.
     void emit_numpages_field(XmlWriter& w) const;
+
+    /// Generate a standalone header or footer XML part.
+    /// @param rows    The header/footer row content.
+    /// @param style   Resolved style for the content.
+    /// @param usable_w Usable page width for tab stops.
+    /// @param root_element "w:hdr" or "w:ftr"
+    /// @return Complete XML string for the part.
+    std::string emit_hdr_ftr_xml_part(const std::vector<HeaderFooterRow>& rows,
+                                       const StyleDef& style,
+                                       Length usable_w,
+                                       const char* root_element) const;
 
     const StylesTemplate& tmpl_;
     const RendererConfig& config_;

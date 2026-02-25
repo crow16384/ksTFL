@@ -9,8 +9,64 @@
 #include <algorithm>
 #include <numeric>
 #include <unordered_set>
+#include <cstdio>
+#include <cstdlib>
+#include <cerrno>
 
 namespace kstfl {
+
+// ---------------------------------------------------------------------------
+// Helper: apply column format string to a cell value
+// Format strings: "%s" (passthrough), "%.Nf" (N decimal places), "%d" (integer)
+// If the value can't be parsed as a number, return it unchanged.
+// ---------------------------------------------------------------------------
+static std::string apply_column_format(const std::string& value,
+                                        const ColumnFormat& fmt) {
+    // No format specified or empty value — return as-is
+    if (!fmt.format.has_value() || fmt.format->empty() || value.empty()) {
+        return value;
+    }
+
+    const std::string& format_str = *fmt.format;
+
+    // "%s" — passthrough for strings
+    if (format_str == "%s") {
+        return value;
+    }
+
+    // Numeric formats: try to parse value as double
+    char* end = nullptr;
+    errno = 0;
+    double dval = std::strtod(value.c_str(), &end);
+    if (end == value.c_str() || errno == ERANGE) {
+        // Not a valid number — return as-is
+        return value;
+    }
+
+    // Apply format using snprintf
+    // CRITICAL: %d/%i/%u/%x/%o expect integer arguments, not double.
+    // Passing a double to an integer format specifier is undefined behavior.
+    char buf[128];
+    int n;
+    if (format_str.find('d') != std::string::npos ||
+        format_str.find('i') != std::string::npos ||
+        format_str.find('u') != std::string::npos ||
+        format_str.find('x') != std::string::npos ||
+        format_str.find('X') != std::string::npos ||
+        format_str.find('o') != std::string::npos) {
+        // Integer format — cast to int
+        n = std::snprintf(buf, sizeof(buf), format_str.c_str(),
+                          static_cast<int>(dval));
+    } else {
+        // Float/general format — pass double directly
+        n = std::snprintf(buf, sizeof(buf), format_str.c_str(), dval);
+    }
+    if (n > 0 && n < static_cast<int>(sizeof(buf))) {
+        return std::string(buf, static_cast<size_t>(n));
+    }
+
+    return value;
+}
 
 // ---------------------------------------------------------------------------
 // build_header_grid: construct multi-row header from stubColumns + column labels
@@ -125,13 +181,16 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                     // Advance past spanned columns
                     col_idx += static_cast<size_t>(span);
                 } else {
-                    // Empty cell (column not covered by any stub at this level)
-                    // These will be row-span extended from below or left blank
+                    // Column not covered by any stub at this level.
+                    // This cell will be a vMerge restart — it contains the column label
+                    // and spans vertically down to (and including) the label row.
                     HeaderGridCell cell;
-                    cell.label = "";
+                    cell.label = spec.columns[col_idx].label;
                     cell.col_span = 1;
-                    cell.row_span = 1;  // will extend down to column label row
+                    cell.row_span = 1;
                     cell.width = spec.columns[col_idx].resolved_width;
+                    cell.style_ref = spec.columns[col_idx].label_style_ref;
+                    cell.v_merge = VMergeState::Restart;
                     row.push_back(cell);
                     col_idx++;
                 }
@@ -141,14 +200,41 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
     }
 
     // Bottom row: individual column labels
+    // If a column is vertically merged from a stub row above (vMerge::Restart),
+    // mark its label-row cell as vMerge::Continue (empty continuation cell).
     std::vector<HeaderGridCell> label_row;
-    for (const auto& col : spec.columns) {
+    for (size_t ci = 0; ci < spec.columns.size(); ++ci) {
         HeaderGridCell cell;
-        cell.label = col.label;
         cell.col_span = 1;
         cell.row_span = 1;
-        cell.width = col.resolved_width;
-        cell.style_ref = col.label_style_ref;
+        cell.width = spec.columns[ci].resolved_width;
+
+        // Check if this column has vMerge::Restart in the FIRST stub row above
+        // (indicating the label lives in the stub row and spans down here)
+        if (stub_depth > 0) {
+            bool is_merged = false;
+            // Find the cell corresponding to this column in the first stub row
+            size_t running_col = 0;
+            for (const auto& stub_cell : grid.rows[0]) {
+                if (running_col == ci && stub_cell.v_merge == VMergeState::Restart) {
+                    is_merged = true;
+                    break;
+                }
+                running_col += static_cast<size_t>(stub_cell.col_span);
+                if (running_col > ci) break;
+            }
+            if (is_merged) {
+                cell.label = "";
+                cell.v_merge = VMergeState::Continue;
+            } else {
+                cell.label = spec.columns[ci].label;
+                cell.style_ref = spec.columns[ci].label_style_ref;
+            }
+        } else {
+            cell.label = spec.columns[ci].label;
+            cell.style_ref = spec.columns[ci].label_style_ref;
+        }
+
         label_row.push_back(cell);
     }
     grid.rows.push_back(std::move(label_row));
@@ -189,6 +275,9 @@ std::vector<LogicalRow> LogicalTableBuilder::build_data_rows(const TFLSpec& spec
                 if (col.format.missings.has_value() && !col.format.missings->empty()) {
                     cell.text = col.format.missings.value();
                 }
+            } else {
+                // Apply column format string (e.g., "%.1f" for numeric)
+                cell.text = apply_column_format(cell.text, col.format);
             }
 
             lr.cells.push_back(std::move(cell));
@@ -406,11 +495,15 @@ void LogicalTableBuilder::detect_grouping_boundaries(
     std::vector<LogicalRow>& rows,
     const std::vector<ColumnSpec>& columns) {
 
-    // Find grouping columns (isGrouping=true)
+    // Find grouping columns (isGrouping=true) and paging columns (isPaging=true)
     std::vector<size_t> grouping_indices;
+    std::vector<size_t> paging_indices;
     for (size_t i = 0; i < columns.size(); ++i) {
-        if (columns[i].is_grouping) {
+        if (columns[i].is_grouping || columns[i].is_paging) {
             grouping_indices.push_back(i);
+        }
+        if (columns[i].is_paging) {
+            paging_indices.push_back(i);
         }
     }
 
@@ -442,6 +535,20 @@ void LogicalTableBuilder::detect_grouping_boundaries(
             }
             if (changed) {
                 row.is_group_boundary = true;
+
+                // Check if change is in a paging column — force page break
+                for (size_t pi : paging_indices) {
+                    if (pi < row.cells.size()) {
+                        const auto& col_id = columns[pi].id;
+                        auto it_cur = current_values.find(col_id);
+                        auto it_prev = prev_group_values.find(col_id);
+                        if (it_cur != current_values.end() &&
+                            (it_prev == prev_group_values.end() || it_prev->second != it_cur->second)) {
+                            row.force_page_break = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -464,18 +571,18 @@ LogicalTableBuilder::Result LogicalTableBuilder::build(const TFLSpec& spec,
     // 2. Build initial data rows
     auto rows = build_data_rows(spec, data);
 
-    // 3. Apply dedupe
-    apply_dedupe(rows, spec.columns);
-
-    // 4. Apply styleRows actions (expands row stream with synthetic rows)
-    rows = apply_style_rows(rows, spec.style_rows, spec.columns);
-
-    // 5. Detect grouping boundaries
+    // 3. Detect grouping boundaries (BEFORE dedupe, which blanks cell text)
     detect_grouping_boundaries(rows, spec.columns);
 
-    // 6. Collect grouping column indices
+    // 4. Apply dedupe (blanks consecutive duplicate values)
+    apply_dedupe(rows, spec.columns);
+
+    // 5. Apply styleRows actions (expands row stream with synthetic rows)
+    rows = apply_style_rows(rows, spec.style_rows, spec.columns);
+
+    // 6. Collect grouping column indices (isGrouping or isPaging)
     for (size_t i = 0; i < spec.columns.size(); ++i) {
-        if (spec.columns[i].is_grouping) {
+        if (spec.columns[i].is_grouping || spec.columns[i].is_paging) {
             result.grouping_col_indices.push_back(i);
         }
     }

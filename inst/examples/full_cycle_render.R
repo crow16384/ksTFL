@@ -58,7 +58,9 @@ cat("\n--- Example 1: Minimal table ------------------------------------------\n
 
 spec1 <- create_table(mtcars[1:10, ], docPrefix = "Table 1.1")
 spec1 <- spec1 |>
-  add_title("Motor Trend Car Road Tests") |>
+  add_title("Motor Trend Car Road Tests", style="font_italic") |>
+  add_title("Title2", style=f_combine("font_bold", "font_italic") ) |>
+  add_subtitle("Subtitle", style="text_red") |>
   add_footnote("Source: 1974 Motor Trend US magazine.")
 
 report1 <- create_report(spec1)
@@ -95,7 +97,6 @@ spec2 <- spec2 |>
     s_paragraph(alignment = "center")
   ) |>
   add_style("id_col",
-    s_font(bold = TRUE),
     s_paragraph(alignment = "left")
   ) |>
   add_style("highlight_row",

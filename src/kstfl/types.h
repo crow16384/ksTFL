@@ -288,6 +288,9 @@ struct TableStyleConfig {
     struct Structural {
         std::optional<StyleDef> all_headers;
         std::optional<StyleDef> table_body;
+        std::optional<Border> header_top_border;
+        std::optional<Border> header_bottom_border;
+        std::optional<Border> table_bottom_border;
     };
 
     // Default row styles
@@ -464,9 +467,9 @@ enum class DocType {
 struct DocumentInfo {
     DocType doc_type = DocType::Table;
     bool has_data = true;
-    std::string doc_prefix;                  // e.g. "Table"
-    std::string glue_prefix;                 // e.g. ": "
-    std::string glue_num_type;               // e.g. "14.2"
+    std::string doc_prefix;                  // e.g. "Table 14.1.1"
+    bool glue_prefix = true;                 // glue prefix to first title line
+    bool glue_num_type = false;              // informational: number type was auto-generated
     int doc_order = 0;
     std::optional<double> content_width;     // percent of usable width (0.0–1.0 or 0–100)
     bool body_titles = false;
@@ -587,6 +590,13 @@ struct LogicalRow {
 // Header grid (table header rows including stub columns)
 // ---------------------------------------------------------------------------
 
+/// Vertical merge state for header grid cells.
+enum class VMergeState {
+    None,      // no vertical merge
+    Restart,   // start of a vertical merge group
+    Continue   // continuation of a vertical merge group (empty cell)
+};
+
 /// A cell in the header grid.
 struct HeaderGridCell {
     std::string label;
@@ -594,6 +604,7 @@ struct HeaderGridCell {
     int row_span = 1;
     Length width;
     std::optional<std::string> style_ref;
+    VMergeState v_merge = VMergeState::None;  // vertical merge state
 };
 
 /// The complete header grid (one or more rows).

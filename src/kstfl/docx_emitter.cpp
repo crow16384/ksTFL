@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <sstream>
 #include <cmath>
+#include <cstring>
 #include <iomanip>
 
 namespace kstfl {
@@ -30,6 +31,10 @@ static constexpr const char* RT_STYLES = "http://schemas.openxmlformats.org/offi
 static constexpr const char* RT_SETTINGS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings";
 static constexpr const char* RT_FONT_TABLE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable";
 static constexpr const char* RT_IMAGE = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
+static constexpr const char* RT_HEADER = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/header";
+static constexpr const char* RT_FOOTER = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer";
+static constexpr const char* CT_HEADER = "application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml";
+static constexpr const char* CT_FOOTER = "application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml";
 
 // ---------------------------------------------------------------------------
 // Constructor
@@ -42,7 +47,8 @@ DocxEmitter::DocxEmitter(const StylesTemplate& tmpl, const RendererConfig& confi
 // [Content_Types].xml
 // ---------------------------------------------------------------------------
 
-std::string DocxEmitter::emit_content_types(const TFLDocument& doc) const {
+std::string DocxEmitter::emit_content_types(const TFLDocument& doc,
+                                             const std::vector<HdrFtrPartInfo>& hdr_ftr_parts) const {
     XmlWriter w;
     w.write_declaration();
     w.start_element("Types");
@@ -79,6 +85,14 @@ std::string DocxEmitter::emit_content_types(const TFLDocument& doc) const {
     w.attribute("PartName", "/word/fontTable.xml");
     w.attribute("ContentType", "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml");
     w.end_element();
+
+    // Header/footer part overrides
+    for (const auto& part : hdr_ftr_parts) {
+        w.start_element("Override");
+        w.attribute("PartName", "/" + part.part_path);
+        w.attribute("ContentType", part.is_header ? CT_HEADER : CT_FOOTER);
+        w.end_element();
+    }
 
     // Add image content types for figure specs
     bool has_png = false, has_jpg = false, has_svg = false;
@@ -137,7 +151,8 @@ std::string DocxEmitter::emit_rels() const {
 // word/_rels/document.xml.rels
 // ---------------------------------------------------------------------------
 
-std::string DocxEmitter::emit_document_rels(const TFLDocument& doc) const {
+std::string DocxEmitter::emit_document_rels(const TFLDocument& doc,
+                                             const std::vector<HdrFtrPartInfo>& hdr_ftr_parts) const {
     XmlWriter w;
     w.write_declaration();
     w.start_element("Relationships");
@@ -177,7 +192,20 @@ std::string DocxEmitter::emit_document_rels(const TFLDocument& doc) const {
             rid++;
         }
     }
+// Add header/footer relationships
+    for (const auto& part : hdr_ftr_parts) {
+        w.start_element("Relationship");
+        w.attribute("Id", part.rid);
+        w.attribute("Type", part.is_header ? RT_HEADER : RT_FOOTER);
+        // Target is relative to word/ directory
+        // part_path is "word/header1.xml" -> target is "header1.xml"
+        std::string target = part.part_path;
+        if (target.substr(0, 5) == "word/") target = target.substr(5);
+        w.attribute("Target", target);
+        w.end_element();
+    }
 
+    
     w.end_element();
     return w.str();
 }
@@ -444,7 +472,8 @@ void DocxEmitter::emit_para_props(XmlWriter& w, const ParagraphProps& pp) const 
 void DocxEmitter::emit_cell_props(XmlWriter& w,
                                    const TableCellProps& tcp,
                                    Length cell_width,
-                                   int grid_span) const {
+                                   int grid_span,
+                                   VMergeState v_merge) const {
     w.start_element("w:tcPr");
 
     // Cell width in twips
@@ -456,6 +485,13 @@ void DocxEmitter::emit_cell_props(XmlWriter& w,
     // Grid span for merged cells
     if (grid_span > 1) {
         w.element_with_attr("w:gridSpan", "w:val", std::to_string(grid_span));
+    }
+
+    // Vertical merge
+    if (v_merge == VMergeState::Restart) {
+        w.element_with_attr("w:vMerge", "w:val", "restart");
+    } else if (v_merge == VMergeState::Continue) {
+        w.self_closing_element("w:vMerge");
     }
 
     // Vertical alignment
@@ -632,6 +668,70 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
 }
 
 // ---------------------------------------------------------------------------
+// Emit all text groups combined in one paragraph with soft breaks
+// ---------------------------------------------------------------------------
+
+void DocxEmitter::emit_text_groups_combined(XmlWriter& w,
+                                             const std::vector<TextGroup>& groups,
+                                             const StyleDef& base_style,
+                                             const StyleResolver& resolver,
+                                             const std::string& prefix) const {
+    w.start_element("w:p");
+
+    // Paragraph properties from base style
+    if (base_style.paragraph.has_value()) {
+        emit_para_props(w, base_style.paragraph.value());
+    }
+
+    bool first_run = true;
+
+    // Helper: emit a soft break run with given font
+    auto emit_break = [&](const FontProps& font) {
+        w.start_element("w:r");
+        emit_run_props(w, font);
+        w.self_closing_element("w:br");
+        w.end_element();
+    };
+
+    // Optionally emit prefix text
+    if (!prefix.empty()) {
+        FontProps base_font = base_style.font.value_or(FontProps{});
+        w.start_element("w:r");
+        emit_run_props(w, base_font);
+        w.element_with_text("w:t", prefix);
+        w.end_element();
+        first_run = false;
+    }
+
+    // Emit each group's text lines as runs, with <br> between groups
+    for (const auto& group : groups) {
+        StyleDef style = base_style;
+        if (group.style_ref.has_value()) {
+            const StyleDef* ref_style = resolver.find_style(group.style_ref.value());
+            if (ref_style) {
+                style = style.merged_with(*ref_style);
+            }
+        }
+        FontProps font = style.font.value_or(FontProps{});
+
+        for (size_t i = 0; i < group.text.size(); ++i) {
+            // Soft break before each line except the very first run
+            if (!first_run) {
+                emit_break(font);
+            }
+
+            w.start_element("w:r");
+            emit_run_props(w, font);
+            w.element_with_text("w:t", group.text[i]);
+            w.end_element();
+            first_run = false;
+        }
+    }
+
+    w.end_element();  // w:p
+}
+
+// ---------------------------------------------------------------------------
 // Emit header/footer section (3-column layout with tab stops)
 // ---------------------------------------------------------------------------
 
@@ -644,11 +744,98 @@ void DocxEmitter::emit_header_footer_section(XmlWriter& w,
                                               bool use_fields) const {
     FontProps font = style.font.value_or(FontProps{});
 
+    // Lambda: emit a text segment with page field code placeholders.
+    // Supports both {PAGE}/{NUMPAGES} and #page/#pages patterns.
+    auto emit_text_with_fields = [&](const std::string& text) {
+        if (text.empty()) return;
+
+        if (!use_fields) {
+            w.start_element("w:r");
+            emit_run_props(w, font);
+            w.element_with_text("w:t", text);
+            w.end_element();
+            return;
+        }
+
+        // Scan for field placeholders
+        size_t pos = 0;
+        while (pos < text.size()) {
+            // Find next placeholder (try all patterns)
+            struct Match { size_t pos; size_t len; bool is_numpages; };
+            Match best{std::string::npos, 0, false};
+
+            // {NUMPAGES} must be checked before {PAGE} (longer match)
+            const char* patterns[][2] = {
+                {"{NUMPAGES}", nullptr},  // is_numpages = true
+                {"{PAGE}", nullptr},      // is_numpages = false
+                {"#pages", nullptr},      // is_numpages = true (legacy)
+                {"#page", nullptr},       // is_numpages = false (legacy)
+            };
+            bool is_numpages_map[] = {true, false, true, false};
+
+            for (int pi = 0; pi < 4; ++pi) {
+                size_t found = text.find(patterns[pi][0], pos);
+                if (found != std::string::npos && found < best.pos) {
+                    best.pos = found;
+                    best.len = std::strlen(patterns[pi][0]);
+                    best.is_numpages = is_numpages_map[pi];
+                }
+            }
+
+            if (best.pos == std::string::npos) {
+                // No more placeholders — emit rest as literal
+                w.start_element("w:r");
+                emit_run_props(w, font);
+                w.element_with_text("w:t", text.substr(pos));
+                w.end_element();
+                break;
+            }
+
+            // Emit literal text before the placeholder
+            if (best.pos > pos) {
+                w.start_element("w:r");
+                emit_run_props(w, font);
+                w.element_with_text("w:t", text.substr(pos, best.pos - pos));
+                w.end_element();
+            }
+
+            // Emit field code
+            if (best.is_numpages) {
+                emit_numpages_field(w);
+            } else {
+                emit_page_field(w);
+            }
+
+            pos = best.pos + best.len;
+        }
+    };
+
     for (const auto& row : rows) {
         w.start_element("w:p");
 
         // Paragraph properties with tab stops for center and right alignment
         w.start_element("w:pPr");
+        if (style.paragraph.has_value()) {
+            // Apply spacing from style
+            if (style.paragraph->spacing.has_value()) {
+                w.start_element("w:spacing");
+                if (style.paragraph->spacing->before.has_value()) {
+                    w.attribute("w:before",
+                        std::to_string(style.paragraph->spacing->before->to_twips()));
+                }
+                if (style.paragraph->spacing->after.has_value()) {
+                    w.attribute("w:after",
+                        std::to_string(style.paragraph->spacing->after->to_twips()));
+                }
+                if (style.paragraph->spacing->line_spacing_multiplier.has_value()) {
+                    int line_val = static_cast<int>(
+                        style.paragraph->spacing->line_spacing_multiplier.value() * 240.0);
+                    w.attribute("w:line", std::to_string(line_val));
+                    w.attribute("w:lineRule", "auto");
+                }
+                w.end_element();
+            }
+        }
         w.start_element("w:tabs");
         // Center tab at usable_width / 2
         w.start_element("w:tab");
@@ -664,12 +851,7 @@ void DocxEmitter::emit_header_footer_section(XmlWriter& w,
         w.end_element();  // w:pPr
 
         // Left content
-        if (!row.left.empty()) {
-            w.start_element("w:r");
-            emit_run_props(w, font);
-            w.element_with_text("w:t", row.left);
-            w.end_element();
-        }
+        emit_text_with_fields(row.left);
 
         // Tab to center
         w.start_element("w:r");
@@ -677,66 +859,15 @@ void DocxEmitter::emit_header_footer_section(XmlWriter& w,
         w.end_element();
 
         // Center content
-        if (!row.center.empty()) {
-            w.start_element("w:r");
-            emit_run_props(w, font);
-            w.element_with_text("w:t", row.center);
-            w.end_element();
-        }
+        emit_text_with_fields(row.center);
 
         // Tab to right
         w.start_element("w:r");
         w.self_closing_element("w:tab");
         w.end_element();
 
-        // Right content (may contain page number placeholders)
-        if (!row.right.empty()) {
-            // Replace #page and #pages with field codes or literal values
-            std::string right_text = row.right;
-            size_t page_pos = right_text.find("#page");
-            size_t pages_pos = right_text.find("#pages");
-
-            if (use_fields && (page_pos != std::string::npos || pages_pos != std::string::npos)) {
-                // Emit pieces with field codes interleaved
-                // Simple approach: emit any text before #page, then PAGE field, then between, etc.
-                size_t pos = 0;
-                while (pos < right_text.size()) {
-                    size_t next_page = right_text.find("#page", pos);
-                    size_t next_pages = right_text.find("#pages", pos);
-
-                    size_t next = std::min(
-                        next_page != std::string::npos ? next_page : right_text.size(),
-                        next_pages != std::string::npos ? next_pages : right_text.size()
-                    );
-
-                    // Emit literal text before the field
-                    if (next > pos) {
-                        w.start_element("w:r");
-                        emit_run_props(w, font);
-                        w.element_with_text("w:t", right_text.substr(pos, next - pos));
-                        w.end_element();
-                    }
-
-                    if (next >= right_text.size()) break;
-
-                    // Determine which placeholder we hit
-                    if (next == next_pages && next_pages != std::string::npos) {
-                        emit_numpages_field(w);
-                        pos = next + 6;  // skip "#pages"
-                    } else if (next == next_page && next_page != std::string::npos) {
-                        emit_page_field(w);
-                        pos = next + 5;  // skip "#page"
-                    } else {
-                        break;
-                    }
-                }
-            } else {
-                w.start_element("w:r");
-                emit_run_props(w, font);
-                w.element_with_text("w:t", right_text);
-                w.end_element();
-            }
-        }
+        // Right content
+        emit_text_with_fields(row.right);
 
         w.end_element();  // w:p
     }
@@ -793,6 +924,29 @@ void DocxEmitter::emit_numpages_field(XmlWriter& w) const {
 }
 
 // ---------------------------------------------------------------------------
+// Generate a standalone header/footer XML part
+// ---------------------------------------------------------------------------
+
+std::string DocxEmitter::emit_hdr_ftr_xml_part(
+    const std::vector<HeaderFooterRow>& rows,
+    const StyleDef& style,
+    Length usable_w,
+    const char* root_element) const
+{
+    XmlWriter w;
+    w.write_declaration();
+    w.start_element(root_element);
+    w.namespace_decl("w", W_NS);
+    w.namespace_decl("r", R_NS);
+
+    // Always use field codes in header/footer parts (Word resolves them)
+    emit_header_footer_section(w, rows, style, usable_w, 0, 0, true);
+
+    w.end_element();  // w:hdr or w:ftr
+    return w.str();
+}
+
+// ---------------------------------------------------------------------------
 // Page break paragraph
 // ---------------------------------------------------------------------------
 
@@ -812,6 +966,8 @@ void DocxEmitter::emit_page_break(XmlWriter& w) const {
 
 void DocxEmitter::emit_section_props(XmlWriter& w,
                                       const PageConfig& page,
+                                      const std::string& header_rid,
+                                      const std::string& footer_rid,
                                       bool continuous) const {
     w.start_element("w:sectPr");
 
@@ -819,6 +975,22 @@ void DocxEmitter::emit_section_props(XmlWriter& w,
         w.element_with_attr("w:type", "w:val", "continuous");
     } else {
         w.element_with_attr("w:type", "w:val", "nextPage");
+    }
+
+    // Header reference
+    if (!header_rid.empty()) {
+        w.start_element("w:headerReference");
+        w.attribute("w:type", "default");
+        w.attribute("r:id", header_rid);
+        w.end_element();
+    }
+
+    // Footer reference
+    if (!footer_rid.empty()) {
+        w.start_element("w:footerReference");
+        w.attribute("w:type", "default");
+        w.attribute("r:id", footer_rid);
+        w.end_element();
     }
 
     // Page size
@@ -851,6 +1023,9 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
                                      const HeaderGrid& header_grid,
                                      const HorizontalSegment& segment,
                                      const StyleResolver& resolver) const {
+    // Base header style: template cascade without column/stub refs
+    StyleDef base_hdr = resolver.resolve_base_header_style();
+
     for (const auto& header_row : header_grid.rows) {
         w.start_element("w:tr");
 
@@ -864,16 +1039,21 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
         for (const auto& cell : header_row) {
             w.start_element("w:tc");
 
-            // Cell properties
-            TableCellProps tcp;
-            // Get style for header cell
-            // (simplified - use basic header style)
-            StyleDef hdr_style = resolver.resolve_doc_header_style();
+            // Resolve per-cell style: base cascade + cell.style_ref override
+            StyleDef cell_style = base_hdr;
+            if (cell.style_ref.has_value()) {
+                const StyleDef* ref_style = resolver.find_style(*cell.style_ref);
+                if (ref_style) {
+                    cell_style = cell_style.merged_with(*ref_style);
+                }
+            }
 
-            emit_cell_props(w, tcp, cell.width, cell.col_span);
+            // Cell properties from resolved table_style
+            TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
+            emit_cell_props(w, tcp, cell.width, cell.col_span, cell.v_merge);
 
-            // Cell content
-            emit_paragraph(w, cell.label, hdr_style);
+            // Cell content (empty for vMerge continuation cells)
+            emit_paragraph(w, cell.label, cell_style);
 
             w.end_element();  // w:tc
         }
@@ -890,7 +1070,8 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
                                   const LogicalRow& row,
                                   const HorizontalSegment& segment,
                                   const TFLSpec& spec,
-                                  const StyleResolver& resolver) const {
+                                  const StyleResolver& resolver,
+                                  bool is_last_row) const {
     w.start_element("w:tr");
 
     // Row properties
@@ -937,6 +1118,15 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
             : (col_idx < spec.columns.size() ? spec.columns[col_idx].resolved_width : Length{0});
 
         TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
+
+        // Override bottom border on last row with structural table_bottom_border
+        if (is_last_row && tmpl_.table_style.structural.table_bottom_border.has_value()) {
+            if (!tcp.borders.has_value()) {
+                tcp.borders = Borders{};
+            }
+            tcp.borders->bottom = tmpl_.table_style.structural.table_bottom_border;
+        }
+
         emit_cell_props(w, tcp, cell_width, cell.merge_span);
 
         // Cell content
@@ -1050,9 +1240,18 @@ void DocxEmitter::emit_table(XmlWriter& w,
     emit_table_header(w, header_grid, segment, resolver);
 
     // Body rows for this page slice
+    // Find effective last data row (skip trailing GroupBreak rows)
+    size_t effective_last_row = page.last_row;
+    while (effective_last_row > page.first_row &&
+           effective_last_row < rows.size() &&
+           rows[effective_last_row].type == LogicalRowType::GroupBreak) {
+        --effective_last_row;
+    }
+
     for (size_t ri = page.first_row; ri <= page.last_row && ri < rows.size(); ++ri) {
         if (rows[ri].type == LogicalRowType::GroupBreak) continue;
-        emit_table_row(w, rows[ri], segment, spec, resolver);
+        bool is_last = (ri == effective_last_row);
+        emit_table_row(w, rows[ri], segment, spec, resolver, is_last);
     }
 
     w.end_element();  // w:tbl
@@ -1068,54 +1267,30 @@ void DocxEmitter::emit_page(XmlWriter& w,
                              const HorizontalSegment& segment,
                              const std::vector<LogicalRow>& rows,
                              const HeaderGrid& header_grid,
-                             const StyleResolver& resolver,
-                             size_t total_pages) const {
+                             const StyleResolver& resolver) const {
 
-    PageConfig page_config = resolver.resolve_page_config(spec);
-    Length usable_w = page_config.usable_width();
+    // NOTE: Document headers/footers are no longer emitted in the page body.
+    // They are placed in separate word/headerN.xml and word/footerN.xml parts
+    // and referenced via <w:sectPr> section properties.
 
-    // 1. Header section
-    if (!spec.headers.empty()) {
-        StyleDef hdr_style = resolver.resolve_doc_header_style();
-        emit_header_footer_section(w, spec.headers, hdr_style, usable_w,
-                                    page.page_number, total_pages,
-                                    config_.use_field_codes);
-    }
-
-    // 2. Titles (on first page, or repeated per spec §13.6)
+    // 1. Titles (on first page, or repeated per spec §13.6)
+    //    All title groups are combined into a single paragraph with soft breaks.
+    //    Per-group font styles are preserved as separate runs within the paragraph.
     if (page.has_titles && !spec.titles.empty()) {
         StyleDef title_style = resolver.resolve_title_style();
+        std::string prefix;
 
-        // Handle glue prefix: prepend to first title
-        if (!spec.document.doc_prefix.empty() && !spec.document.glue_num_type.empty()) {
-            std::string prefix = spec.document.doc_prefix + " " +
-                                 spec.document.glue_num_type;
-            if (!spec.document.glue_prefix.empty()) {
-                prefix += spec.document.glue_prefix;
-            }
-
-            // Emit prefix + first title as one paragraph
-            if (!spec.titles.empty() && !spec.titles[0].text.empty()) {
-                std::string combined = prefix + spec.titles[0].text[0];
-                emit_paragraph(w, combined, title_style);
-
-                // Remaining lines of first group
-                for (size_t i = 1; i < spec.titles[0].text.size(); ++i) {
-                    emit_paragraph(w, spec.titles[0].text[i], title_style);
-                }
-
-                // Remaining title groups
-                std::vector<TextGroup> remaining(spec.titles.begin() + 1, spec.titles.end());
-                emit_text_groups(w, remaining, title_style, resolver);
-            } else {
-                emit_paragraph(w, prefix, title_style);
-            }
-        } else {
-            emit_text_groups(w, spec.titles, title_style, resolver);
+        if (!spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
+            prefix = spec.document.doc_prefix;
+        } else if (!spec.document.doc_prefix.empty()) {
+            // Not glued — emit prefix as separate paragraph before titles
+            emit_paragraph(w, spec.document.doc_prefix, title_style);
         }
+
+        emit_text_groups_combined(w, spec.titles, title_style, resolver, prefix);
     }
 
-    // 3. Subtitles
+    // 2. Subtitles
     if (page.has_subtitles && !spec.subtitles.empty()) {
         StyleDef sub_style = resolver.resolve_subtitle_style();
 
@@ -1137,28 +1312,15 @@ void DocxEmitter::emit_page(XmlWriter& w,
         emit_text_groups(w, resolved_subtitles, sub_style, resolver);
     }
 
-    // 4. Table (for Table docType) or Figure or bodyText
+    // 3. Table (for Table docType)
     if (spec.document.doc_type == DocType::Table && spec.document.has_data) {
         emit_table(w, spec, page, segment, rows, header_grid, resolver);
-    } else if (spec.document.doc_type == DocType::Text || !spec.document.has_data) {
-        // Render bodyText
-        StyleDef body_style = resolver.resolve_body_text_style();
-        emit_text_groups(w, spec.body_text, body_style, resolver);
     }
-    // Figure handling would go here (embed image via drawing ML)
 
-    // 5. Footnotes (if body placement and last page)
+    // 4. Footnotes (if body placement and last page)
     if (spec.document.body_footnotes && page.is_last_page && !spec.footnotes.empty()) {
         StyleDef fn_style = resolver.resolve_footnote_style();
         emit_text_groups(w, spec.footnotes, fn_style, resolver);
-    }
-
-    // 6. Footer section
-    if (!spec.footers.empty()) {
-        StyleDef ftr_style = resolver.resolve_doc_footer_style();
-        emit_header_footer_section(w, spec.footers, ftr_style, usable_w,
-                                    page.page_number, total_pages,
-                                    config_.use_field_codes);
     }
 }
 
@@ -1174,7 +1336,59 @@ void DocxEmitter::emit(
     const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
     const std::unordered_map<std::string, HeaderGrid>& resolved_headers) {
 
-    // Generate document.xml
+    // ======================================================================
+    // Phase 1: Pre-compute header/footer XML parts and relationship IDs
+    // ======================================================================
+
+    std::vector<HdrFtrPartInfo> all_hdr_ftr_parts;
+    // Per-spec header/footer rIds for section properties
+    struct SpecHdrFtrRefs {
+        std::string header_rid;
+        std::string footer_rid;
+    };
+    std::vector<SpecHdrFtrRefs> spec_hdr_ftr_refs(doc.specs.size());
+
+    // Start relationship IDs after the base ones (rId1=styles, rId2=settings,
+    // rId3=fontTable, rId4+ for images). Count images first.
+    int next_rid = 4;
+    for (const auto& spec : doc.specs) {
+        if (spec.document.doc_type == DocType::Figure) next_rid++;
+    }
+
+    int hdr_ftr_idx = 1;
+    for (size_t spec_idx = 0; spec_idx < doc.specs.size(); ++spec_idx) {
+        const auto& spec = doc.specs[spec_idx];
+        StyleResolver resolver(tmpl_, spec.spec_styles);
+        PageConfig pc = resolver.resolve_page_config(spec);
+        Length usable_w = pc.usable_width();
+
+        if (!spec.headers.empty()) {
+            std::string rid = "rId" + std::to_string(next_rid++);
+            std::string part_path = "word/header" + std::to_string(hdr_ftr_idx) + ".xml";
+            StyleDef hdr_style = resolver.resolve_doc_header_style();
+            std::string xml = emit_hdr_ftr_xml_part(spec.headers, hdr_style,
+                                                     usable_w, "w:hdr");
+            all_hdr_ftr_parts.push_back({part_path, rid, xml, true});
+            spec_hdr_ftr_refs[spec_idx].header_rid = rid;
+            hdr_ftr_idx++;
+        }
+
+        if (!spec.footers.empty()) {
+            std::string rid = "rId" + std::to_string(next_rid++);
+            std::string part_path = "word/footer" + std::to_string(hdr_ftr_idx) + ".xml";
+            StyleDef ftr_style = resolver.resolve_doc_footer_style();
+            std::string xml = emit_hdr_ftr_xml_part(spec.footers, ftr_style,
+                                                     usable_w, "w:ftr");
+            all_hdr_ftr_parts.push_back({part_path, rid, xml, false});
+            spec_hdr_ftr_refs[spec_idx].footer_rid = rid;
+            hdr_ftr_idx++;
+        }
+    }
+
+    // ======================================================================
+    // Phase 2: Generate document.xml
+    // ======================================================================
+
     XmlWriter doc_w;
     doc_w.write_declaration();
     doc_w.start_element("w:document");
@@ -1184,19 +1398,29 @@ void DocxEmitter::emit(
 
     doc_w.start_element("w:body");
 
-    bool first_spec = true;
     for (size_t spec_idx = 0; spec_idx < doc.specs.size(); ++spec_idx) {
         const auto& spec = doc.specs[spec_idx];
 
-        // Section break between specs (spec §19: single doc with section breaks)
-        if (!first_spec) {
-            // Emit page break as section break
-            emit_page_break(doc_w);
-        }
-        first_spec = false;
-
         // Create style resolver for this spec
         StyleResolver resolver(tmpl_, spec.spec_styles);
+
+        const auto& refs = spec_hdr_ftr_refs[spec_idx];
+
+        // ----- Emit section break for previous spec (not before first) -----
+        if (spec_idx > 0) {
+            // Section break paragraph with previous spec's section properties
+            const auto& prev_spec = doc.specs[spec_idx - 1];
+            StyleResolver prev_resolver(tmpl_, prev_spec.spec_styles);
+            PageConfig prev_page = prev_resolver.resolve_page_config(prev_spec);
+            const auto& prev_refs = spec_hdr_ftr_refs[spec_idx - 1];
+
+            doc_w.start_element("w:p");
+            doc_w.start_element("w:pPr");
+            emit_section_props(doc_w, prev_page,
+                               prev_refs.header_rid, prev_refs.footer_rid);
+            doc_w.end_element();  // w:pPr
+            doc_w.end_element();  // w:p
+        }
 
         // Get pagination result for this spec
         auto pages_it = resolved_pages.find(spec.key);
@@ -1206,15 +1430,6 @@ void DocxEmitter::emit(
         if (spec.document.doc_type == DocType::Text || !spec.document.has_data) {
             // No table: just emit bodyText
             StyleDef body_style = resolver.resolve_body_text_style();
-
-            // Headers
-            if (!spec.headers.empty()) {
-                StyleDef hdr_style = resolver.resolve_doc_header_style();
-                PageConfig pc = resolver.resolve_page_config(spec);
-                emit_header_footer_section(doc_w, spec.headers, hdr_style,
-                                            pc.usable_width(), 1, 1,
-                                            config_.use_field_codes);
-            }
 
             // Titles
             if (!spec.titles.empty()) {
@@ -1231,15 +1446,7 @@ void DocxEmitter::emit(
                                   resolver.resolve_footnote_style(), resolver);
             }
 
-            // Footers
-            if (!spec.footers.empty()) {
-                StyleDef ftr_style = resolver.resolve_doc_footer_style();
-                PageConfig pc = resolver.resolve_page_config(spec);
-                emit_header_footer_section(doc_w, spec.footers, ftr_style,
-                                            pc.usable_width(), 1, 1,
-                                            config_.use_field_codes);
-            }
-
+            // Headers and footers are now in separate parts (referenced via sectPr)
             continue;
         }
 
@@ -1265,7 +1472,7 @@ void DocxEmitter::emit(
                 }
 
                 emit_page(doc_w, spec, page, segment, rows, header_grid,
-                          resolver, pagination.total_pages);
+                          resolver);
             }
         }
 
@@ -1276,27 +1483,39 @@ void DocxEmitter::emit(
         }
     }
 
-    // Final section properties (for the last section)
+    // Final section properties (for the last section — direct child of w:body)
     if (!doc.specs.empty()) {
-        const auto& last_spec = doc.specs.back();
+        size_t last_idx = doc.specs.size() - 1;
+        const auto& last_spec = doc.specs[last_idx];
         StyleResolver last_resolver(tmpl_, last_spec.spec_styles);
         PageConfig last_page = last_resolver.resolve_page_config(last_spec);
-        emit_section_props(doc_w, last_page);
+        const auto& last_refs = spec_hdr_ftr_refs[last_idx];
+        emit_section_props(doc_w, last_page,
+                           last_refs.header_rid, last_refs.footer_rid);
     }
 
     doc_w.end_element();  // w:body
     doc_w.end_element();  // w:document
 
-    // Assemble the DOCX ZIP package
+    // ======================================================================
+    // Phase 3: Assemble the DOCX ZIP package
+    // ======================================================================
+
     ZipWriter zip(output_path);
 
-    zip.add_entry("[Content_Types].xml", emit_content_types(doc));
+    zip.add_entry("[Content_Types].xml", emit_content_types(doc, all_hdr_ftr_parts));
     zip.add_entry("_rels/.rels", emit_rels());
-    zip.add_entry("word/_rels/document.xml.rels", emit_document_rels(doc));
+    zip.add_entry("word/_rels/document.xml.rels",
+                  emit_document_rels(doc, all_hdr_ftr_parts));
     zip.add_entry("word/document.xml", doc_w.str());
     zip.add_entry("word/styles.xml", emit_styles());
     zip.add_entry("word/settings.xml", emit_settings());
     zip.add_entry("word/fontTable.xml", emit_font_table());
+
+    // Add header/footer parts
+    for (const auto& part : all_hdr_ftr_parts) {
+        zip.add_entry(part.part_path, part.xml);
+    }
 
     // Embed figures
     int img_idx = 4;

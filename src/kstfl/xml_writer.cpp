@@ -90,6 +90,10 @@ void XmlWriter::namespace_decl(const std::string& prefix, const std::string& uri
 
 void XmlWriter::element_with_text(const std::string& name, const std::string& content) {
     start_element(name);
+    // For w:t elements, always preserve whitespace (OOXML requirement)
+    if (name == "w:t") {
+        attribute("xml:space", "preserve");
+    }
     text(content);
     end_element();
 }

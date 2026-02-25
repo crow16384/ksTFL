@@ -257,7 +257,6 @@ void Renderer::render_from_strings(const std::string& spec_json,
             for (auto& cell : header_row) {
                 // Resolve header cell style
                 StyleDef hdr_style;
-                // Use a basic column spec for resolving
                 ColumnSpec dummy;
                 dummy.label_style_ref = cell.style_ref;
                 hdr_style = resolver.resolve_header_cell_style(dummy);

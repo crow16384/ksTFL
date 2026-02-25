@@ -542,18 +542,8 @@ static DocumentInfo parse_document_info(const json& j) {
 
     di.has_data = get_bool(j, "hasData", true);
     di.doc_prefix = get_str(j, "docPrefix");
-    di.glue_prefix = get_str(j, "gluePrefix");
-    di.glue_num_type = get_str(j, "glueNumType");
-    
-    // glueNumType can be boolean or string in schema
-    if (j.contains("glueNumType")) {
-        if (j["glueNumType"].is_boolean()) {
-            // If true, prefix is glued to first title
-            di.glue_num_type = j["glueNumType"].get<bool>() ? "true" : "false";
-        } else if (j["glueNumType"].is_string()) {
-            di.glue_num_type = j["glueNumType"].get<std::string>();
-        }
-    }
+    di.glue_prefix = get_bool(j, "gluePrefix", true);
+    di.glue_num_type = get_bool(j, "glueNumType", false);
 
     di.doc_order = get_int(j, "docOrder", 0);
     di.body_titles = get_bool(j, "bodyTitles", true);
@@ -742,7 +732,13 @@ static StylesTemplate parse_template_internal(const json& root) {
             }
             // structural borders
             if (struc.contains("header_top_border") && struc["header_top_border"].is_object()) {
-                // Stored as part of structural config (for emit phase)
+                tmpl.table_style.structural.header_top_border = parse_border(struc["header_top_border"]);
+            }
+            if (struc.contains("header_bottom_border") && struc["header_bottom_border"].is_object()) {
+                tmpl.table_style.structural.header_bottom_border = parse_border(struc["header_bottom_border"]);
+            }
+            if (struc.contains("table_bottom_border") && struc["table_bottom_border"].is_object()) {
+                tmpl.table_style.structural.table_bottom_border = parse_border(struc["table_bottom_border"]);
             }
         }
 

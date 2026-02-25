@@ -87,7 +87,7 @@
         "color": "000000"
       },
       "paragraph": {
-        "alignment": "left",
+        "alignment": "center",
         "spacing": {
           "before": "0pt",
           "after": "4pt",
@@ -115,10 +115,10 @@
     },
     "footnotes": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Arial",
         "font_size": "8pt",
         "bold": false,
-        "italic": false,
+        "italic": true,
         "underline": false,
         "color": "000000"
       },
@@ -174,7 +174,7 @@
       "allow_row_break_across_pages": false,
       "repeat_header_on_each_page": true,
       "prevent_header_row_break": true,
-      "table_alignment": "left"
+      "table_alignment": "center"
     },
 
     "structural": {

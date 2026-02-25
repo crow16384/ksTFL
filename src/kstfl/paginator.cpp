@@ -321,10 +321,8 @@ PaginationResult Paginator::paginate(
             while (row_idx < rows.size()) {
                 // Check break triggers (spec §13.5 precedence)
                 if (row_idx > last_row || row_idx > page.first_row) {
-                    // 1. Explicit page_break (highest precedence)
+                    // Explicit page_break (from c_pageBreak() or isPaging column change)
                     if (rows[row_idx].force_page_break) break;
-                    // 2. Grouping boundary
-                    if (rows[row_idx].is_group_boundary) break;
                 }
 
                 Length rh = row_heights[row_idx];
@@ -353,8 +351,8 @@ PaginationResult Paginator::paginate(
                 used_height = used_height + rh;
                 last_row = row_idx;
 
-                // Capture grouping values for dynamic subtitles
-                if (!rows[row_idx].group_values.empty()) {
+                // Capture grouping values for dynamic subtitles (first row only)
+                if (row_idx == page.first_row && !rows[row_idx].group_values.empty()) {
                     for (const auto& [col_id, val] : rows[row_idx].group_values) {
                         page.dynamic_subtitle_values.push_back(val);
                     }
