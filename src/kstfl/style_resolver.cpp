@@ -1,0 +1,248 @@
+// kstfl/style_resolver.cpp — Style merging and resolution implementation
+//
+// Copyright (c) 2026 KeyStat Solutions. MIT License.
+
+#include "style_resolver.h"
+#include "units.h"
+#include <algorithm>
+#include <numeric>
+
+namespace kstfl {
+
+StyleResolver::StyleResolver(const StylesTemplate& tmpl, const StyleMap& spec_styles)
+    : tmpl_(tmpl), spec_styles_(spec_styles) {}
+
+// ---------------------------------------------------------------------------
+// Page config resolution
+// ---------------------------------------------------------------------------
+
+PageConfig StyleResolver::resolve_page_config(const TFLSpec& spec) const {
+    PageConfig result = tmpl_.page;  // Start with template defaults
+    if (spec.has_page_override) {
+        const auto& ovr = spec.page_override;
+        result.size = ovr.size;
+        result.orientation = ovr.orientation;
+        // Merge margins — override only if non-zero
+        if (ovr.margins.top.emu != 0)    result.margins.top = ovr.margins.top;
+        if (ovr.margins.bottom.emu != 0) result.margins.bottom = ovr.margins.bottom;
+        if (ovr.margins.left.emu != 0)   result.margins.left = ovr.margins.left;
+        if (ovr.margins.right.emu != 0)  result.margins.right = ovr.margins.right;
+        if (ovr.margins.header_distance.emu != 0)
+            result.margins.header_distance = ovr.margins.header_distance;
+        if (ovr.margins.footer_distance.emu != 0)
+            result.margins.footer_distance = ovr.margins.footer_distance;
+    }
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+// Table width resolution
+// ---------------------------------------------------------------------------
+
+Length StyleResolver::resolve_table_width(const TFLSpec& spec, Length usable_width) const {
+    if (spec.document.content_width.has_value()) {
+        double cw = *spec.document.content_width;
+        if (cw > 0 && cw <= 100.0) {
+            // Percent of usable width
+            return Length{static_cast<int64_t>(usable_width.emu * cw / 100.0)};
+        }
+        // Sentinel -1 means absolute (stored in the string) — should be resolved elsewhere
+    }
+    // Default: full usable width
+    return usable_width;
+}
+
+// ---------------------------------------------------------------------------
+// Column width resolution
+// ---------------------------------------------------------------------------
+
+void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
+                                           Length table_width) const {
+    if (columns.empty()) return;
+
+    int64_t total_specified = 0;
+    size_t unspecified_count = 0;
+
+    for (auto& col : columns) {
+        if (col.format.col_width.has_value()) {
+            const auto& cw = *col.format.col_width;
+            // If stored as percent, resolve against table_width
+            // col_width was already parsed by Length::parse with reference in json_parser
+            // Here we just use the EMU value directly
+            col.resolved_width = cw;
+            total_specified += cw.emu;
+        } else {
+            unspecified_count++;
+        }
+    }
+
+    // Distribute remaining width among unspecified columns
+    int64_t remaining = table_width.emu - total_specified;
+    if (remaining < 0) remaining = 0;
+
+    if (unspecified_count > 0) {
+        int64_t per_col = remaining / static_cast<int64_t>(unspecified_count);
+        int64_t leftover = remaining - per_col * static_cast<int64_t>(unspecified_count);
+        bool first = true;
+        for (auto& col : columns) {
+            if (!col.format.col_width.has_value()) {
+                col.resolved_width = Length{per_col + (first ? leftover : 0)};
+                first = false;
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Style lookup
+// ---------------------------------------------------------------------------
+
+const StyleDef* StyleResolver::find_style(const std::string& id) const {
+    // Check spec styles first (spec overrides template)
+    auto it = spec_styles_.find(id);
+    if (it != spec_styles_.end()) return &it->second;
+    return nullptr;
+}
+
+StyleDef StyleResolver::apply_style_ref(const StyleDef& base, const std::string& ref) const {
+    const StyleDef* found = find_style(ref);
+    if (found) {
+        return base.merged_with(*found);
+    }
+    return base;
+}
+
+// ---------------------------------------------------------------------------
+// Header cell style (cascade per spec §6.5)
+// ---------------------------------------------------------------------------
+
+StyleDef StyleResolver::resolve_header_cell_style(const ColumnSpec& col,
+                                                   const StubColumn* stub) const {
+    // 1. Template default text style
+    StyleDef result = tmpl_.text_styles.default_style;
+
+    // 2. Region style: tableHeader
+    result = result.merged_with(tmpl_.text_styles.table_header);
+
+    // 3. Template header row defaults
+    if (tmpl_.table_style.header_row.has_value()) {
+        result = result.merged_with(*tmpl_.table_style.header_row);
+    }
+
+    // 4. Structural: allHeaders (non-overridable in template, but here applied early)
+    if (tmpl_.table_style.structural.all_headers.has_value()) {
+        result = result.merged_with(*tmpl_.table_style.structural.all_headers);
+    }
+
+    // 5. Column labelStyleRef
+    if (col.label_style_ref.has_value()) {
+        result = apply_style_ref(result, *col.label_style_ref);
+    }
+
+    // 6. Stub labelStyleRef
+    if (stub && stub->label_style_ref.has_value()) {
+        result = apply_style_ref(result, *stub->label_style_ref);
+    }
+
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+// Body cell style (cascade per spec §6.4 + §6.5)
+// ---------------------------------------------------------------------------
+
+StyleDef StyleResolver::resolve_body_cell_style(
+    const ColumnSpec& col,
+    const std::optional<std::string>& row_style_ref,
+    const std::optional<std::string>& merge_style_ref,
+    const std::optional<std::string>& addrow_style_ref) const
+{
+    // 1. Template default
+    StyleDef result = tmpl_.text_styles.default_style;
+
+    // 2. Region style: tableBody
+    result = result.merged_with(tmpl_.text_styles.table_body);
+
+    // 3. Template body row defaults
+    if (tmpl_.table_style.body_row.has_value()) {
+        result = result.merged_with(*tmpl_.table_style.body_row);
+    }
+
+    // 4. Structural: tableBody
+    if (tmpl_.table_style.structural.table_body.has_value()) {
+        result = result.merged_with(*tmpl_.table_style.structural.table_body);
+    }
+
+    // 5. Column valueStyleRef
+    if (col.format.value_style_ref.has_value()) {
+        result = apply_style_ref(result, *col.format.value_style_ref);
+    }
+
+    // 6. Row style action (from styleRows)
+    if (row_style_ref.has_value()) {
+        result = apply_style_ref(result, *row_style_ref);
+    }
+
+    // 7. Merge styleRef
+    if (merge_style_ref.has_value()) {
+        result = apply_style_ref(result, *merge_style_ref);
+    }
+
+    // 8. Add-row styleRef
+    if (addrow_style_ref.has_value()) {
+        result = apply_style_ref(result, *addrow_style_ref);
+    }
+
+    return result;
+}
+
+// ---------------------------------------------------------------------------
+// Content style resolvers
+// ---------------------------------------------------------------------------
+
+StyleDef StyleResolver::resolve_title_style(const std::optional<std::string>& custom_ref) const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    result = result.merged_with(tmpl_.text_styles.titles);
+    if (custom_ref.has_value()) {
+        result = apply_style_ref(result, *custom_ref);
+    }
+    return result;
+}
+
+StyleDef StyleResolver::resolve_subtitle_style(const std::optional<std::string>& custom_ref) const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    result = result.merged_with(tmpl_.text_styles.subtitles);
+    if (custom_ref.has_value()) {
+        result = apply_style_ref(result, *custom_ref);
+    }
+    return result;
+}
+
+StyleDef StyleResolver::resolve_footnote_style(const std::optional<std::string>& custom_ref) const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    result = result.merged_with(tmpl_.text_styles.footnotes);
+    if (custom_ref.has_value()) {
+        result = apply_style_ref(result, *custom_ref);
+    }
+    return result;
+}
+
+StyleDef StyleResolver::resolve_doc_header_style() const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    return result.merged_with(tmpl_.text_styles.doc_header);
+}
+
+StyleDef StyleResolver::resolve_doc_footer_style() const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    return result.merged_with(tmpl_.text_styles.doc_footer);
+}
+
+StyleDef StyleResolver::resolve_body_text_style(const std::optional<std::string>& custom_ref) const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    if (custom_ref.has_value()) {
+        result = apply_style_ref(result, *custom_ref);
+    }
+    return result;
+}
+
+}  // namespace kstfl

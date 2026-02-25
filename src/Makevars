@@ -1,0 +1,28 @@
+## ksTFL C++ renderer — Makevars for Linux/macOS
+## Dependencies: HarfBuzz, FreeType, minizip-ng (linked statically or via pkg-config)
+
+CXX_STD = CXX20
+
+## nlohmann/json is header-only; bundled in src/vendor/
+PKG_CPPFLAGS = -I../inst/include -I./vendor \
+    $(shell pkg-config --cflags harfbuzz freetype2 minizip-ng 2>/dev/null)
+
+PKG_LIBS = $(shell pkg-config --libs harfbuzz freetype2 minizip-ng 2>/dev/null) \
+    $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+
+## Source files — renderer core + Rcpp bindings
+SOURCES = init.cpp rcpp_bindings.cpp \
+    kstfl/units.cpp \
+    kstfl/xml_writer.cpp \
+    kstfl/json_parser.cpp \
+    kstfl/style_resolver.cpp \
+    kstfl/inline_parser.cpp \
+    kstfl/font_cache.cpp \
+    kstfl/text_measurer.cpp \
+    kstfl/logical_table.cpp \
+    kstfl/paginator.cpp \
+    kstfl/zip_writer.cpp \
+    kstfl/docx_emitter.cpp \
+    kstfl/renderer.cpp
+
+OBJECTS = $(SOURCES:.cpp=.o)

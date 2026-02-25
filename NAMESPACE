@@ -6,6 +6,10 @@ importFrom(purrr, map, map_chr, map_lgl, map_dbl, map_int, keep, discard)
 importFrom(rlang, call_modify, call2, env, eval_bare, enquos, enquo, quo_get_expr, quo_get_env, eval_tidy, is_call, is_symbol, caller_env, new_environment, new_data_mask, expr, enexpr, "%||%")
 importFrom(tidyselect, everything, eval_select, all_of)
 importFrom(utils, packageVersion, modifyList, capture.output)
+importFrom(Rcpp, sourceCpp)
+
+# Load compiled code
+useDynLib(ksTFL, .registration = TRUE)
 
 # Export only public functions (those marked with @export in documentation)
 export(
@@ -64,6 +68,7 @@ export(
   # Report creation and serialization
   create_report,
   save_report,
+  render_docx,
 
   # Package options functions
   tfl_get_options,

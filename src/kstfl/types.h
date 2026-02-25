@@ -1,0 +1,676 @@
+// kstfl/types.h — Core data structures for the ksTFL DOCX renderer
+// Mirrors the JSON schema structures from spec_schema_v1.json and styles_schema_v1.json
+//
+// Copyright (c) 2026 KeyStat Solutions. MIT License.
+
+#ifndef KSTFL_TYPES_H
+#define KSTFL_TYPES_H
+
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <variant>
+#include <memory>
+
+namespace kstfl {
+
+// ---------------------------------------------------------------------------
+// Forward declarations
+// ---------------------------------------------------------------------------
+struct StyleDef;
+struct ColumnSpec;
+struct StubColumn;
+
+// ---------------------------------------------------------------------------
+// Error types
+// ---------------------------------------------------------------------------
+
+/// Exception thrown by any renderer component.
+struct RenderError : public std::runtime_error {
+    using std::runtime_error::runtime_error;
+};
+
+// ---------------------------------------------------------------------------
+// Fundamental value types
+// ---------------------------------------------------------------------------
+
+/// Physical length stored internally in EMU (English Metric Units).
+/// 1 EMU = 1/914400 inch = 1/360000 cm.
+/// Twips: 1 twip = 1/20 pt = 1/1440 inch = 635 EMU.
+struct Length {
+    int64_t emu = 0;
+
+    constexpr Length() = default;
+    constexpr explicit Length(int64_t e) : emu(e) {}
+
+    /// Parse a string like "2.54cm", "1in", "72pt", "1440twip", "914400emu", "50%".
+    /// For percent, the `reference` EMU is used as the base.
+    static Length parse(const std::string& s, int64_t reference_emu = 0);
+
+    // Convenience constructors
+    static constexpr Length from_emu(int64_t e) { return Length{e}; }
+    static constexpr Length from_twips(int64_t t) { return Length{t * 635}; }
+    static constexpr Length from_pt(double p) { return Length{static_cast<int64_t>(p * 12700.0)}; }
+    static constexpr Length from_cm(double c) { return Length{static_cast<int64_t>(c * 360000.0)}; }
+    static constexpr Length from_in(double i) { return Length{static_cast<int64_t>(i * 914400.0)}; }
+
+    // Conversions
+    [[nodiscard]] constexpr int64_t to_twips() const { return emu / 635; }
+    [[nodiscard]] constexpr double to_pt() const { return static_cast<double>(emu) / 12700.0; }
+    [[nodiscard]] constexpr double to_cm() const { return static_cast<double>(emu) / 360000.0; }
+    [[nodiscard]] constexpr double to_in() const { return static_cast<double>(emu) / 914400.0; }
+    [[nodiscard]] constexpr int64_t to_emu() const { return emu; }
+
+    // Arithmetic
+    constexpr Length operator+(Length rhs) const { return Length{emu + rhs.emu}; }
+    constexpr Length operator-(Length rhs) const { return Length{emu - rhs.emu}; }
+    constexpr Length operator*(double f) const { return Length{static_cast<int64_t>(emu * f)}; }
+    constexpr Length operator/(double f) const { return Length{static_cast<int64_t>(emu / f)}; }
+    constexpr bool operator<(Length rhs) const { return emu < rhs.emu; }
+    constexpr bool operator<=(Length rhs) const { return emu <= rhs.emu; }
+    constexpr bool operator>(Length rhs) const { return emu > rhs.emu; }
+    constexpr bool operator>=(Length rhs) const { return emu >= rhs.emu; }
+    constexpr bool operator==(Length rhs) const { return emu == rhs.emu; }
+    constexpr bool operator!=(Length rhs) const { return emu != rhs.emu; }
+};
+
+/// CSS-like color stored as RRGGBB hex string (no leading #).
+struct Color {
+    std::string hex;  // "000000", "FF0000", etc.
+
+    Color() = default;
+    explicit Color(std::string h) : hex(std::move(h)) {}
+
+    /// Parse "#FF0000" or "FF0000" -> "FF0000"
+    static Color parse(const std::string& s);
+
+    [[nodiscard]] bool empty() const { return hex.empty(); }
+};
+
+// ---------------------------------------------------------------------------
+// Border types
+// ---------------------------------------------------------------------------
+
+/// Allowed border line styles (maps to w:val in OOXML <w:bdr>).
+enum class BorderLineStyle {
+    None,
+    Single,
+    Double,
+    Dashed,
+    Dotted,
+    Thick,
+    DashSmallGap,
+    DotDash,
+    DotDotDash,
+    Triple,
+    ThinThickSmallGap,
+    ThickThinSmallGap,
+    Wave
+};
+
+/// Convert BorderLineStyle to OOXML w:val string.
+const char* border_line_style_to_ooxml(BorderLineStyle s);
+
+/// A single border edge (e.g., top, bottom, left, right).
+struct Border {
+    std::optional<Color> color;
+    std::optional<Length> width;
+    std::optional<BorderLineStyle> line_style;
+
+    /// Merge: later overrides earlier, nullopt does not override.
+    Border merged_with(const Border& other) const;
+};
+
+/// Four-sided borders.
+struct Borders {
+    std::optional<Border> top;
+    std::optional<Border> bottom;
+    std::optional<Border> left;
+    std::optional<Border> right;
+
+    Borders merged_with(const Borders& other) const;
+};
+
+// ---------------------------------------------------------------------------
+// Style property groups
+// ---------------------------------------------------------------------------
+
+/// Font properties (maps to <w:rPr> in OOXML).
+struct FontProps {
+    std::optional<std::string> font_name;      // e.g. "Courier New"
+    std::optional<double> font_size;            // in pt (half-points in OOXML)
+    std::optional<bool> bold;
+    std::optional<bool> italic;
+    std::optional<bool> underline;
+    std::optional<Color> color;
+    std::optional<Color> highlight;
+
+    FontProps merged_with(const FontProps& other) const;
+};
+
+/// Text alignment values.
+enum class Alignment {
+    Left,
+    Center,
+    Right,
+    Justify
+};
+
+/// Convert Alignment to OOXML w:jc value string.
+const char* alignment_to_ooxml(Alignment a);
+
+/// Spacing properties for paragraphs.
+struct SpacingProps {
+    std::optional<Length> before;
+    std::optional<Length> after;
+    std::optional<double> line_spacing_multiplier;  // e.g. 1.0, 1.15, 1.5
+
+    SpacingProps merged_with(const SpacingProps& other) const;
+};
+
+/// Indent properties.
+struct IndentProps {
+    std::optional<Length> left;
+    std::optional<Length> right;
+    std::optional<Length> first_line;
+    std::optional<Length> hanging;
+
+    IndentProps merged_with(const IndentProps& other) const;
+};
+
+/// Paragraph properties (maps to <w:pPr> in OOXML).
+struct ParagraphProps {
+    std::optional<Alignment> alignment;
+    std::optional<SpacingProps> spacing;
+    std::optional<IndentProps> indents;
+    std::optional<bool> widow_control;
+    std::optional<bool> keep_next;
+    std::optional<bool> keep_lines;
+
+    ParagraphProps merged_with(const ParagraphProps& other) const;
+};
+
+/// Vertical alignment in table cells.
+enum class VerticalAlignment {
+    Top,
+    Center,
+    Bottom
+};
+
+/// Text orientation in table cells.
+enum class TextOrientation {
+    Horizontal,
+    BottomToTop,    // btLr
+    TopToBottom     // tbRl
+};
+
+/// Table cell properties (maps to <w:tcPr> in OOXML).
+struct TableCellProps {
+    std::optional<Color> background_color;
+    std::optional<Borders> borders;
+    std::optional<Length> cell_margin_top;
+    std::optional<Length> cell_margin_bottom;
+    std::optional<Length> cell_margin_left;
+    std::optional<Length> cell_margin_right;
+    std::optional<VerticalAlignment> vertical_alignment;
+    std::optional<TextOrientation> text_orientation;
+    std::optional<Length> row_height;
+
+    TableCellProps merged_with(const TableCellProps& other) const;
+};
+
+/// Composite style definition (font + paragraph + table cell).
+struct StyleDef {
+    std::string id;  // style identifier
+    std::optional<FontProps> font;
+    std::optional<ParagraphProps> paragraph;
+    std::optional<TableCellProps> table_style;
+
+    StyleDef merged_with(const StyleDef& other) const;
+};
+
+/// Maps style IDs to style definitions.
+using StyleMap = std::unordered_map<std::string, StyleDef>;
+
+// ---------------------------------------------------------------------------
+// Page geometry
+// ---------------------------------------------------------------------------
+
+/// Standard paper sizes.
+enum class PageSize {
+    A4,
+    A3,
+    Letter,
+    Legal,
+    Executive
+};
+
+/// Page orientation.
+enum class Orientation {
+    Portrait,
+    Landscape
+};
+
+/// Page margins including header/footer distances.
+struct PageMargins {
+    Length top;
+    Length bottom;
+    Length left;
+    Length right;
+    Length header_distance;   // distance from page edge to header content
+    Length footer_distance;   // distance from page edge to footer content
+};
+
+/// Full page configuration.
+struct PageConfig {
+    PageSize size = PageSize::A4;
+    Orientation orientation = Orientation::Landscape;
+    PageMargins margins;
+
+    /// Physical page dimensions (computed from size + orientation).
+    [[nodiscard]] Length page_width() const;
+    [[nodiscard]] Length page_height() const;
+
+    /// Usable content area.
+    [[nodiscard]] Length usable_width() const;
+    [[nodiscard]] Length usable_height() const;
+};
+
+// ---------------------------------------------------------------------------
+// Styles template (from styles_schema_v1.json)
+// ---------------------------------------------------------------------------
+
+/// Table style configuration from template.
+struct TableStyleConfig {
+    // Structural properties (non-overridable by specs)
+    struct Structural {
+        std::optional<StyleDef> all_headers;
+        std::optional<StyleDef> table_body;
+    };
+
+    // Default row styles
+    std::optional<StyleDef> header_row;
+    std::optional<StyleDef> body_row;
+
+    // Layout
+    std::optional<Borders> table_borders;
+    std::optional<Length> default_cell_margin_top;
+    std::optional<Length> default_cell_margin_bottom;
+    std::optional<Length> default_cell_margin_left;
+    std::optional<Length> default_cell_margin_right;
+
+    Structural structural;
+};
+
+/// Named text styles from template.
+struct TextStyles {
+    StyleDef default_style;
+    StyleDef doc_header;
+    StyleDef doc_footer;
+    StyleDef titles;
+    StyleDef subtitles;
+    StyleDef footnotes;
+    StyleDef table_header;
+    StyleDef table_body;
+};
+
+/// Complete styles template.
+struct StylesTemplate {
+    PageConfig page;
+    TextStyles text_styles;
+    TableStyleConfig table_style;
+    std::optional<bool> widow_control;
+};
+
+// ---------------------------------------------------------------------------
+// Column model
+// ---------------------------------------------------------------------------
+
+/// Column format specification.
+struct ColumnFormat {
+    std::optional<std::string> type;        // "character", "numeric", "integer", "date", "logical"
+    std::optional<std::string> format;      // e.g. "0.00", "%Y-%m-%d"
+    std::optional<std::string> missings;    // replacement text for NA/missing
+    std::optional<Length> col_width;         // explicit column width
+    std::optional<std::string> value_style_ref;  // styleRef for body values
+};
+
+/// Single column definition.
+struct ColumnSpec {
+    std::string id;                          // column identifier key
+    std::string label;                       // display label
+    int col_order = 0;                       // sort order
+    bool is_visible = true;
+    bool is_id = false;                      // ID column repeats on page breaks
+    bool is_grouping = false;                // triggers dynamic subtitles and group breaks
+    bool is_col_break = false;               // horizontal segment boundary
+    bool dedupe = false;                     // suppress consecutive duplicate values
+    bool is_paging = false;                  // deprecated; value change forces page break
+    ColumnFormat format;
+    std::optional<std::string> label_style_ref;   // styleRef for column label
+
+    // Resolved widths (populated by StyleResolver)
+    Length resolved_width;
+};
+
+// ---------------------------------------------------------------------------
+// Stub columns (spanning headers)
+// ---------------------------------------------------------------------------
+
+/// A spanning header entry.
+struct StubColumn {
+    std::string label;
+    int stub_order = 0;                      // descending sort order for depth
+    std::vector<std::string> cols;           // column IDs spanned
+    std::optional<std::string> label_style_ref;
+
+    // Resolved span width (populated during header grid build)
+    Length resolved_width;
+};
+
+// ---------------------------------------------------------------------------
+// Text groups (titles, subtitles, footnotes, bodyText)
+// ---------------------------------------------------------------------------
+
+/// A text group with order and styling.
+struct TextGroup {
+    std::vector<std::string> text;           // lines within the group
+    int order = 0;
+    std::optional<std::string> style_ref;
+    // Placement flags
+    bool body_placement = false;             // true = render in body area, false = header/footer section
+};
+
+// ---------------------------------------------------------------------------
+// Header / Footer rows
+// ---------------------------------------------------------------------------
+
+/// A single header or footer row (3-column layout: left, center, right).
+struct HeaderFooterRow {
+    std::string left;
+    std::string center;
+    std::string right;
+    int order = 0;
+    std::optional<std::string> style_ref;
+};
+
+// ---------------------------------------------------------------------------
+// styleRows actions (from row_style_actions_schema_v0.json)
+// ---------------------------------------------------------------------------
+
+/// Style action: apply styleRef to specific columns in a row.
+struct StyleAction {
+    std::vector<std::string> cols;
+    std::string style_ref;
+};
+
+/// Merge action: horizontally merge cells.
+struct MergeAction {
+    std::vector<std::string> cols;           // columns to merge (min 2)
+    std::optional<std::string> style_ref;    // optional override style
+};
+
+/// Add-row action: insert synthetic row above or below.
+struct AddRowAction {
+    enum class Position { Above, Below };
+    Position pos = Position::Below;
+    std::string value_from;                  // column whose value populates the synthetic row
+    std::optional<std::string> style_ref;
+};
+
+/// Page-break action: force page break before this row.
+struct PageBreakAction {};
+
+/// Complete set of actions for a single data row.
+struct RowActionSet {
+    std::vector<StyleAction> styles;
+    std::vector<MergeAction> merges;
+    std::vector<AddRowAction> add_rows;
+    std::vector<PageBreakAction> page_breaks;
+
+    [[nodiscard]] bool empty() const {
+        return styles.empty() && merges.empty() && add_rows.empty() && page_breaks.empty();
+    }
+};
+
+// ---------------------------------------------------------------------------
+// Data table (column-oriented)
+// ---------------------------------------------------------------------------
+
+/// Column-oriented data table loaded from data JSON.
+struct DataTable {
+    std::vector<std::string> col_names;
+    /// Each column is a vector of string values (pre-formatted).
+    std::unordered_map<std::string, std::vector<std::string>> columns;
+    size_t n_rows = 0;
+
+    [[nodiscard]] const std::vector<std::string>& col(const std::string& name) const;
+};
+
+// ---------------------------------------------------------------------------
+// Document information (from spec JSON `document` section)
+// ---------------------------------------------------------------------------
+
+/// Document type enum.
+enum class DocType {
+    Table,
+    Figure,
+    Text
+};
+
+/// Document info from spec JSON.
+struct DocumentInfo {
+    DocType doc_type = DocType::Table;
+    bool has_data = true;
+    std::string doc_prefix;                  // e.g. "Table"
+    std::string glue_prefix;                 // e.g. ": "
+    std::string glue_num_type;               // e.g. "14.2"
+    int doc_order = 0;
+    std::optional<double> content_width;     // percent of usable width (0.0–1.0 or 0–100)
+    bool body_titles = false;
+    bool body_subtitles = false;
+    bool body_footnotes = false;
+};
+
+// ---------------------------------------------------------------------------
+// Single TFL specification
+// ---------------------------------------------------------------------------
+
+/// A complete parsed TFL specification.
+struct TFLSpec {
+    std::string key;                         // spec key (e.g. "spec1_abc123def456")
+    DocumentInfo document;
+
+    // Attributes
+    PageConfig page_override;                // overrides from attribs.documentStyle.page
+    bool has_page_override = false;
+    StyleMap spec_styles;                    // per-spec style definitions
+
+    // Content sections
+    std::vector<HeaderFooterRow> headers;
+    std::vector<HeaderFooterRow> footers;
+
+    // Table structure
+    std::vector<StubColumn> stub_columns;
+    std::vector<ColumnSpec> columns;         // ordered by colOrder, filtered by isVisible
+    std::vector<RowActionSet> style_rows;    // one per data row (parsed JSON strings)
+
+    // Text
+    std::vector<TextGroup> titles;
+    std::vector<TextGroup> subtitles;
+    std::vector<TextGroup> footnotes;
+    std::vector<TextGroup> body_text;
+
+    // Data reference
+    std::string data_ref;                    // links to data JSON file
+    std::string figure_path;                 // for Figure docType: path to image file
+};
+
+// ---------------------------------------------------------------------------
+// Top-level document (entire report)
+// ---------------------------------------------------------------------------
+
+/// Metadata from spec JSON `_metadata` section.
+struct ReportMetadata {
+    std::string out_dir;
+    std::string doc_file_name;
+    std::string datetime;
+};
+
+/// A complete parsed TFL document (N specs from a single spec JSON).
+struct TFLDocument {
+    ReportMetadata metadata;
+    std::vector<TFLSpec> specs;              // ordered by docOrder
+};
+
+// ---------------------------------------------------------------------------
+// Renderer configuration
+// ---------------------------------------------------------------------------
+
+/// Runtime configuration for the renderer.
+struct RendererConfig {
+    /// If true, data values are already formatted strings; no numeric formatting needed.
+    bool data_values_preformatted = true;
+
+    /// Additional font search directories.
+    std::vector<std::string> font_dirs;
+
+    /// Path to embedded fallback font (Liberation Sans).
+    std::string fallback_font_path;
+
+    /// Use field codes (PAGE/NUMPAGES) for page numbering vs literal text.
+    bool use_field_codes = true;
+
+    /// Enable debug output / logging.
+    bool verbose = false;
+};
+
+// ---------------------------------------------------------------------------
+// Logical row model (output of LogicalTableBuilder)
+// ---------------------------------------------------------------------------
+
+/// Classification of a row in the final stream.
+enum class LogicalRowType {
+    DataRow,       // original data row
+    SyntheticRow,  // inserted by add_row action
+    GroupBreak     // marks a grouping boundary (not rendered directly)
+};
+
+/// A single cell in the logical row.
+struct LogicalCell {
+    std::string text;                        // display text
+    std::string col_id;                      // which column this cell belongs to
+    bool is_merged = false;                  // part of a horizontal merge
+    bool is_merge_leader = false;            // first cell in a merge group
+    int merge_span = 1;                      // number of columns spanned (1 = no merge)
+    Length merged_width;                      // combined width if merge_leader
+    std::optional<std::string> style_ref;    // cell-level style override
+};
+
+/// A row in the logical row stream (after styleRows processing).
+struct LogicalRow {
+    LogicalRowType type = LogicalRowType::DataRow;
+    size_t source_index = 0;                 // original data row index (or parent index if synthetic)
+    std::vector<LogicalCell> cells;
+    std::optional<std::string> row_style_ref;
+    bool force_page_break = false;           // explicit page break before this row
+    bool is_group_boundary = false;          // grouping value changed
+    std::unordered_map<std::string, std::string> group_values; // current grouping col values
+
+    // Measured height (populated by TextMeasurer)
+    Length measured_height;
+};
+
+// ---------------------------------------------------------------------------
+// Header grid (table header rows including stub columns)
+// ---------------------------------------------------------------------------
+
+/// A cell in the header grid.
+struct HeaderGridCell {
+    std::string label;
+    int col_span = 1;
+    int row_span = 1;
+    Length width;
+    std::optional<std::string> style_ref;
+};
+
+/// The complete header grid (one or more rows).
+struct HeaderGrid {
+    std::vector<std::vector<HeaderGridCell>> rows;
+    Length total_height;  // measured total header height
+};
+
+// ---------------------------------------------------------------------------
+// Pagination result
+// ---------------------------------------------------------------------------
+
+/// A single page in the paginated output.
+struct PageSlice {
+    size_t page_number = 0;                  // 1-based
+    size_t first_row = 0;                    // index into logical row stream
+    size_t last_row = 0;                     // index into logical row stream (inclusive)
+    bool is_first_page = true;
+    bool is_last_page = true;
+
+    // What content appears on this page
+    bool has_titles = true;
+    bool has_subtitles = true;
+    std::vector<std::string> dynamic_subtitle_values;  // resolved #ByGroupX values
+
+    // Heights reserved
+    Length header_section_height;
+    Length titles_height;
+    Length subtitles_height;
+    Length table_header_height;
+    Length body_height;
+    Length footnotes_height;
+    Length footer_section_height;
+};
+
+/// A horizontal segment (from isColBreak).
+struct HorizontalSegment {
+    size_t segment_index = 0;
+    std::vector<size_t> column_indices;      // indices into TFLSpec::columns
+    std::vector<PageSlice> pages;
+};
+
+/// Complete pagination result for one spec.
+struct PaginationResult {
+    std::vector<HorizontalSegment> segments;
+    size_t total_pages = 0;
+};
+
+// ---------------------------------------------------------------------------
+// Inline markup model
+// ---------------------------------------------------------------------------
+
+/// Run-level style overrides from inline markup.
+struct InlineRunStyle {
+    bool bold_override = false;
+    bool italic_override = false;
+    bool underline_override = false;
+    bool superscript = false;
+    bool subscript = false;
+};
+
+/// A single run of text with uniform styling.
+struct TextRun {
+    std::string text;
+    InlineRunStyle style;
+};
+
+/// A paragraph (sequence of runs).
+struct ParsedParagraph {
+    std::vector<TextRun> runs;
+};
+
+/// A parsed cell (sequence of paragraphs).
+struct ParsedCell {
+    std::vector<ParsedParagraph> paragraphs;
+};
+
+}  // namespace kstfl
+
+#endif  // KSTFL_TYPES_H
