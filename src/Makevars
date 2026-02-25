@@ -5,13 +5,13 @@ CXX_STD = CXX20
 
 ## nlohmann/json is header-only; bundled in src/vendor/
 PKG_CPPFLAGS = -I../inst/include -I./vendor \
-    $(shell pkg-config --cflags harfbuzz freetype2 minizip-ng 2>/dev/null)
+    $(shell pkg-config --cflags harfbuzz freetype2 minizip 2>/dev/null)
 
-PKG_LIBS = $(shell pkg-config --libs harfbuzz freetype2 minizip-ng 2>/dev/null) \
+PKG_LIBS = $(shell pkg-config --libs harfbuzz freetype2 minizip 2>/dev/null) \
     $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 ## Source files — renderer core + Rcpp bindings
-SOURCES = init.cpp rcpp_bindings.cpp \
+SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp \
     kstfl/units.cpp \
     kstfl/xml_writer.cpp \
     kstfl/json_parser.cpp \

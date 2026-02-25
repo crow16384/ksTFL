@@ -105,13 +105,11 @@ void Renderer::render_from_strings(const std::string& spec_json,
         std::cerr << "[ksTFL] Phase 1: Parsing JSON inputs...\n";
     }
 
-    JsonParser parser;
-
     // Parse template
-    StylesTemplate tmpl = parser.parse_template(template_json);
+    StylesTemplate tmpl = parse_template_json_string(template_json);
 
     // Parse spec document
-    TFLDocument doc = parser.parse_spec(spec_json);
+    TFLDocument doc = parse_spec_json_string(spec_json);
 
     // Load data JSON files
     std::unordered_map<std::string, DataTable> data_tables;
@@ -119,17 +117,20 @@ void Renderer::render_from_strings(const std::string& spec_json,
         if (spec.data_ref.empty()) continue;
         if (data_tables.count(spec.data_ref)) continue;  // already loaded
 
-        // Resolve data file path
+        // Resolve data file path — try bare name first, then with .json suffix
         std::string data_path;
         if (!data_dir.empty()) {
             data_path = data_dir + "/" + spec.data_ref;
         } else {
             data_path = spec.data_ref;
         }
+        if (!fs::exists(data_path) && fs::exists(data_path + ".json")) {
+            data_path += ".json";
+        }
 
         if (fs::exists(data_path)) {
             std::string data_json = read_file_to_string(data_path);
-            data_tables[spec.data_ref] = parser.parse_data(data_json);
+            data_tables[spec.data_ref] = parse_data_json_string(data_json);
             if (config_.verbose) {
                 std::cerr << "[ksTFL]   Loaded data: " << spec.data_ref
                           << " (" << data_tables[spec.data_ref].n_rows << " rows)\n";
@@ -182,14 +183,28 @@ void Renderer::render_from_strings(const std::string& spec_json,
         }
 
         // --- Phase 3a: Resolve styles and page config (spec §22.2) ---
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Phase 3a: Resolving styles...\n";
+        }
         StyleResolver resolver(tmpl, spec.spec_styles);
 
         PageConfig page_config = resolver.resolve_page_config(spec);
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Page config resolved, usable_width="
+                      << page_config.usable_width().emu << " emu\n";
+        }
         Length usable_width = page_config.usable_width();
         Length table_width = resolver.resolve_table_width(spec, usable_width);
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Table width=" << table_width.emu
+                      << " emu, columns=" << spec.columns.size() << "\n";
+        }
 
         // Resolve column widths
         resolver.resolve_column_widths(spec.columns, table_width);
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Column widths resolved\n";
+        }
 
         if (spec.document.doc_type != DocType::Table || !spec.document.has_data) {
             // No table to paginate (Text or Figure)
@@ -200,6 +215,10 @@ void Renderer::render_from_strings(const std::string& spec_json,
         }
 
         // --- Phase 3b: Build logical table (spec §22.3) ---
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Phase 3b: Building logical table...\n";
+            std::cerr << "[ksTFL]     data_ref='" << spec.data_ref << "'\n";
+        }
         DataTable* data = nullptr;
         auto dt_it = data_tables.find(spec.data_ref);
         if (dt_it != data_tables.end()) {
@@ -213,11 +232,23 @@ void Renderer::render_from_strings(const std::string& spec_json,
             continue;
         }
 
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Data loaded: " << data->n_rows << " rows, "
+                      << data->columns.size() << " data columns\n";
+            std::cerr << "[ksTFL]   Calling LogicalTableBuilder::build...\n";
+        }
         auto table_result = LogicalTableBuilder::build(spec, *data);
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Logical table built: " << table_result.rows.size()
+                      << " rows, " << table_result.header_grid.rows.size() << " header rows\n";
+        }
         auto& rows = table_result.rows;
         auto& header_grid = table_result.header_grid;
 
         // --- Phase 3c: Measure (spec §22.4) ---
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Phase 3c: Measuring...\n";
+        }
 
         // Measure header grid cells
         Length total_header_height{0};
@@ -269,6 +300,9 @@ void Renderer::render_from_strings(const std::string& spec_json,
         }
 
         // --- Phase 3d: Paginate (spec §22.5) ---
+        if (config_.verbose) {
+            std::cerr << "[ksTFL]   Phase 3d: Paginating...\n";
+        }
         PaginationResult pagination = Paginator::paginate(
             spec, rows, header_grid, page_config, table_width,
             measurer, resolver);

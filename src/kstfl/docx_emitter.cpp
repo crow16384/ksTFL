@@ -49,30 +49,36 @@ std::string DocxEmitter::emit_content_types(const TFLDocument& doc) const {
     w.attribute("xmlns", CT_NS);
 
     // Default content types
-    w.self_closing_element("Default");
+    w.start_element("Default");
     w.attribute("Extension", "rels");
     w.attribute("ContentType", "application/vnd.openxmlformats-package.relationships+xml");
+    w.end_element();
 
-    w.self_closing_element("Default");
+    w.start_element("Default");
     w.attribute("Extension", "xml");
     w.attribute("ContentType", "application/xml");
+    w.end_element();
 
     // Part overrides
-    w.self_closing_element("Override");
+    w.start_element("Override");
     w.attribute("PartName", "/word/document.xml");
     w.attribute("ContentType", "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml");
+    w.end_element();
 
-    w.self_closing_element("Override");
+    w.start_element("Override");
     w.attribute("PartName", "/word/styles.xml");
     w.attribute("ContentType", "application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml");
+    w.end_element();
 
-    w.self_closing_element("Override");
+    w.start_element("Override");
     w.attribute("PartName", "/word/settings.xml");
     w.attribute("ContentType", "application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml");
+    w.end_element();
 
-    w.self_closing_element("Override");
+    w.start_element("Override");
     w.attribute("PartName", "/word/fontTable.xml");
     w.attribute("ContentType", "application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml");
+    w.end_element();
 
     // Add image content types for figure specs
     bool has_png = false, has_jpg = false, has_svg = false;
@@ -85,19 +91,22 @@ std::string DocxEmitter::emit_content_types(const TFLDocument& doc) const {
         }
     }
     if (has_png) {
-        w.self_closing_element("Default");
+        w.start_element("Default");
         w.attribute("Extension", "png");
         w.attribute("ContentType", "image/png");
+        w.end_element();
     }
     if (has_jpg) {
-        w.self_closing_element("Default");
+        w.start_element("Default");
         w.attribute("Extension", "jpeg");
         w.attribute("ContentType", "image/jpeg");
+        w.end_element();
     }
     if (has_svg) {
-        w.self_closing_element("Default");
+        w.start_element("Default");
         w.attribute("Extension", "svg");
         w.attribute("ContentType", "image/svg+xml");
+        w.end_element();
     }
 
     w.end_element();  // Types
@@ -114,10 +123,11 @@ std::string DocxEmitter::emit_rels() const {
     w.start_element("Relationships");
     w.attribute("xmlns", RELS_NS);
 
-    w.self_closing_element("Relationship");
+    w.start_element("Relationship");
     w.attribute("Id", "rId1");
     w.attribute("Type", RT_DOCUMENT);
     w.attribute("Target", "word/document.xml");
+    w.end_element();
 
     w.end_element();
     return w.str();
@@ -133,26 +143,29 @@ std::string DocxEmitter::emit_document_rels(const TFLDocument& doc) const {
     w.start_element("Relationships");
     w.attribute("xmlns", RELS_NS);
 
-    w.self_closing_element("Relationship");
+    w.start_element("Relationship");
     w.attribute("Id", "rId1");
     w.attribute("Type", RT_STYLES);
     w.attribute("Target", "styles.xml");
+    w.end_element();
 
-    w.self_closing_element("Relationship");
+    w.start_element("Relationship");
     w.attribute("Id", "rId2");
     w.attribute("Type", RT_SETTINGS);
     w.attribute("Target", "settings.xml");
+    w.end_element();
 
-    w.self_closing_element("Relationship");
+    w.start_element("Relationship");
     w.attribute("Id", "rId3");
     w.attribute("Type", RT_FONT_TABLE);
     w.attribute("Target", "fontTable.xml");
+    w.end_element();
 
     // Add image relationships for figure specs
     int rid = 4;
     for (const auto& spec : doc.specs) {
         if (spec.document.doc_type == DocType::Figure) {
-            w.self_closing_element("Relationship");
+            w.start_element("Relationship");
             w.attribute("Id", "rId" + std::to_string(rid));
             w.attribute("Type", RT_IMAGE);
             // Image will be at word/media/imageN.ext
@@ -160,6 +173,7 @@ std::string DocxEmitter::emit_document_rels(const TFLDocument& doc) const {
             size_t dot = spec.figure_path.rfind('.');
             if (dot != std::string::npos) ext = spec.figure_path.substr(dot + 1);
             w.attribute("Target", "media/image" + std::to_string(rid) + "." + ext);
+            w.end_element();
             rid++;
         }
     }
@@ -538,8 +552,7 @@ void DocxEmitter::emit_paragraph(XmlWriter& w,
                                   const std::string& text,
                                   const StyleDef& style) const {
     // Parse inline markup first
-    InlineParser parser;
-    ParsedCell parsed = parser.parse(text);
+    ParsedCell parsed = parse_inline_markup(text);
 
     if (parsed.paragraphs.empty()) {
         // Empty paragraph

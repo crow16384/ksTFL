@@ -443,8 +443,7 @@ static std::vector<ColumnSpec> parse_columns(const json& j) {
             cs.format.type = get_opt_str(fmt, "type");
             cs.format.format = get_opt_str(fmt, "format");
             cs.format.missings = get_opt_str(fmt, "missings");
-            auto cw = get_opt_str(fmt, "colWidth");
-            if (cw.has_value()) cs.format.col_width = Length::parse(*cw);
+            cs.format.col_width_raw = get_opt_str(fmt, "colWidth");
             auto vsr = get_str_array(fmt, "valueStyleRef");
             if (!vsr.empty()) cs.format.value_style_ref = vsr[0];
         }

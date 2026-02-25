@@ -8,6 +8,7 @@
 #include "inline_parser.h"
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 
 namespace kstfl {
 
@@ -98,8 +99,6 @@ std::vector<Length> Paginator::compute_row_heights(
     const StyleResolver& resolver) {
 
     std::vector<Length> heights(rows.size());
-
-    InlineParser parser;
 
     for (size_t ri = 0; ri < rows.size(); ++ri) {
         const auto& row = rows[ri];
@@ -214,10 +213,6 @@ PaginationResult Paginator::paginate(
 
     // 2. Compute row heights once (across all columns)
     auto row_heights = compute_row_heights(rows, spec.columns, measurer, resolver);
-
-    // Store measured heights back
-    // (In a const-correct design we'd pass heights separately, but for convenience
-    //  the LogicalRow::measured_height should already be set. We'll use our computed vector.)
 
     // 3. Compute static block heights
 

@@ -256,8 +256,7 @@ MeasuredText TextMeasurer::measure_plain(const std::string& text,
     }
 
     // Quick path: parse inline, then measure
-    InlineParser parser;
-    ParsedCell parsed = parser.parse(text);
+    ParsedCell parsed = parse_inline_markup(text);
     return measure_cell(parsed, style, max_width);
 }
 

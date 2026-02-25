@@ -38,15 +38,34 @@
 - compute_cols(spec, cond, ...): captures condition + actions as quosures
 - c_style(cols, styleRef): apply style to columns
 - c_merge(cols, styleRef): merge adjacent columns
-- c_addrow(pos, value_from, styleRef): insert row above/below
+- c_addrow(pos, value_from = NULL, styleRef = NULL): insert row above/below
 - c_pageBreak(): insert page break
 
-## Report Assembly
+## Report Assembly & Rendering
 - create_report(...): combine specs/reports, 6-phase pipeline
-- save_report(report, docFileName, outDir, metaPath, prettify): serialize to JSON + data files
+- save_report(report, docFileName, outDir = NULL, metaPath = NULL, prettify = FALSE): serialize to JSON + data files. Returns list(spec_file, datetime, metaPath)
+- render_docx(spec_json, template_json = NULL, output_path, font_dirs = NULL, fallback_font = NULL, verbose = FALSE): C++ renderer → .docx
 
 ## Package Options
 - tfl_get_options(): all options
 - tfl_get_option(name): single option
-- tfl_set_options(...): update options
+- tfl_set_options(...): update options (REPLACES previous headers/footers, not accumulate)
 - tfl_reset_options(): restore defaults
+
+## Typical Full Pipeline
+```r
+spec <- create_table(mtcars) |> add_title("Title")
+report <- create_report(spec)
+saved <- save_report(report, "output.docx")
+render_docx(
+  spec_json = file.path(saved$metaPath, saved$spec_file),
+  output_path = "output/result.docx"
+)
+```
+
+## NAMESPACE Registrations
+- useDynLib(ksTFL, .registration = TRUE) — loads compiled C++ code
+- importFrom(Rcpp, sourceCpp)
+- S3methods: add_style, add_body_text, add_header, add_footer (TFL_spec, TFL_options, default)
+- S3methods: set_page_style (TFL_spec, TFL_options)
+- S3method: c.tfl_style_combine, print.TFL_spec

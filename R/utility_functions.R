@@ -271,7 +271,10 @@ utils::globalVariables(
   # longest line width (handles manual \n)
   max_line_width <- function(x) {
     lines <- strsplit(x, "\n", fixed = TRUE)
-    max(vapply(lines, function(l) max(text_width(l)), integer(1)))
+    max(vapply(lines, function(l) {
+      w <- text_width(l)
+      if (length(w) == 0L) 0L else max(w)
+    }, integer(1)))
   }
 
   # ---- main loop (column-wise, cache-friendly) ----

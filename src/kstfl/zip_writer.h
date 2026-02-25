@@ -1,12 +1,14 @@
 // kstfl/zip_writer.h — ZIP file packaging for DOCX output
 //
-// Uses minizip-ng for ZIP creation.
+// Uses classic minizip (from zlib) for ZIP creation.
 //
 // Copyright (c) 2026 KeyStat Solutions. MIT License.
 
 #ifndef KSTFL_ZIP_WRITER_H
 #define KSTFL_ZIP_WRITER_H
 
+#include <minizip/zip.h>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -39,7 +41,7 @@ public:
     void close();
 
 private:
-    void* zip_handle_ = nullptr;
+    zipFile zip_handle_ = nullptr;
     bool closed_ = false;
 };
 

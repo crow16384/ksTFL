@@ -333,7 +333,7 @@ struct ColumnFormat {
     std::optional<std::string> type;        // "character", "numeric", "integer", "date", "logical"
     std::optional<std::string> format;      // e.g. "0.00", "%Y-%m-%d"
     std::optional<std::string> missings;    // replacement text for NA/missing
-    std::optional<Length> col_width;         // explicit column width
+    std::optional<std::string> col_width_raw;    // raw width string (e.g. "15%", "2in") — resolved later
     std::optional<std::string> value_style_ref;  // styleRef for body values
 };
 

@@ -64,13 +64,11 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
     size_t unspecified_count = 0;
 
     for (auto& col : columns) {
-        if (col.format.col_width.has_value()) {
-            const auto& cw = *col.format.col_width;
-            // If stored as percent, resolve against table_width
-            // col_width was already parsed by Length::parse with reference in json_parser
-            // Here we just use the EMU value directly
-            col.resolved_width = cw;
-            total_specified += cw.emu;
+        if (col.format.col_width_raw.has_value()) {
+            // Parse the raw width string now, using table_width as percent reference
+            col.resolved_width = Length::parse(*col.format.col_width_raw,
+                                               table_width.emu);
+            total_specified += col.resolved_width.emu;
         } else {
             unspecified_count++;
         }
@@ -85,7 +83,7 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
         int64_t leftover = remaining - per_col * static_cast<int64_t>(unspecified_count);
         bool first = true;
         for (auto& col : columns) {
-            if (!col.format.col_width.has_value()) {
+            if (!col.format.col_width_raw.has_value()) {
                 col.resolved_width = Length{per_col + (first ? leftover : 0)};
                 first = false;
             }

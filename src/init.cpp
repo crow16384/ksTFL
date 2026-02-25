@@ -4,9 +4,6 @@
 //
 // Copyright (c) 2026 KeyStat Solutions. MIT License.
 
-#include <R.h>
-#include <Rinternals.h>
-#include <R_ext/Rdynload.h>
 #include <Rcpp.h>
 
 // Forward declarations for Rcpp exports
@@ -21,5 +18,5 @@ static const R_CallMethodDef CallEntries[] = {
 
 RcppExport void R_init_ksTFL(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynLib(dll, .registration = TRUE);
+    R_useDynamicSymbols(dll, FALSE);
 }

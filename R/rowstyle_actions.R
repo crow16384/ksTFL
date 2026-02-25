@@ -629,12 +629,24 @@ c_pageBreak <- function() {
 #' @keywords internal
 #' @noRd
 .parse_action_addrow <- function(action_call, action_env, spec, data, report_cols) {
-  # Extract arguments from the call object
+  # Extract arguments from the call object (named list)
   args <- rlang::call_args(action_call)
-  pos <- eval(args[[1]], envir = action_env)
-  value_from_expr <- if (length(args) >= 2) args[[2]] else NULL
-  styleRef <- if (length(args) > 2 && !is.null(args[[3]])) {
-    eval(args[[3]], envir = action_env)
+
+  # Match arguments to c_addrow(pos, value_from = NULL, styleRef = NULL)
+  # Use match.call to properly resolve positional + named args
+  matched <- match.call(
+    definition = c_addrow,
+    call = action_call,
+    expand.dots = FALSE
+  )
+  matched_args <- as.list(matched)[-1L]  # drop function name
+
+  pos <- eval(matched_args[["pos"]], envir = action_env)
+
+  value_from_expr <- matched_args[["value_from"]]
+
+  styleRef <- if (!is.null(matched_args[["styleRef"]])) {
+    eval(matched_args[["styleRef"]], envir = action_env)
   } else {
     NULL
   }
