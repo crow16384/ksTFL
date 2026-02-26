@@ -142,6 +142,34 @@ void Renderer::render_from_strings(const std::string& spec_json,
         }
     }
 
+    // Resolve figure file paths for Figure specs (data_ref -> <data_dir>/<data_ref>.<ext>)
+    for (auto& spec : doc.specs) {
+        if (spec.document.doc_type != DocType::Figure) continue;
+        if (spec.data_ref.empty()) continue;
+
+        const std::vector<std::string> img_exts = {"png", "jpg", "jpeg", "svg"};
+        for (const auto& ext : img_exts) {
+            std::string candidate;
+            if (!data_dir.empty()) {
+                candidate = data_dir + "/" + spec.data_ref + "." + ext;
+            } else {
+                candidate = spec.data_ref + "." + ext;
+            }
+            if (fs::exists(candidate)) {
+                spec.figure_path = candidate;
+                if (config_.verbose) {
+                    std::cerr << "[ksTFL]   Loaded figure: " << spec.data_ref
+                              << " -> " << candidate << "\n";
+                }
+                break;
+            }
+        }
+        if (spec.figure_path.empty() && config_.verbose) {
+            std::cerr << "[ksTFL]   WARNING: Figure file not found for dataRef: "
+                      << spec.data_ref << "\n";
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Phase 2: Initialize font cache + text measurer (spec §22.4)
     // -----------------------------------------------------------------------

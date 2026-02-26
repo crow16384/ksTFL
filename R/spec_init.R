@@ -578,27 +578,158 @@ create_table <- function(data = NULL, cols = everything(), docPrefix = NULL) {
 }
 
 
+#' Internal: Save a ggplot2 Object to a Temporary Image File
+#'
+#' Renders a ggplot2 object to a temporary file using `ggplot2::ggsave()`.
+#' The temporary file persists for the duration of the R session and is stored
+#' in `tempdir()`. Called automatically by `create_figure()` when a ggplot2
+#' object is passed.
+#'
+#' @param plot A ggplot2 object (class `"gg"` or `"ggplot"`).
+#' @param width Numeric. Plot width in inches. Default: `6`.
+#' @param height Numeric. Plot height in inches. Default: `4`.
+#' @param dpi Integer. Resolution in dots per inch. Default: `300`.
+#' @param device Character. Output device. One of `"png"` (default),
+#'   `"jpeg"`, `"svg"`. Must be supported by the C++ renderer.
+#'
+#' @return Character string — absolute path to the created temporary file.
+#'
+#' @keywords internal
+#' @noRd
+.save_ggplot_to_temp <- function(plot, width = 6, height = 4, dpi = 300L, device = "png") {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    cli_abort(c(
+      "Package {.pkg ggplot2} is required to use ggplot2 objects with {.fn create_figure}.",
+      i = "Install it with: {.code install.packages('ggplot2')}"
+    ))
+  }
+
+  checkmate::assert_number(width,  lower = 0.01, .var.name = "width")
+  checkmate::assert_number(height, lower = 0.01, .var.name = "height")
+  checkmate::assert_integerish(dpi, lower = 1L,  .var.name = "dpi")
+  checkmate::assert_choice(device, c("png", "jpeg", "jpg", "svg"), .var.name = "device")
+
+  # Normalise device alias
+  ext <- switch(device,
+    "jpg"  = "jpeg",
+    device
+  )
+
+  tmp_path <- tempfile(pattern = "ksTFL_ggplot_", fileext = paste0(".", ext))
+
+  ggplot2::ggsave(
+    filename = tmp_path,
+    plot     = plot,
+    width    = width,
+    height   = height,
+    dpi      = as.integer(dpi),
+    device   = ext
+  )
+
+  normalizePath(tmp_path, winslash = "/", mustWork = FALSE)
+}
+
+
 #' Create a Figure Specification
 #'
-#' Create and initialize a TFL specification for embedding a figure file. The
-#' `filepath` parameter must be a single character path to a readable file. This
-#' wrapper renames the `data` parameter from the internal initializer to
-#' `filepath` for clarity.
+#' Create and initialize a TFL specification for embedding a figure. Accepts
+#' either a **file path** to an existing image or a **ggplot2 object** that is
+#' rendered automatically to a temporary PNG file.
 #'
-#' @param filepath Character path to the figure file (required).
-#' @param docPrefix Optional character prefix for the document title.
+#' @param plot_or_path One of:
+#'   \itemize{
+#'     \item A **character string** — path to an existing, readable image file
+#'       (`.png`, `.jpeg`/`.jpg`, or `.svg`).
+#'     \item A **ggplot2 object** (class `"gg"` or `"ggplot"`) — the plot is
+#'       rendered to a temporary file via `ggplot2::ggsave()`. Use `width`,
+#'       `height`, `dpi`, and `device` to control output dimensions.
+#'   }
+#' @param docPrefix Optional character string prefix for the document title
+#'   (e.g., `"Figure 1.1"`).
+#' @param width Numeric. Plot width in inches when `plot_or_path` is a ggplot2
+#'   object. Ignored for file paths. Default: `6`.
+#' @param height Numeric. Plot height in inches when `plot_or_path` is a
+#'   ggplot2 object. Ignored for file paths. Default: `4`.
+#' @param dpi Integer. Resolution (dots per inch) when `plot_or_path` is a
+#'   ggplot2 object. Ignored for file paths. Default: `300`.
+#' @param device Character. Output format when `plot_or_path` is a ggplot2
+#'   object. One of `"png"` (default), `"jpeg"`, `"jpg"`, `"svg"`.
+#'   Ignored for file paths.
 #'
-#' @return A `TFL_spec` object with `docType = "Figure"` and `dataRef` set
-#'   to the provided file path.
+#' @return A `TFL_spec` object with `docType = "Figure"`.
+#'
+#' @details
+#' When a ggplot2 object is passed:
+#' \enumerate{
+#'   \item The plot is rendered via `ggplot2::ggsave()` to a temporary file in
+#'     `tempdir()`.
+#'   \item The temporary file path is stored in `spec$.metadata$filePath`.
+#'   \item `save_report()` copies the file (prefixed with `dataRef`) into
+#'     `metaPath`, where the C++ renderer reads it.
+#'   \item The temporary file persists for the duration of the R session.
+#' }
+#'
+#' The C++ renderer natively supports `.png`, `.jpeg`/`.jpg`, and `.svg`
+#' formats.
 #'
 #' @export
 #' @examples
 #' \dontrun{
-#' ## Create a figure spec from a local PNG
+#' ## From file path (existing behaviour)
 #' spec <- create_figure("inst/images/example.png")
+#'
+#' ## From a ggplot2 object
+#' library(ggplot2)
+#' p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
+#' spec <- create_figure(p)
+#'
+#' ## Control output dimensions
+#' spec <- create_figure(p, width = 8, height = 5, dpi = 150)
+#'
+#' ## Use JPEG output
+#' spec <- create_figure(p, device = "jpeg", width = 7, height = 4.5)
+#'
+#' ## Full pipeline
+#' spec <- create_figure(p, width = 6, height = 4) |>
+#'   add_title("Weight vs MPG") |>
+#'   add_footnote("Source: Motor Trend, 1974.")
+#' report <- create_report(spec)
+#' saved  <- save_report(report, docFileName = "fig01.docx")
+#' render_docx(
+#'   spec_json   = file.path(saved$metaPath, saved$spec_file),
+#'   output_path = "output/fig01.docx"
+#' )
 #' }
 #'
+create_figure <- function(plot_or_path, docPrefix = NULL,
+                           width = 6, height = 4, dpi = 300L, device = "png") {
 
-create_figure <- function(filepath, docPrefix = NULL) {
-  .tfl_init(data = filepath, cols = everything(), docPrefix = docPrefix, docType = "Figure")
+  # Branch 1: ggplot2 object — render to temporary file
+  if (inherits(plot_or_path, c("gg", "ggplot"))) {
+    plot_or_path <- .save_ggplot_to_temp(
+      plot   = plot_or_path,
+      width  = width,
+      height = height,
+      dpi    = dpi,
+      device = device
+    )
+
+  # Branch 2: character file path — pass through as-is
+  } else if (is.character(plot_or_path) && length(plot_or_path) == 1L) {
+    # Nothing to do — .tfl_init() validates readability below
+
+  # Branch 3: unsupported type
+  } else {
+    cli_abort(c(
+      "{.fn create_figure} requires a file path string or a ggplot2 object:",
+      x = "Received object of class {.cls {class(plot_or_path)}}",
+      i = "Pass a readable file path (e.g., {.code \"path/to/figure.png\"})",
+      i = "or a ggplot2 plot object (e.g., {.code ggplot(...) + geom_point()})"
+    ))
+  }
+
+  spec <- .tfl_init(data = plot_or_path, cols = everything(), docPrefix = docPrefix, docType = "Figure")
+  spec$document$figureWidthIn  <- as.numeric(width)
+  spec$document$figureHeightIn <- as.numeric(height)
+  spec
 }

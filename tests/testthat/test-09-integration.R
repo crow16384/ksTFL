@@ -43,7 +43,7 @@ test_that("Multi-spec report with different document types", {
   text_spec <- add_title(text_spec, "Analysis Notes")
   text_spec <- add_body_text(text_spec, "Additional context and notes...")
   
-  figure_spec <- create_figure(filepath = test_image_path)
+  figure_spec <- create_figure(test_image_path)
   
   report <- create_report(table_spec, text_spec, figure_spec)
   

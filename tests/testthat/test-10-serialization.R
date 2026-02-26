@@ -77,7 +77,7 @@ test_that("serialize_spec() with empty text spec", {
 test_that("serialize_spec() handles multiple specs in report", {
   spec1 <- create_table(test_df)
   spec2 <- create_text()
-  spec3 <- create_figure(filepath = test_image_path)
+  spec3 <- create_figure(test_image_path)
   
   report <- create_report(spec1, spec2, spec3)
   result <- serialize_spec(report)

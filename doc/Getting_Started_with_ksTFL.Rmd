@@ -134,16 +134,24 @@ spec_tbl <- create_table(mtcars, cols = c(mpg, cyl), docPrefix = "t01s01")
 ### Figure spec (from image file)
 
 ```{r create_figure_spec, eval = FALSE}
-spec_fig <- create_figure(data = "path/to/plot.png")
+# From a file path (PNG, JPEG, SVG — any tool: R base, Python, Inkscape, etc.)
+spec_fig <- create_figure("path/to/plot.png")
 
 # Optional: with prefix
-spec_fig <- create_figure(data = "plots/figure1.png", docPrefix = "fig01")
+spec_fig <- create_figure("plots/figure1.png", docPrefix = "fig01")
+
+# From a ggplot2 object — rendered automatically to a temporary PNG
+library(ggplot2)
+p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
+spec_fig <- create_figure(p)                         # default 6x4in, 300 dpi
+spec_fig <- create_figure(p, width = 8, height = 5) # custom dimensions
+spec_fig <- create_figure(p, device = "jpeg")        # JPEG output
 ```
 
 **What happens**:
-- File path is validated (must exist and be readable)
-- Minimal metadata is created
-- Figure will be copied to output directory when saved
+- If a **file path** is given: it is validated (must exist and be readable)
+- If a **ggplot2 object** is given: rendered via `ggplot2::ggsave()` to `tempdir()`; the resulting path is stored in the spec
+- Minimal metadata is created; the file is copied to the output directory when saved
 
 ### Text spec (narrative content)
 
@@ -601,7 +609,7 @@ You now understand ksTFL's core workflow. Next steps:
 | Task | Function | Notes |
 |------|----------|-------|
 | Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
-| Create figure spec | `create_figure(data = "path.png")` | Path must be readable |
+| Create figure spec | `create_figure(plot_or_path, ...)` | File path or ggplot2 object; path must be readable |
 | Create text spec | `create_text()` | For narrative content only |
 | Set document properties | `set_document(spec, docPrefix = ..., hasData = ...)` | Optional: configure doc prefix, content width, placement |
 | Customize columns | `define_cols(spec, cols, ...)` | Use `c()` for multiple columns |

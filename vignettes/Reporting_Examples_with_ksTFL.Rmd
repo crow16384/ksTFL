@@ -88,7 +88,7 @@ Notes: `print()` on a `TFL_spec` provides a readable overview including docType,
 Goal: create a figure spec from a local image file and add a title.
 
 ```{r example_minimal_figure, eval = FALSE}
-spec_min_fig <- create_figure(data = plot_file)
+spec_min_fig <- create_figure(plot_file)
 spec_min_fig <- add_title(spec_min_fig, "Example: Age vs SBP")
 print(spec_min_fig)
 # close example chunk

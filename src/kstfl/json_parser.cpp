@@ -559,6 +559,12 @@ static DocumentInfo parse_document_info(const json& j) {
     di.doc_order = get_int(j, "docOrder", 0);
     di.is_continues = get_bool(j, "isContinues", false);
     di.body_titles = get_bool(j, "bodyTitles", true);
+
+    // Figure dimension fields (inches)
+    if (j.contains("figureWidthIn") && j["figureWidthIn"].is_number())
+        di.figure_width_in = j["figureWidthIn"].get<double>();
+    if (j.contains("figureHeightIn") && j["figureHeightIn"].is_number())
+        di.figure_height_in = j["figureHeightIn"].get<double>();
     di.body_subtitles = get_bool(j, "bodySubtitles", true);
     di.body_footnotes = get_bool(j, "bodyFootnotes", false);
 

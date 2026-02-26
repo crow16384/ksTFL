@@ -837,6 +837,231 @@ save_and_render(report10, "ex10_inline_markup")
 
 
 ## =============================================================================
+## EXAMPLE 11: Minimal ggplot2 Figure
+## =============================================================================
+cat("\n--- Example 11: Minimal ggplot2 figure --------------------------------\n")
+
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  cat("  [SKIP] ggplot2 not installed — skipping examples 11-13\n")
+} else {
+
+library(ggplot2)
+
+p11 <- ggplot(mtcars, aes(x = wt, y = mpg, colour = factor(cyl))) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_colour_manual(
+    name   = "Cylinders",
+    values = c("4" = "#2166AC", "6" = "#F4A582", "8" = "#D6604D")
+  ) +
+  labs(
+    x = "Weight (1000 lbs)",
+    y = "Miles per Gallon"
+  ) +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "bottom")
+
+spec11 <- create_figure(p11, width = 6, height = 4, dpi = 300) |>
+  add_title(c("Study Motor Trend", "Figure 1: Fuel Efficiency by Vehicle Weight")) |>
+  add_subtitle("All vehicles, 1974") |>
+  add_footnote("Source: 1974 Motor Trend US magazine (n = 32 vehicles).")
+
+report11 <- create_report(spec11)
+save_and_render(report11, "ex11_ggplot2_minimal_figure")
+
+
+## =============================================================================
+## EXAMPLE 12: ggplot2 Figure + Table Combined Report
+## =============================================================================
+cat("\n--- Example 12: ggplot2 figure + table combined report ----------------\n")
+
+# --- Clinical-style scatter plot ---
+set.seed(42)
+pk_data <- data.frame(
+  SUBJID  = sprintf("SUBJ-%03d", rep(1:24, each = 5)),
+  TIME    = rep(c(0, 0.5, 1, 2, 4), 24),
+  CONC    = pmax(0, rnorm(120, mean = rep(c(0, 45, 80, 55, 20), 24), sd = 8)),
+  TRT     = rep(c("Placebo", "Low Dose", "High Dose"), each = 40),
+  stringsAsFactors = FALSE
+)
+
+pk_mean <- aggregate(CONC ~ TIME + TRT, data = pk_data, FUN = mean)
+
+p12 <- ggplot(pk_mean, aes(x = TIME, y = CONC, colour = TRT, shape = TRT)) +
+  geom_line(linewidth = 0.9) +
+  geom_point(size = 3) +
+  scale_colour_manual(
+    name   = "Treatment",
+    values = c("Placebo" = "#666666", "Low Dose" = "#2166AC", "High Dose" = "#D6604D")
+  ) +
+  scale_shape_manual(
+    name   = "Treatment",
+    values = c("Placebo" = 16, "Low Dose" = 17, "High Dose" = 15)
+  ) +
+  scale_x_continuous(breaks = c(0, 0.5, 1, 2, 4)) +
+  labs(x = "Time (hours)", y = "Mean Concentration (ng/mL)") +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "bottom")
+
+spec12a <- create_figure(p12, width = 7, height = 4.5, dpi = 300) |>
+  add_title(c("Study ABC-123", "Figure 14.2.1: Mean PK Concentration-Time Profile")) |>
+  add_subtitle("Pharmacokinetic Analysis Set") |>
+  add_footnote(c(
+    "PK = Pharmacokinetics; Conc = Concentration.",
+    "Values are arithmetic means; n = 8 subjects per treatment group."
+  ))
+
+# --- Companion summary table ---
+pk_summary <- do.call(rbind, lapply(
+  split(pk_mean, pk_mean$TRT),
+  function(d) {
+    data.frame(
+      Treatment = d$TRT[1],
+      Cmax      = round(max(d$CONC), 1),
+      Tmax      = d$TIME[which.max(d$CONC)],
+      AUC_0_4   = round(sum(diff(d$TIME) * (head(d$CONC, -1) + tail(d$CONC, -1)) / 2), 1),
+      stringsAsFactors = FALSE
+    )
+  }
+))
+pk_summary <- pk_summary[order(pk_summary$Treatment), ]
+rownames(pk_summary) <- NULL
+
+spec12b <- create_table(pk_summary) |>
+  add_style("tbl_hdr",
+    s_font(bold = TRUE),
+    s_paragraph(alignment = "center")
+  ) |>
+  add_style("val_right", s_paragraph(alignment = "right")) |>
+  define_cols(Treatment,
+    label         = "Treatment",
+    isID          = TRUE,
+    colWidth      = "30%",
+    labelStyleRef = "tbl_hdr"
+  ) |>
+  define_cols(c(Cmax, AUC_0_4),
+    label         = c("C[max] (ng/mL)", "AUC[0-4] (ng\u00b7h/mL)"),
+    type          = "numeric",
+    format        = "%.1f",
+    labelStyleRef = "tbl_hdr",
+    valueStyleRef = "val_right"
+  ) |>
+  define_cols(Tmax,
+    label         = "T[max] (h)",
+    type          = "numeric",
+    format        = "%.1f",
+    labelStyleRef = "tbl_hdr",
+    valueStyleRef = "val_right"
+  ) |>
+  add_title(c("Study ABC-123", "Table 14.2.1: Summary of PK Parameters")) |>
+  add_subtitle("Pharmacokinetic Analysis Set") |>
+  add_footnote(c(
+    "AUC[0-4] calculated by trapezoidal rule.",
+    "C[max] = maximum observed concentration; T[max] = time of C[max]."
+  ))
+
+report12 <- create_report(spec12a, spec12b)
+save_and_render(report12, "ex12_ggplot2_figure_with_table")
+
+
+## =============================================================================
+## EXAMPLE 13: Multiple ggplot2 Figures (PNG, JPEG, SVG)
+## =============================================================================
+cat("\n--- Example 13: Multiple ggplot2 figures — PNG / JPEG / SVG ----------\n")
+
+# --- Plot A: Box plot (PNG) ---
+set.seed(7)
+ae_data <- data.frame(
+  SOC   = rep(c("Nervous system", "Gastrointestinal", "Skin & tissue",
+                "Musculoskeletal", "Infections"), each = 40),
+  PCT   = pmax(0, rnorm(200, mean = rep(c(22, 18, 14, 10, 8), each = 40), sd = 4)),
+  TRT   = rep(rep(c("Placebo", "Treatment"), 20), 5),
+  stringsAsFactors = FALSE
+)
+
+p13a <- ggplot(ae_data, aes(x = reorder(SOC, -PCT), y = PCT, fill = TRT)) +
+  geom_boxplot(outlier.size = 1.5, alpha = 0.85) +
+  scale_fill_manual(
+    name   = "Treatment",
+    values = c("Placebo" = "#AAAAAA", "Treatment" = "#2166AC")
+  ) +
+  labs(x = NULL, y = "Incidence (%)") +
+  coord_flip() +
+  theme_bw(base_size = 10) +
+  theme(legend.position = "bottom")
+
+spec13a <- create_figure(p13a, width = 7, height = 4, dpi = 300, device = "png") |>
+  add_title(c("Study ABC-123", "Figure 14.3.1: AE Incidence by System Organ Class")) |>
+  add_subtitle("Safety Analysis Set") |>
+  add_footnote("AE = Adverse Event; SOC = System Organ Class; n = 100 subjects per group.")
+
+# --- Plot B: Kaplan–Meier–style step plot (JPEG) ---
+set.seed(99)
+km_data <- data.frame(
+  time = c(seq(0, 24, by = 2), seq(0, 24, by = 2)),
+  surv = c(
+    cumprod(c(1, 1 - c(.02,.03,.04,.04,.05,.04,.03,.04,.03,.04,.03,.04))),
+    cumprod(c(1, 1 - c(.03,.05,.06,.07,.08,.07,.06,.07,.06,.05,.05,.04)))
+  ),
+  trt  = rep(c("Placebo", "Treatment"), each = 13),
+  stringsAsFactors = FALSE
+)
+
+p13b <- ggplot(km_data, aes(x = time, y = surv * 100, colour = trt)) +
+  geom_step(linewidth = 1) +
+  scale_colour_manual(
+    name   = "Treatment",
+    values = c("Placebo" = "#D6604D", "Treatment" = "#2166AC")
+  ) +
+  scale_y_continuous(limits = c(0, 100), labels = function(x) paste0(x, "%")) +
+  scale_x_continuous(breaks = seq(0, 24, by = 4)) +
+  labs(x = "Time (months)", y = "Survival (%)") +
+  theme_bw(base_size = 11) +
+  theme(legend.position = "bottom")
+
+spec13b <- create_figure(p13b, width = 6.5, height = 4, dpi = 200, device = "jpeg") |>
+  add_title(c("Study ABC-123", "Figure 14.4.1: Kaplan-Meier Overall Survival")) |>
+  add_subtitle("Full Analysis Set") |>
+  add_footnote("Survival estimated from step function; illustrative only.")
+
+# --- Plot C: Forest plot (SVG — highest quality, vector) ---
+forest_data <- data.frame(
+  Subgroup  = c("Overall", "Age < 65", "Age \u2265 65",
+                "Male", "Female",
+                "Low dose", "High dose"),
+  Est       = c(0.72, 0.68, 0.78, 0.70, 0.75, 0.65, 0.80),
+  Lo        = c(0.58, 0.52, 0.60, 0.54, 0.57, 0.49, 0.61),
+  Hi        = c(0.89, 0.88, 1.02, 0.91, 0.98, 0.86, 1.05),
+  stringsAsFactors = FALSE
+)
+forest_data$Subgroup <- factor(forest_data$Subgroup,
+                                levels = rev(forest_data$Subgroup))
+
+p13c <- ggplot(forest_data, aes(y = Subgroup, x = Est, xmin = Lo, xmax = Hi)) +
+  geom_vline(xintercept = 1, linetype = "dashed", colour = "grey50") +
+  geom_errorbarh(height = 0.3, colour = "#333333") +
+  geom_point(size = 3, colour = "#2166AC") +
+  scale_x_log10(
+    breaks = c(0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.5),
+    labels = function(x) formatC(x, digits = 2, format = "f")
+  ) +
+  labs(x = "Hazard Ratio (log scale, 95% CI)", y = NULL) +
+  theme_bw(base_size = 10)
+
+spec13c <- create_figure(p13c, width = 7, height = 4, device = "svg") |>
+  add_title(c("Study ABC-123", "Figure 14.5.1: Forest Plot of Treatment Effect by Subgroup")) |>
+  add_subtitle("Full Analysis Set") |>
+  add_footnote(c(
+    "HR < 1 favours treatment. Dashed line = HR 1.0 (no effect).",
+    "CI = Confidence Interval; HR = Hazard Ratio."
+  ))
+
+report13 <- create_report(spec13a, spec13b, spec13c)
+save_and_render(report13, "ex13_ggplot2_multi_figure")
+
+} # end ggplot2 block
+
+
+## =============================================================================
 ## Summary
 ## =============================================================================
 cat("\n========================================================================\n")

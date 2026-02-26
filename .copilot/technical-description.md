@@ -92,7 +92,7 @@ Expressions in `compute_cols()` are captured as quosures and evaluated in this e
 | Type | `create_*()` | `data` arg | Has columns? | Notes |
 |------|-------------|------------|--------------|-------|
 | **Table** | `create_table(df, cols)` | data.frame (required) | Yes, auto-detected | Tidyselect for column selection |
-| **Figure** | `create_figure(filepath)` | file path string | No | Validates file readability |
+| **Figure** | `create_figure(plot_or_path, width, height, dpi, device)` | file path string OR ggplot2 object | No | File path: validates readability; ggplot2 object: renders to temp file via `ggsave()` |
 | **Text** | `create_text()` | NULL | No | Narrative-only |
 
 ---

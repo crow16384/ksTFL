@@ -1545,6 +1545,102 @@ void DocxEmitter::emit_page(XmlWriter& w,
 }
 
 // ---------------------------------------------------------------------------
+// Helper: emit an inline <w:drawing> for a Figure spec
+// ---------------------------------------------------------------------------
+static void emit_figure_drawing(XmlWriter& w, const std::string& r_id,
+                                 int64_t cx_emu, int64_t cy_emu, int img_id) {
+    w.start_element("w:p");
+    w.start_element("w:r");
+    w.start_element("w:drawing");
+
+    w.start_element("wp:inline");
+    w.namespace_decl("wp", WP_NS);
+    w.attribute("distT", (int64_t)0);
+    w.attribute("distB", (int64_t)0);
+    w.attribute("distL", (int64_t)0);
+    w.attribute("distR", (int64_t)0);
+
+        w.start_element("wp:extent");
+        w.attribute("cx", cx_emu);
+        w.attribute("cy", cy_emu);
+        w.end_element();
+
+        w.start_element("wp:effectExtent");
+        w.attribute("l", (int64_t)0);
+        w.attribute("t", (int64_t)0);
+        w.attribute("r", (int64_t)0);
+        w.attribute("b", (int64_t)0);
+        w.end_element();
+
+        w.start_element("wp:docPr");
+        w.attribute("id", (int64_t)img_id);
+        w.attribute("name", "Image " + std::to_string(img_id));
+        w.end_element();
+
+        w.start_element("wp:cNvGraphicFramePr");
+            w.start_element("a:graphicFrameLocks");
+            w.namespace_decl("a", A_NS);
+            w.attribute("noChangeAspect", "1");
+            w.end_element();
+        w.end_element();  // wp:cNvGraphicFramePr
+
+        w.start_element("a:graphic");
+        w.namespace_decl("a", A_NS);
+
+            w.start_element("a:graphicData");
+            w.attribute("uri", std::string(PIC_NS));
+
+                w.start_element("pic:pic");
+                w.namespace_decl("pic", PIC_NS);
+
+                    w.start_element("pic:nvPicPr");
+                        w.start_element("pic:cNvPr");
+                        w.attribute("id", (int64_t)0);
+                        w.attribute("name", "Figure");
+                        w.end_element();
+                        w.start_element("pic:cNvPicPr");
+                        w.end_element();
+                    w.end_element();  // pic:nvPicPr
+
+                    w.start_element("pic:blipFill");
+                        w.start_element("a:blip");
+                        w.attribute("r:embed", r_id);
+                        w.end_element();
+                        w.start_element("a:stretch");
+                            w.start_element("a:fillRect");
+                            w.end_element();
+                        w.end_element();
+                    w.end_element();  // pic:blipFill
+
+                    w.start_element("pic:spPr");
+                        w.start_element("a:xfrm");
+                            w.start_element("a:off");
+                            w.attribute("x", (int64_t)0);
+                            w.attribute("y", (int64_t)0);
+                            w.end_element();
+                            w.start_element("a:ext");
+                            w.attribute("cx", cx_emu);
+                            w.attribute("cy", cy_emu);
+                            w.end_element();
+                        w.end_element();  // a:xfrm
+                        w.start_element("a:prstGeom");
+                        w.attribute("prst", "rect");
+                            w.start_element("a:avLst");
+                            w.end_element();
+                        w.end_element();  // a:prstGeom
+                    w.end_element();  // pic:spPr
+
+                w.end_element();  // pic:pic
+            w.end_element();  // a:graphicData
+        w.end_element();  // a:graphic
+
+    w.end_element();  // wp:inline
+    w.end_element();  // w:drawing
+    w.end_element();  // w:r
+    w.end_element();  // w:p
+}
+
+// ---------------------------------------------------------------------------
 // emit: main entry — assemble complete .docx
 // ---------------------------------------------------------------------------
 
@@ -1621,6 +1717,18 @@ void DocxEmitter::emit(
 
     doc_w.start_element("w:body");
 
+    // Pre-compute rId assignments for Figure specs (rId4, rId5, ... in spec order)
+    std::unordered_map<std::string, std::string> figure_rids;
+    {
+        int fig_rid_num = 4;
+        for (const auto& spec : doc.specs) {
+            if (spec.document.doc_type == DocType::Figure) {
+                figure_rids[spec.key] = "rId" + std::to_string(fig_rid_num++);
+            }
+        }
+    }
+    int figure_img_counter = 0;  // unique drawing id for wp:docPr
+
     for (size_t spec_idx = 0; spec_idx < doc.specs.size(); ++spec_idx) {
         const auto& spec = doc.specs[spec_idx];
 
@@ -1651,17 +1759,30 @@ void DocxEmitter::emit(
         auto headers_it = resolved_headers.find(spec.key);
 
         if (spec.document.doc_type == DocType::Text || !spec.document.has_data) {
-            // No table: just emit bodyText
-            StyleDef body_style = resolver.resolve_body_text_style();
-
             // Titles
             if (!spec.titles.empty()) {
                 emit_text_groups(doc_w, spec.titles,
                                   resolver.resolve_title_style(), resolver);
             }
 
-            // Body text
-            emit_text_groups(doc_w, spec.body_text, body_style, resolver);
+            if (spec.document.doc_type == DocType::Figure &&
+                !spec.figure_path.empty()) {
+                // Figure: emit inline image drawing
+                auto rid_it = figure_rids.find(spec.key);
+                if (rid_it != figure_rids.end()) {
+                    ++figure_img_counter;
+                    int64_t cx = static_cast<int64_t>(
+                        spec.document.figure_width_in  * 914400.0);
+                    int64_t cy = static_cast<int64_t>(
+                        spec.document.figure_height_in * 914400.0);
+                    emit_figure_drawing(doc_w, rid_it->second,
+                                        cx, cy, figure_img_counter);
+                }
+            } else {
+                // Text (or Figure with no resolved path): emit bodyText
+                StyleDef body_style = resolver.resolve_body_text_style();
+                emit_text_groups(doc_w, spec.body_text, body_style, resolver);
+            }
 
             // Footnotes
             if (!spec.footnotes.empty()) {
@@ -1669,7 +1790,6 @@ void DocxEmitter::emit(
                                   resolver.resolve_footnote_style(), resolver);
             }
 
-            // Headers and footers are now in separate parts (referenced via sectPr)
             continue;
         }
 

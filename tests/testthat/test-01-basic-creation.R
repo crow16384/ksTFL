@@ -69,7 +69,7 @@ test_that("create_text() with docPrefix", {
 })
 
 test_that("create_figure() creates figure spec from valid image path", {
-  spec <- create_figure(filepath = test_image_path)
+  spec <- create_figure(test_image_path)
   
   expect_s3_class(spec, "TFL_spec")
   expect_equal(spec$document$docType, "Figure")
@@ -79,7 +79,7 @@ test_that("create_figure() creates figure spec from valid image path", {
 
 test_that("create_figure() rejects invalid image path", {
   expect_error(
-    create_figure(filepath = "/nonexistent/path/to/image.png"),
+    create_figure("/nonexistent/path/to/image.png"),
     "requires a readable file path"
   )
 })

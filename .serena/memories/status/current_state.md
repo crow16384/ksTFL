@@ -1,7 +1,10 @@
-# Current Status (Feb 25, 2026)
+# Current Status (Feb 26, 2026)
 
 ## Fully Implemented
 - Spec initialization for all 3 docTypes (Table, Text, Figure)
+- **ggplot2 integration in create_figure()**: accepts ggplot2 objects directly (auto-rendered to temp file via ggsave()); explicit 3-branch type validation (gg/ggplot → temp file, character path → pass-through, anything else → cli_abort())
+- .save_ggplot_to_temp() internal helper (width/height/dpi/device params)
+- ggplot2 in DESCRIPTION Suggests; requires `requireNamespace()` check at runtime only
 - Column auto-detection and format assignment with .guess_table_layout()
 - Auto column width calculation and redistribution
 - Style consolidation with hash-based merging in create_report()
@@ -30,6 +33,8 @@
   - Header/footer as separate OOXML parts (word/headerN.xml, word/footerN.xml)
   - xml:space="preserve" auto-added on <w:t> elements
   - 10 comprehensive full-cycle rendering examples passing (inst/examples/full_cycle_render.R)
+  - 13 full-cycle rendering examples (added ex11-13 for ggplot2)
+  - test-17-ggplot-figure.R: 27 tests covering ggplot2 path, file path, and type safety
 
 ## Still TODO
 - row_style_schema validation rules (schema exists but validation rules pending)
@@ -57,8 +62,11 @@
 8. Full clinical package (3 specs: demog + AE listing + summary)
 9. Long table with isPaging (300+ rows, 30 pages, isPaging-driven breaks)
 10. Rich inline markup (**bold**, *italic*, __underline__)
+11. Minimal ggplot2 scatter plot (PNG, 6x4in, 300dpi) — full render
+12. ggplot2 PK concentration-time figure (PNG) + companion summary table
+13. Three ggplot2 figures in one report: PNG (box plot), JPEG (KM survival), SVG (forest plot)
 
-All 10 produce valid .docx files (3KB-36KB).
+All produce valid .docx files.
 
 ## Recent Bug Fixes (Feb 2026)
 - Bug 7: Pagination — isGrouping was incorrectly forcing page breaks (only isPaging should)

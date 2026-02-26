@@ -488,6 +488,8 @@ struct DocumentInfo {
     bool body_titles = false;
     bool body_subtitles = false;
     bool body_footnotes = false;
+    double figure_width_in = 6.0;            // figure width in inches (for Figure docType)
+    double figure_height_in = 4.0;           // figure height in inches (for Figure docType)
 };
 
 // ---------------------------------------------------------------------------

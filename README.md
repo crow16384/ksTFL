@@ -82,7 +82,7 @@ Create specification objects for different document types:
 | Function | Purpose | Returns |
 |----------|---------|---------|
 | `create_table(data, cols = everything(), docPrefix = NULL)` | Initialize table spec with data frame | `TFL_spec` |
-| `create_figure(filepath, docPrefix = NULL)` | Initialize figure spec with image path | `TFL_spec` |
+| `create_figure(plot_or_path, docPrefix = NULL, width = 6, height = 4, dpi = 300L, device = "png")` | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
 | `create_text(docPrefix = NULL)` | Initialize text-only spec (no data) | `TFL_spec` |
 
 ### Content Functions

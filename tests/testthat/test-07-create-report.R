@@ -43,7 +43,7 @@ test_that("create_report() keys specs by variable name and hash", {
 test_that("create_report() sets correct docOrder for mixed types", {
   table_spec <- create_table(test_df)
   text_spec <- create_text()
-  fig_spec <- create_figure(filepath = test_image_path)
+  fig_spec <- create_figure(test_image_path)
   
   report <- create_report(table_spec, text_spec, fig_spec)
   
@@ -86,7 +86,7 @@ test_that("create_report() preserves dataRef from input reports", {
   original_ref2 <- report1[[2]]$dataRef
   
   # Add new spec and combine with report
-  spec3 <- create_figure(filepath = test_image_path)
+  spec3 <- create_figure(test_image_path)
   report2 <- create_report(report1, spec3)
   
   # Original dataRef should be preserved (not renamed)
@@ -200,7 +200,7 @@ test_that("create_report() flattens and combines mixed reports and specs", {
   spec2 <- create_text()
   report1 <- create_report(spec1, spec2)
   
-  spec3 <- create_figure(filepath = test_image_path)
+  spec3 <- create_figure(test_image_path)
   spec4 <- create_text()
   
   # Mix: report1 (2 specs) + individual spec3 + individual spec4
@@ -223,7 +223,7 @@ test_that("create_report() preserves spec order across mixed inputs", {
   
   report_ab <- create_report(spec_a, spec_b)
   
-  spec_c <- create_figure(filepath = test_image_path)
+  spec_c <- create_figure(test_image_path)
   spec_c <- add_title(spec_c, "Spec C")
   
   # Combine: report(A, B) + C
@@ -267,7 +267,7 @@ test_that("create_report() handles nested report combinations", {
   spec2 <- create_text()
   report1 <- create_report(spec1, spec2)
   
-  spec3 <- create_figure(filepath = test_image_path)
+  spec3 <- create_figure(test_image_path)
   report2 <- create_report(report1, spec3)
   
   spec4 <- create_text()

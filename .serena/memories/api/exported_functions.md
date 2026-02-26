@@ -2,7 +2,7 @@
 
 ## Spec Creation
 - create_table(data, cols = everything(), docPrefix = NULL): Table spec from data.frame
-- create_figure(filepath, docPrefix = NULL): Figure spec from image path
+- create_figure(plot_or_path, docPrefix = NULL, width = 6, height = 4, dpi = 300L, device = "png"): Figure spec from image file path OR ggplot2 object (auto-rendered to temp file)
 - create_text(docPrefix = NULL): Text-only spec
 
 ## Content
