@@ -910,7 +910,7 @@ str(res)
 - `data_files`: Named list of generated data file paths
 - `metadata`: Report-level metadata (timestamps, paths)
 
-Notes: `save_report()` is the public entrypoint to persist specs/data/figures for downstream rendering. In a real workflow, the Python renderer consumes the `metaPath` directory.
+Notes: `save_report()` is the public entrypoint to persist specs/data/figures for downstream rendering. In a real workflow, `render_docx()` consumes the spec JSON to produce the final .docx file.
 
 ---
 

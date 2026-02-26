@@ -19,7 +19,7 @@ knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
 ksTFL is a lightweight R toolkit for building metadata specifications for clinical Tables, Figures, and Text (TFLs). Unlike traditional table formatters (flextable, huxtable, officer), ksTFL separates *metadata generation* from *rendering*:
 - **You define**: Document structure, content, column formats, and styles in R
 - **ksTFL generates**: A structured specification (JSON metadata + data files)
-- **External renderer**: Consumes the specification and produces the final DOCX/PDF/HTML file
+- **Built-in C++ renderer**: Produces submission-quality DOCX documents with deterministic HarfBuzz-based pagination via `render_docx()`
 
 This separation enables:
 - **Consistency**: All tables follow the same style templates
@@ -52,7 +52,7 @@ TFL_report
        ↓
 save_report() (validate, serialize, write JSON + data files)
        ↓
-Metadata + Data Files → External Renderer → Final DOCX
+render_docx() (C++ engine → deterministic pagination → styled .docx)
 ```
 
 ### Anatomy of a TFL spec

@@ -9,7 +9,7 @@ For installing R packages always use Russian CRAN mirrors!
 
 ## Project Overview
 
-**ksTFL** is an R package that generates metadata for clinical Tables, Figures, and Listings (TFLs). It creates a specification object (`TFL_spec`) that describes document structure, data, styles, and content—this metadata is then passed to Python code for rendering into styled DOCX documents.
+**ksTFL** is an R package that generates metadata for clinical Tables, Figures, and Listings (TFLs). It creates a specification object (`TFL_spec`) that describes document structure, data, styles, and content—this metadata is then rendered into submission-quality styled DOCX documents via a built-in C++20 rendering engine (`render_docx()`) with deterministic HarfBuzz-based text measurement.
 
 ## Architecture & Data Flow
 
@@ -170,9 +170,9 @@ Follow the pattern of exported functions like `tfl_init()`:
 - Use `cli_abort()` for errors
 
 ## Integration Points
-- **Python backend**: Receives serialized spec and data (via `spec_serializer.R`) as JSON - still TO DO
+- **C++ rendering engine**: Receives serialized spec and data (via `save_report()`) as JSON; renders via `render_docx()` using HarfBuzz/FreeType/minizip
 - **External data**: tidyselect for column filtering, data frame input
-- **Dependencies**: cli (messages), checkmate (validation), rlang (quoting), tidyselect (column selection)
+- **Dependencies**: cli (messages), checkmate (validation), rlang (quoting), tidyselect (column selection), Rcpp (C++ interface)
 
 ## Common Gotchas
 - **Pipe placeholder `_`**: Reserved in R 4.1+, don't use as variable name
@@ -297,7 +297,6 @@ tfl_init(data = NULL, docType = "Text", id = "txt01")
 ⏳ **Still TO DO** (per original instructions):
 - `row_style_schema` validation rules (design pending)
 - `styles_schema` validation rules (design pending)
-- Python backend integration testing (out of R scope)
 
 ✅ **Completed Since Initial Instructions**:
 - Style consolidation in `create_report()` with hash-based merging
@@ -311,7 +310,7 @@ tfl_init(data = NULL, docType = "Text", id = "txt01")
 1. Implement `row_style_schema` validation rules (conditional row styling)
 2. Implement `styles_schema` validation for predefined style templates
 3. Performance optimization: memoization for schema lookups if needed
-4. Python backend: integrate with rendering pipeline for DOCX output
+4. Regression test suite for rendered DOCX output (visual/structural validation)
 
 
 ## Doc Pass — Dec 19, 2025
@@ -337,7 +336,7 @@ Summary of documentation improvements:
 ⏳ **Still TO DO**:
 - `row_style_schema` validation rules
 - `styles_schema` validation rules
-- Python backend integration
+- Regression test suite for rendered DOCX output
 
 ## Quick Reference
 
@@ -348,7 +347,7 @@ spec_text <- create_text()
 spec_figure <- create_figure("path/to/image.png")
 ```
 
-**Combine into reports** (new!):
+**Combine into reports**:
 ```r
 # Single create
 report <- create_report(spec_table, spec_text)
@@ -368,6 +367,17 @@ spec <- define_cols(spec, c(col1, col2), labelStyleRef = "my_style")
 spec <- add_title(spec, "Title")
 spec <- add_subtitle(spec, "Subtitle")
 spec <- add_footnote(spec, "Note")
+```
+
+**Full pipeline (save + render)**:
+```r
+spec <- create_table(mtcars) |> add_title("Title")
+report <- create_report(spec)
+saved <- save_report(report, "demo.docx")
+render_docx(
+  spec_json = file.path(saved$metaPath, saved$spec_file),
+  output_path = "output/demo.docx"
+)
 ```
 
 
