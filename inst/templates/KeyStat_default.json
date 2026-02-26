@@ -6,10 +6,10 @@
       "margins": {
         "top": "1.0in",
         "bottom": "1.0in",
-        "left": "0.75in",
-        "right": "0.75in",
-        "header": "0.5in",
-        "footer": "0.5in"
+        "left": "0.5in",
+        "right": "0.5in",
+        "header": "1cm",
+        "footer": "1cm"
       }
     },
     "paragraphDefaults": {
@@ -44,7 +44,7 @@
     "docHeader": {
       "font": {
         "font_name": "Courier New",
-        "font_size": "8pt",
+        "font_size": "9pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -54,15 +54,15 @@
         "alignment": "left",
         "spacing": {
           "before": "0pt",
-          "after": "2pt",
-          "line_spacing": 1.0
+          "after": "0pt",
+          "line_spacing": 0.9
         }
       }
     },
     "docFooter": {
       "font": {
         "font_name": "Courier New",
-        "font_size": "8pt",
+        "font_size": "9pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -71,16 +71,16 @@
       "paragraph": {
         "alignment": "left",
         "spacing": {
-          "before": "2pt",
+          "before": "0pt",
           "after": "0pt",
-          "line_spacing": 1.0
+          "line_spacing": 0.9
         }
       }
     },
     "titles": {
       "font": {
         "font_name": "Courier New",
-        "font_size": "9pt",
+        "font_size": "10pt",
         "bold": true,
         "italic": false,
         "underline": false,
@@ -90,8 +90,8 @@
         "alignment": "center",
         "spacing": {
           "before": "0pt",
-          "after": "4pt",
-          "line_spacing": 1.0
+          "after": "1pt",
+          "line_spacing": 1.2
         }
       }
     },
@@ -108,7 +108,7 @@
         "alignment": "left",
         "spacing": {
           "before": "0pt",
-          "after": "4pt",
+          "after": "2pt",
           "line_spacing": 1.0
         }
       }
@@ -125,7 +125,7 @@
       "paragraph": {
         "alignment": "left",
         "spacing": {
-          "before": "4pt",
+          "before": "5pt",
           "after": "0pt",
           "line_spacing": 1.0
         }
@@ -185,7 +185,7 @@
       },
       "header_bottom_border": {
         "color": "000000",
-        "width": "1pt",
+        "width": "1.5pt",
         "line_style": "single"
       },
       "table_bottom_border": {
@@ -197,7 +197,7 @@
         "vertical_alignment": "center"
       },
       "tableBody": {
-        "vertical_alignment": "top"
+        "vertical_alignment": "center"
       }
     },
 
@@ -205,8 +205,8 @@
       "cell_margins": {
         "top": "1pt",
         "bottom": "1pt",
-        "left": "3pt",
-        "right": "3pt"
+        "left": "2pt",
+        "right": "1pt"
       },
       "vertical_alignment": "center"
     },
@@ -215,32 +215,32 @@
       "row": {
         "background_color": null,
         "row_height": "auto",
-        "vertical_alignment": "bottom",
+        "vertical_alignment": "center",
         "cell_margins": {
-          "top": "2pt",
-          "bottom": "2pt",
-          "left": "3pt",
-          "right": "3pt"
+          "top": "1pt",
+          "bottom": "1pt",
+          "left": "2pt",
+          "right": "2pt"
         },
         "borders": {
           "top": {
             "color": "000000",
-            "width": "1.5pt",
+            "width": "1.2pt",
             "line_style": "single"
           },
           "bottom": {
             "color": "000000",
-            "width": "1pt",
+            "width": "1.2pt",
             "line_style": "single"
           },
           "left": {
             "color": null,
-            "width": null,
+            "width": "0pt",
             "line_style": "none"
           },
           "right": {
             "color": null,
-            "width": null,
+            "width": "0pt",
             "line_style": "none"
           }
         }
@@ -251,12 +251,12 @@
       "row": {
         "background_color": null,
         "row_height": "auto",
-        "vertical_alignment": "top",
+        "vertical_alignment": "center",
         "cell_margins": {
           "top": "1pt",
           "bottom": "1pt",
-          "left": "3pt",
-          "right": "3pt"
+          "left": "2pt",
+          "right": "1pt"
         },
         "borders": {
           "top": {
