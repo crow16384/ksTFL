@@ -39,6 +39,8 @@ private:
         const std::vector<ColumnSpec>& columns);
 
     /// Compute available body height for a page.
+    /// Footnotes height is always subtracted when passed (caller decides
+    /// whether to pass footnotes_height or Length{0}).
     static Length compute_available_height(
         const PageConfig& page,
         Length header_section_height,
@@ -46,10 +48,7 @@ private:
         Length subtitles_height,
         Length table_header_height,
         Length footnotes_height,
-        Length footer_section_height,
-        bool is_first_page,
-        bool is_last_page,
-        bool body_footnotes);
+        Length footer_section_height);
 
     /// Compute row heights for the full logical row set (all columns).
     /// Row heights are shared across horizontal segments.

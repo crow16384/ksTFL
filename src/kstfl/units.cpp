@@ -191,7 +191,7 @@ Length PageConfig::usable_height() const {
 
 const char* border_line_style_to_ooxml(BorderLineStyle s) {
     switch (s) {
-        case BorderLineStyle::None:              return "none";
+        case BorderLineStyle::None:              return "nil";
         case BorderLineStyle::Single:            return "single";
         case BorderLineStyle::Double:            return "double";
         case BorderLineStyle::Dashed:            return "dashed";
@@ -279,6 +279,7 @@ SpacingProps SpacingProps::merged_with(const SpacingProps& other) const {
     result.before = merge_opt(before, other.before);
     result.after  = merge_opt(after, other.after);
     result.line_spacing_multiplier = merge_opt(line_spacing_multiplier, other.line_spacing_multiplier);
+    result.exact_line_height = merge_opt(exact_line_height, other.exact_line_height);
     return result;
 }
 

@@ -11,6 +11,7 @@
 #include "types.h"
 #include "xml_writer.h"
 #include "style_resolver.h"
+#include "text_measurer.h"
 #include "zip_writer.h"
 #include <string>
 #include <vector>
@@ -43,7 +44,8 @@ public:
               const std::string& output_path,
               const std::unordered_map<std::string, PaginationResult>& resolved_pages,
               const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
-              const std::unordered_map<std::string, HeaderGrid>& resolved_headers);
+              const std::unordered_map<std::string, HeaderGrid>& resolved_headers,
+              TextMeasurer* measurer = nullptr);
 
 private:
     // ---- Static package files ----
@@ -147,10 +149,14 @@ private:
     void emit_page_break(XmlWriter& w) const;
 
     /// Emit section properties.
+    /// @param is_body_level  True for the body-level sectPr (last child of
+    ///   w:body).  In that position w:type must be omitted to prevent an
+    ///   extra blank page at the end of the document.
     void emit_section_props(XmlWriter& w, const PageConfig& page,
                             const std::string& header_rid = "",
                             const std::string& footer_rid = "",
-                            bool continuous = false) const;
+                            bool continuous = false,
+                            bool is_body_level = false) const;
 
     // ---- Fields ----
     /// Emit PAGE field code.
@@ -169,8 +175,13 @@ private:
                                        Length usable_w,
                                        const char* root_element) const;
 
+    /// Stamp exact line height on a style's spacing props so the emitter
+    /// can use w:lineRule="exact" for deterministic pagination.
+    void stamp_exact_line_height(StyleDef& style) const;
+
     const StylesTemplate& tmpl_;
     const RendererConfig& config_;
+    TextMeasurer* measurer_ = nullptr;  ///< set during emit(), cleared after
 };
 
 }  // namespace kstfl

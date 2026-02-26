@@ -348,6 +348,29 @@ std::string DocxEmitter::emit_font_table() const {
 }
 
 // ---------------------------------------------------------------------------
+// Exact line height stamping
+// ---------------------------------------------------------------------------
+
+void DocxEmitter::stamp_exact_line_height(StyleDef& style) const {
+    if (!measurer_) return;           // no measurer available, skip
+    if (!style.font) return;          // no font info, skip
+
+    const auto& fp = *style.font;
+    double mult = 1.0;
+    if (style.paragraph && style.paragraph->spacing &&
+        style.paragraph->spacing->line_spacing_multiplier) {
+        mult = *style.paragraph->spacing->line_spacing_multiplier;
+    }
+
+    Length lh = measurer_->line_height(fp, mult);
+
+    // Ensure paragraph.spacing exists
+    if (!style.paragraph) style.paragraph = ParagraphProps{};
+    if (!style.paragraph->spacing) style.paragraph->spacing = SpacingProps{};
+    style.paragraph->spacing->exact_line_height = lh;
+}
+
+// ---------------------------------------------------------------------------
 // Run properties (<w:rPr>)
 // ---------------------------------------------------------------------------
 
@@ -428,7 +451,14 @@ void DocxEmitter::emit_para_props(XmlWriter& w, const ParagraphProps& pp) const 
         if (pp.spacing->after.has_value()) {
             w.attribute("w:after", std::to_string(pp.spacing->after->to_twips()));
         }
-        if (pp.spacing->line_spacing_multiplier.has_value()) {
+        if (pp.spacing->exact_line_height.has_value()) {
+            // Deterministic mode: emit exact twip value matching our paginator's
+            // measurement, so Word uses precisely our calculated line height.
+            int64_t lh_twips = pp.spacing->exact_line_height->to_twips();
+            if (lh_twips < 1) lh_twips = 1;
+            w.attribute("w:line", std::to_string(lh_twips));
+            w.attribute("w:lineRule", "exact");
+        } else if (pp.spacing->line_spacing_multiplier.has_value()) {
             int line_val = static_cast<int>(pp.spacing->line_spacing_multiplier.value() * 240.0);
             w.attribute("w:line", std::to_string(line_val));
             w.attribute("w:lineRule", "auto");
@@ -658,6 +688,9 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
             }
         }
 
+        // Stamp exact line height so Word uses same height as paginator
+        stamp_exact_line_height(style);
+
         // Concatenate text lines with soft break (within one paragraph)
         std::string combined;
         for (size_t i = 0; i < group.text.size(); ++i) {
@@ -745,69 +778,76 @@ void DocxEmitter::emit_header_footer_section(XmlWriter& w,
                                               bool use_fields) const {
     FontProps font = style.font.value_or(FontProps{});
 
-    // Lambda: emit a text segment with page field code placeholders.
+    // Lambda: emit a text segment with page field code placeholders
+    // AND inline markup support (<b>, <i>, <u>, <sup>, <sub>).
     // Supports both {PAGE}/{NUMPAGES} and #page/#pages patterns.
     auto emit_text_with_fields = [&](const std::string& text) {
         if (text.empty()) return;
 
-        if (!use_fields) {
-            w.start_element("w:r");
-            emit_run_props(w, font);
-            w.element_with_text("w:t", text);
-            w.end_element();
-            return;
-        }
+        // Parse inline markup into runs with style overrides.
+        // Note: headers/footers are single-line, so we only look at the
+        // first paragraph (no <p> or <br> support needed here).
+        ParsedCell parsed = parse_inline_markup(text);
+        if (parsed.paragraphs.empty()) return;
 
-        // Scan for field placeholders
-        size_t pos = 0;
-        while (pos < text.size()) {
-            // Find next placeholder (try all patterns)
-            struct Match { size_t pos; size_t len; bool is_numpages; };
-            Match best{std::string::npos, 0, false};
+        const auto& runs = parsed.paragraphs[0].runs;
 
-            // {NUMPAGES} must be checked before {PAGE} (longer match)
-            const char* patterns[][2] = {
-                {"{NUMPAGES}", nullptr},  // is_numpages = true
-                {"{PAGE}", nullptr},      // is_numpages = false
-                {"#pages", nullptr},      // is_numpages = true (legacy)
-                {"#page", nullptr},       // is_numpages = false (legacy)
-            };
-            bool is_numpages_map[] = {true, false, true, false};
+        for (const auto& run : runs) {
+            if (run.text.empty()) continue;
 
-            for (int pi = 0; pi < 4; ++pi) {
-                size_t found = text.find(patterns[pi][0], pos);
-                if (found != std::string::npos && found < best.pos) {
-                    best.pos = found;
-                    best.len = std::strlen(patterns[pi][0]);
-                    best.is_numpages = is_numpages_map[pi];
+            if (!use_fields) {
+                // No field substitution needed — emit the run with style
+                w.start_element("w:r");
+                emit_run_props(w, font, run.style);
+                w.element_with_text("w:t", run.text);
+                w.end_element();
+                continue;
+            }
+
+            // Scan for field placeholders within this run
+            size_t pos = 0;
+            while (pos < run.text.size()) {
+                struct Match { size_t pos; size_t len; bool is_numpages; };
+                Match best{std::string::npos, 0, false};
+
+                const char* patterns[] = {"{NUMPAGES}", "{PAGE}", "#pages", "#page"};
+                bool is_numpages_map[] = {true, false, true, false};
+
+                for (int pi = 0; pi < 4; ++pi) {
+                    size_t found = run.text.find(patterns[pi], pos);
+                    if (found != std::string::npos && found < best.pos) {
+                        best.pos = found;
+                        best.len = std::strlen(patterns[pi]);
+                        best.is_numpages = is_numpages_map[pi];
+                    }
                 }
-            }
 
-            if (best.pos == std::string::npos) {
-                // No more placeholders — emit rest as literal
-                w.start_element("w:r");
-                emit_run_props(w, font);
-                w.element_with_text("w:t", text.substr(pos));
-                w.end_element();
-                break;
-            }
+                if (best.pos == std::string::npos) {
+                    // No more placeholders — emit rest as literal
+                    w.start_element("w:r");
+                    emit_run_props(w, font, run.style);
+                    w.element_with_text("w:t", run.text.substr(pos));
+                    w.end_element();
+                    break;
+                }
 
-            // Emit literal text before the placeholder
-            if (best.pos > pos) {
-                w.start_element("w:r");
-                emit_run_props(w, font);
-                w.element_with_text("w:t", text.substr(pos, best.pos - pos));
-                w.end_element();
-            }
+                // Emit literal text before the placeholder
+                if (best.pos > pos) {
+                    w.start_element("w:r");
+                    emit_run_props(w, font, run.style);
+                    w.element_with_text("w:t", run.text.substr(pos, best.pos - pos));
+                    w.end_element();
+                }
 
-            // Emit field code
-            if (best.is_numpages) {
-                emit_numpages_field(w);
-            } else {
-                emit_page_field(w);
-            }
+                // Emit field code
+                if (best.is_numpages) {
+                    emit_numpages_field(w);
+                } else {
+                    emit_page_field(w);
+                }
 
-            pos = best.pos + best.len;
+                pos = best.pos + best.len;
+            }
         }
     };
 
@@ -989,13 +1029,20 @@ void DocxEmitter::emit_section_props(XmlWriter& w,
                                       const PageConfig& page,
                                       const std::string& header_rid,
                                       const std::string& footer_rid,
-                                      bool continuous) const {
+                                      bool continuous,
+                                      bool is_body_level) const {
     w.start_element("w:sectPr");
 
-    if (continuous) {
-        w.element_with_attr("w:type", "w:val", "continuous");
-    } else {
-        w.element_with_attr("w:type", "w:val", "nextPage");
+    // The body-level sectPr (last child of w:body) must NOT carry
+    // w:type="nextPage" — that would make Word create an extra blank page
+    // at the end of the document.  Omitting w:type entirely is correct;
+    // it defaults to "nextPage" semantics for intermediate breaks.
+    if (!is_body_level) {
+        if (continuous) {
+            w.element_with_attr("w:type", "w:val", "continuous");
+        } else {
+            w.element_with_attr("w:type", "w:val", "nextPage");
+        }
     }
 
     // Header reference
@@ -1419,7 +1466,9 @@ void DocxEmitter::emit_page(XmlWriter& w,
             prefix = spec.document.doc_prefix;
         } else if (!spec.document.doc_prefix.empty()) {
             // Not glued — emit prefix as separate paragraph before titles
-            emit_paragraph(w, spec.document.doc_prefix, title_style);
+            StyleDef prefix_style = title_style;
+            stamp_exact_line_height(prefix_style);
+            emit_paragraph(w, spec.document.doc_prefix, prefix_style);
         }
 
         // Emit each title group as a separate paragraph.
@@ -1433,6 +1482,9 @@ void DocxEmitter::emit_page(XmlWriter& w,
                     style = style.merged_with(*ref_style);
                 }
             }
+
+            // Stamp exact line height so Word uses same height as paginator
+            stamp_exact_line_height(style);
 
             // Concatenate text lines with soft break (within one paragraph)
             std::string combined;
@@ -1494,7 +1546,10 @@ void DocxEmitter::emit(
     const std::string& output_path,
     const std::unordered_map<std::string, PaginationResult>& resolved_pages,
     const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
-    const std::unordered_map<std::string, HeaderGrid>& resolved_headers) {
+    const std::unordered_map<std::string, HeaderGrid>& resolved_headers,
+    TextMeasurer* measurer) {
+
+    measurer_ = measurer;  // store for use in emit_page / emit_text_groups
 
     // ======================================================================
     // Phase 1: Pre-compute header/footer XML parts and relationship IDs
@@ -1651,7 +1706,8 @@ void DocxEmitter::emit(
         PageConfig last_page = last_resolver.resolve_page_config(last_spec);
         const auto& last_refs = spec_hdr_ftr_refs[last_idx];
         emit_section_props(doc_w, last_page,
-                           last_refs.header_rid, last_refs.footer_rid);
+                           last_refs.header_rid, last_refs.footer_rid,
+                           /*continuous=*/false, /*is_body_level=*/true);
     }
 
     doc_w.end_element();  // w:body
@@ -1691,6 +1747,7 @@ void DocxEmitter::emit(
     }
 
     zip.close();
+    measurer_ = nullptr;  // clear after emit
 }
 
 }  // namespace kstfl

@@ -737,7 +737,7 @@ tfl_reset_options()
 
 
 ## =============================================================================
-## EXAMPLE 9: isPaging — Very Long Table with Automatic Pagination
+## EXAMPLE 9: isPaging — Very Long Table with Automatic Pagination ####
 ## =============================================================================
 cat("\n--- Example 9: Long table with isPaging columns ----------------------\n")
 
@@ -764,6 +764,9 @@ big_data <- big_data[order(big_data$VISIT, big_data$PARAM, big_data$SUBJID), ]
 
 spec9 <- create_table(big_data, docPrefix = "Table 14.5.1")
 spec9 <- spec9 |>
+  add_footer(c("This is a first footer", "This is the <b>second</b> <i>one</i>")) |> 
+  add_header(c("First", "Second", "Third")) |> 
+  add_header(c("<b>First<sup>2</sup></b><p>Second", "Third<sub>index</sub>")) |> 
   define_cols(VISIT,
     label      = "Visit",
     isID       = TRUE,

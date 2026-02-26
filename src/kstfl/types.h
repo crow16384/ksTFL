@@ -57,7 +57,10 @@ struct Length {
     static constexpr Length from_in(double i) { return Length{static_cast<int64_t>(i * 914400.0)}; }
 
     // Conversions
-    [[nodiscard]] constexpr int64_t to_twips() const { return emu / 635; }
+    [[nodiscard]] constexpr int64_t to_twips() const {
+        // Round to nearest twip instead of truncating, to minimize systematic error
+        return (emu >= 0) ? (emu + 317) / 635 : (emu - 317) / 635;
+    }
     [[nodiscard]] constexpr double to_pt() const { return static_cast<double>(emu) / 12700.0; }
     [[nodiscard]] constexpr double to_cm() const { return static_cast<double>(emu) / 360000.0; }
     [[nodiscard]] constexpr double to_in() const { return static_cast<double>(emu) / 914400.0; }
@@ -75,6 +78,13 @@ struct Length {
     constexpr bool operator==(Length rhs) const { return emu == rhs.emu; }
     constexpr bool operator!=(Length rhs) const { return emu != rhs.emu; }
 };
+
+/// Conservative safety margin subtracted from available page height.
+/// Accounts for minor rounding differences between our deterministic layout
+/// engine and Word's own line-height / table-row calculations.  Keeping a
+/// small unused reserve (~15 pt) prevents content from overflowing onto an
+/// extra page.
+constexpr Length PAGE_SAFETY_MARGIN = Length::from_pt(15.0);
 
 /// CSS-like color stored as RRGGBB hex string (no leading #).
 struct Color {
@@ -166,6 +176,7 @@ struct SpacingProps {
     std::optional<Length> before;
     std::optional<Length> after;
     std::optional<double> line_spacing_multiplier;  // e.g. 1.0, 1.15, 1.5
+    std::optional<Length> exact_line_height;         // if set, emitter uses w:lineRule="exact"
 
     SpacingProps merged_with(const SpacingProps& other) const;
 };

@@ -1,5 +1,11 @@
 // kstfl/font_cache.cpp — FreeType + HarfBuzz font loading and caching
 //
+// Font loading uses ONLY fonts from inst/fonts/ (bundled with the package).
+// No system fonts are used. If a requested font is not found, LiberationSans
+// is used as fallback. Metrics are computed from the OS/2 table
+// (usWinAscent / usWinDescent) to match Microsoft Word's line height
+// calculation.
+//
 // Copyright (c) 2026 KeyStat Solutions. MIT License.
 
 #include "font_cache.h"
@@ -7,6 +13,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_TRUETYPE_TABLES_H
 #include <hb.h>
 #include <hb-ft.h>
 
@@ -21,19 +28,10 @@ namespace fs = std::filesystem;
 namespace kstfl {
 
 // ---------------------------------------------------------------------------
-// Fallback chain (deterministic)
+// Fallback font name (LiberationSans — always bundled in inst/fonts/)
 // ---------------------------------------------------------------------------
 
-const std::vector<std::string>& FontCache::fallback_chain() {
-    static const std::vector<std::string> chain = {
-        "Arial",
-        "Liberation Sans",
-        "DejaVu Sans",
-        "Noto Sans",
-        "FreeSans"
-    };
-    return chain;
-}
+static const std::string FALLBACK_FONT_NAME = "Liberation Sans";
 
 // ---------------------------------------------------------------------------
 // Ctor / Dtor
@@ -70,37 +68,6 @@ void FontCache::add_font_dir(const std::string& dir) {
     }
 }
 
-void FontCache::add_default_font_paths() {
-    // Common system font directories
-    static const std::vector<std::string> default_dirs = {
-        // Linux
-        "/usr/share/fonts",
-        "/usr/local/share/fonts",
-        "/usr/share/fonts/truetype",
-        "/usr/share/fonts/opentype",
-        // macOS
-        "/System/Library/Fonts",
-        "/Library/Fonts",
-        // Windows (typical)
-        "C:/Windows/Fonts",
-    };
-
-    // Home directory fonts
-    const char* home = std::getenv("HOME");
-    if (home) {
-        std::string home_fonts = std::string(home) + "/.fonts";
-        if (fs::exists(home_fonts)) font_dirs_.push_back(home_fonts);
-        std::string home_local = std::string(home) + "/.local/share/fonts";
-        if (fs::exists(home_local)) font_dirs_.push_back(home_local);
-    }
-
-    for (const auto& dir : default_dirs) {
-        if (fs::exists(dir) && fs::is_directory(dir)) {
-            font_dirs_.push_back(dir);
-        }
-    }
-}
-
 // ---------------------------------------------------------------------------
 // Font file finding (recursive directory search)
 // ---------------------------------------------------------------------------
@@ -117,9 +84,9 @@ static std::string font_name_to_filename_hint(const std::string& name, bool bold
     else if (bold) suffix = "bd";
     else if (italic) suffix = "i";
 
-    // Common mappings
-    if (lower == "courier new") return bold && italic ? "courbi" : bold ? "courbd" : italic ? "couri" : "cour";
-    if (lower == "arial") return bold && italic ? "arialbi" : bold ? "arialbd" : italic ? "ariali" : "arial";
+    // Common mappings (filenames match inst/fonts/ bundled files)
+    if (lower == "courier new") return bold && italic ? "courbi" : bold ? "courb" : italic ? "couri" : "cour";
+    if (lower == "arial") return bold && italic ? "arialbi" : bold ? "arialb" : italic ? "ariali" : "arial";
     if (lower == "times new roman") return bold && italic ? "timesbi" : bold ? "timesbd" : italic ? "timesi" : "times";
     if (lower == "calibri") return bold && italic ? "calibriz" : bold ? "calibrib" : italic ? "calibrii" : "calibri";
     if (lower == "liberation sans") return bold && italic ? "LiberationSans-BoldItalic" : bold ? "LiberationSans-Bold" : italic ? "LiberationSans-Italic" : "LiberationSans-Regular";
@@ -198,26 +165,32 @@ const CachedFace& FontCache::get_face(const FaceKey& key) {
     // Try to find the exact font
     std::string path = find_font_file(key);
 
-    if (path.empty()) {
-        // Try fallback chain
-        for (const auto& fallback_name : fallback_chain()) {
-            FaceKey fallback_key{fallback_name, key.bold, key.italic};
-            path = find_font_file(fallback_key);
-            if (!path.empty()) break;
-        }
-    }
-
-    if (path.empty()) {
-        // Try without bold/italic
+    if (path.empty() && (key.bold || key.italic)) {
+        // Try without bold/italic as a secondary attempt for the same font
         FaceKey plain_key{key.name, false, false};
         path = find_font_file(plain_key);
+    }
+
+    if (path.empty() && key.name != FALLBACK_FONT_NAME) {
+        // Fallback to LiberationSans with matching style
+        std::cerr << "[ksTFL] WARNING: Font '" << key.name
+                  << "' not found in inst/fonts/. Falling back to "
+                  << FALLBACK_FONT_NAME << ".\n";
+        FaceKey fallback_key{FALLBACK_FONT_NAME, key.bold, key.italic};
+        path = find_font_file(fallback_key);
+
+        if (path.empty() && (key.bold || key.italic)) {
+            // Try plain LiberationSans
+            FaceKey fallback_plain{FALLBACK_FONT_NAME, false, false};
+            path = find_font_file(fallback_plain);
+        }
     }
 
     if (path.empty()) {
         throw RenderError("Font not found: '" + key.name + "' (bold=" +
                           (key.bold ? "true" : "false") + ", italic=" +
                           (key.italic ? "true" : "false") + "). "
-                          "Check font_dirs or install fonts.");
+                          "No matching font in inst/fonts/ and LiberationSans fallback also not found.");
     }
 
     CachedFace face = load_face(path);
@@ -244,8 +217,21 @@ FontMetrics FontCache::get_metrics(const FaceKey& key, double size_pt) {
     FontMetrics m;
     m.units_per_em = static_cast<double>(face.ft_face->units_per_EM);
     double scale = size_pt / m.units_per_em;
-    m.ascent = static_cast<double>(face.ft_face->ascender) * scale;
-    m.descent = -static_cast<double>(face.ft_face->descender) * scale;  // positive
+
+    // Use OS/2 table metrics (usWinAscent / usWinDescent) to match
+    // Microsoft Word's line height calculation. Word uses these values
+    // for single-spaced text layout, not the hhea table metrics that
+    // FreeType's face->ascender / face->descender provide.
+    TT_OS2* os2 = static_cast<TT_OS2*>(
+        FT_Get_Sfnt_Table(face.ft_face, FT_SFNT_OS2));
+    if (os2) {
+        m.ascent  = static_cast<double>(os2->usWinAscent)  * scale;
+        m.descent = static_cast<double>(os2->usWinDescent) * scale;
+    } else {
+        // Fallback to hhea metrics if OS/2 table not available
+        m.ascent  =  static_cast<double>(face.ft_face->ascender)  * scale;
+        m.descent = -static_cast<double>(face.ft_face->descender) * scale;
+    }
     m.line_height = m.ascent + m.descent;
 
     metrics_cache_[mk] = m;

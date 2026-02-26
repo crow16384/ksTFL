@@ -12,7 +12,9 @@
 #' @param output_path Character string. Path for the output .docx file. If the
 #'   directory does not exist, it will be created.
 #' @param font_dirs Character vector (optional). Additional directories to search
-#'   for fonts. System font directories are included automatically.
+#'   for fonts. The package's bundled fonts (inst/fonts/) are always included
+#'   automatically. Only fonts from these directories are used — no system
+#'   fonts are searched.
 #' @param fallback_font Character string (optional). Path to a fallback font file
 #'   (e.g., Liberation Sans). If not specified, the embedded fallback font is used.
 #' @param verbose Logical. If \code{TRUE}, print progress messages to stderr.
@@ -32,10 +34,12 @@
 #'   \item \strong{Emit}: Stream OOXML into a valid .docx (ZIP) package
 #' }
 #'
-#' \strong{Font handling}: The renderer searches system font directories plus any
-#' additional directories specified in \code{font_dirs}. If a requested font is
-#' not found, a fallback chain is used: Arial -> Liberation Sans -> DejaVu Sans
-#' -> Noto Sans -> FreeSans.
+#' \strong{Font handling}: The renderer uses only fonts bundled in the package's
+#' \code{inst/fonts/} directory, plus any additional directories specified in
+#' \code{font_dirs}. No system fonts are searched. If a requested font is not
+#' found, LiberationSans (bundled) is used as fallback. Font metrics are
+#' computed from the OS/2 table (usWinAscent/usWinDescent) to match
+#' Microsoft Word's line height calculation.
 #'
 #' \strong{Template}: The template controls default styles (fonts, spacing, borders),
 #' page layout, and table formatting. Use the bundled template or provide a custom
@@ -119,6 +123,12 @@ render_docx <- function(spec_json,
   out_dir <- dirname(output_path)
   if (!dir.exists(out_dir)) {
     dir.create(out_dir, recursive = TRUE)
+  }
+
+  # ---- Always include bundled package fonts (inst/fonts/) ----
+  pkg_fonts_dir <- system.file("fonts", package = "ksTFL")
+  if (nzchar(pkg_fonts_dir)) {
+    font_dirs <- c(pkg_fonts_dir, font_dirs)
   }
 
   # ---- Call C++ renderer ----

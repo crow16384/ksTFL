@@ -157,30 +157,13 @@ Length Paginator::compute_available_height(
     Length subtitles_height,
     Length table_header_height,
     Length footnotes_height,
-    Length footer_section_height,
-    bool is_first_page,
-    bool is_last_page,
-    bool body_footnotes) {
+    Length footer_section_height) {
 
     Length available = page.usable_height();
 
-    // Rendering‐tolerance buffer (spec §13.7).
-    //
-    // Our paginator measures paragraph heights (titles, subtitles, footnotes)
-    // using FreeType's hhea‐table metrics, but Word's layout engine uses the
-    // OS/2 table (sTypoAscender / sTypoDescender / usWinAscent / usWinDescent),
-    // which can produce line heights ~1‒2 % larger.  Additionally, structural
-    // table borders (header_top, table_bottom) may protrude ≤0.75 pt outside
-    // the table bounding box, and page‐break paragraphs emitted with
-    // w:line="0" w:lineRule="exact" can occupy a small non‐zero height in
-    // some Word implementations.
-    //
-    // Without this buffer, pages are filled to within 1‒2 pt of capacity and
-    // Word silently splits the last table row(s) onto a continuation page,
-    // which loses our explicit titles, subtitles, and deduplicated group
-    // values.  A 5 pt reserve absorbs all known discrepancy sources.
-    static const Length RENDERING_TOLERANCE = Length::from_pt(5.0);
-    available = available - RENDERING_TOLERANCE;
+    // Conservative safety margin: reserve a small amount of vertical space
+    // so that Word's internal layout never overflows onto an extra page.
+    available = available - PAGE_SAFETY_MARGIN;
 
     // Header/footer sections
     available = available - header_section_height - footer_section_height;
@@ -194,10 +177,10 @@ Length Paginator::compute_available_height(
     // Table header: repeated on every page
     available = available - table_header_height;
 
-    // Footnotes: if body_footnotes=true, reserve space on last page
-    if (body_footnotes && is_last_page) {
-        available = available - footnotes_height;
-    }
+    // Footnotes: always reserved so the last page never overflows.
+    // On non-last pages the emitter does not emit footnotes, so there
+    // is simply a small extra whitespace at the bottom — acceptable.
+    available = available - footnotes_height;
 
     if (available.emu < 0) available.emu = 0;
     return available;
@@ -362,18 +345,16 @@ PaginationResult Paginator::paginate(
             page.footnotes_height = footnotes_height;
             page.footer_section_height = footer_section_height;
 
-            // We don't know if this is the last page yet; assume not for now
+            // Always reserve footnotes space so the last page never
+            // overflows its footnote onto a new (empty) page.
             Length available = compute_available_height(
                 page_config,
                 header_section_height,
                 show_titles ? titles_height : Length{0},
                 page_subtitle_h,
                 table_header_height,
-                Length{0},  // footnotes not reserved until we know it's the last page
-                footer_section_height,
-                is_first,
-                false,
-                body_footnotes);
+                body_footnotes ? footnotes_height : Length{0},
+                footer_section_height);
 
 
             // Fill rows into this page
@@ -391,22 +372,6 @@ PaginationResult Paginator::paginate(
 
                 // Check if row fits
                 if (used_height.emu > 0 && (used_height + rh) > available) {
-                    // Check if this is potentially the last page and we need footnotes space
-                    // Re-check with footnotes reserved
-                    if (body_footnotes) {
-                        Length available_with_fn = compute_available_height(
-                            page_config,
-                            header_section_height,
-                            show_titles ? titles_height : Length{0},
-                            page_subtitle_h,
-                            table_header_height,
-                            footnotes_height,
-                            footer_section_height,
-                            is_first,
-                            true,
-                            body_footnotes);
-                        // Even less space with footnotes
-                    }
                     break;
                 }
 

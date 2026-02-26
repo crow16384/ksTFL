@@ -152,11 +152,7 @@ void Renderer::render_from_strings(const std::string& spec_json,
 
     FontCache font_cache;
     for (const auto& dir : config_.font_dirs) {
-        if (dir == "__default__") {
-            font_cache.add_default_font_paths();
-        } else {
-            font_cache.add_font_dir(dir);
-        }
+        font_cache.add_font_dir(dir);
     }
 
     // Add fallback font path if specified
@@ -465,7 +461,7 @@ void Renderer::render_from_strings(const std::string& spec_json,
 
     DocxEmitter emitter(tmpl, config_);
     emitter.emit(doc, data_tables, output_path,
-                  all_pages, all_rows, all_headers);
+                  all_pages, all_rows, all_headers, &measurer);
 
     if (config_.verbose) {
         std::cerr << "[ksTFL] Render complete: " << output_path << "\n";

@@ -21,16 +21,13 @@ void render_docx_impl(const std::string& spec_json_path,
         config.verbose = verbose;
         config.fallback_font_path = fallback_font;
 
-        // Process font directories
+        // Process font directories (only explicit dirs — no system fonts)
         if (font_dirs.isNotNull()) {
             Rcpp::CharacterVector dirs(font_dirs);
             for (int i = 0; i < dirs.size(); ++i) {
                 config.font_dirs.push_back(Rcpp::as<std::string>(dirs[i]));
             }
         }
-
-        // Always include default system fonts
-        config.font_dirs.push_back("__default__");
 
         renderer.set_config(config);
         renderer.render(spec_json_path, template_json_path, output_path);
@@ -56,13 +53,13 @@ void render_docx_from_strings_impl(const std::string& spec_json,
         config.verbose = verbose;
         config.fallback_font_path = fallback_font;
 
+        // Process font directories (only explicit dirs — no system fonts)
         if (font_dirs.isNotNull()) {
             Rcpp::CharacterVector dirs(font_dirs);
             for (int i = 0; i < dirs.size(); ++i) {
                 config.font_dirs.push_back(Rcpp::as<std::string>(dirs[i]));
             }
         }
-        config.font_dirs.push_back("__default__");
 
         renderer.set_config(config);
         renderer.render_from_strings(spec_json, template_json, output_path, data_dir);

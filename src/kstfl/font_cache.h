@@ -86,21 +86,16 @@ public:
     /// Add a directory to search for font files.
     void add_font_dir(const std::string& dir);
 
-    /// Add system default font directories.
-    void add_default_font_paths();
-
     /// Get or create a FreeType face + HarfBuzz font for the given key.
-    /// Searches font directories and applies fallback chain.
+    /// Searches font directories and falls back to LiberationSans if not found.
     const CachedFace& get_face(const FaceKey& key);
 
     /// Get font metrics for a face at a given size.
+    /// Uses OS/2 table (usWinAscent/usWinDescent) to match Word's metrics.
     FontMetrics get_metrics(const FaceKey& key, double size_pt);
 
     /// Get HarfBuzz font for shaping at a given size.
     hb_font_t* get_hb_font(const FaceKey& key, double size_pt);
-
-    /// Deterministic fallback chain for when requested font not found.
-    static const std::vector<std::string>& fallback_chain();
 
 private:
     /// Try to find a font file matching the key.
