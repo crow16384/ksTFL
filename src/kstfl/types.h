@@ -471,6 +471,7 @@ struct DocumentInfo {
     bool glue_prefix = true;                 // glue prefix to first title line
     bool glue_num_type = false;              // informational: number type was auto-generated
     int doc_order = 0;
+    bool is_continues = false;               // if true, titles don't repeat on subsequent pages
     std::optional<double> content_width;     // percent of usable width (0.0–1.0 or 0–100)
     bool body_titles = false;
     bool body_subtitles = false;

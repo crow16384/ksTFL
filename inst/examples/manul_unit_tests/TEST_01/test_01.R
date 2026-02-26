@@ -1,6 +1,9 @@
 
 library(ksTFL)
-library(tidyverse)
+suppressPackageStartupMessages({
+  library(tidyr)
+  library(dplyr)
+})
 
 source(file.path(getwd(), './inst/examples/manul_unit_tests/dummy_data.R')) ##sourcing dummy data definitions
 
@@ -71,9 +74,10 @@ spec_01_02 <- create_table(demography_tbl_01) %>%
   add_title(c("Third separate title"), styleRef = "font_italic") %>% 
   add_footnote(c("This is the test unit 01 02", "Second line of footnote")) %>% 
   define_cols(c(value, stat, trt_a, trt_b, trt_c),
-              label = c("Parameter\n  Value", "Statistics", 
-                        "Miracle Drug 1\n(N=100)", "Miracle Drug 2\n(N=100)", "Placebo\n(N=100)")) %>% 
+              label = c("Parameter<br>  Value", "Statistics", 
+                        "Miracle Drug 1<p>(N=100)", "Miracle Drug 2<p>(N=100)", "Placebo<p>(N=100)")) %>% 
   define_cols(param, isVisible = F) %>% 
+  define_cols(value, labelStyleRef = "text_left") %>% 
   compute_cols(
     firstOf(param),
     c_merge(c(param, value))

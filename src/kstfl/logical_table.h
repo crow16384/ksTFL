@@ -37,10 +37,12 @@ private:
 
     /// Apply styleRows actions (style, merge, add_row, page_break).
     /// Expands the row stream with synthetic rows.
+    /// @param data  The full data table (needed for value_from on invisible columns).
     static std::vector<LogicalRow> apply_style_rows(
         std::vector<LogicalRow>& rows,
         const std::vector<RowActionSet>& style_rows,
-        const std::vector<ColumnSpec>& columns);
+        const std::vector<ColumnSpec>& columns,
+        const DataTable& data);
 
     /// Detect grouping boundaries.
     static void detect_grouping_boundaries(

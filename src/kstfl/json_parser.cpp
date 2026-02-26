@@ -383,9 +383,20 @@ static std::vector<HeaderFooterRow> parse_header_footer(const json& j) {
         if (!row.is_array()) continue;
         HeaderFooterRow hfr;
         hfr.order = order++;
-        if (row.size() >= 1 && row[0].is_string()) hfr.left   = row[0].get<std::string>();
-        if (row.size() >= 2 && row[1].is_string()) hfr.center = row[1].get<std::string>();
-        if (row.size() >= 3 && row[2].is_string()) hfr.right  = row[2].get<std::string>();
+        // Placement rule:
+        //   1 value  → left only
+        //   2 values → left + right (center empty)
+        //   3 values → left + center + right
+        if (row.size() == 1 && row[0].is_string()) {
+            hfr.left = row[0].get<std::string>();
+        } else if (row.size() == 2) {
+            if (row[0].is_string()) hfr.left  = row[0].get<std::string>();
+            if (row[1].is_string()) hfr.right = row[1].get<std::string>();
+        } else if (row.size() >= 3) {
+            if (row[0].is_string()) hfr.left   = row[0].get<std::string>();
+            if (row[1].is_string()) hfr.center = row[1].get<std::string>();
+            if (row[2].is_string()) hfr.right  = row[2].get<std::string>();
+        }
         rows.push_back(std::move(hfr));
     }
     return rows;
@@ -546,6 +557,7 @@ static DocumentInfo parse_document_info(const json& j) {
     di.glue_num_type = get_bool(j, "glueNumType", false);
 
     di.doc_order = get_int(j, "docOrder", 0);
+    di.is_continues = get_bool(j, "isContinues", false);
     di.body_titles = get_bool(j, "bodyTitles", true);
     di.body_subtitles = get_bool(j, "bodySubtitles", true);
     di.body_footnotes = get_bool(j, "bodyFootnotes", false);

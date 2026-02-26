@@ -15,7 +15,8 @@
 ##   Rscript inst/examples/full_cycle_render.R
 ## =============================================================================
 
-library(ksTFL)
+#library(ksTFL)
+devtools::load_all()
 
 out_dir  <- file.path(getwd(), "tmp", "output")
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
@@ -517,7 +518,8 @@ spec6 <- spec6 |>
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
     bodyFootnotes = TRUE,
-    hasData       = TRUE
+    hasData       = TRUE,
+    #isContinues   = TRUE
   )
 
 # -- Row actions --
@@ -849,3 +851,4 @@ meta_files <- list.files(meta_dir, full.names = FALSE)
 cat(sprintf("\nMetadata files in %s: %d files\n", meta_dir, length(meta_files)))
 
 cat("========================================================================\n")
+

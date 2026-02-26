@@ -336,15 +336,65 @@ void LogicalTableBuilder::apply_dedupe(std::vector<LogicalRow>& rows,
 std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
     std::vector<LogicalRow>& rows,
     const std::vector<RowActionSet>& style_rows,
-    const std::vector<ColumnSpec>& columns) {
+    const std::vector<ColumnSpec>& columns,
+    const DataTable& data) {
 
     if (style_rows.empty()) return std::move(rows);
 
-    // Build column id -> cell index map
+    // Build column id -> cell index map (visible columns only)
     std::unordered_map<std::string, size_t> col_to_idx;
     for (size_t i = 0; i < columns.size(); ++i) {
         col_to_idx[columns[i].id] = i;
     }
+
+    // Helper: get a value from the DataTable for a given column and row index.
+    // This works for both visible and invisible columns.
+    auto get_data_value = [&](const std::string& col_id, size_t row_index) -> std::string {
+        auto it = data.columns.find(col_id);
+        if (it != data.columns.end() && row_index < it->second.size()) {
+            return it->second[row_index];
+        }
+        return "";
+    };
+
+    // Helper: build a full-width merged synthetic row.
+    // All columns are merged into one cell with the text from value_from column.
+    auto build_addrow_synthetic = [&](size_t src_idx, const AddRowAction& ar) -> LogicalRow {
+        LogicalRow synthetic;
+        synthetic.type = LogicalRowType::SyntheticRow;
+        synthetic.source_index = src_idx;
+        synthetic.row_style_ref = ar.style_ref;
+
+        // Get the value: try DataTable first (handles invisible columns),
+        // then fall back to visible column cells
+        std::string value_text = get_data_value(ar.value_from, src_idx);
+
+        // Build cells: first cell is the merge leader spanning all visible columns
+        Length total_width{0};
+        for (const auto& col : columns) {
+            total_width = total_width + col.resolved_width;
+        }
+
+        for (size_t ci = 0; ci < columns.size(); ++ci) {
+            LogicalCell cell;
+            cell.col_id = columns[ci].id;
+            if (ci == 0) {
+                // Leader cell: carries the value and spans all columns
+                cell.text = value_text;
+                cell.is_merge_leader = true;
+                cell.merge_span = static_cast<int>(columns.size());
+                cell.merged_width = total_width;
+                if (ar.style_ref.has_value()) {
+                    cell.style_ref = ar.style_ref;
+                }
+            } else {
+                // Merged (suppressed) cells
+                cell.is_merged = true;
+            }
+            synthetic.cells.push_back(std::move(cell));
+        }
+        return synthetic;
+    };
 
     std::vector<LogicalRow> result;
     result.reserve(rows.size() * 2);  // conservative estimate
@@ -371,25 +421,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
         // --- add_row "above" insertions ---
         for (const auto& ar : actions->add_rows) {
             if (ar.pos == AddRowAction::Position::Above) {
-                LogicalRow synthetic;
-                synthetic.type = LogicalRowType::SyntheticRow;
-                synthetic.source_index = src_idx;
-                synthetic.row_style_ref = ar.style_ref;
-
-                // Create cells: one value from value_from column, rest blank
-                for (const auto& col : columns) {
-                    LogicalCell cell;
-                    cell.col_id = col.id;
-                    if (col.id == ar.value_from) {
-                        // Get value from parent data row
-                        auto it = col_to_idx.find(col.id);
-                        if (it != col_to_idx.end() && it->second < row.cells.size()) {
-                            cell.text = row.cells[it->second].text;
-                        }
-                    }
-                    synthetic.cells.push_back(std::move(cell));
-                }
-                result.push_back(std::move(synthetic));
+                result.push_back(build_addrow_synthetic(src_idx, ar));
             }
         }
 
@@ -410,9 +442,9 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
 
         // --- merge actions ---
         for (const auto& ma : actions->merges) {
-            if (ma.cols.size() < 2) continue;
+            if (ma.cols.empty()) continue;
 
-            // Find the column indices for this merge
+            // Find the visible column indices for this merge
             std::vector<size_t> merge_indices;
             for (const auto& col_id : ma.cols) {
                 auto it = col_to_idx.find(col_id);
@@ -420,36 +452,62 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
                     merge_indices.push_back(it->second);
                 }
             }
-            if (merge_indices.size() < 2) continue;
+
+            // Even with 1 visible column, we may need to apply value_from logic:
+            // if the first column in the merge list is invisible, bring its value
+            // to the first visible column.
+            if (merge_indices.empty()) continue;
 
             // Sort indices
             std::sort(merge_indices.begin(), merge_indices.end());
 
-            // Leader cell: first in the merge
-            size_t leader_idx = merge_indices[0];
-            if (leader_idx < row.cells.size()) {
-                row.cells[leader_idx].is_merge_leader = true;
-                row.cells[leader_idx].merge_span = static_cast<int>(merge_indices.size());
-
-                // Compute combined width
-                Length combined{0};
-                for (size_t idx : merge_indices) {
-                    if (idx < columns.size()) {
-                        combined = combined + columns[idx].resolved_width;
-                    }
-                }
-                row.cells[leader_idx].merged_width = combined;
-
-                if (ma.style_ref.has_value()) {
-                    row.cells[leader_idx].style_ref = ma.style_ref;
+            // Check if the first column in the merge list is invisible
+            // (i.e., not present in col_to_idx). If so, bring its value
+            // to the first visible column in the merge.
+            const std::string& first_merge_col = ma.cols[0];
+            bool first_is_invisible = (col_to_idx.find(first_merge_col) == col_to_idx.end());
+            if (first_is_invisible) {
+                // Get value from the invisible column via DataTable
+                std::string invisible_val = get_data_value(first_merge_col, src_idx);
+                size_t leader_idx = merge_indices[0];
+                if (leader_idx < row.cells.size() && !invisible_val.empty()) {
+                    row.cells[leader_idx].text = invisible_val;
                 }
             }
 
-            // Mark remaining cells as merged (suppressed)
-            for (size_t k = 1; k < merge_indices.size(); ++k) {
-                size_t idx = merge_indices[k];
-                if (idx < row.cells.size()) {
-                    row.cells[idx].is_merged = true;
+            // Apply merge if 2+ visible columns
+            if (merge_indices.size() >= 2) {
+                size_t leader_idx = merge_indices[0];
+                if (leader_idx < row.cells.size()) {
+                    row.cells[leader_idx].is_merge_leader = true;
+                    row.cells[leader_idx].merge_span = static_cast<int>(merge_indices.size());
+
+                    // Compute combined width
+                    Length combined{0};
+                    for (size_t idx : merge_indices) {
+                        if (idx < columns.size()) {
+                            combined = combined + columns[idx].resolved_width;
+                        }
+                    }
+                    row.cells[leader_idx].merged_width = combined;
+
+                    if (ma.style_ref.has_value()) {
+                        row.cells[leader_idx].style_ref = ma.style_ref;
+                    }
+                }
+
+                // Mark remaining cells as merged (suppressed)
+                for (size_t k = 1; k < merge_indices.size(); ++k) {
+                    size_t idx = merge_indices[k];
+                    if (idx < row.cells.size()) {
+                        row.cells[idx].is_merged = true;
+                    }
+                }
+            } else if (merge_indices.size() == 1) {
+                // Only 1 visible column in merge — just apply style if provided
+                size_t leader_idx = merge_indices[0];
+                if (leader_idx < row.cells.size() && ma.style_ref.has_value()) {
+                    row.cells[leader_idx].style_ref = ma.style_ref;
                 }
             }
         }
@@ -460,25 +518,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
         if (actions) {
             for (const auto& ar : actions->add_rows) {
                 if (ar.pos == AddRowAction::Position::Below) {
-                    LogicalRow synthetic;
-                    synthetic.type = LogicalRowType::SyntheticRow;
-                    synthetic.source_index = src_idx;
-                    synthetic.row_style_ref = ar.style_ref;
-
-                    for (const auto& col : columns) {
-                        LogicalCell cell;
-                        cell.col_id = col.id;
-                        if (col.id == ar.value_from) {
-                            // Find the value in the original row
-                            auto it = col_to_idx.find(col.id);
-                            if (it != col_to_idx.end() && it->second < rows[ri].cells.size()) {
-                                // We already moved the row, but source was captured above
-                                // This won't work after move—but we handled the value before move
-                            }
-                        }
-                        synthetic.cells.push_back(std::move(cell));
-                    }
-                    result.push_back(std::move(synthetic));
+                    result.push_back(build_addrow_synthetic(src_idx, ar));
                 }
             }
         }
@@ -578,7 +618,7 @@ LogicalTableBuilder::Result LogicalTableBuilder::build(const TFLSpec& spec,
     apply_dedupe(rows, spec.columns);
 
     // 5. Apply styleRows actions (expands row stream with synthetic rows)
-    rows = apply_style_rows(rows, spec.style_rows, spec.columns);
+    rows = apply_style_rows(rows, spec.style_rows, spec.columns, data);
 
     // 6. Collect grouping column indices (isGrouping or isPaging)
     for (size_t i = 0; i < spec.columns.size(); ++i) {

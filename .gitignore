@@ -50,3 +50,7 @@ coverage/
 # Testing
 tests/testthat/test-results/
 /Meta/
+
+# Core dumps
+core.*
+core

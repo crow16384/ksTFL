@@ -167,10 +167,8 @@ Length Paginator::compute_available_height(
     // Header/footer sections
     available = available - header_section_height - footer_section_height;
 
-    // Titles appear on first page (and on each horizontal segment page)
-    if (is_first_page) {
-        available = available - titles_height;
-    }
+    // Titles: callers pass titles_height=0 for pages that don't show titles
+    available = available - titles_height;
 
     // Subtitles: repeated on every page (can be dynamic)
     available = available - subtitles_height;
@@ -235,27 +233,36 @@ PaginationResult Paginator::paginate(
     }
 
     // Titles height.
-    // The emitter combines ALL titles + optional prefix into ONE paragraph
-    // (emit_text_groups_combined), so we measure them as a single block.
+    // The emitter renders each add_title() group as a separate paragraph,
+    // with lines within a group joined by <br> soft breaks.
     Length titles_height{0};
     {
-        // Build combined title text matching emitter's structure:
-        // prefix + <br> + group1_line1 + <br> + group1_line2 + ...
-        std::string combined_title;
-        if (!spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
-            combined_title = spec.document.doc_prefix;
-        }
-        for (const auto& tg : spec.titles) {
-            for (const auto& line : tg.text) {
-                if (!combined_title.empty()) combined_title += "<br>";
-                combined_title += line;
-            }
-        }
-        if (!combined_title.empty()) {
+        // If doc_prefix is not glued, it's a separate paragraph
+        if (!spec.document.doc_prefix.empty() && !spec.document.glue_prefix) {
             StyleDef style = resolver.resolve_title_style();
-            MeasuredText m = measurer.measure_plain(combined_title, style,
+            MeasuredText m = measurer.measure_plain(spec.document.doc_prefix, style,
                                                      page_config.usable_width());
-            titles_height = m.height;
+            titles_height = titles_height + m.height;
+        }
+
+        // Measure each title group as a separate paragraph
+        for (size_t gi = 0; gi < spec.titles.size(); ++gi) {
+            const auto& tg = spec.titles[gi];
+            StyleDef style = resolver.resolve_title_style(tg.style_ref);
+            std::string combined;
+            // Prepend glued prefix to first group
+            if (gi == 0 && !spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
+                combined = spec.document.doc_prefix;
+            }
+            for (const auto& line : tg.text) {
+                if (!combined.empty()) combined += "<br>";
+                combined += line;
+            }
+            if (!combined.empty()) {
+                MeasuredText m = measurer.measure_plain(combined, style,
+                                                         page_config.usable_width());
+                titles_height = titles_height + m.height;
+            }
         }
     }
 
@@ -303,6 +310,11 @@ PaginationResult Paginator::paginate(
     }
 
     bool body_footnotes = spec.document.body_footnotes;
+    bool is_continues = spec.document.is_continues;
+
+    // When is_continues=false (default), titles repeat on every page.
+    // When is_continues=true, titles appear only on the first page.
+    bool repeat_titles = !is_continues;
 
     // 4. Paginate each segment
     for (auto& segment : segments) {
@@ -315,7 +327,7 @@ PaginationResult Paginator::paginate(
             page.page_number = page_num;
             page.is_first_page = is_first;
             page.first_row = row_idx;
-            page.has_titles = is_first;
+            page.has_titles = is_first || repeat_titles;
             page.has_subtitles = true;
 
             // Determine subtitle height for this page
@@ -323,8 +335,10 @@ PaginationResult Paginator::paginate(
             Length page_subtitle_h = subtitles_height;
 
             // Store page heights
+            // When titles repeat, reserve height on all pages; otherwise only first.
+            bool show_titles = is_first || repeat_titles;
             page.header_section_height = header_section_height;
-            page.titles_height = is_first ? titles_height : Length{0};
+            page.titles_height = show_titles ? titles_height : Length{0};
             page.subtitles_height = page_subtitle_h;
             page.table_header_height = table_header_height;
             page.footnotes_height = footnotes_height;
@@ -334,7 +348,7 @@ PaginationResult Paginator::paginate(
             Length available = compute_available_height(
                 page_config,
                 header_section_height,
-                is_first ? titles_height : Length{0},
+                show_titles ? titles_height : Length{0},
                 page_subtitle_h,
                 table_header_height,
                 Length{0},  // footnotes not reserved until we know it's the last page
@@ -365,7 +379,7 @@ PaginationResult Paginator::paginate(
                         Length available_with_fn = compute_available_height(
                             page_config,
                             header_section_height,
-                            is_first ? titles_height : Length{0},
+                            show_titles ? titles_height : Length{0},
                             page_subtitle_h,
                             table_header_height,
                             footnotes_height,

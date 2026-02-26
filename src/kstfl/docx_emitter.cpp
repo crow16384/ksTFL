@@ -1051,7 +1051,13 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
     std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
                                          segment.column_indices.end());
 
-    for (const auto& header_row : header_grid.rows) {
+    size_t total_header_rows = header_grid.rows.size();
+
+    for (size_t row_idx = 0; row_idx < total_header_rows; ++row_idx) {
+        const auto& header_row = header_grid.rows[row_idx];
+        bool is_first_header_row = (row_idx == 0);
+        bool is_last_header_row = (row_idx == total_header_rows - 1);
+
         w.start_element("w:tr");
 
         // Row properties: header repetition + cantSplit
@@ -1100,6 +1106,23 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
 
                 // Cell properties from resolved table_style
                 TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
+
+                // Override with structural borders (highest priority)
+                // First header row: apply header_top_border
+                if (is_first_header_row && tmpl_.table_style.structural.header_top_border.has_value()) {
+                    if (!tcp.borders.has_value()) {
+                        tcp.borders = Borders{};
+                    }
+                    tcp.borders->top = tmpl_.table_style.structural.header_top_border;
+                }
+                // Last header row: apply header_bottom_border
+                if (is_last_header_row && tmpl_.table_style.structural.header_bottom_border.has_value()) {
+                    if (!tcp.borders.has_value()) {
+                        tcp.borders = Borders{};
+                    }
+                    tcp.borders->bottom = tmpl_.table_style.structural.header_bottom_border;
+                }
+
                 emit_cell_props(w, tcp, visible_width, visible_span, cell.v_merge);
 
                 // Cell content (empty for vMerge continuation cells)
@@ -1354,12 +1377,14 @@ void DocxEmitter::emit_page(XmlWriter& w,
     // and referenced via <w:sectPr> section properties.
 
     // 1. Titles (on first page, or repeated per spec §13.6)
-    //    All title groups are combined into a single paragraph with soft breaks.
-    //    Per-group font styles are preserved as separate runs within the paragraph.
+    //    Each add_title() call is a separate TextGroup → separate paragraph.
+    //    Within a group, text lines are concatenated with soft breaks (<br>).
+    //    Per-group font styles are preserved via styleRef.
     if (page.has_titles && !spec.titles.empty()) {
         StyleDef title_style = resolver.resolve_title_style();
-        std::string prefix;
 
+        // Handle doc_prefix: either glue to first title or emit separately
+        std::string prefix;
         if (!spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
             prefix = spec.document.doc_prefix;
         } else if (!spec.document.doc_prefix.empty()) {
@@ -1367,7 +1392,32 @@ void DocxEmitter::emit_page(XmlWriter& w,
             emit_paragraph(w, spec.document.doc_prefix, title_style);
         }
 
-        emit_text_groups_combined(w, spec.titles, title_style, resolver, prefix);
+        // Emit each title group as a separate paragraph.
+        // If prefix is set, prepend it to the first group's first text line.
+        for (size_t gi = 0; gi < spec.titles.size(); ++gi) {
+            const auto& group = spec.titles[gi];
+            StyleDef style = title_style;
+            if (group.style_ref.has_value()) {
+                const StyleDef* ref_style = resolver.find_style(group.style_ref.value());
+                if (ref_style) {
+                    style = style.merged_with(*ref_style);
+                }
+            }
+
+            // Concatenate text lines with soft break (within one paragraph)
+            std::string combined;
+            for (size_t i = 0; i < group.text.size(); ++i) {
+                if (i > 0) combined += "<br>";
+                combined += group.text[i];
+            }
+
+            // Prepend prefix to the first group only
+            if (gi == 0 && !prefix.empty()) {
+                combined = prefix + combined;
+            }
+
+            emit_paragraph(w, combined, style);
+        }
     }
 
     // 2. Subtitles
