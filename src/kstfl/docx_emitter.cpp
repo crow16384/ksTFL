@@ -8,6 +8,7 @@
 #include "docx_emitter.h"
 #include "inline_parser.h"
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 #include <cmath>
 #include <cstring>
@@ -1060,10 +1061,19 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
 
         w.start_element("w:tr");
 
-        // Row properties: header repetition + cantSplit
+        // Row properties: header repetition + cantSplit + exact height
         w.start_element("w:trPr");
         w.self_closing_element("w:tblHeader");
         w.self_closing_element("w:cantSplit");
+        // Set exact row height to match paginator's calculation
+        if (row_idx < header_grid.row_heights.size() &&
+            header_grid.row_heights[row_idx].emu > 0) {
+            w.start_element("w:trHeight");
+            w.attribute("w:val", std::to_string(
+                header_grid.row_heights[row_idx].to_twips()));
+            w.attribute("w:hRule", "exact");
+            w.end_element();
+        }
         w.end_element();
 
         // Emit only cells whose columns belong to this segment.
@@ -1157,7 +1167,9 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
     if (row.measured_height.emu > 0) {
         w.start_element("w:trHeight");
         w.attribute("w:val", std::to_string(row.measured_height.to_twips()));
-        w.attribute("w:hRule", "atLeast");
+        // Use "exact" to force Word to render rows at exactly our calculated
+        // height, ensuring deterministic pagination (no overflow).
+        w.attribute("w:hRule", "exact");
         w.end_element();
     }
     w.end_element();
@@ -1375,6 +1387,24 @@ void DocxEmitter::emit_page(XmlWriter& w,
     // NOTE: Document headers/footers are no longer emitted in the page body.
     // They are placed in separate word/headerN.xml and word/footerN.xml parts
     // and referenced via <w:sectPr> section properties.
+
+    if (config_.verbose) {
+        std::cerr << "[ksTFL] emit_page: page_num=" << page.page_number
+                  << " first_row=" << page.first_row
+                  << " last_row=" << page.last_row
+                  << " has_titles=" << page.has_titles
+                  << " has_subtitles=" << page.has_subtitles
+                  << " is_first=" << page.is_first_page
+                  << " is_last=" << page.is_last_page
+                  << "\n";
+        if (page.first_row < rows.size() && !rows[page.first_row].cells.empty()) {
+            std::cerr << "[ksTFL]   first_row cells:";
+            for (size_t ci = 0; ci < rows[page.first_row].cells.size() && ci < 4; ++ci) {
+                std::cerr << " [" << ci << "]='" << rows[page.first_row].cells[ci].text.substr(0, 20) << "'";
+            }
+            std::cerr << "\n";
+        }
+    }
 
     // 1. Titles (on first page, or repeated per spec §13.6)
     //    Each add_title() call is a separate TextGroup → separate paragraph.

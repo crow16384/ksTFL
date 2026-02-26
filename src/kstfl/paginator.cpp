@@ -164,6 +164,24 @@ Length Paginator::compute_available_height(
 
     Length available = page.usable_height();
 
+    // Rendering‐tolerance buffer (spec §13.7).
+    //
+    // Our paginator measures paragraph heights (titles, subtitles, footnotes)
+    // using FreeType's hhea‐table metrics, but Word's layout engine uses the
+    // OS/2 table (sTypoAscender / sTypoDescender / usWinAscent / usWinDescent),
+    // which can produce line heights ~1‒2 % larger.  Additionally, structural
+    // table borders (header_top, table_bottom) may protrude ≤0.75 pt outside
+    // the table bounding box, and page‐break paragraphs emitted with
+    // w:line="0" w:lineRule="exact" can occupy a small non‐zero height in
+    // some Word implementations.
+    //
+    // Without this buffer, pages are filled to within 1‒2 pt of capacity and
+    // Word silently splits the last table row(s) onto a continuation page,
+    // which loses our explicit titles, subtitles, and deduplicated group
+    // values.  A 5 pt reserve absorbs all known discrepancy sources.
+    static const Length RENDERING_TOLERANCE = Length::from_pt(5.0);
+    available = available - RENDERING_TOLERANCE;
+
     // Header/footer sections
     available = available - header_section_height - footer_section_height;
 

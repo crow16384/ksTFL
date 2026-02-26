@@ -5,6 +5,8 @@ Don't be a lazy bitch, read the function implementation/parameters/roxygens befo
 
 Always use #oraios/serena before and after any actions with code!
 
+Use #Context7 MCP
+
 For installing R packages always use Russian CRAN mirrors! 
 
 ## Project Overview

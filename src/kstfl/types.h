@@ -612,6 +612,7 @@ struct HeaderGridCell {
 struct HeaderGrid {
     std::vector<std::vector<HeaderGridCell>> rows;
     Length total_height;  // measured total header height
+    std::vector<Length> row_heights;  // per-row measured heights
 };
 
 // ---------------------------------------------------------------------------

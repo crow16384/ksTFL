@@ -252,6 +252,7 @@ void Renderer::render_from_strings(const std::string& spec_json,
 
         // Measure header grid cells
         Length total_header_height{0};
+        header_grid.row_heights.clear();
         for (auto& header_row : header_grid.rows) {
             Length max_row_height{0};
             for (auto& cell : header_row) {
@@ -266,6 +267,7 @@ void Renderer::render_from_strings(const std::string& spec_json,
                     max_row_height = m.height;
                 }
             }
+            header_grid.row_heights.push_back(max_row_height);
             total_header_height = total_header_height + max_row_height;
         }
         header_grid.total_height = total_header_height;
@@ -310,6 +312,142 @@ void Renderer::render_from_strings(const std::string& spec_json,
             std::cerr << "[ksTFL]   Paginated: " << pagination.total_pages
                       << " total pages across "
                       << pagination.segments.size() << " segments\n";
+
+            // Detailed page geometry diagnostics
+            std::cerr << "[ksTFL]   Page geometry: "
+                      << "page_h=" << page_config.page_height().to_pt() << "pt"
+                      << " top=" << page_config.margins.top.to_pt() << "pt"
+                      << " bot=" << page_config.margins.bottom.to_pt() << "pt"
+                      << " usable_h=" << page_config.usable_height().to_pt() << "pt"
+                      << "\n";
+            std::cerr << "[ksTFL]   Header grid: total_h=" << header_grid.total_height.to_pt() << "pt"
+                      << " rows=" << header_grid.rows.size();
+            for (size_t i = 0; i < header_grid.row_heights.size(); ++i) {
+                std::cerr << " rh[" << i << "]=" << header_grid.row_heights[i].to_pt() << "pt";
+            }
+            std::cerr << "\n";
+
+            // Show first 5 body row heights
+            std::cerr << "[ksTFL]   Body row heights (first 5): ";
+            for (size_t i = 0; i < 5 && i < rows.size(); ++i) {
+                std::cerr << "[" << i << "]=" << rows[i].measured_height.to_pt() << "pt ";
+            }
+            std::cerr << "\n";
+
+            // Per-page details (first 3 pages)
+            for (const auto& seg : pagination.segments) {
+                for (size_t pi = 0; pi < seg.pages.size() && pi < 3; ++pi) {
+                    const auto& p = seg.pages[pi];
+                    Length body_h{0};
+                    for (size_t ri = p.first_row; ri <= p.last_row && ri < rows.size(); ++ri) {
+                        body_h = body_h + rows[ri].measured_height;
+                    }
+                    Length total_content = p.titles_height + p.subtitles_height
+                        + p.table_header_height + body_h
+                        + p.header_section_height + p.footer_section_height;
+                    if (p.is_last_page) {
+                        total_content = total_content + p.footnotes_height;
+                    }
+                    std::cerr << "[ksTFL]   Page " << p.page_number
+                              << ": rows[" << p.first_row << ".." << p.last_row << "]"
+                              << " nrows=" << (p.last_row - p.first_row + 1)
+                              << " body_h=" << body_h.to_pt() << "pt"
+                              << " titles=" << p.has_titles
+                              << "\n";
+                    std::cerr << "[ksTFL]     titles_h=" << p.titles_height.to_pt() << "pt"
+                              << " sub_h=" << p.subtitles_height.to_pt() << "pt"
+                              << " hdr_tbl_h=" << p.table_header_height.to_pt() << "pt"
+                              << " hdr_sec_h=" << p.header_section_height.to_pt() << "pt"
+                              << " ftr_sec_h=" << p.footer_section_height.to_pt() << "pt"
+                              << " fn_h=" << p.footnotes_height.to_pt() << "pt"
+                              << "\n";
+                    std::cerr << "[ksTFL]     total_content=" << total_content.to_pt() << "pt"
+                              << " usable=" << page_config.usable_height().to_pt() << "pt"
+                              << " slack=" << (page_config.usable_height() - total_content).to_pt() << "pt"
+                              << "\n";
+                }
+            }
+        }
+
+        // --- Phase 3e: Restore dedupe values at page boundaries ---
+        // apply_dedupe() blanks consecutive duplicate cell values globally,
+        // but when a page break falls within a group the first row of the
+        // new page appears with empty group/ID cells.  Fix: scan backward
+        // from each page boundary to find the last non-blank value and
+        // restore it in the first DataRow of the new page.
+        {
+            std::vector<size_t> dedupe_indices;
+            for (size_t i = 0; i < spec.columns.size(); ++i) {
+                if (spec.columns[i].dedupe) {
+                    dedupe_indices.push_back(i);
+                }
+            }
+
+            if (!dedupe_indices.empty()) {
+                if (config_.verbose) {
+                    std::cerr << "[ksTFL]   Dedupe columns: ";
+                    for (size_t di : dedupe_indices) {
+                        std::cerr << di << "(" << spec.columns[di].id << ") ";
+                    }
+                    std::cerr << "\n";
+                }
+                size_t restorations = 0;
+                for (const auto& seg : pagination.segments) {
+                    if (config_.verbose) {
+                        std::cerr << "[ksTFL]   Segment " << seg.segment_index
+                                  << ": " << seg.pages.size() << " pages\n";
+                    }
+                    for (size_t pi = 1; pi < seg.pages.size(); ++pi) {
+                        const auto& pg = seg.pages[pi];
+                        if (config_.verbose) {
+                            std::cerr << "[ksTFL]     Page " << pi
+                                      << ": rows [" << pg.first_row
+                                      << ".." << pg.last_row << "]\n";
+                        }
+                        // Find the first DataRow on this page
+                        for (size_t ri = pg.first_row;
+                             ri <= pg.last_row && ri < rows.size(); ++ri) {
+                            if (rows[ri].type != LogicalRowType::DataRow) continue;
+                            auto& row = rows[ri];
+                            if (config_.verbose) {
+                                std::cerr << "[ksTFL]     First DataRow at " << ri
+                                          << ", cells=" << row.cells.size() << ":";
+                                for (size_t ci = 0; ci < row.cells.size() && ci < 4; ++ci) {
+                                    std::cerr << " [" << ci << "]='"
+                                              << row.cells[ci].text.substr(0, 20) << "'";
+                                }
+                                std::cerr << "\n";
+                            }
+                            for (size_t col_idx : dedupe_indices) {
+                                if (col_idx >= row.cells.size()) continue;
+                                if (!row.cells[col_idx].text.empty()) continue;
+                                // Scan backward for last non-blank value
+                                for (size_t bk = ri; bk > 0; --bk) {
+                                    const auto& prev = rows[bk - 1];
+                                    if (prev.type != LogicalRowType::DataRow) continue;
+                                    if (col_idx >= prev.cells.size()) continue;
+                                    if (!prev.cells[col_idx].text.empty()) {
+                                        row.cells[col_idx].text =
+                                            prev.cells[col_idx].text;
+                                        restorations++;
+                                        if (config_.verbose) {
+                                            std::cerr << "[ksTFL]       Restored col "
+                                                      << col_idx << " = '"
+                                                      << prev.cells[col_idx].text << "'\n";
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            break;  // only restore the first DataRow per page
+                        }
+                    }
+                }
+                if (config_.verbose) {
+                    std::cerr << "[ksTFL]   Dedupe: " << restorations
+                              << " values restored at page boundaries\n";
+                }
+            }
         }
 
         all_pages[spec.key] = std::move(pagination);
