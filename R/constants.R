@@ -406,6 +406,9 @@ NULL
     cell_highlight_green = list(
       font = list(highlight = "#90EE90")
     ),
+    cell_highlight_gray = list(
+      font = list(highlight = "#EEEEEE")
+    ),
     
     # Border styles
     cell_border_bottom = list(
