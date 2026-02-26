@@ -10,8 +10,8 @@ PKG_CPPFLAGS = -I../inst/include -I./vendor \
 PKG_LIBS = $(shell pkg-config --libs harfbuzz freetype2 minizip 2>/dev/null) \
     $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
-## Source files — renderer core + Rcpp bindings
-SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp \
+## Source files — renderer core + Rcpp bindings + C++ tests
+SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/units.cpp \
     kstfl/xml_writer.cpp \
     kstfl/json_parser.cpp \

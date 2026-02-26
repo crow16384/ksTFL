@@ -157,6 +157,34 @@ Tests in `tests/testthat/` use standard testthat patterns. Key test scenarios:
 - test all function parameters and their combinations where applicable
 - try to identify edge cases (e.g., empty data frames, all-NA columns, incorrect user inputs)
 
+### C++ Unit Tests (src/cpp_tests.cpp + test-18-cpp-units.R)
+C++ modules are tested via a lightweight Rcpp-exported harness in `src/cpp_tests.cpp`.
+Three exported functions return `list(passed = character[], failed = "<name>: <reason>")` and
+bridge into the standard testthat runner via `tests/testthat/test-18-cpp-units.R`.
+
+| Rcpp export | Module tested | Main assertions |
+|---|---|---|
+| `cpp_test_units()` | `units.cpp` | `parse_length` (all units + errors), `Color::parse`, conversions (`emu_to_twips` etc.), `page_size_dimensions`, `Length` arithmetic, `border_line_style_to_ooxml`, `alignment_to_ooxml` |
+| `cpp_test_inline_parser()` | `inline_parser.cpp` | `has_inline_markup`, plain text, `<b>/<i>/<u>/<sup>/<sub>`, nesting, `<br/>/<p>`, case-insensitivity, unknown tags |
+| `cpp_test_xml_writer()` | `xml_writer.cpp` | XML declaration, self-close, attributes, escaping (`&<>"`), `raw()`, `comment()`, `clear()/take()/depth()`, `namespace_decl()`, error conditions |
+
+**Pattern for new C++ tests:**
+```cpp
+// In src/cpp_tests.cpp — add a new [[Rcpp::export]] function:
+// [[Rcpp::export]]
+Rcpp::List cpp_test_<module>() {
+    TestResult t;
+    t.check_eq(actual, expected, "test name");
+    t.check_throw([](){ /* must throw */ }, "throws on bad input");
+    return t.to_list();
+}
+```
+Then:
+1. Register in `src/RcppExports.cpp` (add wrapper)
+2. Register in `src/init.cpp` (add to `CallEntries[]`)
+3. Add R stub in `R/RcppExports.R` with `@keywords internal`
+4. Add `test_that()` blocks in `tests/testthat/test-18-cpp-units.R`
+
 ## Common Tasks
 
 ### Updating Schema Constraints
@@ -323,22 +351,27 @@ Summary of documentation improvements:
 - Clarified context-based function nesting in `add_style()` and related functions
 - Removed duplicate documentation blocks
 
-## Current State of Codebase (Dec 20, 2025)
+## Current State of Codebase (Feb 27, 2026)
 
 ✅ **Fully Implemented**:
 - Spec initialization for all 3 docTypes (Table, Text, Figure)
 - Column auto-detection and format assignment
 - Style consolidation with hash-based merging
 - Context-based function nesting validation
-- Extended `create_report()` with mixed report/spec support (NEW - Dec 20)
+- Extended `create_report()` with mixed report/spec support
 - 30+ predefined clinical styles
 - Comprehensive error messages with `cli_abort()`
-- Full test coverage for core functionality (20+ tests per major function)
+- Full test coverage for core functionality (19 R test files, 806+ passing tests)
+- **ggplot2 integration**: `create_figure()` accepts ggplot objects (auto-rendered via `ggsave()`)
+- **C++20 DOCX Renderer**: complete end-to-end pipeline (HarfBuzz → OOXML → .docx)
+- **C++ Unit Tests** (`src/cpp_tests.cpp` + `test-18-cpp-units.R`): 135+ assertions covering `units.cpp`, `inline_parser.cpp`, `xml_writer.cpp`
 
 ⏳ **Still TO DO**:
 - `row_style_schema` validation rules
 - `styles_schema` validation rules
 - Regression test suite for rendered DOCX output
+- Windows build testing (Makevars.win exists but untested)
+- Structural header_top/bottom border application in emitter (parsed but not yet emitted)
 
 ## Quick Reference
 
@@ -426,3 +459,45 @@ final_report <- create_report(report1, spec3, spec4)
 - Duplicate dataRef detection (warning)
 - Nested report combinations
 - Multiple independent style consolidations
+
+## Session Notes (Feb 27, 2026 — C++ Unit Tests)
+
+### New C++ Test Infrastructure
+
+Added a lightweight, framework-agnostic C++ test harness directly inside the package.
+
+**Files created/modified:**
+
+| File | Change |
+|---|---|
+| `src/cpp_tests.cpp` | New — 3 Rcpp-exported test functions (~440 lines) |
+| `tests/testthat/test-18-cpp-units.R` | New — 24 `test_that` blocks (~290 lines) |
+| `src/RcppExports.cpp` | Added 3 `RcppExport SEXP` wrappers |
+| `src/init.cpp` | Added 3 entries to `CallEntries[]` |
+| `R/RcppExports.R` | Added 3 `@keywords internal` R stubs |
+| `src/Makevars` | Added `cpp_tests.cpp` to `SOURCES` |
+| `src/Makevars.win` | Same as above for Windows |
+
+**Harness design (`TestResult` struct in `cpp_tests.cpp`):**
+- `check_eq(actual, expected, name)` — overloads for int64_t, int, size_t, string
+- `check(bool, name, msg)` — boolean assertion
+- `check_throw(fn, name)` — expects `std::exception` to be thrown
+- `check_no_throw(fn, name)` — expects clean execution
+- `to_list()` — returns `Rcpp::List(passed = char[], failed = "name: reason")`
+
+**R-side runner pattern (`test-18-cpp-units.R`):**
+```r
+result <- cpp_test_units()
+# Report every individual C++ assertion as its own expect_true / expect_false:
+for (name in result$passed) expect_true(TRUE, label = name)
+for (msg  in result$failed) {
+  parts <- strsplit(msg, ": ", fixed = TRUE)[[1L]]
+  expect_true(FALSE, label = paste0(parts[[1L]], " — ", paste(parts[-1L], collapse = ": ")))
+}
+```
+
+**Run tests:**
+```r
+devtools::load_all()       # recompiles with cpp_tests.cpp
+devtools::test(filter = "18")
+```

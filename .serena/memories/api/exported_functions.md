@@ -52,6 +52,13 @@
 - tfl_set_options(...): update options (REPLACES previous headers/footers, not accumulate)
 - tfl_reset_options(): restore defaults
 
+## C++ Test Hooks (Internal, @keywords internal)
+Added Feb 27, 2026. Rcpp-exported from src/cpp_tests.cpp.
+Each returns `list(passed = character[], failed = "name: reason")`.
+- cpp_test_units(): 60+ assertions for units.cpp (parse_length, Color::parse, conversions, page sizes, border/align enums)
+- cpp_test_inline_parser(): 35+ assertions for inline_parser.cpp (markup tags, nesting, case, br/p handling)
+- cpp_test_xml_writer(): 40+ assertions for xml_writer.cpp (elements, attrs, escaping, raw/comment/namespace, depth tracking, error conditions)
+
 ## Typical Full Pipeline
 ```r
 spec <- create_table(mtcars) |> add_title("Title")

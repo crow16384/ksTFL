@@ -1,6 +1,4 @@
-## =============================================================================
 ## ksTFL Full-Cycle Rendering Examples
-## =============================================================================
 ##
 ## This script exercises the COMPLETE pipeline from spec creation through
 ## C++ DOCX rendering. Each example builds a report and renders it.
@@ -13,48 +11,10 @@
 ##   source(system.file("examples", "full_cycle_render.R", package = "ksTFL"))
 ##      -- OR --
 ##   Rscript inst/examples/full_cycle_render.R
-## =============================================================================
 
-#library(ksTFL)
-devtools::load_all()
+source("inst/examples/init.R")
 
-out_dir  <- file.path(getwd(), "tmp", "output")
-dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-meta_dir <- file.path(out_dir, "meta")
-dir.create(meta_dir, showWarnings = FALSE, recursive = TRUE)
-
-cat("Output directory:", out_dir, "\n")
-
-## =============================================================================
-## Helper: save + render a report in one step
-## =============================================================================
-save_and_render <- function(report, name, verbose = TRUE) {
-  docx_name <- paste0(name, ".docx")
-
-  result <- save_report(
-    report,
-    docFileName = docx_name,
-    metaPath    = meta_dir,
-    prettify    = TRUE
-  )
-
-  spec_path   <- file.path(meta_dir, result$spec_file)
-  output_path <- file.path(out_dir, docx_name)
-
-  render_docx(
-    spec_json   = spec_path,
-    output_path = output_path,
-    verbose     = verbose
-  )
-
-  cat(sprintf("  [OK] %s -> %s\n", name, output_path))
-  invisible(output_path)
-}
-
-
-## =============================================================================
-## EXAMPLE 1: Minimal Table
-## =============================================================================
+## EXAMPLE 1: Minimal Table #####
 cat("\n--- Example 1: Minimal table ------------------------------------------\n")
 
 spec1 <- create_table(mtcars[1:10, ], docPrefix = "Table 1.1")
@@ -68,9 +28,7 @@ report1 <- create_report(spec1)
 save_and_render(report1, "ex01_minimal_table")
 
 
-## =============================================================================
-## EXAMPLE 2: Styled Table with Custom Columns
-## =============================================================================
+## EXAMPLE 2: Styled Table with Custom Columns #####
 cat("\n--- Example 2: Styled table with column definitions -------------------\n")
 
 demo_data <- data.frame(
@@ -163,9 +121,7 @@ report2 <- create_report(spec2)
 save_and_render(report2, "ex02_styled_demographics")
 
 
-## =============================================================================
-## EXAMPLE 3: Multi-Spec Report (Table + Text + Table)
-## =============================================================================
+## EXAMPLE 3: Multi-Spec Report (Table + Text + Table) ####
 cat("\n--- Example 3: Multi-spec report (Table + Text + Table) ---------------\n")
 
 # --- First table: Summary statistics ---
@@ -257,9 +213,7 @@ report3 <- create_report(spec3a, spec3b, spec3c)
 save_and_render(report3, "ex03_multi_spec_report")
 
 
-## =============================================================================
-## EXAMPLE 4: Global Options & Page Layout (Landscape A4)
-## =============================================================================
+## EXAMPLE 4: Global Options & Page Layout (Landscape A4) ####
 cat("\n--- Example 4: Global options & page layout ---------------------------\n")
 
 # Reset options first to ensure a clean state
@@ -375,9 +329,7 @@ save_and_render(report4, "ex04_landscape_liver_function")
 tfl_reset_options()
 
 
-## =============================================================================
-## EXAMPLE 5: Column Breaks (Horizontal Pagination)
-## =============================================================================
+## EXAMPLE 5: Column Breaks (Horizontal Pagination) ####
 cat("\n--- Example 5: Column breaks for wide tables -------------------------\n")
 
 # Wide AE table that should break into horizontal segments
@@ -441,9 +393,7 @@ report5 <- create_report(spec5)
 save_and_render(report5, "ex05_ae_listing_colbreak")
 
 
-## =============================================================================
-## EXAMPLE 6: Row Actions — Merge, AddRow, PageBreak
-## =============================================================================
+## EXAMPLE 6: Row Actions — Merge, AddRow, PageBreak ####
 cat("\n--- Example 6: Row actions (style, merge, addrow, pagebreak) ---------\n")
 
 # Efficacy summary table
@@ -548,9 +498,7 @@ report6 <- create_report(spec6)
 save_and_render(report6, "ex06_efficacy_row_actions")
 
 
-## =============================================================================
-## EXAMPLE 7: Text-Only Document
-## =============================================================================
+## EXAMPLE 7: Text-Only Document ####
 cat("\n--- Example 7: Text-only document -------------------------------------\n")
 
 spec7 <- create_text(docPrefix = "Section 14.1")
@@ -590,9 +538,7 @@ report7 <- create_report(spec7)
 save_and_render(report7, "ex07_text_only")
 
 
-## =============================================================================
-## EXAMPLE 8: Combined Report — Table + Text + Listing (Full Clinical Package)
-## =============================================================================
+## EXAMPLE 8: Combined Report — Table + Text + Listing (Full Clinical Package) ####
 cat("\n--- Example 8: Full clinical package report ---------------------------\n")
 
 # Reset options for clean state
@@ -736,9 +682,7 @@ save_and_render(full_report, "ex08_full_clinical_package")
 tfl_reset_options()
 
 
-## =============================================================================
 ## EXAMPLE 9: isPaging — Very Long Table with Automatic Pagination ####
-## =============================================================================
 cat("\n--- Example 9: Long table with isPaging columns ----------------------\n")
 
 # Generate large dataset
@@ -799,9 +743,7 @@ report9 <- create_report(spec9)
 save_and_render(report9, "ex09_long_paging_table")
 
 
-## =============================================================================
-## EXAMPLE 10: Rich Inline Markup
-## =============================================================================
+## EXAMPLE 10: Rich Inline Markup ####
 cat("\n--- Example 10: Rich inline markup in body text ----------------------\n")
 
 spec10 <- create_text(docPrefix = "Note 1.1")
@@ -836,9 +778,7 @@ report10 <- create_report(spec10)
 save_and_render(report10, "ex10_inline_markup")
 
 
-## =============================================================================
-## EXAMPLE 11: Minimal ggplot2 Figure
-## =============================================================================
+## EXAMPLE 11: Minimal ggplot2 Figure ####
 cat("\n--- Example 11: Minimal ggplot2 figure --------------------------------\n")
 
 if (!requireNamespace("ggplot2", quietly = TRUE)) {
@@ -869,9 +809,7 @@ report11 <- create_report(spec11)
 save_and_render(report11, "ex11_ggplot2_minimal_figure")
 
 
-## =============================================================================
-## EXAMPLE 12: ggplot2 Figure + Table Combined Report
-## =============================================================================
+## EXAMPLE 12: ggplot2 Figure + Table Combined Report ####
 cat("\n--- Example 12: ggplot2 figure + table combined report ----------------\n")
 
 # --- Clinical-style scatter plot ---
@@ -910,7 +848,7 @@ spec12a <- create_figure(p12, width = 7, height = 4.5, dpi = 300) |>
     "Values are arithmetic means; n = 8 subjects per treatment group."
   ))
 
-# --- Companion summary table ---
+# --- Companion summary table --- ####
 pk_summary <- do.call(rbind, lapply(
   split(pk_mean, pk_mean$TRT),
   function(d) {
@@ -963,9 +901,7 @@ report12 <- create_report(spec12a, spec12b)
 save_and_render(report12, "ex12_ggplot2_figure_with_table")
 
 
-## =============================================================================
-## EXAMPLE 13: Multiple ggplot2 Figures (PNG, JPEG, SVG)
-## =============================================================================
+## EXAMPLE 13: Multiple ggplot2 Figures (PNG, JPEG, SVG) ####
 cat("\n--- Example 13: Multiple ggplot2 figures — PNG / JPEG / SVG ----------\n")
 
 # --- Plot A: Box plot (PNG) ---
@@ -1061,9 +997,7 @@ save_and_render(report13, "ex13_ggplot2_multi_figure")
 } # end ggplot2 block
 
 
-## =============================================================================
-## Summary
-## =============================================================================
+## Summary ####
 cat("\n========================================================================\n")
 cat("Full-cycle rendering complete!\n")
 cat("Output directory:", out_dir, "\n\n")

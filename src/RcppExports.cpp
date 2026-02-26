@@ -41,3 +41,27 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// cpp_test_units
+Rcpp::List cpp_test_units();
+RcppExport SEXP _ksTFL_cpp_test_units() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    return Rcpp::wrap(cpp_test_units());
+END_RCPP
+}
+// cpp_test_inline_parser
+Rcpp::List cpp_test_inline_parser();
+RcppExport SEXP _ksTFL_cpp_test_inline_parser() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    return Rcpp::wrap(cpp_test_inline_parser());
+END_RCPP
+}
+// cpp_test_xml_writer
+Rcpp::List cpp_test_xml_writer();
+RcppExport SEXP _ksTFL_cpp_test_xml_writer() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    return Rcpp::wrap(cpp_test_xml_writer());
+END_RCPP
+}

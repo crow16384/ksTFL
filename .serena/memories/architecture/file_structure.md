@@ -107,7 +107,9 @@ Package-level docs, .onLoad(), .onAttach(), .onUnload()
 print.TFL_spec(): console + HTML viewer rendering
 
 ### RcppExports.R
-Auto-generated Rcpp bindings. Contains render_docx_impl() R-side stub.
+Auto-generated Rcpp bindings. Contains:
+- render_docx_impl(): R-side stub for C++ renderer
+- cpp_test_units(), cpp_test_inline_parser(), cpp_test_xml_writer(): @keywords internal stubs calling .Call(`_ksTFL_*`)
 
 ## src/ — C++ Renderer Engine
 
@@ -117,9 +119,13 @@ Auto-generated Rcpp bindings. Contains render_docx_impl() R-side stub.
 - src/vendor/nlohmann/: vendored nlohmann/json v3.11.3 (header-only)
 
 ### Rcpp Binding Files
-- src/init.cpp: R_init_ksTFL with CallEntries registration
+- src/init.cpp: R_init_ksTFL with CallEntries registration (includes 3 cpp_test_* entries)
 - src/rcpp_bindings.cpp: render_docx_impl() Rcpp function — bridges R args to kstfl::Renderer::render()
-- src/RcppExports.cpp: auto-generated Rcpp exports
+- src/RcppExports.cpp: auto-generated Rcpp exports (includes cpp_test_* wrappers)
+- src/cpp_tests.cpp: C++ unit test suites — TestResult harness + 3 Rcpp-exported runners (~440 lines, ~135 assertions total):
+  - cpp_test_units(): 60+ assertions — parse_length all units+errors, Color::parse, emu/pt/twips conversions, page_size_dimensions×5, Length arithmetic, border_line_style_to_ooxml, alignment_to_ooxml
+  - cpp_test_inline_parser(): 35+ assertions — all inline tags (b/i/u/sup/sub), nesting, br/p, case-insensitivity, unknown tag passthrough
+  - cpp_test_xml_writer(): 40+ assertions — declaration, elements, attrs, text escaping, raw/comment/namespace_decl, clear/take/depth, error conditions
 
 ### Core Renderer (src/kstfl/) — 12 modules
 
@@ -217,8 +223,8 @@ Auto-generated Rcpp bindings. Contains render_docx_impl() R-side stub.
 - ksTFL_example.R, ksTFL_example_extended.R: earlier spec-only examples
 - README.md: example descriptions
 
-## Tests (19 files in tests/testthat/)
-setup-data.R, test-01 through test-16:
-basic-creation, define-cols, add-style, content, stub-column, headers-footers, text-groups, options, create-report, edge-cases, integration, serialization, width-recalc, report-writer, compute-cols, stylerows-consolidation, guess-layout, optimization-fixes
+## Tests (20 files in tests/testthat/)
+setup-data.R, test-01 through test-18:
+basic-creation, define-cols, add-style, content, stub-column, headers-footers, text-groups, options, create-report, edge-cases, integration, serialization, width-recalc, report-writer, compute-cols, stylerows-consolidation, guess-layout, optimization-fixes, ggplot-figure, cpp-units
 
-Total: 806 passing tests
+Total: 806+ passing R tests + 135 C++ assertions via test-18-cpp-units.R

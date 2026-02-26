@@ -51,12 +51,46 @@
 - Don't rely on rlang::call_args() with positional indices when optional args may be skipped
 - See .parse_action_addrow() for reference implementation
 
-## Testing
-- testthat framework, 19 test files (setup + 18 numbered)
-- Numbered test-NN-* pattern
-- Tests cover: creation, columns, styles, content, stubs, headers/footers, options, reports, edge cases, integration, serialization, width recalc, report writer, compute_cols, stylerows, layout guessing
-- 806 passing tests total
+## Testing (R)
+- testthat framework, 20 test files (setup-data.R + test-01 through test-18)
+- Numbered test-NN-description pattern
+- Tests cover: creation, columns, styles, content, stubs, headers/footers, options, reports, edge cases, integration, serialization, width recalc, report writer, compute_cols, stylerows, layout guessing, optimization fixes, ggplot figure, cpp units
+- 806+ passing R tests total
 - R code runs via Docker: `docker exec kstfl-r bash -c "cd /home/rstudio/ksTFL && ..."`
+
+## C++ Unit Testing (added Feb 27, 2026)
+Lightweight test harness inside src/cpp_tests.cpp — no external framework needed.
+
+### TestResult struct pattern:
+```cpp
+// In src/cpp_tests.cpp — add a new [[Rcpp::export]] function:
+// [[Rcpp::export]]
+Rcpp::List cpp_test_<module>() {
+    TestResult t;
+    t.check_eq(actual, expected, "test name");          // int64_t, int, size_t, string overloads
+    t.check(bool_expr, "name", "fail reason");          // boolean assertion
+    t.check_throw([](){ /* must throw */ }, "name");    // expects std::exception
+    t.check_no_throw([](){ /* must not throw */ }, "name");
+    return t.to_list();  // list(passed=character[], failed="name: reason")
+}
+```
+
+### 4-step registration for new C++ test suite:
+1. Add `[[Rcpp::export]]` function in `src/cpp_tests.cpp`
+2. Add `RcppExport SEXP _ksTFL_<name>()` wrapper in `src/RcppExports.cpp`
+3. Add `{"_ksTFL_<name>", (DL_FUNC)&_ksTFL_<name>, 0}` entry in `src/init.cpp` CallEntries[]
+4. Add `@keywords internal` R stub in `R/RcppExports.R` calling `.Call(\`_ksTFL_<name>\`)`
+5. Add `test_that()` blocks in `tests/testthat/test-18-cpp-units.R`
+
+### R-side runner pattern:
+```r
+result <- cpp_test_<module>()
+for (name in result$passed) expect_true(TRUE, label = name)
+for (msg  in result$failed) {
+  parts <- strsplit(msg, ": ", fixed = TRUE)[[1L]]
+  expect_true(FALSE, label = paste0(parts[[1L]], " — ", paste(parts[-1L], collapse = ": ")))
+}
+```
 
 ## Key Gotchas (R)
 - Pipe placeholder _ reserved in R 4.1+
@@ -80,4 +114,4 @@
 ## Package Build
 - devtools::install(quick=TRUE) for quick rebuild
 - devtools::test() for running full test suite
-- Full build produces src/ksTFL.so (compiled from 15 .cpp files)
+- Full build produces src/ksTFL.so (compiled from 15+ .cpp files)

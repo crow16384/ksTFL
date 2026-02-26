@@ -9,3 +9,18 @@ render_docx_from_strings_impl <- function(spec_json, template_json, output_path,
     invisible(.Call(`_ksTFL_render_docx_from_strings_impl`, spec_json, template_json, output_path, data_dir, font_dirs, fallback_font, verbose))
 }
 
+#' @keywords internal
+cpp_test_units <- function() {
+    .Call(`_ksTFL_cpp_test_units`)
+}
+
+#' @keywords internal
+cpp_test_inline_parser <- function() {
+    .Call(`_ksTFL_cpp_test_inline_parser`)
+}
+
+#' @keywords internal
+cpp_test_xml_writer <- function() {
+    .Call(`_ksTFL_cpp_test_xml_writer`)
+}
+
