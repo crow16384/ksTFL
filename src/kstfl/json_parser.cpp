@@ -728,7 +728,17 @@ static StylesTemplate parse_template_internal(const json& root) {
     if (root.contains("tableStyle") && root["tableStyle"].is_object()) {
         const auto& tbl = root["tableStyle"];
 
-        // layout — parsed but not stored as a dedicated struct yet; page-level flags
+        // layout
+        if (tbl.contains("layout") && tbl["layout"].is_object()) {
+            const auto& layout = tbl["layout"];
+            auto ta = get_opt_str(layout, "table_alignment");
+            if (ta.has_value()) {
+                if (*ta == "center")      tmpl.table_style.table_alignment = Alignment::Center;
+                else if (*ta == "right")  tmpl.table_style.table_alignment = Alignment::Right;
+                else if (*ta == "left")   tmpl.table_style.table_alignment = Alignment::Left;
+            }
+        }
+
         // structural
         if (tbl.contains("structural") && tbl["structural"].is_object()) {
             const auto& struc = tbl["structural"];

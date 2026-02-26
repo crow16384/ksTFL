@@ -1,8 +1,10 @@
 
-library(ksTFL)
+#library(ksTFL)
+devtools::load_all()
 suppressPackageStartupMessages({
   library(tidyr)
   library(dplyr)
+  library(stringr)
 })
 
 source(file.path(getwd(), './inst/examples/manul_unit_tests/dummy_data.R')) ##sourcing dummy data definitions

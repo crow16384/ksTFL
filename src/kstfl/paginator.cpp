@@ -114,11 +114,13 @@ std::vector<Length> Paginator::compute_row_heights(
                 : columns[ci].resolved_width;
 
             // Resolve effective style for this cell
+            bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
             StyleDef cell_style = resolver.resolve_body_cell_style(
                 columns[ci],
                 row.row_style_ref,
                 std::nullopt,
-                std::nullopt
+                std::nullopt,
+                is_addrow
             );
 
             // Override with cell-level style if present
@@ -137,9 +139,38 @@ std::vector<Length> Paginator::compute_row_heights(
             }
         }
 
-        // Check explicit row height override
-        // (from table_style.row_height if set)
-        heights[ri] = max_height;
+        // Check explicit row height override from row-level or cell-level style.
+        // If the resolved style contains table_style.row_height, use that value
+        // directly (e.g., separator rows with s_table_style(row_height = "5pt")).
+        Length explicit_row_height{0};
+
+        // 1) Row-level style (row_style_ref)
+        if (row.row_style_ref.has_value()) {
+            const StyleDef* rs = resolver.find_style(*row.row_style_ref);
+            if (rs && rs->table_style.has_value() &&
+                rs->table_style->row_height.has_value()) {
+                explicit_row_height = *rs->table_style->row_height;
+            }
+        }
+
+        // 2) Cell-level style overrides (first match wins — row_height is
+        //    conceptually a row property, so we take the first found)
+        if (explicit_row_height.emu == 0) {
+            for (const auto& cell : row.cells) {
+                if (cell.style_ref.has_value()) {
+                    const StyleDef* cs = resolver.find_style(*cell.style_ref);
+                    if (cs && cs->table_style.has_value() &&
+                        cs->table_style->row_height.has_value()) {
+                        explicit_row_height = *cs->table_style->row_height;
+                        break;
+                    }
+                }
+            }
+        }
+
+        heights[ri] = (explicit_row_height.emu > 0)
+            ? explicit_row_height
+            : max_height;
     }
 
     return heights;

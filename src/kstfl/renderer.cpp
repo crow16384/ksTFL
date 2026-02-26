@@ -279,8 +279,10 @@ void Renderer::render_from_strings(const std::string& spec_json,
                     ? cell.merged_width
                     : spec.columns[ci].resolved_width;
 
+                bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
                 StyleDef cell_style = resolver.resolve_body_cell_style(
-                    spec.columns[ci], row.row_style_ref);
+                    spec.columns[ci], row.row_style_ref,
+                    std::nullopt, std::nullopt, is_addrow);
                 if (cell.style_ref.has_value()) {
                     const StyleDef* override_style = resolver.find_style(cell.style_ref.value());
                     if (override_style) {
@@ -293,7 +295,32 @@ void Renderer::render_from_strings(const std::string& spec_json,
                     max_height = m.height;
                 }
             }
-            row.measured_height = max_height;
+
+            // Check explicit row height override from row-level or cell-level style
+            Length explicit_row_height{0};
+            if (row.row_style_ref.has_value()) {
+                const StyleDef* rs = resolver.find_style(*row.row_style_ref);
+                if (rs && rs->table_style.has_value() &&
+                    rs->table_style->row_height.has_value()) {
+                    explicit_row_height = *rs->table_style->row_height;
+                }
+            }
+            if (explicit_row_height.emu == 0) {
+                for (const auto& cell : row.cells) {
+                    if (cell.style_ref.has_value()) {
+                        const StyleDef* cs = resolver.find_style(*cell.style_ref);
+                        if (cs && cs->table_style.has_value() &&
+                            cs->table_style->row_height.has_value()) {
+                            explicit_row_height = *cs->table_style->row_height;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            row.measured_height = (explicit_row_height.emu > 0)
+                ? explicit_row_height
+                : max_height;
         }
 
         // --- Phase 3d: Paginate (spec §22.5) ---

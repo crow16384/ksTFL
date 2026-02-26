@@ -153,7 +153,8 @@ StyleDef StyleResolver::resolve_body_cell_style(
     const ColumnSpec& col,
     const std::optional<std::string>& row_style_ref,
     const std::optional<std::string>& merge_style_ref,
-    const std::optional<std::string>& addrow_style_ref) const
+    const std::optional<std::string>& addrow_style_ref,
+    bool is_addrow) const
 {
     // 1. Template default
     StyleDef result = tmpl_.text_styles.default_style;
@@ -171,8 +172,10 @@ StyleDef StyleResolver::resolve_body_cell_style(
         result = result.merged_with(*tmpl_.table_style.structural.table_body);
     }
 
-    // 5. Column valueStyleRef
-    if (col.format.value_style_ref.has_value()) {
+    // 5. Column valueStyleRef — skip for synthetic (addrow) rows:
+    //    addrow cells carry their own styleRef and should not inherit
+    //    column-specific formatting like indent_2.
+    if (!is_addrow && col.format.value_style_ref.has_value()) {
         result = apply_style_ref(result, *col.format.value_style_ref);
     }
 

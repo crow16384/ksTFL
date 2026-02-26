@@ -36,12 +36,15 @@ public:
 
     /// Resolve the effective style for a **table body** cell.
     /// Cascade: default -> tableBody textStyle -> body_row ->
-    ///          structural.tableBody -> column valueStyleRef ->
+    ///          structural.tableBody -> column valueStyleRef (skipped for addrows) ->
     ///          row styleAction -> merge styleRef -> add_row styleRef.
+    /// @param is_addrow If true, skip column valueStyleRef (step 5) so that
+    ///        virtual addrow cells don't inherit column-specific formatting.
     StyleDef resolve_body_cell_style(const ColumnSpec& col,
                                      const std::optional<std::string>& row_style_ref = std::nullopt,
                                      const std::optional<std::string>& merge_style_ref = std::nullopt,
-                                     const std::optional<std::string>& addrow_style_ref = std::nullopt) const;
+                                     const std::optional<std::string>& addrow_style_ref = std::nullopt,
+                                     bool is_addrow = false) const;
 
     /// Resolve a style for titles.
     StyleDef resolve_title_style(const std::optional<std::string>& custom_ref = std::nullopt) const;

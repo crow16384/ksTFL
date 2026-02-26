@@ -1234,11 +1234,13 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
         // Resolve cell style
         StyleDef cell_style;
         if (col_idx < spec.columns.size()) {
+            bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
             cell_style = resolver.resolve_body_cell_style(
                 spec.columns[col_idx],
                 row.row_style_ref,
                 std::nullopt,
-                std::nullopt
+                std::nullopt,
+                is_addrow
             );
             if (cell.style_ref.has_value()) {
                 const StyleDef* override_style = resolver.find_style(cell.style_ref.value());
@@ -1330,6 +1332,12 @@ void DocxEmitter::emit_table(XmlWriter& w,
     w.attribute("w:w", std::to_string(table_width.to_twips()));
     w.attribute("w:type", "dxa");
     w.end_element();
+
+    // Table alignment on page (spec: tableStyle.layout.table_alignment)
+    if (tmpl_.table_style.table_alignment.has_value()) {
+        w.element_with_attr("w:jc", "w:val",
+            alignment_to_ooxml(*tmpl_.table_style.table_alignment));
+    }
 
     // Table borders from template
     if (tmpl_.table_style.table_borders.has_value()) {

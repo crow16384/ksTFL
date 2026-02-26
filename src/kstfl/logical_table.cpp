@@ -104,7 +104,17 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
     }
 
     // Build stub rows
-    // Each stub row corresponds to a stubOrder level
+    // Each stub row corresponds to a stubOrder level.
+    // Track per-column vertical merge state across levels so that
+    // non-spanned columns show their label only once (in the topmost row)
+    // and emit vMerge::Continue for all rows below.
+    //
+    // Column state:
+    //   has_vmerge_restart[col] = true  → col has vMerge::Restart from a higher row
+    //   covered_by_span[col]   = true  → col is inside a multi-column span from a higher row
+    std::vector<bool> has_vmerge_restart(spec.columns.size(), false);
+    std::vector<bool> covered_by_span(spec.columns.size(), false);
+
     if (stub_depth > 0) {
         // Get distinct levels
         std::vector<int> levels;
@@ -165,6 +175,11 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                         auto it = col_id_to_idx.find(c);
                         if (it != col_id_to_idx.end()) {
                             covered[it->second] = true;
+                            // Mark columns as covered by a horizontal span
+                            // (so lower levels know they can't vMerge with them)
+                            covered_by_span[it->second] = true;
+                            // If this column previously had vMerge, the span overrides it
+                            has_vmerge_restart[it->second] = false;
                             total_width = total_width + spec.columns[it->second].resolved_width;
                             span++;
                         }
@@ -182,15 +197,26 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                     col_idx += static_cast<size_t>(span);
                 } else {
                     // Column not covered by any stub at this level.
-                    // This cell will be a vMerge restart — it contains the column label
-                    // and spans vertically down to (and including) the label row.
                     HeaderGridCell cell;
-                    cell.label = spec.columns[col_idx].label;
                     cell.col_span = 1;
                     cell.row_span = 1;
                     cell.width = spec.columns[col_idx].resolved_width;
-                    cell.style_ref = spec.columns[col_idx].label_style_ref;
-                    cell.v_merge = VMergeState::Restart;
+
+                    if (has_vmerge_restart[col_idx]) {
+                        // Already has vMerge from a higher row → continue
+                        cell.label = "";
+                        cell.v_merge = VMergeState::Continue;
+                    } else if (covered_by_span[col_idx]) {
+                        // Part of a horizontal span above → empty filler cell
+                        cell.label = "";
+                    } else {
+                        // First time seeing this column uncovered → start vMerge
+                        cell.label = spec.columns[col_idx].label;
+                        cell.style_ref = spec.columns[col_idx].label_style_ref;
+                        cell.v_merge = VMergeState::Restart;
+                        has_vmerge_restart[col_idx] = true;
+                    }
+
                     row.push_back(cell);
                     col_idx++;
                 }
@@ -209,27 +235,10 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
         cell.row_span = 1;
         cell.width = spec.columns[ci].resolved_width;
 
-        // Check if this column has vMerge::Restart in the FIRST stub row above
-        // (indicating the label lives in the stub row and spans down here)
-        if (stub_depth > 0) {
-            bool is_merged = false;
-            // Find the cell corresponding to this column in the first stub row
-            size_t running_col = 0;
-            for (const auto& stub_cell : grid.rows[0]) {
-                if (running_col == ci && stub_cell.v_merge == VMergeState::Restart) {
-                    is_merged = true;
-                    break;
-                }
-                running_col += static_cast<size_t>(stub_cell.col_span);
-                if (running_col > ci) break;
-            }
-            if (is_merged) {
-                cell.label = "";
-                cell.v_merge = VMergeState::Continue;
-            } else {
-                cell.label = spec.columns[ci].label;
-                cell.style_ref = spec.columns[ci].label_style_ref;
-            }
+        // Check if this column has vMerge::Restart in ANY stub row above
+        if (has_vmerge_restart[ci]) {
+            cell.label = "";
+            cell.v_merge = VMergeState::Continue;
         } else {
             cell.label = spec.columns[ci].label;
             cell.style_ref = spec.columns[ci].label_style_ref;

@@ -309,6 +309,7 @@ struct TableStyleConfig {
     std::optional<StyleDef> body_row;
 
     // Layout
+    std::optional<Alignment> table_alignment;  // table alignment on page (left/center/right)
     std::optional<Borders> table_borders;
     std::optional<Length> default_cell_margin_top;
     std::optional<Length> default_cell_margin_bottom;
