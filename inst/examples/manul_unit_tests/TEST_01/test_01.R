@@ -100,7 +100,7 @@ spec_01_03 <- create_table(demography_tbl_01) %>%
                         "Miracle Drug 1<br>(N=100)", "Miracle Drug 2<br>(N=100)", "Placebo<br>(N=100)")) %>% 
   define_cols(c(trt_a, trt_b, trt_c), valueStyleRef = 'text_center') %>% 
   define_cols(param, isVisible = F) %>% 
-  define_cols(value, labelStyleRef = "text_left") %>% 
+  define_cols(value, labelStyleRef = "text_left", colWidth = '5cm') %>% 
   compute_cols(
     firstOf(param),
     c_merge(c(param, value), styleRef = 'font_bold')
@@ -108,8 +108,9 @@ spec_01_03 <- create_table(demography_tbl_01) %>%
   compute_cols(
     !is.na(value),
     c_style(value, styleRef = 'indent_1')
-  )
+  ) %>% set_document(contentWidth = '70%')
 
+print(spec_01_03)
 report_01_03 <- create_report(spec_01_03)
 save_and_render(report_01_03, "test_01_03")
 

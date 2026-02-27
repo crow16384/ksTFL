@@ -1,3 +1,54 @@
+#' Resolve a bundled template path from the docTemplate name stored in a spec JSON
+#'
+#' Reads the first spec entry's `attribs$documentStyle$docTemplate` field and
+#' looks it up in `inst/templates/`. Falls back to `KeyStat_default.json` with
+#' a warning when the name is absent or no matching file is found.
+#'
+#' @param spec_json_path Path to the spec JSON file.
+#' @return Absolute path to the resolved template JSON file.
+#' @keywords internal
+#' @noRd
+.resolve_template_path <- function(spec_json_path) {
+  doc_template <- tryCatch({
+    spec_data  <- jsonlite::fromJSON(spec_json_path, simplifyVector = FALSE)
+    spec_keys  <- setdiff(names(spec_data), "_metadata")
+    if (length(spec_keys) > 0L) {
+      spec_data[[spec_keys[[1L]]]][["attribs"]][["documentStyle"]][["docTemplate"]]
+    } else {
+      NULL
+    }
+  }, error = function(e) NULL)
+
+  if (!is.null(doc_template) && nzchar(doc_template)) {
+    resolved <- system.file(
+      "templates", paste0(doc_template, ".json"),
+      package = "ksTFL"
+    )
+    if (nzchar(resolved)) {
+      return(resolved)
+    }
+    cli::cli_warn(c(
+      "Template {.val {doc_template}} not found in package templates.",
+      i = "Falling back to {.val KeyStat_default}.",
+      i = "Available templates: {.val {.list_bundled_templates()}}"
+    ))
+  }
+
+  system.file("templates", "KeyStat_default.json",
+              package = "ksTFL", mustWork = TRUE)
+}
+
+#' List all bundled template names (without .json extension)
+#' @keywords internal
+#' @noRd
+.list_bundled_templates <- function() {
+  tmpl_dir <- system.file("templates", package = "ksTFL")
+  if (!nzchar(tmpl_dir)) return(character(0L))
+  files <- list.files(tmpl_dir, pattern = "\\.json$", full.names = FALSE)
+  tools::file_path_sans_ext(files)
+}
+
+
 #' Render a DOCX Document from TFL Report
 #'
 #' Renders a TFL report (previously saved via \code{\link{save_report}}) into
@@ -8,7 +59,11 @@
 #' @param spec_json Character string. Path to the spec JSON file produced by
 #'   \code{\link{save_report}}.
 #' @param template_json Character string. Path to the styles template JSON file.
-#'   If \code{NULL}, uses the default KeyStat template bundled with the package.
+#'   If \code{NULL} (default), the template is resolved automatically from the
+#'   \code{docTemplate} name stored in the spec (set via
+#'   \code{\link{set_page_style}(docTemplate = "Navy_Pro")}). The name is looked
+#'   up in the package's bundled \code{inst/templates/} directory. If not found,
+#'   the default \code{KeyStat_default} template is used and a warning is issued.
 #' @param output_path Character string. Path for the output .docx file. If the
 #'   directory does not exist, it will be created.
 #' @param font_dirs Character vector (optional). Additional directories to search
@@ -86,11 +141,9 @@ render_docx <- function(spec_json,
     checkmate::assert_string(template_json)
     checkmate::assert_file_exists(template_json, access = "r")
   } else {
-    # Use bundled default template
-    template_json <- system.file(
-      "templates", "KeyStat_default.json",
-      package = "ksTFL", mustWork = TRUE
-    )
+    # Resolve template from docTemplate name stored in the spec JSON, then
+    # fall back to the bundled default if the name is absent or unresolvable.
+    template_json <- .resolve_template_path(spec_json)
   }
 
   if (!is.null(font_dirs)) {

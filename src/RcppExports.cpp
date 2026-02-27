@@ -10,6 +10,36 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// cpp_test_units
+Rcpp::List cpp_test_units();
+RcppExport SEXP _ksTFL_cpp_test_units() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(cpp_test_units());
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_test_inline_parser
+Rcpp::List cpp_test_inline_parser();
+RcppExport SEXP _ksTFL_cpp_test_inline_parser() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(cpp_test_inline_parser());
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_test_xml_writer
+Rcpp::List cpp_test_xml_writer();
+RcppExport SEXP _ksTFL_cpp_test_xml_writer() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(cpp_test_xml_writer());
+    return rcpp_result_gen;
+END_RCPP
+}
 // render_docx_impl
 void render_docx_impl(const std::string& spec_json_path, const std::string& template_json_path, const std::string& output_path, Rcpp::Nullable<Rcpp::CharacterVector> font_dirs, const std::string& fallback_font, bool verbose);
 RcppExport SEXP _ksTFL_render_docx_impl(SEXP spec_json_pathSEXP, SEXP template_json_pathSEXP, SEXP output_pathSEXP, SEXP font_dirsSEXP, SEXP fallback_fontSEXP, SEXP verboseSEXP) {
@@ -39,29 +69,5 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     render_docx_from_strings_impl(spec_json, template_json, output_path, data_dir, font_dirs, fallback_font, verbose);
     return R_NilValue;
-END_RCPP
-}
-// cpp_test_units
-Rcpp::List cpp_test_units();
-RcppExport SEXP _ksTFL_cpp_test_units() {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    return Rcpp::wrap(cpp_test_units());
-END_RCPP
-}
-// cpp_test_inline_parser
-Rcpp::List cpp_test_inline_parser();
-RcppExport SEXP _ksTFL_cpp_test_inline_parser() {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    return Rcpp::wrap(cpp_test_inline_parser());
-END_RCPP
-}
-// cpp_test_xml_writer
-Rcpp::List cpp_test_xml_writer();
-RcppExport SEXP _ksTFL_cpp_test_xml_writer() {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    return Rcpp::wrap(cpp_test_xml_writer());
 END_RCPP
 }

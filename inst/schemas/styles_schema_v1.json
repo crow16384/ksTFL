@@ -120,8 +120,8 @@
               "description": "Prevents header rows from breaking across pages."
             },
             "table_alignment": {
-              "type": "string",
-              "enum": ["left", "center", "right"],
+              "type": ["null","string"],
+              "enum": [null, "left", "center", "right"],
               "description": "Horizontal alignment of the table on the page."
             }
           },
@@ -175,8 +175,8 @@
               "description": "Default padding inside table cells."
             },
             "vertical_alignment": {
-              "type": "string",
-              "enum": ["top", "center", "bottom"],
+              "type": ["null","string"],
+              "enum": [null, "top", "center", "bottom"],
               "default": "center",
               "description": "Default vertical alignment of cell contents."
             }
@@ -278,7 +278,7 @@
         },
         "line_style": {
           "type": ["null","string"],
-          "enum": ["single", "double", "dashed", "dotted", "thick", "none"],
+          "enum": [null, "single", "double", "dashed", "dotted", "thick", "none"],
           "description": "Border line style."
         }
       },
@@ -301,7 +301,7 @@
         },
         "vertical_alignment": {
           "type": ["null","string"],
-          "enum": ["top", "center", "bottom"],
+          "enum": [null, "top", "center", "bottom"],
           "description": "Vertical alignment of cell contents."
         }
       },
@@ -324,12 +324,12 @@
         },
         "vertical_alignment": {
           "type": ["null","string"],
-          "enum": ["top", "center", "bottom"],
+          "enum": [null, "top", "center", "bottom"],
           "description": "Vertical alignment of cell contents."
         },
         "text_orientation": {
           "type": ["null","string"],
-          "enum": ["horizontal", "vertical_90", "vertical_270"],
+          "enum": [null, "horizontal", "vertical_90", "vertical_270"],
           "description": "Orientation of text inside cells."
         },
         "cell_margins": {
@@ -370,7 +370,7 @@
           "properties": {
             "alignment": {
               "type": ["null","string"],
-              "enum": ["left", "right", "center", "justify", "distributed"],
+              "enum": [null, "left", "right", "center", "justify", "distributed"],
               "description": "Horizontal text alignment."
             },
             "spacing": {

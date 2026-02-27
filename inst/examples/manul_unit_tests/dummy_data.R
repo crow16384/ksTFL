@@ -1,5 +1,9 @@
 ### Dummy data for tests
 
+
+library(tibble)
+library(stringi)
+
 aligndec <- function(var, na.rep="", indent=0) {
   var <- replace_na(as.character(var), na.rep)
   pos1 <- str_locate(var,"^[\\[\\]\\(\\)A-Za-zА-Яа-я\\+\\-=<> ]*\\d*[.| |,|;]")[,"end"] #определяем положение точки или первого пробела.
@@ -451,4 +455,222 @@ whodd_tbl <- tibble(
     "Ferrous sulfate prolonged release tablets for iron deficiency anemia with gastrointestinal sensitivity",
     "Hydroxyethyl starch solution for infusion used in volume replacement during major surgical procedures"
   )
+)
+
+
+
+create_whodd_dummy <- function(n_rows = 30, seed = NULL) {
+  
+  if (!is.null(seed)) set.seed(seed)
+  
+  # --- ATC Hierarchy ---
+  atc_lvl1 <- c(
+    "Cardiovascular system",
+    "Nervous system",
+    "Alimentary tract and metabolism",
+    "Respiratory system",
+    "Anti-infectives for systemic use",
+    "Musculo-skeletal system",
+    "Dermatologicals",
+    "Genito urinary system and sex hormones",
+    "Hormonal preparations for systemic use",
+    "Blood and blood forming organs"
+  )
+  
+  atc_lvl2 <- list(
+    "Cardiovascular system" = c("Beta blocking agents", "ACE inhibitors", "Calcium channel blockers"),
+    "Nervous system" = c("Antidepressants", "Antiepileptics", "Antipsychotics"),
+    "Alimentary tract and metabolism" = c("Drugs used in diabetes", "Acid related disorders", "Vitamins"),
+    "Respiratory system" = c("Obstructive airway diseases", "Cough preparations", "Antihistamines"),
+    "Anti-infectives for systemic use" = c("Antibacterials", "Antivirals", "Antimycotics"),
+    "Musculo-skeletal system" = c("Anti-inflammatory products", "Muscle relaxants", "Bone disease treatment"),
+    "Dermatologicals" = c("Topical antifungals", "Corticosteroids", "Emollients"),
+    "Genito urinary system and sex hormones" = c("Sex hormones", "Urologicals", "Gynecological antiinfectives"),
+    "Hormonal preparations for systemic use" = c("Thyroid therapy", "Systemic corticosteroids"),
+    "Blood and blood forming organs" = c("Antithrombotic agents", "Antianemic preparations")
+  )
+  
+  drug_roots <- c(
+    "metoprolol", "amlodipine", "lisinopril", "sertraline",
+    "levetiracetam", "risperidone", "insulin glargine",
+    "omeprazole", "tiotropium", "amoxicillin",
+    "fluconazole", "remdesivir", "ibuprofen",
+    "tizanidine", "alendronic acid", "clotrimazole",
+    "estradiol", "tamsulosin", "levothyroxine",
+    "prednisolone", "apixaban", "ferrous sulfate"
+  )
+  
+  forms <- c(
+    "film-coated tablets", "prolonged-release tablets",
+    "oral solution", "intravenous infusion",
+    "topical cream", "modified release capsules",
+    "gastro-resistant capsules", "solution for injection"
+  )
+  
+  indications <- c(
+    "for chronic management of hypertension and related cardiovascular conditions",
+    "indicated in moderate to severe depressive episodes with anxious distress",
+    "for treatment of bacterial infections involving respiratory tract",
+    "used in management of autoimmune disorders with systemic involvement",
+    "for symptomatic relief of obstructive airway disease and bronchospasm",
+    "in long-term hormone replacement therapy",
+    "for prevention of thromboembolic events in high risk patients",
+    "for metabolic control in type 2 diabetes mellitus"
+  )
+  
+  utf8_chars <- c("ä", "ñ", "ß", "µ")
+  
+  add_utf8 <- function(text) {
+    if (runif(1) < 0.4) {
+      pos <- sample(1:nchar(text), 1)
+      substr(text, pos, pos) <- sample(utf8_chars, 1)
+    }
+    text
+  }
+  
+  add_html_tags <- function(text) {
+    tags <- c("i", "b", "sup", "sub")
+    if (runif(1) < 0.6) {
+      tag <- sample(tags, 1)
+      words <- strsplit(text, " ")[[1]]
+      if (length(words) > 3) {
+        idx <- sample(2:(length(words)-1), 1)
+        words[idx] <- paste0("<", tag, ">", words[idx], "</", tag, ">")
+      }
+      text <- paste(words, collapse = " ")
+    }
+    text
+  }
+  
+  generate_drug_name <- function() {
+    base <- paste(
+      tools::toTitleCase(sample(drug_roots, 1)),
+      sample(forms, 1),
+      sample(indications, 1)
+    )
+    base <- add_utf8(base)
+    base <- add_html_tags(base)
+    stri_trim_both(base)
+  }
+  
+  # --- Generate rows ---
+  lvl1_sample <- sample(atc_lvl1, n_rows, replace = TRUE)
+  
+  lvl2_sample <- mapply(function(l1) {
+    sample(atc_lvl2[[l1]], 1)
+  }, lvl1_sample)
+  
+  tibble(
+    Subject = sprintf("SUBJ%04d", seq_len(n_rows)),
+    ATC_Level1 = lvl1_sample,
+    ATC_Level2 = lvl2_sample,
+    Preferred_Drug_Name = replicate(n_rows, generate_drug_name())
+  )
+}
+
+big_listing <- create_whodd_dummy(n_rows = 30000, seed = 123)
+
+
+stat_table_01 <- tribble(
+  ~section, ~endpoint, ~subgroup, ~period, ~complex_pci, ~non_complex_pci, ~p_value,
+  
+  # =========================
+  # Composite endpoints
+  # =========================
+  "Composite endpoints, % (n)", "Target lesion failure", NA, "30-day", "1.4% (137)", "0.8% (208)", "<0.0001",
+  "Composite endpoints, % (n)", "Target vessel failure", NA, "30-day", "1.4% (144)", "0.8% (221)", "<0.0001",
+  "Composite endpoints, % (n)", "Patient-oriented composite endpoint", NA, "30-day", "1.9% (186)", "1.1% (300)", "<0.0001",
+  
+  "Composite endpoints, % (n)", "Target lesion failure", NA, "1-year", "4.2% (408)", "2.8% (727)", "<0.0001",
+  "Composite endpoints, % (n)", "Target vessel failure", NA, "1-year", "4.8% (471)", "3.3% (837)", "<0.0001",
+  "Composite endpoints, % (n)", "Patient-oriented composite endpoint", NA, "1-year", "7.9% (774)", "6.0% (1532)", "<0.0001",
+  
+  # =========================
+  # Death
+  # =========================
+  "Death, % (n)", "Any death", NA, "30-day", "0.8% (81)", "0.5% (127)", "<0.001",
+  "Death, % (n)", "Cardiac death", NA, "30-day", "0.7% (66)", "0.4% (97)", "<0.001",
+  
+  "Death, % (n)", "Any death", NA, "1-year", "2.6% (256)", "1.9% (490)", "<0.0001",
+  "Death, % (n)", "Cardiac death", NA, "1-year", "1.6% (157)", "1.2% (298)", "0.001",
+  
+  # =========================
+  # Myocardial infarction
+  # =========================
+  "Myocardial infarction, % (n)", "Any myocardial infarction", NA, "30-day", "0.8% (83)", "0.4% (100)", "<0.0001",
+  "Myocardial infarction, % (n)", "Target vessel myocardial infarction", NA, "30-day", "0.7% (73)", "0.3% (87)", "<0.0001",
+  "Myocardial infarction, % (n)", "Target vessel Q-wave myocardial infarction", NA, "30-day", "0.2% (16)", "0.1% (30)", "0.28",
+  "Myocardial infarction, % (n)", "Target vessel non-Q-wave myocardial infarction", NA, "30-day", "0.6% (57)", "0.2% (57)", "<0.0001",
+  "Myocardial infarction, % (n)", "Non-target vessel myocardial infarction", NA, "30-day", "0.1% (10)", "0.0% (13)", "0.09",
+  
+  "Myocardial infarction, % (n)", "Any myocardial infarction", NA, "1-year", "1.5% (151)", "1.1% (272)", "<0.001",
+  "Myocardial infarction, % (n)", "Target vessel myocardial infarction", NA, "1-year", "1.2% (117)", "0.8% (199)", "<0.001",
+  "Myocardial infarction, % (n)", "Target vessel Q-wave myocardial infarction", NA, "1-year", "0.2% (22)", "0.2% (52)", "0.69",
+  "Myocardial infarction, % (n)", "Target vessel non-Q-wave myocardial infarction", NA, "1-year", "1.0% (95)", "0.6% (147)", "<0.0001",
+  "Myocardial infarction, % (n)", "Non-target vessel myocardial infarction", NA, "1-year", "0.4% (35)", "0.3% (77)", "0.40",
+  
+  # =========================
+  # Clinically driven revascularisation
+  # =========================
+  "Clinically driven target lesion revascularisation, % (n)", "All", NA, "30-day", "0.4% (42)", "0.3% (84)", "0.15",
+  "Clinically driven target lesion revascularisation, % (n)", "PCI", NA, "30-day", "0.4% (42)", "0.3% (79)", "0.08",
+  "Clinically driven target lesion revascularisation, % (n)", "CABG", NA, "30-day", "0.0% (0)", "0.0% (6)", "0.13",
+  
+  "Clinically driven target lesion revascularisation, % (n)", "All", NA, "1-year", "2.1% (210)", "1.5% (381)", "<0.0001",
+  "Clinically driven target lesion revascularisation, % (n)", "PCI", NA, "1-year", "2.0% (192)", "1.4% (350)", "<0.0001",
+  "Clinically driven target lesion revascularisation, % (n)", "CABG", NA, "1-year", "0.2% (23)", "0.1% (35)", "0.04",
+  
+  # =========================
+  # Clinically driven target vessel revascularisation
+  # =========================
+  "Clinically driven target vessel revascularisation, % (n)", "All", NA, "30-day", "0.5% (55)", "0.4% (102)", "0.04",
+  "Clinically driven target vessel revascularisation, % (n)", "PCI", NA, "30-day", "0.5% (55)", "0.4% (93)", "0.01",
+  "Clinically driven target vessel revascularisation, % (n)", "CABG", NA, "30-day", "0.0% (0)", "0.0% (11)", "0.04",
+  
+  "Clinically driven target vessel revascularisation, % (n)", "All", NA, "1-year", "2.9% (285)", "2.0% (515)", "<0.0001",
+  "Clinically driven target vessel revascularisation, % (n)", "PCI", NA, "1-year", "2.7% (260)", "1.8% (464)", "<0.0001",
+  "Clinically driven target vessel revascularisation, % (n)", "CABG", NA, "1-year", "0.3% (31)", "0.2% (60)", "0.17",
+  
+  # =========================
+  # Stent thrombosis
+  # =========================
+  "Stent thrombosis, % (n)", "Definite", NA, "30-day", "0.3% (31)", "0.2% (58)", "0.13",
+  "Stent thrombosis, % (n)", "Probable", NA, "30-day", "0.3% (34)", "0.2% (48)", "0.01",
+  "Stent thrombosis, % (n)", "Definite and probable", NA, "30-day", "0.6% (65)", "0.4% (104)", "<0.001",
+  
+  "Stent thrombosis, % (n)", "Definite", NA, "1-year", "0.5% (49)", "0.4% (97)", "0.11",
+  "Stent thrombosis, % (n)", "Probable", NA, "1-year", "0.4% (41)", "0.2% (53)", "<0.001",
+  "Stent thrombosis, % (n)", "Definite and probable", NA, "1-year", "0.9% (90)", "0.6% (148)", "<0.001",
+  
+  # =========================
+  # Bleeding
+  # =========================
+  "Bleeding, % (n)", "Any bleeding", NA, "30-day", "0.9% (86)", "0.7% (174)", "0.05",
+  "Bleeding, % (n)", "BARC 3–5", NA, "30-day", "0.3% (26)", "0.2% (46)", "0.11",
+  
+  "Bleeding, % (n)", "Any bleeding", NA, "1-year", "2.4% (232)", "2.0% (511)", "0.03",
+  "Bleeding, % (n)", "BARC 3–5", NA, "1-year", "0.8% (76)", "0.5% (126)", "<0.01"
+)
+
+stat_table_01 <- stat_table_01 %>% select(-subgroup) %>% 
+  pivot_wider(id_cols = c(section, endpoint),names_from = period,values_from = c(complex_pci, non_complex_pci, p_value)) %>% 
+  relocate(section, endpoint, `complex_pci_30-day`, `non_complex_pci_30-day`, `p_value_30-day`, `complex_pci_1-year`, `non_complex_pci_1-year`, `p_value_1-year`)
+  
+stat_table_02 <- tribble(
+  ~parameter, ~subgroup, ~complex_pci, ~non_complex_pci, ~p_value,
+  
+  "Age, years (mean±SD)", NA, "64.9±11.1 (10,241)", "63.9±11.3 (26,957)", "<0.0001",
+  "Male", NA, "78.4% (8,024/10,241)", "75.1% (20,233/26,957)", "<0.0001",
+  "Diabetes mellitus", NA, "32.1% (3,256/10,159)", "27.0% (7,123/26,413)", "<0.0001",
+  "Hypertension", NA, "70.3% (6,652/9,461)", "66.8% (16,188/24,223)", "<0.0001",
+  "Hypercholesterolaemia", NA, "61.7% (5,631/9,133)", "59.2% (13,831/23,346)", "<0.0001",
+  "Current smoker", NA, "24.2% (2,039/8,443)", "27.2% (5,858/21,545)", "<0.0001",
+  "Left ventricular ejection fraction, % (mean±SD)", NA, "52.7±12.1 (4,320)", "54.1±11.4 (11,131)", "<0.0001",
+  "Renal impairment*", NA, "8.2% (823/10,089)", "6.6% (1,725/26,318)", "<0.0001",
+  "Previous myocardial infarction", NA, "26.0% (2,502/9,614)", "21.6% (5,350/24,809)", "<0.0001",
+  "Previous PTCA", NA, "28.1% (2,736/9,732)", "25.2% (6,290/24,955)", "<0.0001",
+  "Previous CABG", NA, "6.7% (647/9,724)", "5.2% (1,291/24,838)", "<0.0001",
+  
+  "Clinical presentation", "Chronic coronary syndrome", "52.8% (5,399/10,235)", "41.8% (11,273/26,938)", "<0.0001",
+  "Clinical presentation", "Acute coronary syndrome", "47.2% (4,836/10,235)", "58.2% (15,665/26,938)", "<0.0001"
 )
