@@ -92,26 +92,39 @@ static std::string extract_tag(const std::string& text, size_t& pos,
     if (pos < text.size() && text[pos] == '/') {
         is_closing = true;
         ++pos;
+    } else {
+        // If not closing, must start with alpha for valid tag
+        if (pos >= text.size() || !std::isalpha(static_cast<unsigned char>(text[pos]))) {
+            // Not a tag, let caller treat as literal '<'
+            --pos; // step back so main loop sees '<' as normal char
+            return "";
+        }
     }
 
     // Extract tag name (alphanumeric)
     std::string name;
+    size_t name_start = pos;
     while (pos < text.size() && std::isalpha(static_cast<unsigned char>(text[pos]))) {
         name += text[pos++];
     }
 
-    // Skip attributes and whitespace until '>' or '/>'
-    while (pos < text.size() && text[pos] != '>') {
-        if (text[pos] == '/' && pos + 1 < text.size() && text[pos + 1] == '>') {
-            is_self_closing = true;
-            pos += 2;
-            return name;
-        }
-        ++pos;
+    // Only allow tags with no attributes/whitespace after name
+    // Next char must be '>' or '/' (for self-closing)
+    if (name.empty() || pos >= text.size() || (text[pos] != '>' && text[pos] != '/')) {
+        // Not a valid tag, roll back to before '<'
+        pos = name_start - (is_closing ? 2 : 1); // back to '<' or '</'
+        return "";
+    }
+
+    // Handle self-closing
+    if (text[pos] == '/' && pos + 1 < text.size() && text[pos + 1] == '>') {
+        is_self_closing = true;
+        pos += 2;
+        return name;
     }
 
     // Skip '>'
-    if (pos < text.size() && text[pos] == '>') ++pos;
+    if (text[pos] == '>') ++pos;
 
     return name;
 }
@@ -159,7 +172,18 @@ ParsedCell parse_inline_markup(const std::string& text) {
 
             if (type == TagType::Unknown) {
                 // Not a recognized tag — treat as literal text
-                buffer += text.substr(tag_start, pos - tag_start);
+                // Add everything from tag_start up to the next non-alphabetic or non-tag char
+                size_t recover_start = tag_start;
+                size_t recover_end = tag_start + 1;
+                // If after '<' идёт буква, захватить всю последовательность букв (например, <b, <foo)
+                if (tag_start + 1 < text.size() && std::isalpha(static_cast<unsigned char>(text[tag_start + 1]))) {
+                    recover_end = tag_start + 2;
+                    while (recover_end < text.size() && std::isalpha(static_cast<unsigned char>(text[recover_end]))) {
+                        ++recover_end;
+                    }
+                }
+                buffer += text.substr(recover_start, recover_end - recover_start);
+                pos = recover_end;
                 continue;
             }
 
@@ -233,11 +257,22 @@ ParsedCell parse_inline_markup(const std::string& text) {
         cell.paragraphs.push_back(std::move(current_para));
     }
 
-    // Ensure at least one paragraph
-    if (cell.paragraphs.empty()) {
-        cell.paragraphs.push_back(ParsedParagraph{});
-    }
+    // Удаляем пустые параграфы (без runs)
+    cell.paragraphs.erase(
+        std::remove_if(cell.paragraphs.begin(), cell.paragraphs.end(),
+            [](const ParsedParagraph& para) { return para.runs.empty(); }),
+        cell.paragraphs.end());
 
+    // Если после фильтрации ничего не осталось — возвращаем исходную строку как один run
+    if (cell.paragraphs.empty()) {
+        if (!text.empty()) {
+            ParsedParagraph para;
+            TextRun run;
+            run.text = text;
+            para.runs.push_back(std::move(run));
+            cell.paragraphs.push_back(std::move(para));
+        }
+    }
     return cell;
 }
 
