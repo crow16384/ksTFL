@@ -1526,28 +1526,36 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'     \item Helper functions: \code{starts_with("age_")}, \code{contains("_pct")}
 #'     \item Negation: \code{-id} or \code{!matches("^temp")}
 #'   }
-#' @param label Column label (length 1 or length of cols)
-#' @param isID Whether column is identifier (length 1 or length of cols)
-#' @param isVisible Whether column is visible in report output (length 1 or length of cols).
+#' @param label Column label (length 1 or length of cols; \code{NA} skips that position)
+#' @param isID Whether column is identifier (length 1 or length of cols; \code{NA} skips that position)
+#' @param isVisible Whether column is visible in report output (length 1 or length of cols;
+#'   \code{NA} skips that position).
 #'   When set to FALSE, column is hidden from output and automatically assigned width "0.0cm".
 #'   Invisible columns do NOT participate in width recalculation; only visible columns are included.
 #'   Cannot set `colWidth` for invisible columns (error raised if attempted).
-#' @param isGrouping Whether column defines groups (length 1 or length of cols)
-#' @param isPaging Whether column defines pages (length 1 or length of cols)
+#' @param isGrouping Whether column defines groups (length 1 or length of cols; \code{NA} skips that position)
+#' @param isPaging Whether column defines pages (length 1 or length of cols; \code{NA} skips that position)
 #' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report. 
 #'   Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
-#'   or list of \code{\link{f_combine}} results (one-to-one mapping to columns)
-#' @param isColBreak Whether column triggers page break (length 1 or length of cols)
-#' @param dedupe Whether to deduplicate values (length 1 or length of cols)
-#' @param blankAfter Whether to add blank after value change (length 1 or length of cols)
-#' @param type Data type for column format: "string" or "numeric" (length 1 or length of cols). Optional; omit to preserve existing.
-#' @param format Format string for numeric data (sprintf style), e.g. "%.1f" (length 1 or length of cols). Optional.
-#' @param missings How to display missing values in columns (length 1 or length of cols). Optional.
-#' @param colWidth Column width, e.g. "2in", "5cm", "20%" (length 1 or length of cols). Optional.
-#'   When specified, marks columns as LOCKED and triggers automatic recalculation of remaining unlocked
-#'   columns if `autoColWidth = TRUE` in `tfl_set_options()`. Locked columns maintain their exact width
-#'   while unlocked columns normalize to fill remaining available space.
-#' @param valueStyleRef Style names to apply to cell values. Provided styles will be merged with last-win strategy for report. 
+#'   or list of \code{\link{f_combine}} results or \code{NA} sentinels (one-to-one mapping to columns).
+#'   Use \code{NA} as a list element to skip updating \code{labelStyleRef} for that column.
+#' @param isColBreak Whether column triggers page break (length 1 or length of cols; \code{NA} skips that position)
+#' @param dedupe Whether to deduplicate values (length 1 or length of cols; \code{NA} skips that position)
+#' @param blankAfter Whether to add blank after value change (length 1 or length of cols; \code{NA} skips that position)
+#' @param type Data type for column format: "string" or "numeric" (length 1 or length of cols;
+#'   \code{NA} skips that position). Optional; omit to preserve existing.
+#' @param format Format string for numeric data (sprintf style), e.g. "%.1f" (length 1 or length of cols;
+#'   \code{NA} skips that position). Optional.
+#' @param missings How to display missing values in columns (length 1 or length of cols;
+#'   \code{NA} skips that position). Optional.
+#' @param colWidth Column width, e.g. "2in", "5cm", "20%" (length 1 or length of cols;
+#'   \code{NA} skips that position — the column's width is left unchanged). Optional.
+#'   When at least one non-\code{NA} value is specified, affected columns are marked as LOCKED and
+#'   automatic recalculation of remaining unlocked columns is triggered if \code{autoColWidth = TRUE}
+#'   in \code{tfl_set_options()}. Locked columns maintain their exact width while unlocked columns
+#'   normalize to fill remaining available space.
+#' @param valueStyleRef Style names to apply to cell values. Provided styles will be merged with last-win strategy for report.
+#'   Use \code{NA} as a list element to skip updating \code{valueStyleRef} for that column. 
 #'  return Updated TFL_spec object with modified column definitions. Changes are merged with existing
 #'   column properties using last-win strategy. When `colWidth` is specified or `isVisible` changes,
 #'   automatic width recalculation is triggered (if `autoColWidth = TRUE`).
@@ -1713,9 +1721,11 @@ define_cols <- function(spec, cols,
     ))
   }
   
-  # Track if user is setting colWidth or changing visibility (which affects width distribution)
-  user_set_colwidth <- !is.null(colWidth)
-  user_changed_visibility <- !is.null(isVisible)  # Any visibility change should trigger recalc
+  # Track if user is setting colWidth or changing visibility (which affects width distribution).
+  # A vector like c("13%", NA, "12%") counts as "user set colwidth" because at least one
+  # position is non-NA; positions with NA are silently skipped.
+  user_set_colwidth <- !is.null(colWidth) && any(!is.na(colWidth))
+  user_changed_visibility <- !is.null(isVisible) && any(!is.na(isVisible))
   
   # Collect non-format parameters
   param_names <- c("label", "isID", "isVisible", "isGrouping", 
@@ -1785,35 +1795,51 @@ define_cols <- function(spec, cols,
     for (pname in param_names) {
       pval <- params_list[[pname]]
       if (!is.null(pval)) {
-        # For labelStyleRef, it's already a list from ._resolve_style_refs
+        # For labelStyleRef, it's already a list from ._resolve_style_refs;
+        # NA sentinel means "skip this column".
         if (pname == "labelStyleRef") {
-          col_params[[pname]] <- pval[[i]]
+          val <- pval[[i]]
+          if (!identical(val, NA)) {
+            col_params[[pname]] <- val
+          }
         } else {
-          col_params[[pname]] <- if (length(pval) == 1) pval else pval[i]
+          col_val <- if (length(pval) == 1L) pval else pval[i]
+          # NA means "do nothing for this column position"
+          if (!is.na(col_val)) {
+            col_params[[pname]] <- col_val
+          }
         }
       }
     }
     
     # Build format spec for this column if any format params are provided
     if (length(format_params_list) > 0 || !is.null(resolved_valuestyleref)) {
-      # Extract values for this column with 1-or-n recycling
+      # Extract values for this column with 1-or-n recycling.
+      # NA values mean "skip this column position" — they are not added.
       col_format_params <- list()
       for (fpname in names(format_params_list)) {
         fpval <- format_params_list[[fpname]]
-        col_format_params[[fpname]] <- if (length(fpval) == 1) fpval else fpval[i]
+        col_val <- if (length(fpval) == 1L) fpval else fpval[i]
+        if (!is.na(col_val)) {
+          col_format_params[[fpname]] <- col_val
+        }
       }
       
-      # Add resolved valueStyleRef for this column (already resolved as a list)
+      # Add resolved valueStyleRef for this column (already resolved as a list).
+      # NA sentinel means "skip this column".
       if (!is.null(resolved_valuestyleref)) {
-        col_format_params$valueStyleRef <- resolved_valuestyleref[[i]]
+        val <- resolved_valuestyleref[[i]]
+        if (!identical(val, NA)) {
+          col_format_params$valueStyleRef <- val
+        }
       }
       
-      # Create format spec using .col_format_spec()
-      format_spec <- do.call(.col_format_spec, col_format_params)
-      
-      # Merge with existing format
-      existing_format <- spec$columns[[col_id]]$format
-      col_params$format <- .merge_recursive(existing_format, format_spec)
+      # Only compute and merge format spec when at least one format param applies
+      if (length(col_format_params) > 0) {
+        format_spec <- do.call(.col_format_spec, col_format_params)
+        existing_format <- spec$columns[[col_id]]$format
+        col_params$format <- .merge_recursive(existing_format, format_spec)
+      }
     }
     
     # Validate known keys for column
@@ -1827,14 +1853,17 @@ define_cols <- function(spec, cols,
     col_is_visible <- spec$columns[[col_id]]$isVisible
     is_now_invisible <- !is.null(col_is_visible) && isFALSE(col_is_visible)
     
-    # Check 1: User cannot set colWidth for invisible columns
+    # Check 1: User cannot set colWidth for invisible columns.
+    # NA at this column's position is treated as "do nothing" so no error is raised.
     if (is_now_invisible && user_set_colwidth && !is.null(colWidth)) {
-      col_colwidth <- if (length(colWidth) == 1) colWidth else colWidth[i]
-      cli_abort(c(
-        "Cannot set {.arg colWidth} for invisible column {.str {col_id}}",
-        x = "Column {.str {col_id}} has {.arg isVisible = FALSE}",
-        i = "Invisible columns automatically have {.arg colWidth = \"0.0cm\"}"
-      ))
+      col_colwidth <- if (length(colWidth) == 1L) colWidth else colWidth[i]
+      if (!is.na(col_colwidth)) {
+        cli_abort(c(
+          "Cannot set {.arg colWidth} for invisible column {.str {col_id}}",
+          x = "Column {.str {col_id}} has {.arg isVisible = FALSE}",
+          i = "Invisible columns automatically have {.arg colWidth = \"0.0cm\"}"
+        ))
+      }
     }
     
     # Check 2: Auto-set colWidth = "0.0cm" for invisible columns
@@ -1847,33 +1876,32 @@ define_cols <- function(spec, cols,
       }
     }
     
-    # If user set colWidth, update metadata to mark as locked
+    # If user set colWidth, update metadata to mark as locked.
+    # NA at this column's position is treated as "do nothing" — skip the lock entirely.
     if (user_set_colwidth && !is.null(colWidth)) {
-      col_colwidth <- if (length(colWidth) == 1) colWidth else colWidth[i]
-      # Extract unit and value from colWidth
-      width_info <- .parse_colwidth(col_colwidth)
-      
-      # Validate colWidth format
-      if (is.null(width_info)) {
-        cli_abort(c(
-          "Invalid format for {.arg colWidth}:",
-          x = "{.str {col_colwidth}} is not in a recognized format",
-          i = "Use patterns like {.str 25%}, {.str 3.5cm}, {.str 10mm}, or {.str 1in}"
-        ))
-      }
-      
-      # Validate minimum width threshold
-      .validate_colwidth_minimum(width_info, col_colwidth)
-      
-      # If this is a relative width (%), validate it against column constraints
-      if (width_info$unit == "%") {
-        .validate_relative_colwidth(spec, col_id, width_info$value, col_colwidth)
-      }
-      
-      if (!is.null(spec$.metadata$colWidths[[col_id]])) {
-        spec$.metadata$colWidths[[col_id]]$locked <- TRUE
-        spec$.metadata$colWidths[[col_id]]$unit <- width_info$unit
-        spec$.metadata$colWidths[[col_id]]$value <- width_info$value
+      col_colwidth <- if (length(colWidth) == 1L) colWidth else colWidth[i]
+      if (!is.na(col_colwidth)) {
+        width_info <- .parse_colwidth(col_colwidth)
+        
+        if (is.null(width_info)) {
+          cli_abort(c(
+            "Invalid format for {.arg colWidth}:",
+            x = "{.str {col_colwidth}} is not in a recognized format",
+            i = "Use patterns like {.str 25%}, {.str 3.5cm}, {.str 10mm}, or {.str 1in}"
+          ))
+        }
+        
+        .validate_colwidth_minimum(width_info, col_colwidth)
+        
+        if (width_info$unit == "%") {
+          .validate_relative_colwidth(spec, col_id, width_info$value, col_colwidth)
+        }
+        
+        if (!is.null(spec$.metadata$colWidths[[col_id]])) {
+          spec$.metadata$colWidths[[col_id]]$locked <- TRUE
+          spec$.metadata$colWidths[[col_id]]$unit <- width_info$unit
+          spec$.metadata$colWidths[[col_id]]$value <- width_info$value
+        }
       }
     }
   }
@@ -2741,20 +2769,22 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
   # Compute result
   result <- NULL
   
-  if (is.null(style_refs)) {
+  if (is.null(style_refs) || identical(style_refs, NA)) {
+    # NULL and bare NA both mean "no style / do nothing for all columns"
     result <- rep(list(NULL), num_cols)
   } else if (is.character(style_refs)) {
-    # Case 1: Character vector (single style or f_combine result)
-    # Recycle to all columns
+    # Case 1: Character vector (single style name or f_combine result)
+    # Recycle to all columns.  Per-column NA skipping uses a list (see Case 2).
     result <- rep(list(style_refs), num_cols)
   } else if (is.list(style_refs)) {
     # Case 2: List (assumed to be from f_combine results or explicit mapping)
-    # Validate all elements are either NULL or character vectors
+    # Validate all elements are NULL, NA (skip sentinel), or character vectors.
     for (i in seq_along(style_refs)) {
-      if (!is.null(style_refs[[i]]) && !is.character(style_refs[[i]])) {
+      el <- style_refs[[i]]
+      if (!is.null(el) && !identical(el, NA) && !is.character(el)) {
         cli_abort(c(
-          "Element {i} of {param_name} list must be NULL or character vector",
-          i = "Got: {.cls {class(style_refs[[i]])[1]}}"
+          "Element {i} of {param_name} list must be NULL, NA, or character vector",
+          i = "Got: {.cls {class(el)[1]}}"
         ))
       }
     }

@@ -1,0 +1,12 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+.copilot
+.cursor
+.github
+.serena
+tmp
+.gitignore
+.cursorrules
+docker-compose.yaml
+Dockerfile
+ksTFL.code-workspace
