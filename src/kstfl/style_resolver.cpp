@@ -60,22 +60,43 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
                                            Length table_width) const {
     if (columns.empty()) return;
 
-    int64_t total_specified = 0;
-    size_t unspecified_count = 0;
-
+    // Pass 1: resolve fixed-unit columns (cm, in, mm, pt) first so we know
+    // how much space they consume before applying percentage columns.
+    int64_t fixed_total = 0;
     for (auto& col : columns) {
-        if (col.format.col_width_raw.has_value()) {
-            // Parse the raw width string now, using table_width as percent reference
-            col.resolved_width = Length::parse(*col.format.col_width_raw,
-                                               table_width.emu);
-            total_specified += col.resolved_width.emu;
-        } else {
-            unspecified_count++;
+        if (!col.format.col_width_raw.has_value()) continue;
+        const std::string& raw = *col.format.col_width_raw;
+        // Detect percentage strings: they end with '%'
+        bool is_percent = (!raw.empty() && raw.back() == '%');
+        if (!is_percent) {
+            col.resolved_width = Length::parse(raw, table_width.emu);
+            fixed_total += col.resolved_width.emu;
         }
     }
 
-    // Distribute remaining width among unspecified columns
-    int64_t remaining = table_width.emu - total_specified;
+    // The reference width for percentage columns is the space remaining after
+    // fixed-unit columns are placed.  Clamp to zero to avoid negative refs.
+    int64_t pct_reference = table_width.emu - fixed_total;
+    if (pct_reference < 0) pct_reference = 0;
+
+    // Pass 2: resolve percentage columns against the remaining space.
+    int64_t pct_total = 0;
+    size_t unspecified_count = 0;
+    for (auto& col : columns) {
+        if (!col.format.col_width_raw.has_value()) {
+            unspecified_count++;
+            continue;
+        }
+        const std::string& raw = *col.format.col_width_raw;
+        bool is_percent = (!raw.empty() && raw.back() == '%');
+        if (is_percent) {
+            col.resolved_width = Length::parse(raw, pct_reference);
+            pct_total += col.resolved_width.emu;
+        }
+    }
+
+    // Distribute any remaining width among columns with no explicit width.
+    int64_t remaining = table_width.emu - fixed_total - pct_total;
     if (remaining < 0) remaining = 0;
 
     if (unspecified_count > 0) {

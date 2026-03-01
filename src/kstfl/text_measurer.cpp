@@ -149,6 +149,15 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
     Length cell_margin_left = base_tcp.cell_margin_left.value_or(Length{0});
     Length cell_margin_right = base_tcp.cell_margin_right.value_or(Length{0});
     Length inner_width = max_width - cell_margin_left - cell_margin_right;
+
+    // Paragraph indents further reduce the available text width.
+    // left indent + right indent both consume horizontal space.
+    if (base_pp.indents.has_value()) {
+        Length para_indent_left  = base_pp.indents->left.value_or(Length{0});
+        Length para_indent_right = base_pp.indents->right.value_or(Length{0});
+        inner_width = inner_width - para_indent_left - para_indent_right;
+    }
+
     if (inner_width.emu < 0) inner_width.emu = 0;
 
     Length total_height{0};
@@ -207,7 +216,7 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
             auto words = split_words(run.text);
             for (const auto& word : words) {
                 Length word_width = measure_run_width(word, measure_font, {});
-                
+
                 // Check if word fits on current line
                 if (current_line_width.emu > 0 &&
                     (current_line_width + word_width) > inner_width) {
@@ -219,7 +228,25 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
                     para_lines++;
                     current_line_width = Length{0};
                 }
-                current_line_width = current_line_width + word_width;
+
+                // Handle single word wider than the available cell width
+                // (character-level wrapping: Word breaks within the word).
+                // Estimate the number of lines needed by dividing word width
+                // by inner_width, then carry the remainder forward.
+                if (inner_width.emu > 0 && word_width > inner_width) {
+                    int64_t full_lines = word_width.emu / inner_width.emu;
+                    int64_t remainder = word_width.emu % inner_width.emu;
+                    // full_lines complete lines consumed by this word
+                    for (int64_t fl = 0; fl < full_lines; ++fl) {
+                        if (max_line_width < inner_width) max_line_width = inner_width;
+                        total_height = total_height + base_lh;
+                        para_lines++;
+                    }
+                    // Carry the remainder to the current line
+                    current_line_width = Length{remainder};
+                } else {
+                    current_line_width = current_line_width + word_width;
+                }
             }
         }
 

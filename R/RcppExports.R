@@ -14,10 +14,10 @@ cpp_test_xml_writer <- function() {
 }
 
 render_docx_impl <- function(spec_json_path, template_json_path, output_path, font_dirs = NULL, fallback_font = "", verbose = FALSE) {
-    invisible(.Call(`_ksTFL_render_docx_impl`, spec_json_path, template_json_path, output_path, font_dirs, fallback_font, verbose))
+    .Call(`_ksTFL_render_docx_impl`, spec_json_path, template_json_path, output_path, font_dirs, fallback_font, verbose)
 }
 
 render_docx_from_strings_impl <- function(spec_json, template_json, output_path, data_dir = "", font_dirs = NULL, fallback_font = "", verbose = FALSE) {
-    invisible(.Call(`_ksTFL_render_docx_from_strings_impl`, spec_json, template_json, output_path, data_dir, font_dirs, fallback_font, verbose))
+    .Call(`_ksTFL_render_docx_from_strings_impl`, spec_json, template_json, output_path, data_dir, font_dirs, fallback_font, verbose)
 }
 

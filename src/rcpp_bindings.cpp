@@ -9,12 +9,12 @@
 #include "kstfl/renderer.h"
 
 // [[Rcpp::export]]
-void render_docx_impl(const std::string& spec_json_path,
-                       const std::string& template_json_path,
-                       const std::string& output_path,
-                       Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
-                       const std::string& fallback_font = "",
-                       bool verbose = false) {
+int render_docx_impl(const std::string& spec_json_path,
+                      const std::string& template_json_path,
+                      const std::string& output_path,
+                      Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
+                      const std::string& fallback_font = "",
+                      bool verbose = false) {
     try {
         kstfl::Renderer renderer;
         kstfl::RendererConfig config;
@@ -30,23 +30,24 @@ void render_docx_impl(const std::string& spec_json_path,
         }
 
         renderer.set_config(config);
-        renderer.render(spec_json_path, template_json_path, output_path);
+        return static_cast<int>(renderer.render(spec_json_path, template_json_path, output_path));
 
     } catch (const kstfl::RenderError& e) {
         Rcpp::stop("ksTFL render error: %s", e.what());
     } catch (const std::exception& e) {
         Rcpp::stop("ksTFL internal error: %s", e.what());
     }
+    return 0;
 }
 
 // [[Rcpp::export]]
-void render_docx_from_strings_impl(const std::string& spec_json,
-                                    const std::string& template_json,
-                                    const std::string& output_path,
-                                    const std::string& data_dir = "",
-                                    Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
-                                    const std::string& fallback_font = "",
-                                    bool verbose = false) {
+int render_docx_from_strings_impl(const std::string& spec_json,
+                                   const std::string& template_json,
+                                   const std::string& output_path,
+                                   const std::string& data_dir = "",
+                                   Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
+                                   const std::string& fallback_font = "",
+                                   bool verbose = false) {
     try {
         kstfl::Renderer renderer;
         kstfl::RendererConfig config;
@@ -62,11 +63,12 @@ void render_docx_from_strings_impl(const std::string& spec_json,
         }
 
         renderer.set_config(config);
-        renderer.render_from_strings(spec_json, template_json, output_path, data_dir);
+        return static_cast<int>(renderer.render_from_strings(spec_json, template_json, output_path, data_dir));
 
     } catch (const kstfl::RenderError& e) {
         Rcpp::stop("ksTFL render error: %s", e.what());
     } catch (const std::exception& e) {
         Rcpp::stop("ksTFL internal error: %s", e.what());
     }
+    return 0;
 }

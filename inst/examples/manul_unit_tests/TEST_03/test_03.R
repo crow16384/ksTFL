@@ -283,3 +283,4 @@ spec_03_14 <- spec_03_06_a %>% set_page_style(docTemplate = 'Silver_Grid')
 
 report_03_14 <- create_report(spec_03_14)
 save_and_render(report_03_14, "test_03_14")
+

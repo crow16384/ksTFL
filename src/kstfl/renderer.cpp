@@ -73,26 +73,26 @@ static std::string read_file_to_string(const std::string& path) {
 // render: from file paths
 // ---------------------------------------------------------------------------
 
-void Renderer::render(const std::string& spec_json_path,
-                       const std::string& template_json_path,
-                       const std::string& output_path) {
+size_t Renderer::render(const std::string& spec_json_path,
+                         const std::string& template_json_path,
+                         const std::string& output_path) {
     std::string spec_json = read_file_to_string(spec_json_path);
     std::string template_json = read_file_to_string(template_json_path);
 
     // Determine data directory from spec path
     std::string data_dir = fs::path(spec_json_path).parent_path().string();
 
-    render_from_strings(spec_json, template_json, output_path, data_dir);
+    return render_from_strings(spec_json, template_json, output_path, data_dir);
 }
 
 // ---------------------------------------------------------------------------
 // render_from_strings: main pipeline
 // ---------------------------------------------------------------------------
 
-void Renderer::render_from_strings(const std::string& spec_json,
-                                    const std::string& template_json,
-                                    const std::string& output_path,
-                                    const std::string& data_dir) {
+size_t Renderer::render_from_strings(const std::string& spec_json,
+                                      const std::string& template_json,
+                                      const std::string& output_path,
+                                      const std::string& data_dir) {
     if (config_.verbose) {
         std::cerr << "[ksTFL] Starting render pipeline...\n";
     }
@@ -518,9 +518,18 @@ void Renderer::render_from_strings(const std::string& spec_json,
     emitter.emit(doc, data_tables, output_path,
                   all_pages, all_rows, all_headers, &measurer);
 
+    // Compute total page count across all specs
+    size_t total_pages = 0;
+    for (const auto& kv : all_pages) {
+        total_pages += kv.second.total_pages;
+    }
+
     if (config_.verbose) {
         std::cerr << "[ksTFL] Render complete: " << output_path << "\n";
     }
+    std::cerr << "[ksTFL] Pages produced: " << total_pages << "\n";
+
+    return total_pages;
 }
 
 }  // namespace kstfl

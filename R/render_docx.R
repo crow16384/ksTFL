@@ -185,7 +185,7 @@ render_docx <- function(spec_json,
   }
 
   # ---- Call C++ renderer ----
-  render_docx_impl(
+  n_pages <- render_docx_impl(
     spec_json_path = spec_json,
     template_json_path = template_json,
     output_path = output_path,
@@ -194,6 +194,7 @@ render_docx <- function(spec_json,
     verbose = verbose
   )
 
-  cli::cli_alert_success("DOCX rendered: {.path {output_path}}")
+  page_label <- if (!is.null(n_pages) && length(n_pages) == 1L && n_pages != 1L) "pages" else "page"
+  cli::cli_alert_success("DOCX rendered: {.path {output_path}} ({n_pages} {page_label})")
   invisible(output_path)
 }
