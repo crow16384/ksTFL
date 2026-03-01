@@ -20,3 +20,24 @@
     }
   }
 }
+{
+  "mcpServers": {
+    "serena": {
+      "command": "/home/meguty/.cargo/bin/uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide",
+        "--project",
+        "/home/meguty/Develop/R/ksTFL"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}
