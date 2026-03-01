@@ -179,6 +179,22 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
   )
   writeLines(json_output, con = spec_filepath)
   
+  # ---- Update _index.json ----
+  # Collect dataRefs from all specs for the index
+  all_data_refs <- unique(unlist(lapply(names(fixed), function(k) {
+    refs <- fixed[[k]][["dataRef"]]
+    if (is.null(refs)) character(0) else as.character(unlist(refs))
+  })))
+  n_specs_in_report <- length(setdiff(names(final_export), "_metadata"))
+  .update_spec_index(
+    meta_dir   = metaPath,
+    spec_file  = spec_filename,
+    doc_file   = docFileName,
+    datetime   = format(Sys.time(), "%Y-%m-%dT%H:%M:%S"),
+    n_specs    = n_specs_in_report,
+    data_refs  = all_data_refs
+  )
+
   # ---- Return metadata ----
   result <- list(
     spec_file = spec_filename,
