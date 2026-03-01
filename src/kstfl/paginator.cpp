@@ -273,23 +273,11 @@ PaginationResult Paginator::paginate(
     // with lines within a group joined by <br> soft breaks.
     Length titles_height{0};
     {
-        // If doc_prefix is not glued, it's a separate paragraph
-        if (!spec.document.doc_prefix.empty() && !spec.document.glue_prefix) {
-            StyleDef style = resolver.resolve_title_style();
-            MeasuredText m = measurer.measure_plain(spec.document.doc_prefix, style,
-                                                     page_config.usable_width());
-            titles_height = titles_height + m.height;
-        }
-
         // Measure each title group as a separate paragraph
         for (size_t gi = 0; gi < spec.titles.size(); ++gi) {
             const auto& tg = spec.titles[gi];
             StyleDef style = resolver.resolve_title_style(tg.style_refs);
             std::string combined;
-            // Prepend glued prefix to first group
-            if (gi == 0 && !spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
-                combined = spec.document.doc_prefix;
-            }
             for (const auto& line : tg.text) {
                 if (!combined.empty()) combined += "<br>";
                 combined += line;

@@ -1472,19 +1472,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
     if (page.has_titles && !spec.titles.empty()) {
         StyleDef title_style = resolver.resolve_title_style();
 
-        // Handle doc_prefix: either glue to first title or emit separately
-        std::string prefix;
-        if (!spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
-            prefix = spec.document.doc_prefix;
-        } else if (!spec.document.doc_prefix.empty()) {
-            // Not glued — emit prefix as separate paragraph before titles
-            StyleDef prefix_style = title_style;
-            stamp_exact_line_height(prefix_style);
-            emit_paragraph(w, spec.document.doc_prefix, prefix_style);
-        }
-
         // Emit each title group as a separate paragraph.
-        // If prefix is set, prepend it to the first group's first text line.
         for (size_t gi = 0; gi < spec.titles.size(); ++gi) {
             const auto& group = spec.titles[gi];
             StyleDef style = title_style;
@@ -1503,11 +1491,6 @@ void DocxEmitter::emit_page(XmlWriter& w,
             for (size_t i = 0; i < group.text.size(); ++i) {
                 if (i > 0) combined += "<br>";
                 combined += group.text[i];
-            }
-
-            // Prepend prefix to the first group only
-            if (gi == 0 && !prefix.empty()) {
-                combined = prefix + combined;
             }
 
             emit_paragraph(w, combined, style);

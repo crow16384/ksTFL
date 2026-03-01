@@ -551,8 +551,6 @@ static DocumentInfo parse_document_info(const json& j) {
     else if (dt == "Text")   di.doc_type = DocType::Text;
 
     di.has_data = get_bool(j, "hasData", true);
-    di.doc_prefix = get_str(j, "docPrefix");
-    di.glue_prefix = get_bool(j, "gluePrefix", true);
     di.glue_num_type = get_bool(j, "glueNumType", false);
 
     di.doc_order = get_int(j, "docOrder", 0);

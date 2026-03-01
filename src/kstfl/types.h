@@ -479,8 +479,6 @@ enum class DocType {
 struct DocumentInfo {
     DocType doc_type = DocType::Table;
     bool has_data = true;
-    std::string doc_prefix;                  // e.g. "Table 14.1.1"
-    bool glue_prefix = true;                 // glue prefix to first title line
     bool glue_num_type = false;              // informational: number type was auto-generated
     int doc_order = 0;
     bool is_continues = false;               // if true, titles don't repeat on subsequent pages

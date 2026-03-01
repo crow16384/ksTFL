@@ -236,7 +236,6 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   doc_props <- x$document
   cli::cli_text("{.strong Type:} {doc_props$docType %||% '<not set>'}")
   cli::cli_text("{.strong Has Data:} {if (is.null(doc_props$hasData)) '<not set>' else if (doc_props$hasData) 'Yes' else 'No'}")
-  if (!is.null(doc_props$docPrefix)) cli::cli_text("{.strong Prefix:} {doc_props$docPrefix}")
   if (!is.null(doc_props$glueNumType)) cli::cli_text("{.strong Glue Num Type:} {if (doc_props$glueNumType) 'Yes' else 'No'}")
   if (!is.null(doc_props$docOrder)) cli::cli_text("{.strong Order:} {doc_props$docOrder}")
   if (!is.null(doc_props$isContinues)) cli::cli_text("{.strong Continues:} {if (doc_props$isContinues) 'Yes' else 'No'}")
@@ -784,7 +783,6 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
             h$div(class = "prop-grid",
               h$div(class = "prop-item", h$strong("Type: "), .scalar_text(x$document$docType)),
               h$div(class = "prop-item", h$strong("Has Data: "), .scalar_text(x$document$hasData)),
-              if (!is.null(x$document$docPrefix)) h$div(class = "prop-item", h$strong("Prefix: "), .scalar_text(x$document$docPrefix)),
               if (!is.null(x$document$glueNumType)) h$div(class = "prop-item", h$strong("Glue Num Type: "), .scalar_text(x$document$glueNumType)),
               if (!is.null(x$document$docOrder)) h$div(class = "prop-item", h$strong("Order: "), .scalar_text(x$document$docOrder)),
               if (!is.null(x$document$isContinues)) h$div(class = "prop-item", h$strong("Continues: "), .scalar_text(x$document$isContinues)),

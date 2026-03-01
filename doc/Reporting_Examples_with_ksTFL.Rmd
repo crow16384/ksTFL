@@ -64,7 +64,7 @@ dev.off()
 Goal: show a single-table workflow from data to a `TFL_spec` using only exported helpers.
 
 ```{r example_minimal_table, eval = FALSE}
-spec_min_table <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt), docPrefix = "demog_min")
+spec_min_table <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 spec_min_table <- add_title(spec_min_table, "Demographics (minimal)")
 
 # Print shows a compact overview (useful in interactive sessions)
@@ -224,26 +224,23 @@ This approach makes it easy to:
 
 ---
 
-## 5 — Set document properties (docPrefix, hasData, content width, placement)
+## 5 — Set document properties (hasData, content width, placement)
 
-Goal: configure document-level properties like the document prefix (e.g., "Table 14.1"), data availability flag, and content width.
+Goal: configure document-level properties like data availability flag, content width, and placement.
 
 **Key function**: `set_document()`
-- `docPrefix`: Prefix and number (e.g., "Table 14.1", "Listing 5.2")
-- `glueNumType`: Whether to combine prefix with first title (default TRUE)
+- `glueNumType`: Whether to combine type and number with first title (default TRUE)
 - `hasData`: Whether document contains data (important for Text specs)
 - `bodyTitles`, `bodyFootnotes`, `bodySubtitles`: Place these in body vs header
 - `contentWidth`: Content width (e.g., "100%", "6.5in", "16.51cm")
 - `isContinues`: Ignore page breaks between sections
 
-**Example 1: Simple document prefix**
+**Example 1: hasData flag**
 
 ```{r example_set_document_prefix, eval = FALSE}
 spec <- create_table(demog_tbl)
 
-# Add document prefix
 spec <- set_document(spec,
-  docPrefix = "Table 14.1",
   hasData = TRUE)
 
 print(spec)
@@ -255,15 +252,14 @@ print(spec)
 spec <- create_table(demog_tbl)
 
 spec <- set_document(spec,
-  docPrefix = "Table 14.2",
   contentWidth = "95%",        # Narrower content (default 100%)
   bodyTitles = FALSE,          # Titles in header, not body
   bodyFootnotes = TRUE,        # Footnotes in body
-  glueNumType = FALSE)         # Prefix separate from title
+  glueNumType = FALSE)
 ```
 
 **Notes**:
-- Most defaults are sensible; you typically only need `set_document()` for `docPrefix` and content width
+- Most defaults are sensible; you typically only need `set_document()` for content width
 - Multiple calls merge with last-win strategy (later calls override earlier ones)
 - Pairs well with `set_page_style()` for complete document configuration
 

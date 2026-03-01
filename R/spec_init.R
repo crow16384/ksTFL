@@ -11,8 +11,6 @@
 #'   include in the spec. Defaults to `everything()` (all columns). This
 #'   argument is captured and passed from the public wrappers using
 #'   quosures.
-#' @param docPrefix Optional character string to prefix the document title
-#'   (e.g., "Table 14.1").
 #' @param docType Character. Document type: one of "Table", "Text", or
 #'   "Figure". Defaults to "Table".
 #'
@@ -52,8 +50,6 @@
 #'   include in the spec. Defaults to `everything()` (all columns). This
 #'   argument is captured and passed from the public wrappers using
 #'   quosures.
-#' @param docPrefix Optional character string to prefix the document title
-#'   (e.g., "Table 14.1").
 #' @param docType Character. Document type: one of "Table", "Text", or
 #'   "Figure". Defaults to "Table".
 #'
@@ -69,7 +65,7 @@
 #'
 #' @keywords internal
 #' @noRd
-.tfl_init <- function(data = NULL, cols = everything(), docPrefix = NULL, docType = "Table") {
+.tfl_init <- function(data = NULL, cols = everything(), docType = "Table") {
   # Validate docType
   docType <- match.arg(docType, c("Table", "Text", "Figure"))
   
@@ -94,7 +90,6 @@
     }
 
     spec$document$docType <- docType
-    spec$document$docPrefix <- docPrefix
     spec$document$hasData <- FALSE
     spec$columns <- NULL
     spec$stubColumns <- NULL
@@ -113,7 +108,6 @@
       ))
     }
     spec$document$docType <- docType
-    spec$document$docPrefix <- docPrefix
     spec$document$hasData <- FALSE
     spec$stubColumns <- NULL
     spec$columns <- NULL
@@ -162,8 +156,7 @@
   
   docprops <- list(
     docType = docType,
-    hasData = has_data,
-    docPrefix = docPrefix
+    hasData = has_data
   )
   # Set document properties
   spec$document <- .merge_recursive(spec$document, docprops)
@@ -177,12 +170,6 @@
     colWidths = widths_metadata,
     compute_cols = list()  # Initialize for compute_cols() calls
   )
-  
-  # Add optional docPrefix if provided
-  if (!is.null(docPrefix)) {
-    checkmate::assert_character(docPrefix, len = 1, .var.name = "docPrefix")
-    spec$document$docPrefix <- docPrefix
-  }
   
   #class(spec) <- c("TFL_spec", "TFL_table_spec")
   class(spec) <- "TFL_spec"
@@ -298,9 +285,6 @@
   }
   if (is.null(spec$document$contentWidth)) {
     spec$document$contentWidth <- settings$contentWidth
-  }
-  if (is.null(spec$document$gluePrefix)) {
-    spec$document$gluePrefix <- settings$gluePrefix
   }
   
   # Initialize documentStyle structure if needed
@@ -507,22 +491,17 @@
 #' specifications. Text documents do not accept `data` and will have
 #' `docType = "Text"` set on the resulting spec.
 #'
-#' @param docPrefix Optional character prefix for the document title.
-#'
 #' @return A `TFL_spec` object with `docType = "Text"`.
 #'
 #' @examples
 #' \dontrun{
 #' ## Create a simple text spec
 #' spec <- create_text()
-#'
-#' ## With a prefix
-#' spec <- create_text(docPrefix = "Narrative 1.1")
 #' }
 #'
 #' @export
-create_text <- function(docPrefix = NULL) {
-  .tfl_init(data = NULL, cols = everything(), docPrefix = docPrefix, docType = "Text")
+create_text <- function() {
+  .tfl_init(data = NULL, cols = everything(), docType = "Text")
 }
 
 
@@ -536,7 +515,6 @@ create_text <- function(docPrefix = NULL) {
 #' @param data A data frame to build the table from (required).
 #' @param cols Tidyselect expression indicating which columns from `data` to
 #'   include in the report. Defaults to `everything()`.
-#' @param docPrefix Optional character prefix for the document title. E.g. "Table 14.1". If provided will be prepended to the document title by `gluePrefix` logic (see `tfl_options`).
 #'
 #' @return A `TFL_spec` object with `docType = "Table"`.
 #'
@@ -572,9 +550,9 @@ create_text <- function(docPrefix = NULL) {
 #' spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
 #' }
 #'
-create_table <- function(data = NULL, cols = everything(), docPrefix = NULL) {
+create_table <- function(data = NULL, cols = everything()) {
   cols_quo <- enquo(cols)
-  .tfl_init(data = data, cols = !!cols_quo, docPrefix = docPrefix, docType = "Table")
+  .tfl_init(data = data, cols = !!cols_quo, docType = "Table")
 }
 
 
@@ -644,8 +622,6 @@ create_table <- function(data = NULL, cols = everything(), docPrefix = NULL) {
 #'       rendered to a temporary file via `ggplot2::ggsave()`. Use `width`,
 #'       `height`, `dpi`, and `device` to control output dimensions.
 #'   }
-#' @param docPrefix Optional character string prefix for the document title
-#'   (e.g., `"Figure 1.1"`).
 #' @param width Numeric. Plot width in inches when `plot_or_path` is a ggplot2
 #'   object. Ignored for file paths. Default: `6`.
 #' @param height Numeric. Plot height in inches when `plot_or_path` is a
@@ -701,8 +677,7 @@ create_table <- function(data = NULL, cols = everything(), docPrefix = NULL) {
 #' )
 #' }
 #'
-create_figure <- function(plot_or_path, docPrefix = NULL,
-                           width = 6, height = 4, dpi = 300L, device = "png") {
+create_figure <- function(plot_or_path, width = 6, height = 4, dpi = 300L, device = "png") {
 
   # Branch 1: ggplot2 object — render to temporary file
   if (inherits(plot_or_path, c("gg", "ggplot"))) {
@@ -728,7 +703,7 @@ create_figure <- function(plot_or_path, docPrefix = NULL,
     ))
   }
 
-  spec <- .tfl_init(data = plot_or_path, cols = everything(), docPrefix = docPrefix, docType = "Figure")
+  spec <- .tfl_init(data = plot_or_path, cols = everything(), docType = "Figure")
   spec$document$figureWidthIn  <- as.numeric(width)
   spec$document$figureHeightIn <- as.numeric(height)
   spec

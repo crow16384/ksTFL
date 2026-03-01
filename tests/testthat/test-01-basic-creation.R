@@ -62,12 +62,6 @@ test_that("create_text() creates text-only spec", {
   expect_length(spec$columns, 0)
 })
 
-test_that("create_text() with docPrefix", {
-  spec <- create_text(docPrefix = "Text 1.1")
-  
-  expect_equal(spec$document$docPrefix, "Text 1.1")
-})
-
 test_that("create_figure() creates figure spec from valid image path", {
   spec <- create_figure(test_image_path)
   

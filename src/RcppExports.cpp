@@ -41,9 +41,10 @@ BEGIN_RCPP
 END_RCPP
 }
 // render_docx_impl
-void render_docx_impl(const std::string& spec_json_path, const std::string& template_json_path, const std::string& output_path, Rcpp::Nullable<Rcpp::CharacterVector> font_dirs, const std::string& fallback_font, bool verbose);
+int render_docx_impl(const std::string& spec_json_path, const std::string& template_json_path, const std::string& output_path, Rcpp::Nullable<Rcpp::CharacterVector> font_dirs, const std::string& fallback_font, bool verbose);
 RcppExport SEXP _ksTFL_render_docx_impl(SEXP spec_json_pathSEXP, SEXP template_json_pathSEXP, SEXP output_pathSEXP, SEXP font_dirsSEXP, SEXP fallback_fontSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::string& >::type spec_json_path(spec_json_pathSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type template_json_path(template_json_pathSEXP);
@@ -51,14 +52,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type font_dirs(font_dirsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type fallback_font(fallback_fontSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    render_docx_impl(spec_json_path, template_json_path, output_path, font_dirs, fallback_font, verbose);
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(render_docx_impl(spec_json_path, template_json_path, output_path, font_dirs, fallback_font, verbose));
+    return rcpp_result_gen;
 END_RCPP
 }
 // render_docx_from_strings_impl
-void render_docx_from_strings_impl(const std::string& spec_json, const std::string& template_json, const std::string& output_path, const std::string& data_dir, Rcpp::Nullable<Rcpp::CharacterVector> font_dirs, const std::string& fallback_font, bool verbose);
+int render_docx_from_strings_impl(const std::string& spec_json, const std::string& template_json, const std::string& output_path, const std::string& data_dir, Rcpp::Nullable<Rcpp::CharacterVector> font_dirs, const std::string& fallback_font, bool verbose);
 RcppExport SEXP _ksTFL_render_docx_from_strings_impl(SEXP spec_jsonSEXP, SEXP template_jsonSEXP, SEXP output_pathSEXP, SEXP data_dirSEXP, SEXP font_dirsSEXP, SEXP fallback_fontSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::string& >::type spec_json(spec_jsonSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type template_json(template_jsonSEXP);
@@ -67,7 +69,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type font_dirs(font_dirsSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type fallback_font(fallback_fontSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    render_docx_from_strings_impl(spec_json, template_json, output_path, data_dir, font_dirs, fallback_font, verbose);
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(render_docx_from_strings_impl(spec_json, template_json, output_path, data_dir, font_dirs, fallback_font, verbose));
+    return rcpp_result_gen;
 END_RCPP
 }

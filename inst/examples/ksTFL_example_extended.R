@@ -32,7 +32,7 @@ cat("Headers after per-spec override:\n")
 print(spec_a$headers)
 
 # Save a small report with stub spec to inspect files
-spec_text <- create_text(docPrefix = "Narrative") |> add_body_text("Example body text")
+spec_text <- create_text() |> add_body_text("Example body text")
 report2 <- create_report(spec_stub, spec_text)
 res2 <- save_report(report2, docFileName = "example_stub_report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
 cat("Saved stub report files:\n")

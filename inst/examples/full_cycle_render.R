@@ -17,7 +17,7 @@ source("inst/examples/init.R")
 ## EXAMPLE 1: Minimal Table #####
 cat("\n--- Example 1: Minimal table ------------------------------------------\n")
 
-spec1 <- create_table(mtcars[1:10, ], docPrefix = "Table 1.1")
+spec1 <- create_table(mtcars[1:10, ])
 spec1 <- spec1 |>
   add_title("Motor Trend Car Road Tests", style="font_italic") |>
   add_title("Title2", style=f_combine("font_bold", "font_italic") ) |>
@@ -41,7 +41,7 @@ demo_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
-spec2 <- create_table(demo_data, docPrefix = "Table 14.1.1")
+spec2 <- create_table(demo_data)
 
 # -- Styles --
 spec2 <- spec2 |>
@@ -110,7 +110,6 @@ spec2 <- spec2 |>
 # -- Document metadata --
 spec2 <- spec2 |>
   set_document(
-    docPrefix     = "Table 14.1.1",
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
     bodyFootnotes = TRUE,
@@ -139,7 +138,7 @@ summary_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
-spec3a <- create_table(summary_data, docPrefix = "Table 14.2.1")
+spec3a <- create_table(summary_data)
 spec3a <- spec3a |>
   add_style("param_bold", s_font(bold = TRUE)) |>
   define_cols(Parameter,
@@ -168,7 +167,7 @@ spec3a <- spec3a |>
   )
 
 # --- Narrative text spec ---
-spec3b <- create_text(docPrefix = "Listing 14.2.N1")
+spec3b <- create_text()
 spec3b <- spec3b |>
   add_title(c("Study ABC-123", "Narrative Summary of Vital Signs")) |>
   add_body_text(paste(
@@ -193,7 +192,7 @@ listing_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
-spec3c <- create_table(listing_data, docPrefix = "Listing 14.2.1")
+spec3c <- create_table(listing_data)
 spec3c <- spec3c |>
   define_cols(SUBJID,
     label  = "Subject",
@@ -240,8 +239,7 @@ tfl_set_options(
       )
     )
   ),
-  missings     = "--",
-  gluePrefix   = TRUE
+  missings     = "--"
 )
 
 # Wide table data (many columns)
@@ -258,7 +256,7 @@ wide_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
-spec4 <- create_table(wide_data, docPrefix = "Table 14.3.1")
+spec4 <- create_table(wide_data)
 spec4 <- spec4 |>
   add_style("grp_break",
     s_table_style(
@@ -351,7 +349,7 @@ ae_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
-spec5 <- create_table(ae_data, docPrefix = "Listing 16.2.7.1")
+spec5 <- create_table(ae_data)
 spec5 <- spec5 |>
   add_style("severe_row",
     s_font(bold = TRUE, color = "#CC0000"),
@@ -416,7 +414,7 @@ eff_data <- data.frame(
   stringsAsFactors = FALSE
 )
 
-spec6 <- create_table(eff_data, docPrefix = "Table 14.4.1")
+spec6 <- create_table(eff_data)
 spec6 <- spec6 |>
   add_style("cat_header",
     s_font(bold = TRUE),
@@ -501,7 +499,7 @@ save_and_render(report6, "ex06_efficacy_row_actions")
 ## EXAMPLE 7: Text-Only Document ####
 cat("\n--- Example 7: Text-only document -------------------------------------\n")
 
-spec7 <- create_text(docPrefix = "Section 14.1")
+spec7 <- create_text()
 spec7 <- spec7 |>
   add_style("section_title",
     s_font(font_name = "Arial", font_size = "14pt", bold = TRUE),
@@ -559,7 +557,6 @@ tfl_set_options(
       )
     )
   ),
-  gluePrefix = TRUE,
   missings   = "--"
 )
 
@@ -574,7 +571,7 @@ adsl <- data.frame(
   stringsAsFactors = FALSE
 )
 
-tbl_demo <- create_table(adsl, docPrefix = "Table 14.1.1")
+tbl_demo <- create_table(adsl)
 tbl_demo <- tbl_demo |>
   add_style("bold_val",
     s_font(bold = TRUE)
@@ -602,7 +599,7 @@ tbl_demo <- tbl_demo |>
   )
 
 # --- Text: Statistical Methods ---
-txt_methods <- create_text(docPrefix = "Section 11.4")
+txt_methods <- create_text()
 txt_methods <- txt_methods |>
   add_title("Statistical Methods") |>
   add_body_text(paste(
@@ -635,7 +632,7 @@ adsl_listing <- data.frame(
   stringsAsFactors = FALSE
 )
 
-lst_subj <- create_table(adsl_listing, docPrefix = "Listing 16.1.1")
+lst_subj <- create_table(adsl_listing)
 lst_subj <- lst_subj |>
   add_style("dcsreas_red",
     s_font(color = "#CC0000", bold = TRUE)
@@ -706,7 +703,7 @@ big_data <- rbind(big_data, big_data, big_data)
 # Sort so same-Visit rows are contiguous (meaningful for isPaging)
 big_data <- big_data[order(big_data$VISIT, big_data$PARAM, big_data$SUBJID), ]
 
-spec9 <- create_table(big_data, docPrefix = "Table 14.5.1")
+spec9 <- create_table(big_data)
 spec9 <- spec9 |>
   add_footer(c("This is a first footer", "This is the <b>second</b> <i>one</i>")) |> 
   add_header(c("First", "Second", "Third")) |> 
@@ -746,7 +743,7 @@ save_and_render(report9, "ex09_long_paging_table")
 ## EXAMPLE 10: Rich Inline Markup ####
 cat("\n--- Example 10: Rich inline markup in body text ----------------------\n")
 
-spec10 <- create_text(docPrefix = "Note 1.1")
+spec10 <- create_text()
 spec10 <- spec10 |>
   add_style("note_title",
     s_font(font_size = "12pt", bold = TRUE),

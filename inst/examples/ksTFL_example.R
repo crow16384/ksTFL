@@ -44,7 +44,7 @@ spec_tbl <- spec_tbl |> define_cols(c(mpg, hp), label = c("MPG", "Horsepower"), 
 spec_tbl <- spec_tbl |> add_title(c("Study ABC-123", "Demographics"), styleRef = "title_header_style") |> add_footnote("Data are shown as mean (SD).")
 
 # 5. Create text spec and combine
-spec_text <- create_text(docPrefix = "Narrative 1.1")
+spec_text <- create_text()
 report <- create_report(spec_tbl, spec_text)
 
 # 6. Save report metadata and data files
@@ -109,7 +109,7 @@ cat("Headers after per-spec override:\n")
 print(spec_a$headers)
 
 # Save a small report with stub spec to inspect files
-spec_text <- create_text(docPrefix = "Narrative") |> add_body_text("Example body text")
+spec_text <- create_text() |> add_body_text("Example body text")
 report2 <- create_report(spec_stub, spec_text)
 res2 <- save_report(report2, docFileName = "example_stub_report.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
 cat("Saved stub report files:\n")

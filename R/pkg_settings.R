@@ -18,7 +18,6 @@
     bodyTitles          = TRUE,
     bodySubtitles       = TRUE,
     bodyFootnotes       = TRUE,
-    gluePrefix          = TRUE,
     isContinues         = FALSE,
     contentWidth        = "100%",
     
@@ -114,7 +113,6 @@ tfl_get_option <- function(name) {
 #' @param bodyTitles Logical; override whether body titles are shown.
 #' @param bodySubtitles Logical; override whether body subtitles are shown.
 #' @param bodyFootnotes Logical; override whether body footnotes are shown.
-#' @param gluePrefix Logical; override automatic numbering glue prefix behavior.
 #' @param isContinues Logical; override continuation behavior.
 #' @param contentWidth Character; width for content area (e.g. "100%", "95%").
 #' @param missings Character; default representation for missing values (e.g. "NA", ".", "---").
@@ -164,7 +162,7 @@ tfl_get_option <- function(name) {
 #' }
 #' @export
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
-                         bodyFootnotes = NULL, gluePrefix = NULL,
+                         bodyFootnotes = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
                          autoColWidth = NULL, minColWidth = NULL,
                          output_directory='.') {
@@ -177,7 +175,7 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
       val <- params[[pname]]
 
       # Type checks for known option names
-      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "gluePrefix", "isContinues", "autoColWidth")) {
+      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "isContinues", "autoColWidth")) {
         checkmate::assert_logical(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname == "minColWidth") {
         checkmate::assert_numeric(val, len = 1, lower = 0, any.missing = FALSE, .var.name = pname)

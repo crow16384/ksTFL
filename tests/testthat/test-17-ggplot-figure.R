@@ -166,13 +166,6 @@ test_that("create_figure() still rejects missing / invalid file path (backward c
   )
 })
 
-test_that("create_figure() assigns docPrefix for ggplot2 input", {
-  skip_if_not_installed("ggplot2")
-  p <- make_plot()
-  spec <- create_figure(p, docPrefix = "Figure 1.1")
-  expect_equal(spec$document$docPrefix, "Figure 1.1")
-})
-
 # ============================================================================
 # Integration: ggplot2 figure through create_report() + save_report()
 # ============================================================================

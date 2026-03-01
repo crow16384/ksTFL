@@ -122,8 +122,6 @@ spec_tbl <- create_table(mtcars)
 # Select specific columns with tidyselect
 spec_tbl <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
 
-# With prefix (used in file naming)
-spec_tbl <- create_table(mtcars, cols = c(mpg, cyl), docPrefix = "t01s01")
 ```
 
 **What happens**: 
@@ -136,9 +134,6 @@ spec_tbl <- create_table(mtcars, cols = c(mpg, cyl), docPrefix = "t01s01")
 ```{r create_figure_spec, eval = FALSE}
 # From a file path (PNG, JPEG, SVG — any tool: R base, Python, Inkscape, etc.)
 spec_fig <- create_figure("path/to/plot.png")
-
-# Optional: with prefix
-spec_fig <- create_figure("plots/figure1.png", docPrefix = "fig01")
 
 # From a ggplot2 object — rendered automatically to a temporary PNG
 library(ggplot2)
@@ -612,7 +607,7 @@ You now understand ksTFL's core workflow. Next steps:
 | Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
 | Create figure spec | `create_figure(plot_or_path, ...)` | File path or ggplot2 object; path must be readable |
 | Create text spec | `create_text()` | For narrative content only |
-| Set document properties | `set_document(spec, docPrefix = ..., hasData = ...)` | Optional: configure doc prefix, content width, placement |
+| Set document properties | `set_document(spec, hasData = ...)` | Optional: configure content width, placement |
 | Customize columns | `define_cols(spec, cols, ...)` | Use `c()` for multiple columns |
 | Define styles | `add_style(spec, id = "name", ...)` | Use `s_font()`, `s_paragraph()`, `s_table_style()` |
 | Add spanning header | `add_span_header(spec, cols, label, ...)` | Supports tidyselect; multi-level headers |

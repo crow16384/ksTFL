@@ -2478,7 +2478,6 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' Define document-level properties. Multiple calls merge with last-win strategy.
 #' 
 #' @param spec TFL spec object
-#' @param docPrefix Output prefix and number according to SAP
 #' @param glueNumType Whether to glue type and number to first title
 #' @param isContinues Whether page breaks should be ignored
 #' @param contentWidth Width of content, e.g. "100%", "25cm", "10in"
@@ -2494,13 +2493,11 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' \dontrun{
 #' spec <- create_text() |>
 #'   set_document(
-#'     docType = "Table",
-#'     docPrefix = "Table 14.1",
 #'     hasData = TRUE,
 #'     bodyTitles = TRUE
 #'   )
 #' }
-set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
+set_document <- function(spec, glueNumType = NULL,
                          isContinues = NULL, contentWidth = NULL,
                          bodyTitles = NULL, bodyFootnotes = NULL, hasData = NULL,
                          bodySubtitles = NULL) {
@@ -2515,7 +2512,6 @@ set_document <- function(spec, docPrefix = NULL, glueNumType = NULL,
   }
   
   params <- list(
-    docPrefix = docPrefix,
     glueNumType = glueNumType,
     isContinues = isContinues,
     contentWidth = contentWidth,

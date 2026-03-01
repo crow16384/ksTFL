@@ -408,18 +408,6 @@
                                 "Text"
                             ]
                         },
-                        "docPrefix": {
-                            "type": [
-                                "null",
-                                "string"
-                            ],
-                            "description": "Output prefix and number according to SAP",
-                            "examples": [
-                                "16.1",
-                                "Listing 16.1",
-                                "Table 14.2:"
-                            ]
-                        },
                         "glueNumType": {
                             "type": "boolean",
                             "description": "Yes to glue the Type and Number to first title (e.g. Listing 16.1 <title 1>), No to keep Type and Number as a separate first row",
