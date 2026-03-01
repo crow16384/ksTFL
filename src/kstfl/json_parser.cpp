@@ -494,6 +494,15 @@ static RowActionSet parse_row_action_set(const std::string& json_str) {
         }
     }
 
+    // clear actions
+    if (j.contains("clear") && j["clear"].is_array()) {
+        for (const auto& item : j["clear"]) {
+            ClearAction ca;
+            ca.cols = get_str_array(item, "cols");
+            ras.clears.push_back(std::move(ca));
+        }
+    }
+
     // merge actions
     if (j.contains("merge") && j["merge"].is_array()) {
         for (const auto& item : j["merge"]) {
@@ -513,6 +522,19 @@ static RowActionSet parse_row_action_set(const std::string& json_str) {
             ara.value_from = get_str(item, "value_from");
             ara.style_ref = get_opt_str(item, "styleRef");
             ras.add_rows.push_back(std::move(ara));
+        }
+    }
+
+    // glue actions
+    if (j.contains("glue") && j["glue"].is_array()) {
+        for (const auto& item : j["glue"]) {
+            GlueAction ga;
+            ga.cols      = get_str_array(item, "cols");
+            ga.position  = get_str(item, "position");
+            ga.glue_col  = get_opt_str(item, "glue_col");
+            ga.text      = get_opt_str(item, "text");
+            ga.separator = get_str(item, "separator");
+            ras.glues.push_back(std::move(ga));
         }
     }
 

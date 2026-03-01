@@ -345,7 +345,8 @@ void LogicalTableBuilder::apply_dedupe(std::vector<LogicalRow>& rows,
                 prev_value = cell.text;
             } else {
                 if (cell.text == prev_value) {
-                    cell.text = "";  // suppress duplicate
+                    cell.text = "";          // suppress duplicate
+                    cell.is_deduped = true;  // mark so glue actions skip this cell
                 } else {
                     prev_value = cell.text;
                 }
@@ -456,6 +457,16 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
             row.force_page_break = true;
         }
 
+        // --- clear actions (before merge so cleared leader still participates) ---
+        for (const auto& ca : actions->clears) {
+            for (const auto& col_id : ca.cols) {
+                auto it = col_to_idx.find(col_id);
+                if (it != col_to_idx.end() && it->second < row.cells.size()) {
+                    row.cells[it->second].text = "";
+                }
+            }
+        }
+
         // --- style actions ---
         for (const auto& sa : actions->styles) {
             for (const auto& col_id : sa.cols) {
@@ -534,6 +545,44 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
                 size_t leader_idx = merge_indices[0];
                 if (leader_idx < row.cells.size() && ma.style_ref.has_value()) {
                     row.cells[leader_idx].style_ref = ma.style_ref;
+                }
+            }
+        }
+
+        // --- glue actions (after merge so suppressed cells are already marked) ---
+        for (const auto& ga : actions->glues) {
+            // Determine the text to concatenate
+            std::string glue_text;
+            if (ga.glue_col.has_value()) {
+                glue_text = get_data_value(*ga.glue_col, src_idx);
+            } else if (ga.text.has_value()) {
+                glue_text = *ga.text;
+            }
+
+            // Nothing to glue (empty source value)
+            if (glue_text.empty()) continue;
+
+            for (const auto& col_id : ga.cols) {
+                auto it = col_to_idx.find(col_id);
+                if (it == col_to_idx.end()) continue;
+
+                size_t cell_idx = it->second;
+                if (cell_idx >= row.cells.size()) continue;
+
+                auto& cell = row.cells[cell_idx];
+
+                // Skip cells suppressed by merge or by dedupe (preserve blank)
+                if (cell.is_merged || cell.is_deduped) continue;
+
+                // Concatenate — separator only inserted when both sides are non-empty
+                if (ga.position == "before") {
+                    cell.text = cell.text.empty()
+                        ? glue_text
+                        : (glue_text + ga.separator + cell.text);
+                } else {  // "after"
+                    cell.text = cell.text.empty()
+                        ? glue_text
+                        : (cell.text + ga.separator + glue_text);
                 }
             }
         }

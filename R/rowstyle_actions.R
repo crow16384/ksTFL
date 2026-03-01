@@ -28,7 +28,7 @@ NULL
 #'     \item Helper functions (e.g., `firstOf()`, `lastOf()`, `uniqueOf()`)
 #'   }
 #'   Must return a logical vector of length equal to `nrow(data)`.
-#' @param ... Action function calls: `c_style()`, `c_merge()`, `c_addrow()`.
+#' @param ... Action function calls: `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`.
 #'   Multiple actions allowed, including duplicates. Actions are captured unevaluated.
 #'
 #' @return Modified `spec` object with appended action metadata in `spec$.metadata$compute_cols`.
@@ -56,6 +56,8 @@ NULL
 #'   \item `c_merge(cols, styleRef = NULL)`: Merge adjacent columns in matching rows
 #'   \item `c_addrow(pos, value_from = NULL, styleRef = NULL)`: Insert row above/below matching rows
 #'   \item `c_pageBreak()`: Insert a page break at the matching row (no args)
+#'   \item `c_glue(cols, position, glue_col = NULL, text = NULL, separator = NULL)`: Concatenate a data column value or literal text to matching cell text
+#'   \item `c_clear(cols)`: Clear the display text of matching cells (render as blank)
 #' }
 #'
 #' @examples
@@ -362,6 +364,186 @@ c_pageBreak <- function() {
   )
 }
 
+
+#' Concatenate a Value to Cell Text in Conditional Rows
+#'
+#' Declares a glue action to concatenate a value — from a data column or a
+#' literal string — to the display text of specified cells in rows matching
+#' the parent `compute_cols()` condition.
+#'
+#' @param cols Tidyselect expression for the target columns
+#'   (e.g., `col1`, `c(col1, col2)`, `starts_with("x")`).
+#'   Must resolve to visible (non-hidden) report columns only.
+#' @param position Character. Concatenation side: `"before"` prepends the glue
+#'   value to the existing cell text; `"after"` appends it.
+#' @param glue_col Optional. Unquoted column name whose formatted value is
+#'   concatenated onto the target cells. The column may be hidden (not in the
+#'   visible column list). Mutually exclusive with `text`.
+#' @param text Optional. A single literal character string to concatenate onto
+#'   the target cells. Mutually exclusive with `glue_col`.
+#' @param separator Character string inserted between the existing cell text and
+#'   the glued value when both sides are non-empty. Defaults to `""` (direct
+#'   concatenation). When either side is empty, no separator is inserted.
+#'
+#' @return Quosure-style marker (internal use within `compute_cols()`)
+#'
+#' @details
+#' Must be called inside `compute_cols()`.
+#'
+#' **Constraints:**
+#' \itemize{
+#'   \item Exactly one of `glue_col` or `text` must be provided.
+#'   \item `cols` resolves only visible report columns via tidyselect.
+#'   \item `glue_col` can reference any data column, including hidden ones.
+#'   \item `glue_col` must not overlap with `cols`.
+#' }
+#'
+#' **Behavior:**
+#' \itemize{
+#'   \item When the glue value (from `glue_col` or `text`) is empty or `NA`,
+#'     the action is silently skipped for that row/cell.
+#'   \item When a target cell was suppressed by deduplication (`dedupe = TRUE`
+#'     on that column), the glue is silently skipped to preserve the visual
+#'     suppression of repeated values.
+#'   \item When a target cell is suppressed by a concurrent `c_merge()` action
+#'     (i.e., it is a non-leader merged cell), the glue is silently skipped.
+#'   \item The merge leader cell is glued normally when `c_glue()` targets a
+#'     column involved in `c_merge()` as the first column.
+#'   \item Multiple `c_glue()` calls on the same column accumulate in call order.
+#' }
+#'
+#' **Interaction with other actions:**
+#' \itemize{
+#'   \item `c_style()`: Fully compatible — styling and text modification are independent.
+#'   \item `c_merge()`: Compatible. Glue is processed after merge in the renderer.
+#'     Non-leader (suppressed) merge cells are skipped; the merge-leader cell is
+#'     glued normally.
+#'   \item `c_addrow()`: Fully compatible (affects different rows/cells).
+#'   \item `c_pageBreak()`: Fully compatible.
+#' }
+#'
+#' @seealso [compute_cols()], [c_style()], [c_merge()], [c_addrow()]
+#'
+#' @examples
+#' \dontrun{
+#'   # Append a unit from a hidden column (e.g. unit_col is not in spec cols)
+#'   spec <- compute_cols(spec, !is.na(value),
+#'     c_glue(value, "after", glue_col = unit, separator = " "))
+#'
+#'   # Prepend a literal marker to a label column
+#'   spec <- compute_cols(spec, is_total,
+#'     c_glue(label, "before", text = ">> "))
+#'
+#'   # Combine with c_style() — independent operations
+#'   spec <- compute_cols(spec, firstOf(group),
+#'     c_glue(label, "before", text = "> "),
+#'     c_style(label, styleRef = "bold"))
+#' }
+#'
+#' @export
+c_glue <- function(cols, position, glue_col = NULL, text = NULL, separator = NULL) {
+  .assert_context("compute_cols", "c_glue")
+
+  cols_quo     <- enquo(cols)
+  glue_col_quo <- enquo(glue_col)
+  glue_col_expr <- quo_get_expr(glue_col_quo)
+
+  has_glue_col <- !is.null(glue_col_expr)
+  has_text     <- !is.null(text)
+
+  if (has_glue_col && has_text) {
+    cli_abort(c(
+      "{.fn c_glue} requires either {.arg glue_col} or {.arg text}, not both",
+      x = "Both {.arg glue_col} and {.arg text} were provided",
+      i = "Use {.arg glue_col} to reference a data column, or {.arg text} for a literal string"
+    ))
+  }
+  if (!has_glue_col && !has_text) {
+    cli_abort(c(
+      "{.fn c_glue} requires either {.arg glue_col} or {.arg text}",
+      x = "Neither was provided",
+      i = "Example: {.code c_glue(col1, \"after\", glue_col = unit_col)}"
+    ))
+  }
+
+  position <- match.arg(position, c("before", "after"))
+
+  if (has_text) {
+    checkmate::assert_character(text, len = 1L, .var.name = "text")
+  }
+  if (!is.null(separator)) {
+    checkmate::assert_character(separator, len = 1L, any.missing = FALSE, .var.name = "separator")
+  }
+
+  structure(
+    list(
+      type      = "glue",
+      cols      = cols_quo,
+      position  = position,
+      glue_col  = if (has_glue_col) glue_col_quo else NULL,
+      text      = if (has_text) text else NULL,
+      separator = if (is.null(separator)) "" else separator
+    ),
+    class = "tfl_action_glue"
+  )
+}
+
+#' Clear Cell Content in Conditional Rows
+#'
+#' Declares a clear action that blanks the display text of specified cells in
+#' rows matching the parent `compute_cols()` condition. The cells are rendered
+#' empty without affecting their column structure, width, or styling.
+#'
+#' @param cols Tidyselect expression for the target columns to blank
+#'   (e.g., `col1`, `c(col1, col2)`, `starts_with("x")`).
+#'   Must resolve to visible (non-hidden) report columns only.
+#'
+#' @return Quosure-style marker (internal use within `compute_cols()`)
+#'
+#' @details
+#' Must be called inside `compute_cols()`.
+#'
+#' **Behavior:**
+#' \itemize{
+#'   \item Sets the rendered cell text to `""` for matching rows.
+#'   \item Processed before `c_merge()` and `c_glue()` in the rendering chain,
+#'     so the cleared state participates in subsequent actions. In particular:
+#'     combining `c_clear()` + `c_glue()` on the same column effectively
+#'     *replaces* the original cell content with the glued value.
+#'   \item Compatible with `c_style()`: styling is independent of text content.
+#'   \item When `c_merge()` targets a cleared leader cell, the merged span
+#'     renders as a blank merged cell.
+#' }
+#'
+#' @seealso [compute_cols()], [c_style()], [c_merge()], [c_glue()]
+#'
+#' @examples
+#' \dontrun{
+#'   # Blank label column in total rows
+#'   spec <- compute_cols(spec, is_total,
+#'     c_clear(label))
+#'
+#'   # Clear then replace with a value from another column (full replacement)
+#'   spec <- compute_cols(spec, condition,
+#'     c_clear(display_col),
+#'     c_glue(display_col, "after", glue_col = replacement_col))
+#' }
+#'
+#' @export
+c_clear <- function(cols) {
+  .assert_context("compute_cols", "c_clear")
+
+  cols_quo <- enquo(cols)
+
+  structure(
+    list(
+      type = "clear",
+      cols = cols_quo
+    ),
+    class = "tfl_action_clear"
+  )
+}
+
 # ============================================================
 # PART 3: INTERNAL FINALIZATION HELPERS
 # ============================================================
@@ -391,13 +573,15 @@ c_pageBreak <- function() {
   report_cols <- spec$.metadata$report_cols
 
   # Initialize row actions list
-  # Each element: list(style = list(), merge = list(), addrow = list())
+  # Each element: list(style=list(), merge=list(), add_row=list(), glue=list(), page_break=list())
   row_actions <- vector("list", n)
   for (i in seq_len(n)) {
     row_actions[[i]] <- list(
-      style = list(),
-      merge = list(),
-      add_row = list(),
+      style      = list(),
+      clear      = list(),
+      merge      = list(),
+      glue       = list(),
+      add_row    = list(),
       page_break = list()
     )
   }
@@ -451,6 +635,23 @@ c_pageBreak <- function() {
             parsed_action
           )
         }
+      } else if (is.call(action_obj) && as.character(action_obj[[1]]) == "c_clear") {
+        # Parse clear action
+        parsed_action <- .parse_action_clear(
+          action_obj,
+          action_env,
+          spec,
+          data,
+          report_cols
+        )
+
+        # Apply to matching rows
+        for (i in matching_rows) {
+          row_actions[[i]]$clear <- .append_clear_action(
+            row_actions[[i]]$clear,
+            parsed_action
+          )
+        }
       } else if (is.call(action_obj) && as.character(action_obj[[1]]) == "c_merge") {
         # Parse merge action
         parsed_action <- .parse_action_merge(
@@ -480,6 +681,23 @@ c_pageBreak <- function() {
         for (i in matching_rows) {
           row_actions[[i]]$add_row <- .append_addrow_action(
             row_actions[[i]]$add_row,
+            parsed_action
+          )
+        }
+      } else if (is.call(action_obj) && as.character(action_obj[[1]]) == "c_glue") {
+        # Parse glue action
+        parsed_action <- .parse_action_glue(
+          action_obj,
+          action_env,
+          spec,
+          data,
+          report_cols
+        )
+
+        # Apply to matching rows
+        for (i in matching_rows) {
+          row_actions[[i]]$glue <- .append_glue_action(
+            row_actions[[i]]$glue,
             parsed_action
           )
         }
@@ -679,6 +897,147 @@ c_pageBreak <- function() {
   list(pos = pos, value_from = value_from, styleRef = styleRef)
 }
 
+#' Parse c_glue() Action Call
+#'
+#' Extracts cols, position, glue_col/text, and separator from a c_glue()
+#' function call and resolves column names.
+#'
+#' @param action_call A function call object (result of quo_get_expr)
+#' @param action_env Environment from the quosure (for evaluating arguments)
+#' @param spec TFL_spec object
+#' @param data Data frame (full data, including hidden columns)
+#' @param report_cols Character vector of visible report column names
+#'
+#' @return List with cols, position, glue_col (or NULL), text (or NULL), separator
+#'
+#' @keywords internal
+#' @noRd
+.parse_action_glue <- function(action_call, action_env, spec, data, report_cols) {
+  matched <- match.call(
+    definition = c_glue,
+    call = action_call,
+    expand.dots = FALSE
+  )
+  matched_args <- as.list(matched)[-1L]
+
+  # --- cols: visible columns only ---
+  cols_expr <- matched_args[["cols"]]
+  col_names <- .get_data_column_names(data, !!cols_expr)
+  col_names <- intersect(col_names, report_cols)
+
+  if (length(col_names) == 0L) {
+    cli_abort(c(
+      "Column(s) in {.fn c_glue} not found in visible spec columns",
+      x = "No matching visible columns after tidyselect resolution",
+      i = "Available visible columns: {paste(report_cols, collapse = ', ')}"
+    ))
+  }
+
+  # --- position ---
+  position <- eval(matched_args[["position"]], envir = action_env)
+  position <- match.arg(position, c("before", "after"))
+
+  # --- separator ---
+  sep_expr  <- matched_args[["separator"]]
+  separator <- if (!is.null(sep_expr)) eval(sep_expr, envir = action_env) else ""
+
+  # --- source: glue_col or text (exactly one) ---
+  glue_col_expr <- matched_args[["glue_col"]]
+  text_expr     <- matched_args[["text"]]
+
+  glue_col <- NULL
+  text_val  <- NULL
+
+  if (!is.null(glue_col_expr)) {
+    # Resolve against the full data frame (visible + hidden columns)
+    glue_col_names <- .get_data_column_names(data, !!glue_col_expr)
+
+    if (length(glue_col_names) != 1L) {
+      cli_abort(c(
+        "{.fn c_glue} {.arg glue_col} must resolve to exactly one column",
+        x = "Got {length(glue_col_names)} column(s): {paste(glue_col_names, collapse = ', ')}",
+        i = "Provide a single column name for {.arg glue_col}"
+      ))
+    }
+
+    glue_col <- glue_col_names[[1L]]
+
+    if (glue_col %in% col_names) {
+      cli_abort(c(
+        "{.fn c_glue} {.arg glue_col} must not overlap with {.arg cols}",
+        x = "{.val {glue_col}} appears in both {.arg glue_col} and {.arg cols}",
+        i = "{.arg glue_col} is the value source; {.arg cols} are the target cells"
+      ))
+    }
+
+  } else if (!is.null(text_expr)) {
+    text_val <- eval(text_expr, envir = action_env)
+    checkmate::assert_character(text_val, len = 1L, .var.name = "text")
+  } else {
+    cli_abort(c(
+      "{.fn c_glue} requires either {.arg glue_col} or {.arg text}",
+      x = "Neither was found in the call",
+      i = "Provide one of: {.code glue_col = col_name} or {.code text = \"literal\"}"
+    ))
+  }
+
+  list(
+    cols      = col_names,
+    position  = position,
+    glue_col  = glue_col,
+    text      = text_val,
+    separator = separator
+  )
+}
+
+
+#' Parse c_clear() Action Call
+#'
+#' Extracts and resolves cols from a c_clear() function call.
+#'
+#' @param action_call A function call object (result of quo_get_expr)
+#' @param action_env Environment from the quosure (for evaluating arguments)
+#' @param spec TFL_spec object
+#' @param data Data frame
+#' @param report_cols Character vector of visible report column names
+#'
+#' @return List with cols (character vector of visible column names)
+#'
+#' @keywords internal
+#' @noRd
+.parse_action_clear <- function(action_call, action_env, spec, data, report_cols) {
+  args      <- rlang::call_args(action_call)
+  cols_expr <- args[[1]]
+
+  col_names <- .get_data_column_names(data, !!cols_expr)
+  col_names <- intersect(col_names, report_cols)
+
+  if (length(col_names) == 0L) {
+    cli_abort(c(
+      "Column(s) in {.fn c_clear} not found in visible spec columns",
+      x = "No matching visible columns after tidyselect resolution",
+      i = "Available visible columns: {paste(report_cols, collapse = ', ')}"
+    ))
+  }
+
+  list(cols = col_names)
+}
+
+
+#' Append Clear Action to Row Actions List
+#'
+#' @param clear_list List of existing clear actions for the row
+#' @param parsed_action List from `.parse_action_clear()`
+#'
+#' @return Updated clear_list with new action appended
+#' @keywords internal
+#' @noRd
+.append_clear_action <- function(clear_list, parsed_action) {
+  clear_list[[length(clear_list) + 1L]] <- list(cols = parsed_action$cols)
+  clear_list
+}
+
+
 #' Append Style Action to Row Actions List
 #'
 #' Adds a style action to the row's style list. Handles duplicate column styling
@@ -774,6 +1133,30 @@ c_pageBreak <- function() {
   pb_list[[length(pb_list) + 1L]] <- list()
   pb_list
 }
+
+
+#' Append Glue Action to Row Actions List
+#'
+#' Adds a glue action to the row's glue list. Multiple glue actions on the
+#' same column accumulate in call order and are applied sequentially.
+#'
+#' @param glue_list List of existing glue actions for the row
+#' @param parsed_action List from `.parse_action_glue()`
+#'
+#' @return Updated glue_list with new action appended
+#' @keywords internal
+#' @noRd
+.append_glue_action <- function(glue_list, parsed_action) {
+  glue_list[[length(glue_list) + 1L]] <- list(
+    cols      = parsed_action$cols,
+    position  = parsed_action$position,
+    glue_col  = parsed_action$glue_col,
+    text      = parsed_action$text,
+    separator = parsed_action$separator
+  )
+  glue_list
+}
+
 
 #' Sanitize Row Actions - Resolve Conflicts and Combine Styles
 #'
@@ -948,12 +1331,14 @@ c_pageBreak <- function() {
 .build_stylerows_list <- function(row_actions) {
   lapply(row_actions, function(row_act) {
     # Check if row has any actions
-    has_style <- length(row_act$style) > 0
-    has_merge <- length(row_act$merge) > 0
-    has_addrow <- length(row_act$add_row) > 0
+    has_style      <- length(row_act$style) > 0
+    has_clear      <- length(row_act$clear) > 0
+    has_merge      <- length(row_act$merge) > 0
+    has_glue       <- length(row_act$glue) > 0
+    has_addrow     <- length(row_act$add_row) > 0
     has_page_break <- length(row_act$page_break) > 0
 
-    if (!has_style && !has_merge && !has_addrow && !has_page_break) {
+    if (!has_style && !has_clear && !has_merge && !has_glue && !has_addrow && !has_page_break) {
       return(NULL)  # No actions for this row
     }
 
@@ -964,8 +1349,16 @@ c_pageBreak <- function() {
       action_obj$style <- row_act$style
     }
 
+    if (has_clear) {
+      action_obj$clear <- row_act$clear
+    }
+
     if (has_merge) {
       action_obj$merge <- row_act$merge
+    }
+
+    if (has_glue) {
+      action_obj$glue <- row_act$glue
     }
 
     if (has_addrow) {

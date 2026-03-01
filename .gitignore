@@ -40,9 +40,6 @@ tmp
 .env.*
 !.env.example
 
-# R development files
-.Rbuildignore
-.Rinstignore
 
 # Package cache
 .Rdata

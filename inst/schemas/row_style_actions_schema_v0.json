@@ -55,6 +55,45 @@
       }
     }
     ,
+    "clear": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cols"],
+        "properties": {
+          "cols": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+    ,
+    "glue": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["cols", "position"],
+        "properties": {
+          "cols": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1
+          },
+          "position": {
+            "type": "string",
+            "enum": ["before", "after"]
+          },
+          "glue_col":  { "type": "string" },
+          "text":      { "type": "string" },
+          "separator": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+    ,
     "page_break": {
       "type": "array",
       "items": {

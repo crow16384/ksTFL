@@ -124,7 +124,8 @@ endpoint: composite of any death, any MI and any coronary revascularisation. BAR
                                    "Complex PCI<p>(N=9,793)", "Non-complex<p>PCI (N=25,596)", "<i>p</i>-value"), 
                labelStyleRef = 'header_style', valueStyleRef = 'body_style1') %>% 
   define_cols(c( section, `complex_pci_30-day`, `non_complex_pci_30-day`, `p_value_30-day`, `complex_pci_1-year`, `non_complex_pci_1-year`, `p_value_1-year`),
-                colWidth = c('13%', '12%','12%','9%','12%','12%','9%')) %>% 
+                colWidth = c('13%', '12%','12%','9%','12%','12%','9%')
+                ) %>% 
   define_cols(c(`complex_pci_30-day`, `non_complex_pci_30-day`, `complex_pci_1-year`, `non_complex_pci_1-year`),
               labelStyleRef = f_combine('header_style'), valueStyleRef = f_combine('body_style1', 'indent_1')) %>% 
   define_cols(section, dedupe = T) %>% 
@@ -236,7 +237,10 @@ spec_03_06_a <- create_table(demography_tbl_01) %>%
   ) %>% 
   compute_cols(
     !is.na(value),
-    c_style(value, styleRef = 'indent_1')
+    c_style(value, styleRef = 'indent_1'),
+    c_glue(stat, 'after', text='<sup>🐈</sup>'),
+    c_merge(c(trt_a, trt_b),styleRef = 'font_bold'),
+    c_glue(trt_a, 'before', glue_col = trt_b, separator = ' : ')
   ) %>% set_document(contentWidth = '90%')
 
 spec_03_06 <- spec_03_06_a %>% set_page_style(docTemplate = 'Navy_Pro') 
@@ -281,6 +285,6 @@ save_and_render(report_03_13, "test_03_13")
 
 spec_03_14 <- spec_03_06_a %>% set_page_style(docTemplate = 'Silver_Grid') 
 
-report_03_14 <- create_report(spec_03_14)
+report_03_14 <- create_report(spec_03_14) 
 save_and_render(report_03_14, "test_03_14")
 

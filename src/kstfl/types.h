@@ -438,15 +438,33 @@ struct AddRowAction {
 /// Page-break action: force page break before this row.
 struct PageBreakAction {};
 
+/// Clear action: blank the display text of specified visible cells.
+struct ClearAction {
+    std::vector<std::string> cols;          // target visible column ids
+};
+
+/// Glue action: concatenate a value to the text of specified visible cells.
+struct GlueAction {
+    std::vector<std::string> cols;          // target visible column ids
+    std::string position;                   // "before" or "after"
+    std::optional<std::string> glue_col;    // source data column (visible or hidden)
+    std::optional<std::string> text;        // literal text (mutually exclusive with glue_col)
+    std::string separator;                  // inserted between existing text and glued value
+                                            // when both sides are non-empty; "" = direct concat
+};
+
 /// Complete set of actions for a single data row.
 struct RowActionSet {
     std::vector<StyleAction> styles;
+    std::vector<ClearAction> clears;
     std::vector<MergeAction> merges;
+    std::vector<GlueAction> glues;
     std::vector<AddRowAction> add_rows;
     std::vector<PageBreakAction> page_breaks;
 
     [[nodiscard]] bool empty() const {
-        return styles.empty() && merges.empty() && add_rows.empty() && page_breaks.empty();
+        return styles.empty() && clears.empty() && merges.empty() &&
+               glues.empty() && add_rows.empty() && page_breaks.empty();
     }
 };
 
@@ -583,6 +601,7 @@ struct LogicalCell {
     int merge_span = 1;                      // number of columns spanned (1 = no merge)
     Length merged_width;                      // combined width if merge_leader
     std::optional<std::string> style_ref;    // cell-level style override
+    bool is_deduped = false;                 // blanked by apply_dedupe() — glue skips these
 };
 
 /// A row in the logical row stream (after styleRows processing).
