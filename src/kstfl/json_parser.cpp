@@ -7,6 +7,7 @@
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 using json = nlohmann::json;
@@ -360,9 +361,7 @@ static std::vector<TextGroup> parse_text_groups(const json& j) {
         TextGroup tg;
         tg.text = get_str_array(*it, "text");
         tg.order = get_int(*it, "order", 0);
-        // styleRef can be an array of strings or null
-        auto sr = get_str_array(*it, "styleRef");
-        if (!sr.empty()) tg.style_ref = sr[0]; // Use first style ref
+        tg.style_refs = get_str_array(*it, "styleRef");
         groups.push_back(std::move(tg));
     }
     // Sort by order
@@ -842,7 +841,6 @@ static DataTable parse_data_internal(const json& root) {
             } else if (val.is_null()) {
                 values.push_back("");
             } else if (val.is_number()) {
-                // Numeric values — convert to string (pre-formatted mode should not reach here)
                 if (val.is_number_integer()) {
                     values.push_back(std::to_string(val.get<int64_t>()));
                 } else {
@@ -859,6 +857,18 @@ static DataTable parse_data_internal(const json& root) {
             dt.n_rows = dt.columns[col_name].size();
         }
     }
+
+    // Validate that all columns have the same length (detect ragged data)
+    for (const auto& col_name : dt.col_names) {
+        auto col_it = dt.columns.find(col_name);
+        if (col_it != dt.columns.end() && col_it->second.size() != dt.n_rows) {
+            std::cerr << "[ksTFL] WARNING: Column '" << col_name
+                      << "' has " << col_it->second.size()
+                      << " rows but expected " << dt.n_rows
+                      << ". Data may be ragged.\n";
+        }
+    }
+
     return dt;
 }
 

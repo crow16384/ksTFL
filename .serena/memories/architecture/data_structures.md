@@ -13,7 +13,7 @@ Structure:
 - stubColumns: list of spanning column definitions
 - columns: named list of column specs (colOrder, label, isVisible, isID, isGrouping, isPaging, labelStyleRef, isColBreak, dedupe, blankAfter, format)
 - styleRows: list of row style definitions (serialized as JSON strings during create_report)
-- titles, subtitles, footnotes, bodyText: lists of text group entries (text, styleRef, order)
+- titles, subtitles, footnotes, bodyText: lists of text group entries (text, styleRef (array), order) — C++ side stores all refs in `style_refs` vector and merges in order
 - .metadata: internal state (report_cols, data_env, colWidths, compute_cols, hash) — NOT serialized
 
 ### TFL_report (S3 class inheriting from list)
@@ -75,7 +75,7 @@ Column widths auto-calculated and sum to 100%. Locked widths via define_cols() t
 - ColumnFormat: type, format_str, missings, col_width_raw (string for deferred % parsing)
 - ColumnSpec: name, label, col_order, format, is_id/is_visible/is_grouping/is_paging/is_col_break, dedupe, blank_after, value_style_ref, label_style_ref
 - StubColumn: label, col_indices, label_style_ref (spanning headers)
-- TextGroup: text, style_ref, order
+- TextGroup: text (vector<string>), style_refs (vector<string>, merged in order), order, body_placement
 - HeaderFooterRow: left/center/right parts
 - DataTable: col_names + rows (vector<vector<string>>)
 
@@ -97,7 +97,7 @@ Column widths auto-calculated and sum to 100%. Locked widths via define_cols() t
 ### Logical Table Types
 - LogicalRowType enum: Header, Data, AddedRow, PageBreak
 - LogicalCell: text + resolved StyleDef + merge span
-- LogicalRow: type, cells vector, is_paging_header, original row index
+- LogicalRow: type, cells vector, is_paging_header, original row index, measured_height (set by Paginator::paginate())
 - HeaderGridCell: text, style, col_span
 - HeaderGrid: vector<vector<HeaderGridCell>>
 

@@ -246,29 +246,29 @@ StyleDef StyleResolver::resolve_base_header_style() const {
 // Content style resolvers
 // ---------------------------------------------------------------------------
 
-StyleDef StyleResolver::resolve_title_style(const std::optional<std::string>& custom_ref) const {
+StyleDef StyleResolver::resolve_title_style(const std::vector<std::string>& style_refs) const {
     StyleDef result = tmpl_.text_styles.default_style;
     result = result.merged_with(tmpl_.text_styles.titles);
-    if (custom_ref.has_value()) {
-        result = apply_style_ref(result, *custom_ref);
+    for (const auto& ref : style_refs) {
+        result = apply_style_ref(result, ref);
     }
     return result;
 }
 
-StyleDef StyleResolver::resolve_subtitle_style(const std::optional<std::string>& custom_ref) const {
+StyleDef StyleResolver::resolve_subtitle_style(const std::vector<std::string>& style_refs) const {
     StyleDef result = tmpl_.text_styles.default_style;
     result = result.merged_with(tmpl_.text_styles.subtitles);
-    if (custom_ref.has_value()) {
-        result = apply_style_ref(result, *custom_ref);
+    for (const auto& ref : style_refs) {
+        result = apply_style_ref(result, ref);
     }
     return result;
 }
 
-StyleDef StyleResolver::resolve_footnote_style(const std::optional<std::string>& custom_ref) const {
+StyleDef StyleResolver::resolve_footnote_style(const std::vector<std::string>& style_refs) const {
     StyleDef result = tmpl_.text_styles.default_style;
     result = result.merged_with(tmpl_.text_styles.footnotes);
-    if (custom_ref.has_value()) {
-        result = apply_style_ref(result, *custom_ref);
+    for (const auto& ref : style_refs) {
+        result = apply_style_ref(result, ref);
     }
     return result;
 }

@@ -26,7 +26,7 @@ public:
     /// @return Pagination result with horizontal segments and page slices.
     static PaginationResult paginate(
         const TFLSpec& spec,
-        const std::vector<LogicalRow>& rows,
+        std::vector<LogicalRow>& rows,
         const HeaderGrid& header_grid,
         const PageConfig& page_config,
         Length table_width,

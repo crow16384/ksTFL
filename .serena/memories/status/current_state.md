@@ -1,5 +1,47 @@
 # Current Status (Mar 1, 2026)
 
+## C++ Code Review Fixes (Mar 1, 2026 — second session)
+
+### Bug Fixes
+- **Bug 16: `<sub>` tag sets wrong state** (inline_parser.cpp)
+  - Switch case for `TagType::Sub` was setting `superscript = true` instead of `subscript = true`
+  - Removed fragile trailing `if` block that was patching the bug post-switch
+  - Fix: `state.subscript = true; state.superscript = false; break;` in the switch
+
+- **Bug 17: w:highlight emits hex instead of OOXML color name** (docx_emitter.cpp)
+  - `<w:highlight>` requires named colors; hex was silently ignored by Word
+  - Fix: replaced with `<w:shd w:val="clear" w:color="auto" w:fill="HEX"/>` on runs
+
+- **Bug 18: Row heights measured twice** (renderer.cpp + paginator.cpp)
+  - renderer.cpp Phase 3c duplicated `Paginator::compute_row_heights()` logic
+  - Fix: removed Phase 3c loop from renderer.cpp; `Paginator::paginate()` now takes `std::vector<LogicalRow>&` (non-const) and stores heights into `row.measured_height` — single source of truth
+
+- **Bug 19: snprintf format string validation fragile** (logical_table.cpp)
+  - Substring search for 'd' matched "displayed: %.2f" → UB cast to int
+  - Fix: `is_safe_numeric_format()` validates against regex whitelist; integer specifier found by scanning for last conversion char
+
+- **Bug 20: Ragged column data silently accepted** (json_parser.cpp)
+  - Fix: post-parse validation in `parse_data_internal()` warns via `std::cerr` on length mismatch
+
+### Safety Improvements
+- **S2: XmlWriter::comment() sanitizes `--`** (xml_writer.cpp)
+  - Replaces `--` with `- -` to prevent malformed XML comments from user-controlled text
+
+- **S3: snprintf format string whitelist** (logical_table.cpp)
+  - See Bug 19 above — same fix addresses the safety concern
+
+### Performance Improvements
+- **M2: HarfBuzz buffer reused in TextMeasurer** (text_measurer.cpp/.h)
+  - `hb_buf_` created once in constructor (stored as `mutable hb_buffer_t*`), reset via `hb_buffer_reset()` per call
+  - Eliminates ~20,000 buffer alloc/destroy cycles for large tables
+
+### API / Design Improvements
+- **M3: Multiple styleRef supported in TextGroup** (types.h, json_parser.cpp, style_resolver.cpp/.h, paginator.cpp, docx_emitter.cpp)
+  - `TextGroup::style_ref` (optional<string>) → `TextGroup::style_refs` (vector<string>)
+  - All style refs merged in order (R side may pass multiple refs)
+  - `resolve_title_style()`, `resolve_subtitle_style()`, `resolve_footnote_style()` now accept `vector<string>`
+  - All 7 consumer sites updated (3 in paginator.cpp, 4 in docx_emitter.cpp)
+
 ## Fully Implemented
 - Spec initialization for all 3 docTypes (Table, Text, Figure)
 - **ggplot2 integration in create_figure()**: accepts ggplot2 objects directly
@@ -18,7 +60,7 @@
 - **C++20 DOCX Renderer** — complete end-to-end rendering pipeline
 - **C++ Unit Tests**: src/cpp_tests.cpp, 3 suites, ~135 assertions
 
-## New in Mar 1, 2026 Session
+## New in Mar 1, 2026 Session (first commit)
 
 ### Bug Fixes (committed)
 - **Bug 12: Header text truncation** (e.g. "Descrip" instead of "Description")
@@ -43,27 +85,12 @@
 
 ### New Features (committed)
 - **Page count in render log**: C++ renderer now returns total page count
-  - renderer.cpp / renderer.h: render() and render_from_strings() return size_t page count
-  - rcpp_bindings.cpp: return type changed from void to int
-  - R/RcppExports.R: manually updated to remove invisible() wrapper
-  - R/render_docx.R: captures n_pages, displays in cli_alert_success message
-
-- **Pagination warning for oversized rows**:
-  - paginator.cpp: std::cerr warning when row height exceeds available page body height
-  - Condition: used_height.emu == 0 && rh > available
-
-- **Meta folder management** (R/meta_management.R, new file):
-  - list_reports(meta_dir, sort_by): scan meta folder, return data frame with is_latest column
-  - replay_report(spec_json, meta_dir, output_path, ...): re-render DOCX from stored JSON
-  - clean_reports(meta_dir, keep_versions=1, dry_run=TRUE): remove obsolete specs + orphaned data files
-  - Internal: .read_spec_index(), .scan_meta_folder(), .collect_spec_meta(), .resolve_spec_path(), .update_spec_index()
-  - save_report() updated to call .update_spec_index() after each save
-  - _index.json maintained in meta folder for O(1) lookups
-  - All three functions exported in NAMESPACE
+- **Pagination warning for oversized rows**: paginator.cpp
+- **Meta folder management** (R/meta_management.R): list_reports, replay_report, clean_reports
 
 ### MCP Servers Configured (.cursor/mcp.json)
-- **Serena** (oraios/serena via uvx): semantic code intelligence, symbol-level tools, --context ide, --project /home/meguty/Develop/R/ksTFL
-- **Context7** (@upstash/context7-mcp via npx): up-to-date library docs in chat
+- **Serena** (oraios/serena via uvx): semantic code intelligence
+- **Context7** (@upstash/context7-mcp via npx): up-to-date library docs
 
 ## Still TODO
 - row_style_schema validation rules
@@ -83,5 +110,6 @@ Manual unit tests: inst/examples/manul_unit_tests/TEST_03/ (test_03.R, 11 specs)
 - R is NOT installed on host — all R execution via docker exec
 
 ## Git History (recent)
+- fix: C++ code review — 9 bug/safety/perf fixes (Mar 1 2026, second session)
 - feat: meta folder management — list, replay, clean (f9874c4, Mar 1 2026)
 - Previous commits: C++ renderer fixes, pagination, text measurement, column width resolution

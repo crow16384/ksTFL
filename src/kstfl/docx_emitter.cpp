@@ -419,7 +419,11 @@ void DocxEmitter::emit_run_props(XmlWriter& w,
     }
 
     if (font.highlight.has_value() && !font.highlight->empty()) {
-        w.element_with_attr("w:highlight", "w:val", font.highlight->hex);
+        w.start_element("w:shd");
+        w.attribute("w:val", "clear");
+        w.attribute("w:color", "auto");
+        w.attribute("w:fill", font.highlight->hex);
+        w.end_element();
     }
 
     // Superscript/subscript
@@ -681,8 +685,8 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
                                     const StyleResolver& resolver) const {
     for (const auto& group : groups) {
         StyleDef style = base_style;
-        if (group.style_ref.has_value()) {
-            const StyleDef* ref_style = resolver.find_style(group.style_ref.value());
+        for (const auto& ref : group.style_refs) {
+            const StyleDef* ref_style = resolver.find_style(ref);
             if (ref_style) {
                 style = style.merged_with(*ref_style);
             }
@@ -740,8 +744,8 @@ void DocxEmitter::emit_text_groups_combined(XmlWriter& w,
     // Emit each group's text lines as runs, with <br> between groups
     for (const auto& group : groups) {
         StyleDef style = base_style;
-        if (group.style_ref.has_value()) {
-            const StyleDef* ref_style = resolver.find_style(group.style_ref.value());
+        for (const auto& ref : group.style_refs) {
+            const StyleDef* ref_style = resolver.find_style(ref);
             if (ref_style) {
                 style = style.merged_with(*ref_style);
             }
@@ -1484,8 +1488,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
         for (size_t gi = 0; gi < spec.titles.size(); ++gi) {
             const auto& group = spec.titles[gi];
             StyleDef style = title_style;
-            if (group.style_ref.has_value()) {
-                const StyleDef* ref_style = resolver.find_style(group.style_ref.value());
+            for (const auto& ref : group.style_refs) {
+                const StyleDef* ref_style = resolver.find_style(ref);
                 if (ref_style) {
                     style = style.merged_with(*ref_style);
                 }

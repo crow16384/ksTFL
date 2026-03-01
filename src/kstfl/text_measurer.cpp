@@ -20,7 +20,14 @@ namespace kstfl {
 // Constructor
 // ---------------------------------------------------------------------------
 
-TextMeasurer::TextMeasurer(FontCache& cache) : cache_(cache) {}
+TextMeasurer::TextMeasurer(FontCache& cache)
+    : cache_(cache), hb_buf_(hb_buffer_create()) {}
+
+TextMeasurer::~TextMeasurer() {
+    if (hb_buf_) {
+        hb_buffer_destroy(hb_buf_);
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -54,26 +61,22 @@ Length TextMeasurer::measure_run_width(const std::string& text,
     hb_font_t* hb_font = cache_.get_hb_font(key, size_pt);
     if (!hb_font) return Length{0};
 
-    // Create HarfBuzz buffer and shape
-    hb_buffer_t* buf = hb_buffer_create();
-    hb_buffer_add_utf8(buf, text.c_str(), static_cast<int>(text.size()), 0,
+    hb_buffer_reset(hb_buf_);
+    hb_buffer_add_utf8(hb_buf_, text.c_str(), static_cast<int>(text.size()), 0,
                         static_cast<int>(text.size()));
-    hb_buffer_set_direction(buf, HB_DIRECTION_LTR);
-    hb_buffer_set_script(buf, HB_SCRIPT_LATIN);
-    hb_buffer_set_language(buf, hb_language_from_string("en", -1));
+    hb_buffer_set_direction(hb_buf_, HB_DIRECTION_LTR);
+    hb_buffer_set_script(hb_buf_, HB_SCRIPT_LATIN);
+    hb_buffer_set_language(hb_buf_, hb_language_from_string("en", -1));
 
-    hb_shape(hb_font, buf, nullptr, 0);
+    hb_shape(hb_font, hb_buf_, nullptr, 0);
 
-    // Sum glyph advances
     unsigned int glyph_count = 0;
-    hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+    hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf_, &glyph_count);
 
     double total_advance = 0.0;
     for (unsigned int i = 0; i < glyph_count; ++i) {
         total_advance += glyph_pos[i].x_advance;
     }
-
-    hb_buffer_destroy(buf);
 
     // HarfBuzz positions are in font units. Convert: advance is in 1/64 of a point
     // when FreeType char size is set with (size * 64). HarfBuzz inherits FreeType's

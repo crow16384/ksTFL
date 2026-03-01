@@ -237,13 +237,8 @@ ParsedCell parse_inline_markup(const std::string& text) {
                     case TagType::Italic:    state.italic = true;      break;
                     case TagType::Underline: state.underline = true;   break;
                     case TagType::Sup:       state.superscript = true; break;
-                    case TagType::Sub:       state.subscript = false; state.superscript = true; break;
+                    case TagType::Sub:       state.subscript = true; state.superscript = false; break;
                     default: break;
-                }
-                // Fix: sub should set subscript, not superscript
-                if (type == TagType::Sub) {
-                    state.superscript = false;
-                    state.subscript = true;
                 }
             }
         } else {

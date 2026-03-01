@@ -46,14 +46,14 @@ public:
                                      const std::optional<std::string>& addrow_style_ref = std::nullopt,
                                      bool is_addrow = false) const;
 
-    /// Resolve a style for titles.
-    StyleDef resolve_title_style(const std::optional<std::string>& custom_ref = std::nullopt) const;
+    /// Resolve a style for titles (style_refs merged in order).
+    StyleDef resolve_title_style(const std::vector<std::string>& style_refs = {}) const;
 
-    /// Resolve a style for subtitles.
-    StyleDef resolve_subtitle_style(const std::optional<std::string>& custom_ref = std::nullopt) const;
+    /// Resolve a style for subtitles (style_refs merged in order).
+    StyleDef resolve_subtitle_style(const std::vector<std::string>& style_refs = {}) const;
 
-    /// Resolve a style for footnotes.
-    StyleDef resolve_footnote_style(const std::optional<std::string>& custom_ref = std::nullopt) const;
+    /// Resolve a style for footnotes (style_refs merged in order).
+    StyleDef resolve_footnote_style(const std::vector<std::string>& style_refs = {}) const;
 
     /// Resolve the base table header style (template cascade only, no column/stub refs).
     /// Cascade: default -> tableHeader textStyle -> header_row -> structural.allHeaders.

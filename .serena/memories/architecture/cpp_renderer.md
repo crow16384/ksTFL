@@ -23,14 +23,16 @@ Complete DOCX generation engine. Reads JSON spec + data from save_report(), prod
 ### renderer.cpp/.h
 - render() and render_from_strings() both return size_t (total page count)
 - Accumulates total_pages across all specs: total_pages += kv.second.total_pages
-- std::cerr log: "[ksTFL] Pages produced: N"
+- std::cerr log: "[ksTFL] Pages produced: N" — guarded by config_.verbose
 - Font path management, verbose logging
+- Phase 3c (body row height measurement) REMOVED — paginator is sole owner of row heights
 
 ### json_parser.cpp/.h
 - parse_spec(), parse_template(), parse_data()
 - col_width_raw stored as string for deferred resolution
 - Data file lookup: tries exact path, then path + ".json" fallback
 - Structural borders (header_top, header_bottom, table_bottom) parsed via parse_border()
+- parse_data_internal(): validates all columns have same length, warns via std::cerr on mismatch
 
 ### style_resolver.cpp/.h
 - merge_styles(), resolve_style(), compute_table_width()
@@ -39,11 +41,12 @@ Complete DOCX generation engine. Reads JSON spec + data from save_report(), prod
   - Pass 2: resolve % columns against (table_width - fixed_total) as pct_reference
   - Remaining width distributed equally among unspecified columns
 - resolve_base_header_style(): template cascade only
+- resolve_title_style(vector<string>), resolve_subtitle_style(vector<string>), resolve_footnote_style(vector<string>): accept multiple style refs, merge in order
 
 ### logical_table.cpp/.h
 - build(): DataTable + columns + styleRows → LogicalRow stream
 - Header grid with VMergeState (None/Restart/Continue) for stub columns
-- apply_column_format(): integer formats use static_cast<int>(double) to avoid UB
+- apply_column_format(): validates format string via `is_safe_numeric_format()` regex whitelist before snprintf; integer specifier found by scanning for last conversion char
 - detect_grouping_boundaries() runs BEFORE apply_dedupe()
 - Only force_page_break triggers page breaks; is_group_boundary does not
 
@@ -54,6 +57,8 @@ Complete DOCX generation engine. Reads JSON spec + data from save_report(), prod
 - Character-level wrapping for single words wider than inner_width:
   full_lines = word_width.emu / inner_width.emu; remainder carried as current_line_width
 - Handles inline markup via font property switching
+- **HarfBuzz buffer reuse**: `hb_buf_` (mutable hb_buffer_t*) created once in constructor, reset via `hb_buffer_reset()` per `measure_run_width()` call — eliminates per-call alloc/destroy overhead
+- Non-copyable (deleted copy ctor/assignment); destructor calls `hb_buffer_destroy(hb_buf_)`
 
 ### font_cache.cpp/.h
 - scan_directories(), resolve_font()
@@ -63,30 +68,35 @@ Complete DOCX generation engine. Reads JSON spec + data from save_report(), prod
 
 ### inline_parser.cpp/.h
 - parse(): text → vector<TextRun>
-- Markup: **bold**, *italic*, __underline__, ~~strikethrough~~
+- Markup: **bold**, *italic*, __underline__, ~~strikethrough~~, `<sub>`, `<sup>`
+- `<sub>` switch case: `state.subscript = true; state.superscript = false;` (fixed Mar 2026)
 
 ### paginator.cpp/.h
-- paginate(): LogicalRow stream → vector<PageSlice>
+- paginate(): takes `std::vector<LogicalRow>&` (non-const) — stores computed heights into `row.measured_height`
 - Vertical: accumulate row heights, break at page capacity
 - force_page_break only (not is_group_boundary) triggers page breaks
-- Oversized row warning (Mar 2026): if used_height.emu == 0 && rh > available:
+- `compute_row_heights()` is the single source of truth for row heights — results written back to `LogicalRow::measured_height`
+- Oversized row warning: if used_height.emu == 0 && rh > available:
   std::cerr << "[ksTFL] WARNING: Row N height (Xpt) exceeds available page body height (Ypt). The row will be split across pages by Word."
 - Horizontal: split at isColBreak boundaries
 - Dynamic subtitle values captured from first row of each page
 
-### docx_emitter.cpp/.h (~1700 lines)
+### docx_emitter.cpp/.h (~1900 lines)
 - emit_table(), emit_table_header(), emit_table_row(is_last_row), emit_cell_props()
 - Last data row per page: structural.table_bottom_border applied to cell bottom borders
 - Header cells: <w:vMerge w:val="restart"> or <w:vMerge/> for vertical merge
+- emit_text_groups(): iterates `group.style_refs` (vector) and merges each in order
 - emit_text_groups_combined(): all titles in single <w:p> with <w:br/> between groups
 - emit_section_props(), emit_page(), emit_page_break()
 - Header/footer: separate word/headerN.xml, word/footerN.xml parts
 - xml:space="preserve" auto-added on <w:t>
+- Run highlight: `<w:shd w:val="clear" w:color="auto" w:fill="HEX"/>` (NOT w:highlight)
 
 ### xml_writer.cpp/.h
 - start_element() → start_tag_open_ = true → attribute() works → end_element()
 - self_closing_element(): writes <X/> immediately, does NOT set start_tag_open_
 - CRITICAL: NEVER call attribute() after self_closing_element()
+- comment(): sanitizes `--` → `- -` to prevent malformed XML comments
 
 ### zip_writer.cpp/.h
 - minizip wrapper, DEFLATE compression
@@ -100,6 +110,7 @@ Complete DOCX generation engine. Reads JSON spec + data from save_report(), prod
 - PageConfig, StylesTemplate, ColumnSpec, LogicalRow, PageSlice, etc.
 - VMergeState: None, Restart, Continue
 - TableStyleConfig::Structural: header_top_border, header_bottom_border, table_bottom_border
+- TextGroup: text (vector<string>), style_refs (vector<string>, merged in order), order, body_placement
 
 ## Build Configuration
 - CXX_STD = CXX20

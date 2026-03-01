@@ -8,6 +8,8 @@
 #include "types.h"
 #include "font_cache.h"
 
+struct hb_buffer_t;
+
 namespace kstfl {
 
 /// Result of measuring a text block.
@@ -21,6 +23,10 @@ struct MeasuredText {
 class TextMeasurer {
 public:
     explicit TextMeasurer(FontCache& cache);
+    ~TextMeasurer();
+
+    TextMeasurer(const TextMeasurer&) = delete;
+    TextMeasurer& operator=(const TextMeasurer&) = delete;
 
     /// Measure a single cell's text content within a given available width.
     /// Applies word wrapping, paragraph spacing, and line spacing.
@@ -46,6 +52,7 @@ public:
 
 private:
     FontCache& cache_;
+    mutable hb_buffer_t* hb_buf_;
 
     /// Get effective font size (handling superscript/subscript scaling).
     double effective_font_size(const FontProps& font, const InlineRunStyle& run_style) const;

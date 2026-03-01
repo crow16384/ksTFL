@@ -225,7 +225,7 @@ Length Paginator::compute_available_height(
 
 PaginationResult Paginator::paginate(
     const TFLSpec& spec,
-    const std::vector<LogicalRow>& rows,
+    std::vector<LogicalRow>& rows,
     const HeaderGrid& header_grid,
     const PageConfig& page_config,
     Length table_width,
@@ -242,8 +242,11 @@ PaginationResult Paginator::paginate(
     // 1. Build horizontal segments
     auto segments = build_segments(spec.columns);
 
-    // 2. Compute row heights once (across all columns)
+    // 2. Compute row heights once (across all columns) and store into rows
     auto row_heights = compute_row_heights(rows, spec.columns, measurer, resolver);
+    for (size_t i = 0; i < rows.size() && i < row_heights.size(); ++i) {
+        rows[i].measured_height = row_heights[i];
+    }
 
     // 3. Compute static block heights
 
@@ -281,7 +284,7 @@ PaginationResult Paginator::paginate(
         // Measure each title group as a separate paragraph
         for (size_t gi = 0; gi < spec.titles.size(); ++gi) {
             const auto& tg = spec.titles[gi];
-            StyleDef style = resolver.resolve_title_style(tg.style_ref);
+            StyleDef style = resolver.resolve_title_style(tg.style_refs);
             std::string combined;
             // Prepend glued prefix to first group
             if (gi == 0 && !spec.document.doc_prefix.empty() && spec.document.glue_prefix) {
@@ -304,7 +307,7 @@ PaginationResult Paginator::paginate(
     // joining lines within each group with <br> soft breaks.
     Length subtitles_height{0};
     for (const auto& tg : spec.subtitles) {
-        StyleDef style = resolver.resolve_subtitle_style(tg.style_ref);
+        StyleDef style = resolver.resolve_subtitle_style(tg.style_refs);
         std::string combined;
         for (size_t i = 0; i < tg.text.size(); ++i) {
             if (i > 0) combined += "<br>";
@@ -329,7 +332,7 @@ PaginationResult Paginator::paginate(
     // Footnotes height — same pattern as subtitles (one paragraph per group).
     Length footnotes_height{0};
     for (const auto& tg : spec.footnotes) {
-        StyleDef style = resolver.resolve_footnote_style(tg.style_ref);
+        StyleDef style = resolver.resolve_footnote_style(tg.style_refs);
         std::string combined;
         for (size_t i = 0; i < tg.text.size(); ++i) {
             if (i > 0) combined += "<br>";

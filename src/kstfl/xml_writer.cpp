@@ -76,7 +76,12 @@ void XmlWriter::raw(const std::string& xml) {
 void XmlWriter::comment(const std::string& text) {
     close_start_tag();
     buffer_ += "<!-- ";
-    buffer_ += text;  // NOTE: caller must ensure no "--" in text
+    std::string sanitized = text;
+    for (size_t pos = sanitized.find("--"); pos != std::string::npos;
+         pos = sanitized.find("--", pos + 2)) {
+        sanitized.replace(pos, 2, "- -");
+    }
+    buffer_ += sanitized;
     buffer_ += " -->";
 }
 

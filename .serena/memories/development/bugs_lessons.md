@@ -72,6 +72,37 @@
 **File**: R/render_docx.R
 **Lesson**: cli glue strings only support simple variable interpolation. Pre-compute any conditional values.
 
+## Bug 16: <sub> Tag Sets Wrong State (Mar 2026)
+**Symptom**: Subscript text rendered as superscript
+**Root Cause**: inline_parser.cpp switch case for `TagType::Sub` set `state.superscript = true` instead of `state.subscript = true`. A fragile trailing `if` block patched it, but was easy to accidentally remove.
+**Fix**: Changed switch case to `state.subscript = true; state.superscript = false; break;` and removed the trailing `if` block.
+**File**: src/kstfl/inline_parser.cpp
+**Lesson**: Switch cases must be correct on their own; never rely on a post-switch patch for correctness.
+
+## Bug 17: w:highlight Emits Hex Instead of OOXML Color Name (Mar 2026)
+**Symptom**: Highlight color silently ignored by Word
+**Root Cause**: `<w:highlight w:val="..."/>` requires one of 15 OOXML named colors (e.g. "yellow"), not a hex code. docx_emitter.cpp was emitting the raw hex string.
+**Fix**: Replaced `<w:highlight>` with `<w:shd w:val="clear" w:color="auto" w:fill="HEX"/>` on the run, which accepts arbitrary hex colors.
+**File**: src/kstfl/docx_emitter.cpp
+
+## Bug 18: Row Heights Measured Twice with Different Code Paths (Mar 2026)
+**Symptom**: Potential pagination discrepancy — renderer and paginator could disagree on row heights
+**Root Cause**: renderer.cpp Phase 3c measured all body row heights and stored them in `row.measured_height`. Then `Paginator::compute_row_heights()` re-measured independently. Two separate code paths for the same data.
+**Fix**: Removed the duplicate measurement loop from renderer.cpp. Changed `Paginator::paginate()` to take `std::vector<LogicalRow>&` (non-const) and store computed heights back into `row.measured_height` after `compute_row_heights()`. Paginator is now the single source of truth.
+**Files**: src/kstfl/renderer.cpp, src/kstfl/paginator.cpp, src/kstfl/paginator.h
+
+## Bug 19: snprintf Format String Validation Fragile (Mar 2026)
+**Symptom**: Format like "displayed: %.2f" would match 'd' heuristic and cast to int (UB); malicious format strings could cause UB
+**Root Cause**: Integer-format detection in `apply_column_format()` searched for 'd'/'i'/'u'/'x'/'o' anywhere in the format string — a substring match, not a specifier match.
+**Fix**: Added `is_safe_numeric_format()` that validates format strings against a regex whitelist `%[flags][width][.precision][diuoxXfFeEgG]`. Unsafe formats return the value unchanged. Integer specifier detection now finds the actual conversion character (last match in the specifier set).
+**File**: src/kstfl/logical_table.cpp
+**Lesson**: Format string validation must match the actual conversion specifier, not any occurrence of a character.
+
+## Bug 20: Ragged Column Data Silently Accepted (Mar 2026)
+**Symptom**: Mismatched column lengths in data JSON produce incorrect table rendering with no error
+**Fix**: Added post-parse validation in `parse_data_internal()` that emits `std::cerr` warning when any column length differs from `dt.n_rows`.
+**File**: src/kstfl/json_parser.cpp
+
 ## General Lessons
 
 ### XmlWriter API Contract
@@ -93,6 +124,23 @@
 - Fixed units (cm/in/mm/pt): resolve first, sum as fixed_total
 - Percentages: resolve against (table_width - fixed_total)
 - Unspecified: distribute remaining width equally
+
+### OOXML Highlight / Shading
+- `<w:highlight w:val="..."/>` requires one of 15 named OOXML colors — does NOT accept hex
+- Use `<w:shd w:val="clear" w:color="auto" w:fill="RRGGBB"/>` on runs for arbitrary hex background colors
+
+### XmlWriter comment() Safety
+- `XmlWriter::comment()` sanitizes `--` → `- -` to prevent malformed XML comments
+- Caller no longer needs to ensure absence of `--` in comment text
+
+### Format String Safety
+- `apply_column_format()` validates format strings via `is_safe_numeric_format()` regex before passing to snprintf
+- Safe pattern: `%[flags][width][.precision][diuoxXfFeEgG]` with optional literal prefix/suffix
+- Integer specifier detection uses last-character scan, not substring search
+
+### Row Height Single Source of Truth
+- `Paginator::paginate()` is the single source of truth for `row.measured_height`
+- Do NOT add row height measurement in renderer.cpp — it will create a duplicate code path
 
 ### OOXML Border Architecture
 - Cell borders override table borders

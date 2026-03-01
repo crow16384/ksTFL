@@ -393,7 +393,7 @@ struct StubColumn {
 struct TextGroup {
     std::vector<std::string> text;           // lines within the group
     int order = 0;
-    std::optional<std::string> style_ref;
+    std::vector<std::string> style_refs;     // style refs merged in order (R side may pass multiple)
     // Placement flags
     bool body_placement = false;             // true = render in body area, false = header/footer section
 };

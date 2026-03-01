@@ -110,6 +110,11 @@ for (msg  in result$failed) {
 - Data file paths: save_report writes "0001_xxx.json" but JSON spec stores "0001_xxx" — renderer must try .json extension fallback
 - Column width "%": Length::parse("5%") needs reference_emu — defer to style_resolver where table_width is known
 - nlohmann/json: use get_opt_str/get_opt_int helpers, not direct access for optional fields
+- OOXML highlight: use `<w:shd w:val="clear" w:color="auto" w:fill="HEX"/>` on runs — NOT `<w:highlight>` (requires named colors)
+- Row heights: Paginator::paginate() is the ONLY place that sets row.measured_height — do not add measurement in renderer.cpp
+- Format strings: always validate via is_safe_numeric_format() before snprintf; detect integer specifier by scanning for last conversion char
+- TextGroup::style_refs is a vector — all refs merged in order by style_resolver and docx_emitter
+- TextMeasurer is non-copyable (owns hb_buf_ resource); never copy, always pass by reference
 
 ## Package Build
 - devtools::install(quick=TRUE) for quick rebuild

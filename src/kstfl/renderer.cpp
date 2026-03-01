@@ -296,62 +296,9 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         }
         header_grid.total_height = total_header_height;
 
-        // Measure body row heights (spec §16: row_height = max(cell_heights))
-        for (auto& row : rows) {
-            Length max_height{0};
-            for (size_t ci = 0; ci < row.cells.size() && ci < spec.columns.size(); ++ci) {
-                const auto& cell = row.cells[ci];
-                if (cell.is_merged && !cell.is_merge_leader) continue;
-
-                Length cell_width = cell.is_merge_leader
-                    ? cell.merged_width
-                    : spec.columns[ci].resolved_width;
-
-                bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
-                StyleDef cell_style = resolver.resolve_body_cell_style(
-                    spec.columns[ci], row.row_style_ref,
-                    std::nullopt, std::nullopt, is_addrow);
-                if (cell.style_ref.has_value()) {
-                    const StyleDef* override_style = resolver.find_style(cell.style_ref.value());
-                    if (override_style) {
-                        cell_style = cell_style.merged_with(*override_style);
-                    }
-                }
-
-                MeasuredText m = measurer.measure_plain(cell.text, cell_style, cell_width);
-                if (m.height > max_height) {
-                    max_height = m.height;
-                }
-            }
-
-            // Check explicit row height override from row-level or cell-level style
-            Length explicit_row_height{0};
-            if (row.row_style_ref.has_value()) {
-                const StyleDef* rs = resolver.find_style(*row.row_style_ref);
-                if (rs && rs->table_style.has_value() &&
-                    rs->table_style->row_height.has_value()) {
-                    explicit_row_height = *rs->table_style->row_height;
-                }
-            }
-            if (explicit_row_height.emu == 0) {
-                for (const auto& cell : row.cells) {
-                    if (cell.style_ref.has_value()) {
-                        const StyleDef* cs = resolver.find_style(*cell.style_ref);
-                        if (cs && cs->table_style.has_value() &&
-                            cs->table_style->row_height.has_value()) {
-                            explicit_row_height = *cs->table_style->row_height;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            row.measured_height = (explicit_row_height.emu > 0)
-                ? explicit_row_height
-                : max_height;
-        }
-
         // --- Phase 3d: Paginate (spec §22.5) ---
+        // Row heights are computed once inside Paginator::paginate() and
+        // stored back into row.measured_height (single source of truth).
         if (config_.verbose) {
             std::cerr << "[ksTFL]   Phase 3d: Paginating...\n";
         }
@@ -527,7 +474,9 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
     if (config_.verbose) {
         std::cerr << "[ksTFL] Render complete: " << output_path << "\n";
     }
-    std::cerr << "[ksTFL] Pages produced: " << total_pages << "\n";
+    if (config_.verbose) {
+        std::cerr << "[ksTFL] Pages produced: " << total_pages << "\n";
+    }
 
     return total_pages;
 }

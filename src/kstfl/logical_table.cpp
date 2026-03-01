@@ -12,8 +12,21 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>
+#include <regex>
 
 namespace kstfl {
+
+// ---------------------------------------------------------------------------
+// Validate a printf-style format string for safe single-value numeric formatting.
+// Allows optional literal prefix/suffix around exactly one conversion specifier
+// of the form %[flags][width][.precision][diuoxXfFeEgG].
+// Returns true if safe, false if the format should be rejected.
+// ---------------------------------------------------------------------------
+static bool is_safe_numeric_format(const std::string& fmt) {
+    static const std::regex safe_re(
+        R"(^[^%]*%[-+ 0#]*[0-9]*(?:\.[0-9]+)?[diuoxXfFeEgG][^%]*$)");
+    return std::regex_match(fmt, safe_re);
+}
 
 // ---------------------------------------------------------------------------
 // Helper: apply column format string to a cell value
@@ -34,31 +47,35 @@ static std::string apply_column_format(const std::string& value,
         return value;
     }
 
+    if (!is_safe_numeric_format(format_str)) {
+        return value;
+    }
+
     // Numeric formats: try to parse value as double
     char* end = nullptr;
     errno = 0;
     double dval = std::strtod(value.c_str(), &end);
     if (end == value.c_str() || errno == ERANGE) {
-        // Not a valid number — return as-is
         return value;
     }
 
-    // Apply format using snprintf
-    // CRITICAL: %d/%i/%u/%x/%o expect integer arguments, not double.
-    // Passing a double to an integer format specifier is undefined behavior.
+    // Determine whether the specifier is integer or floating-point by
+    // finding the actual conversion character (last char matched by the regex).
+    char spec_char = 0;
+    for (auto it = format_str.rbegin(); it != format_str.rend(); ++it) {
+        if (std::string("diuoxXfFeEgG").find(*it) != std::string::npos) {
+            spec_char = *it;
+            break;
+        }
+    }
+
     char buf[128];
     int n;
-    if (format_str.find('d') != std::string::npos ||
-        format_str.find('i') != std::string::npos ||
-        format_str.find('u') != std::string::npos ||
-        format_str.find('x') != std::string::npos ||
-        format_str.find('X') != std::string::npos ||
-        format_str.find('o') != std::string::npos) {
-        // Integer format — cast to int
+    if (spec_char == 'd' || spec_char == 'i' || spec_char == 'u' ||
+        spec_char == 'o' || spec_char == 'x' || spec_char == 'X') {
         n = std::snprintf(buf, sizeof(buf), format_str.c_str(),
                           static_cast<int>(dval));
     } else {
-        // Float/general format — pass double directly
         n = std::snprintf(buf, sizeof(buf), format_str.c_str(), dval);
     }
     if (n > 0 && n < static_cast<int>(sizeof(buf))) {
