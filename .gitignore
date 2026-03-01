@@ -35,6 +35,11 @@ Thumbs.db
 tmp
 ._*
 
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
 # R development files
 .Rbuildignore
 .Rinstignore

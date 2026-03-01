@@ -1,84 +1,87 @@
-# Current Status (Feb 27, 2026)
+# Current Status (Mar 1, 2026)
 
 ## Fully Implemented
 - Spec initialization for all 3 docTypes (Table, Text, Figure)
-- **ggplot2 integration in create_figure()**: accepts ggplot2 objects directly (auto-rendered to temp file via ggsave()); explicit 3-branch type validation (gg/ggplot → temp file, character path → pass-through, anything else → cli_abort())
-- .save_ggplot_to_temp() internal helper (width/height/dpi/device params)
-- ggplot2 in DESCRIPTION Suggests; requires `requireNamespace()` check at runtime only
-- Column auto-detection and format assignment with .guess_table_layout()
-- Auto column width calculation and redistribution
+- **ggplot2 integration in create_figure()**: accepts ggplot2 objects directly
+- Column auto-detection, format assignment, auto width calculation
 - Style consolidation with hash-based merging in create_report()
 - Context-based function nesting validation (spec_context.R)
 - 30+ predefined clinical styles
 - Comprehensive error messages with cli_abort()
 - Full test coverage (20 test files: 19 R testthat + 1 C++ harness, 806+ passing tests)
-- Extended create_report() with mixed report/spec support
 - Conditional row styling (compute_cols with c_style, c_merge, c_addrow, c_pageBreak)
 - Schema-driven serialization and validation
-- save_report() for JSON + data file export
+- save_report() for JSON + data file export — now also maintains _index.json
 - Package options management
 - Print method for TFL_spec (console + HTML viewer)
 - Spanning column headers (add_span_header)
-- **C++20 DOCX Renderer** — complete end-to-end rendering pipeline:
-  - HarfBuzz text shaping for deterministic measurement
-  - FreeType font loading with fallback chain
-  - Vertical + horizontal pagination (isPaging-only page breaks, isGrouping for boundaries only)
-  - OOXML emission into valid .docx ZIP packages
-  - Support for all 3 doc types, styleRows actions, inline markup
-  - Column format application (numeric %.Nf, integer %d with proper int cast)
-  - Vertical merge in header grid (VMergeState: Restart/Continue for stub columns)
-  - Structural borders: header_top, header_bottom, table_bottom parsed from template
-  - Table bottom border applied to last data row per page
-  - Title soft break: all title groups combined in single paragraph with <w:br/>, per-group font styling preserved
-  - Header/footer as separate OOXML parts (word/headerN.xml, word/footerN.xml)
-  - xml:space="preserve" auto-added on <w:t> elements
-  - 13 full-cycle rendering examples passing (inst/examples/full_cycle_render.R)
-  - test-17-ggplot-figure.R: 27 tests covering ggplot2 path, file path, and type safety
-- **C++ Unit Tests** (Feb 27, 2026):
-  - src/cpp_tests.cpp: lightweight TestResult harness, 3 Rcpp-exported suites (~135 assertions total)
-  - cpp_test_units(): 60+ assertions — parse_length (all units + error cases), Color::parse, emu_to_twips, emu_to_half_points, pt_to_half_points, pt_to_eighth_points, page_size_dimensions (5 sizes), Length arithmetic/comparisons, border_line_style_to_ooxml, alignment_to_ooxml
-  - cpp_test_inline_parser(): 35+ assertions — has_inline_markup, plain text, b/i/u/sup/sub, nesting, br/p, case-insensitivity, unknown tag passthrough
-  - cpp_test_xml_writer(): 40+ assertions — declaration, self-close, text content, string/int/multiple attributes, 3-level nesting, text escaping (&<>"), attr escaping ("), element_with_text, element_with_attr, raw(), comment(), clear()/take()/depth(), namespace_decl(), error conditions
-  - tests/testthat/test-18-cpp-units.R: 24 test_that blocks; each C++ assertion → individual expect_true/expect_false
+- **C++20 DOCX Renderer** — complete end-to-end rendering pipeline
+- **C++ Unit Tests**: src/cpp_tests.cpp, 3 suites, ~135 assertions
+
+## New in Mar 1, 2026 Session
+
+### Bug Fixes (committed)
+- **Bug 12: Header text truncation** (e.g. "Descrip" instead of "Description")
+  - Root cause: text_measurer.cpp treated single words wider than cell as 1 line
+  - Fix: character-level wrapping logic — estimates full_lines + remainder for oversized words
+  - File: src/kstfl/text_measurer.cpp
+
+- **Bug 13: Lost data in cells with indent_1 style**
+  - Root cause: text_measurer.cpp did not subtract paragraph left/right indents from inner_width
+  - Fix: subtract IndentProps::left + right from inner_width before word-wrap calculation
+  - File: src/kstfl/text_measurer.cpp
+
+- **Bug 14: Lost data in last row of fixed-unit column tables (TEST_03_05, 06, 09, 10, 11)**
+  - Root cause: style_resolver::resolve_column_widths() summed fixed-unit + percentage columns incorrectly, total exceeded table_width
+  - Fix: two-pass algorithm — pass 1 resolves fixed-unit (cm/in/mm/pt) columns and accumulates fixed_total; pass 2 resolves percentage columns against (table_width - fixed_total)
+  - File: src/kstfl/style_resolver.cpp
+
+- **Bug 15: R cli glue expression error in render_docx()**
+  - Root cause: inline `if` expression inside cli::cli_alert_success glue context not supported
+  - Fix: pre-compute page_label variable before passing to cli_alert_success
+  - File: R/render_docx.R
+
+### New Features (committed)
+- **Page count in render log**: C++ renderer now returns total page count
+  - renderer.cpp / renderer.h: render() and render_from_strings() return size_t page count
+  - rcpp_bindings.cpp: return type changed from void to int
+  - R/RcppExports.R: manually updated to remove invisible() wrapper
+  - R/render_docx.R: captures n_pages, displays in cli_alert_success message
+
+- **Pagination warning for oversized rows**:
+  - paginator.cpp: std::cerr warning when row height exceeds available page body height
+  - Condition: used_height.emu == 0 && rh > available
+
+- **Meta folder management** (R/meta_management.R, new file):
+  - list_reports(meta_dir, sort_by): scan meta folder, return data frame with is_latest column
+  - replay_report(spec_json, meta_dir, output_path, ...): re-render DOCX from stored JSON
+  - clean_reports(meta_dir, keep_versions=1, dry_run=TRUE): remove obsolete specs + orphaned data files
+  - Internal: .read_spec_index(), .scan_meta_folder(), .collect_spec_meta(), .resolve_spec_path(), .update_spec_index()
+  - save_report() updated to call .update_spec_index() after each save
+  - _index.json maintained in meta folder for O(1) lookups
+  - All three functions exported in NAMESPACE
+
+### MCP Servers Configured (.cursor/mcp.json)
+- **Serena** (oraios/serena via uvx): semantic code intelligence, symbol-level tools, --context ide, --project /home/meguty/Develop/R/ksTFL
+- **Context7** (@upstash/context7-mcp via npx): up-to-date library docs in chat
 
 ## Still TODO
-- row_style_schema validation rules (schema exists but validation rules pending)
-- styles_schema validation rules (schema exists but validation rules pending)
-- Performance optimization: memoization for schema lookups if needed
-- Regression test suite for rendered DOCX output (visual/structural validation)
-- Windows build testing (Makevars.win exists but untested)
-- Structural header_top_border / header_bottom_border application in emitter (parsed+stored, not yet applied)
-
-## Schema Files
-- spec_schema_v1.json: current main schema
-- row_style_actions_schema_v0.json: styleRows schema
-- styles_schema_v0.json / v1.json: style definitions
-- spec_schema_v0.json: legacy (presumed deprecated)
+- row_style_schema validation rules
+- styles_schema validation rules
+- Performance optimization: memoization for schema lookups
+- Regression test suite for rendered DOCX output
+- Windows build testing
+- Structural header_top_border / header_bottom_border application in emitter
 
 ## Full Cycle Test Examples (inst/examples/full_cycle_render.R)
-13 examples:
-1. Minimal table (mtcars, styled titles, subtitle, centered)
-2. Styled demographics with spanning headers + vertical merge
-3. Multi-spec report (table + text + table)
-4. Landscape A4 with global options
-5. Column breaks with horizontal pagination
-6. Row actions (c_style, c_addrow, c_pageBreak)
-7. Text-only document
-8. Full clinical package (3 specs: demog + AE listing + summary)
-9. Long table with isPaging (300+ rows, 30 pages)
-10. Rich inline markup (**bold**, *italic*, __underline__)
-11. Minimal ggplot2 scatter plot (PNG, 6x4in, 300dpi)
-12. ggplot2 PK concentration-time figure + companion summary table
-13. Three ggplot2 figures: PNG (box plot), JPEG (KM survival), SVG (forest plot)
+13 examples covering minimal table through ggplot2 figures.
+Manual unit tests: inst/examples/manul_unit_tests/TEST_03/ (test_03.R, 11 specs)
 
-## Bug Fixes History (Feb 2026)
-- Bug 7: isGrouping incorrectly forcing page breaks (only isPaging should)
-- Bug 8: Header vertical merge — stub columns not merged with label row
-- Bug 9: Integer format UB — %d with double arg → garbage (static_cast<int> fix)
-- Bug 10: Table bottom border lost — structural borders parsed but never stored/applied
-- Bug 11: Titles as separate paragraphs — now combined with <w:br/>
-- Bug 3: XmlWriter self_closing_element + attribute crash (14 fixes in docx_emitter.cpp)
-- Bug 4: text_width("") empty vector crash
-- Bug 5: c_addrow positional arg misidentification (fixed with match.call)
-- Bug 6: gluePrefix type mismatch
-- Bug 1-2: percent column width parsing, data file .json extension
+## Docker Environment
+- Image: rocker/verse:latest, container: kstfl-r
+- Project mount: /home/rstudio/ksTFL
+- R is NOT installed on host — all R execution via docker exec
+
+## Git History (recent)
+- feat: meta folder management — list, replay, clean (f9874c4, Mar 1 2026)
+- Previous commits: C++ renderer fixes, pagination, text measurement, column width resolution

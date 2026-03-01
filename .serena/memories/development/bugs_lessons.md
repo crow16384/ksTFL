@@ -1,101 +1,109 @@
 # Bugs & Lessons Learned
 
 ## Bug 1: Percent Column Width Parsing (Feb 2026)
-**Symptom**: Length::parse("5.0%") called without reference width → crash or 0 result
-**Root Cause**: json_parser.cpp parsed col_width_raw directly as Length, but % widths need table_width (available only after page geometry computation)
-**Fix**: Changed ColumnFormat from `optional<Length> col_width` to `optional<string> col_width_raw`. Deferred parsing to style_resolver.cpp::resolve_column_widths() where table_width is known.
-**Files**: types.h, json_parser.cpp, style_resolver.cpp
-**Lesson**: Defer unit parsing that depends on context (page size, parent dimensions) until resolution phase.
+**Symptom**: Length::parse("5.0%") crash without reference width
+**Fix**: Deferred to style_resolver::resolve_column_widths() where table_width is known. col_width_raw stored as string.
+**Lesson**: Defer unit parsing that depends on context until resolution phase.
 
 ## Bug 2: Data File .json Extension Mismatch (Feb 2026)
-**Symptom**: Renderer says "Data file not found" despite save_report() writing it
-**Root Cause**: save_report writes `0001_abc123.json` but spec stores dataRef as `0001_abc123` (no extension). Renderer tried exact path match only.
-**Fix**: Added .json extension fallback in renderer.cpp: try exact path, then path + ".json"
-**Files**: renderer.cpp
-**Lesson**: When two components (writer and reader) communicate via file paths, ensure extension conventions match or add fallback.
+**Fix**: Added .json extension fallback in renderer.cpp.
+**Lesson**: Ensure extension conventions match between writer and reader, or add fallback.
 
 ## Bug 3: XmlWriter attribute() Outside Start Tag (Feb 2026)
-**Symptom**: `"XmlWriter::attribute() called outside of start tag"` crash during OOXML emission
-**Root Cause**: `self_closing_element("X")` writes `<X/>` immediately and does NOT set `start_tag_open_ = true`. But 14 places in docx_emitter.cpp called `self_closing_element()` followed by `attribute()`, which requires `start_tag_open_`.
-**Fix**: Changed all 14 occurrences to `start_element()` + `attribute()` + `end_element()` pattern.
-**Lesson**: CRITICAL XML WRITER RULE — `self_closing_element()` is ONLY for elements with zero attributes.
+**Symptom**: Crash during OOXML emission
+**Fix**: Changed 14 occurrences of self_closing_element() + attribute() to start_element() + attribute() + end_element().
+**CRITICAL RULE**: self_closing_element() is ONLY for elements with zero attributes.
 
 ## Bug 4: Empty String text_width Crash (Feb 2026)
-**Symptom**: `vapply(..., integer(1))` error — expected integer, got double (-Inf)
-**Root Cause**: `text_width("")` returns zero-length vector. `max()` of empty vector returns `-Inf`.
-**Fix**: Added guard: `if (length(w) == 0L) 0L else max(w)` in max_line_width() helper
-**Lesson**: Always handle empty/zero-length results from text measurement.
+**Fix**: Guard: if (length(w) == 0L) 0L else max(w) in max_line_width()
 
 ## Bug 5: c_addrow Positional Argument Misidentification (Feb 2026)
-**Symptom**: c_addrow(pos = "above", styleRef = "cat_header") incorrectly interpreted styleRef as value_from
-**Fix**: Replaced positional access with `match.call(definition = c_addrow, call = action_call)`.
+**Fix**: match.call(definition = c_addrow, call = action_call)
 **Lesson**: NEVER use positional index access on call_args() when function has optional arguments.
 
 ## Bug 6: gluePrefix Type Mismatch (Feb 2026)
-**Symptom**: tfl_set_options() rejected gluePrefix = ": " (character)
-**Fix**: Changed `gluePrefix = ": "` to `gluePrefix = TRUE` in test examples
-**Lesson**: Always check the actual function signature/docs before passing values.
+**Fix**: gluePrefix is bool, not string.
 
-## Bug 7: Pagination — isGrouping Forced Page Breaks (Feb 2026)
-**Symptom**: Example 4 produced 14 pages instead of 1; each isGrouping value change triggered a page break
-**Root Cause**: paginator.cpp treated `is_group_boundary` as a page break trigger, same as `force_page_break`
-**Fix**: Removed `is_group_boundary` break condition from paginator. Only `force_page_break` (set by isPaging column changes) triggers page breaks. Moved `detect_grouping_boundaries()` before `apply_dedupe()` since dedupe blanks the cell text needed for boundary detection.
-**Files**: paginator.cpp, logical_table.cpp
-**Lesson**: isGrouping and isPaging are distinct concepts — grouping controls deduplication and dynamic subtitles, paging controls page breaks. Never conflate boundary detection with break triggering.
+## Bug 7: Pagination isGrouping Forced Page Breaks (Feb 2026)
+**Fix**: Removed is_group_boundary break condition from paginator. Only force_page_break triggers breaks.
+**Lesson**: isGrouping (dedup/subtitles) vs isPaging (page breaks) are distinct.
 
 ## Bug 8: Header Vertical Merge Missing (Feb 2026)
-**Symptom**: Example 2 stub column headers showed empty cells where label should span vertically
-**Root Cause**: build_header_grid() created stub rows and label rows independently. Columns not covered by stubs in the upper rows were empty cells; their labels appeared only in the bottom label row. No vMerge markup was generated.
-**Fix**: Added VMergeState enum (None/Restart/Continue). Uncovered columns in stub rows get vMerge::Restart with the column label text. The label row marks those columns as vMerge::Continue (empty). emit_cell_props() emits `<w:vMerge w:val="restart">` or `<w:vMerge/>` accordingly.
-**Files**: types.h, logical_table.cpp, docx_emitter.cpp, docx_emitter.h
-**Lesson**: Multi-row headers with spanning stubs require explicit vertical merge tracking per cell.
+**Fix**: VMergeState enum (None/Restart/Continue). Uncovered stub-row columns get Restart + label text; label row marks them Continue.
 
-## Bug 9: Integer Format UB — Garbage in Columns (Feb 2026)
-**Symptom**: 'vs' and 'am' columns (integer 0/1) showed garbage values like "32660176" or "4294967295"
-**Root Cause**: apply_column_format() passed `double` to `snprintf` with `%d` format specifier — undefined behavior. `snprintf` expected an `int` argument for `%d`.
-**Fix**: Detect integer format specifiers (%d/%i/%u/%x/%o) and apply `static_cast<int>(dval)` before snprintf.
-**Files**: logical_table.cpp
-**Lesson**: ALWAYS match snprintf format specifier types. %d expects int, not double. This is UB that silently produces garbage on most platforms.
+## Bug 9: Integer Format UB (Feb 2026)
+**Symptom**: %d with double arg -> garbage values
+**Fix**: static_cast<int>(dval) for %d/%i/%u/%x/%o format specifiers.
+**Lesson**: ALWAYS match snprintf format specifier types.
 
 ## Bug 10: Table Bottom Border Lost (Feb 2026)
-**Symptom**: Table's last data row had no bottom border despite template defining structural.table_bottom_border
-**Root Cause**: json_parser.cpp had an empty stub for structural border parsing (lines 734-736 did nothing). The 3 structural borders were defined in the template JSON but never stored in TableStyleConfig::Structural. Body row borders were all "none", overriding any table-level border.
-**Fix**: (1) Added 3 border fields to Structural struct. (2) Parsed all structural borders via parse_border(). (3) Added `is_last_row` parameter to emit_table_row(). (4) On last data row per page, override cell bottom border with structural.table_bottom_border.
-**Files**: types.h, json_parser.cpp, docx_emitter.cpp, docx_emitter.h
-**Lesson**: Always verify that parsed config is actually stored and consumed. Empty stubs with comments like "for emit phase" are red flags — trace the full data flow from parse → store → apply.
+**Fix**: Parse structural borders in json_parser; apply to last data row per page in docx_emitter via is_last_row parameter.
 
 ## Bug 11: Titles as Separate Paragraphs (Feb 2026)
-**Symptom**: Multiple add_title() calls produced separate paragraphs instead of one paragraph with soft breaks
-**Root Cause**: Each add_title() creates a separate TextGroup. emit_text_groups() emits each TextGroup as its own `<w:p>` paragraph. No mechanism existed to combine groups into a single paragraph.
-**Fix**: Added emit_text_groups_combined() method that emits all TextGroups as runs within a single `<w:p>`, with `<w:br/>` between groups. Each group retains its own font style as separate runs. Paragraph properties come from base style. glue_prefix is emitted as the first run.
-**Files**: docx_emitter.cpp, docx_emitter.h
-**Lesson**: OOXML paragraph = `<w:p>`, runs = `<w:r>` within it. Multiple styles within one paragraph require separate runs. Soft break = `<w:br/>` inside a run. Design the emit function to match the desired OOXML structure.
+**Fix**: emit_text_groups_combined() combines all TextGroups in single <w:p> with <w:br/> between groups.
+
+## Bug 12: Header Text Truncation (Mar 2026)
+**Symptom**: "Description" header rendered as "Descrip" (clipped)
+**Root Cause**: text_measurer.cpp treated a single word wider than cell width as 1 line. w:hRule="exact" clipped the overflow.
+**Fix**: Character-level wrapping: when word_width > inner_width, compute full_lines = word_width.emu / inner_width.emu, add that many lines, carry remainder as current_line_width.
+**File**: src/kstfl/text_measurer.cpp
+**Lesson**: Single words can exceed cell width. Must estimate char-level line count, not assume 1 line.
+
+## Bug 13: Lost Data in Cells with indent_1 Style (Mar 2026)
+**Symptom**: Text clipped in rows using indent_1 (0.5cm left indent)
+**Root Cause**: text_measurer::measure_cell() computed inner_width = cell_width - cell_margins, but did not subtract paragraph indents. Overestimated available width -> underestimated line count -> row too short.
+**Fix**: After computing inner_width, subtract IndentProps::left + right (if indents present).
+**File**: src/kstfl/text_measurer.cpp
+**Lesson**: Paragraph indents reduce effective text width just like cell margins. Both must be subtracted.
+
+## Bug 14: Lost Data in Last Row of Fixed-Unit Column Tables (Mar 2026)
+**Symptom**: TEST_03_05, 06, 09, 10, 11 — last row data clipped/missing
+**Root Cause**: resolve_column_widths() resolved percentage columns against full table_width, ignoring already-allocated fixed-unit (cm/in/mm/pt) columns. Total column widths exceeded table_width.
+**Fix**: Two-pass algorithm:
+  - Pass 1: resolve fixed-unit columns, accumulate fixed_total
+  - Pass 2: resolve % columns against (table_width - fixed_total) as pct_reference
+**File**: src/kstfl/style_resolver.cpp
+**Lesson**: Mixed fixed+percent column layouts require two-pass resolution. Fixed columns must be subtracted from the reference before resolving percentages.
+
+## Bug 15: R cli Glue Expression Error in render_docx() (Mar 2026)
+**Symptom**: Error in cli::cli_alert_success with inline `if` expression
+**Root Cause**: cli glue context does not support inline R control flow (if/else)
+**Fix**: Pre-compute page_label <- if (n_pages != 1L) "pages" else "page" before the cli call.
+**File**: R/render_docx.R
+**Lesson**: cli glue strings only support simple variable interpolation. Pre-compute any conditional values.
 
 ## General Lessons
 
 ### XmlWriter API Contract
-- start_element() → start_tag_open_ = true → attribute() works → end_element() closes
-- self_closing_element() → writes <X/> immediately → start_tag_open_ stays false → attribute() THROWS
-- end_element() when start_tag_open_: emits `/>` (auto self-close)
-- end_element() when !start_tag_open_: emits `</X>` (normal close)
+- start_element() -> attribute() works -> end_element() closes
+- self_closing_element() -> writes <X/> immediately -> attribute() THROWS
+- NEVER call attribute() after self_closing_element()
 
 ### Pagination Architecture
-- isGrouping: marks group boundaries for dedupe + dynamic subtitles; does NOT force page breaks
-- isPaging: marks paging column changes that FORCE page breaks
-- detect_grouping_boundaries() must run BEFORE apply_dedupe() (dedupe blanks cell text)
-- Paginator only checks force_page_break flag, never is_group_boundary
+- isGrouping: dedup + dynamic subtitles; does NOT force page breaks
+- isPaging: forces page breaks on column value changes
+- detect_grouping_boundaries() must run BEFORE apply_dedupe()
+
+### Text Measurement Rules
+- inner_width = cell_width - cell_margin_left - cell_margin_right - para_indent_left - para_indent_right
+- Single words wider than inner_width: full_lines = word_width / inner_width, remainder = word_width % inner_width
+- Always guard max() against empty vectors
+
+### Column Width Resolution
+- Fixed units (cm/in/mm/pt): resolve first, sum as fixed_total
+- Percentages: resolve against (table_width - fixed_total)
+- Unspecified: distribute remaining width equally
 
 ### OOXML Border Architecture
-- Cell borders override table borders in Word (cell-level takes precedence)
-- Structural borders (header_top, header_bottom, table_bottom) are "table-level" concepts
-  but must be applied as cell borders in OOXML (no table-level bottom border concept)
-- Template body.row.borders = "none" means: no borders on body rows by default
-- Last row bottom border must be explicitly set on each cell of the last row
+- Cell borders override table borders
+- Structural borders must be applied as cell borders (no table-level bottom border in OOXML)
+- Last row bottom border must be set on each cell explicitly
 
 ### R Call Object Patterns
-- rlang::call_args(): returns args in order they appear in the CALL (not the definition)
-- match.call(definition, call): properly maps positional args to named params per function signature
+- match.call(definition, call): properly maps positional args to named params
+- Never use positional index on call_args() with optional args
 
-### Text Specs and Data
-- Text specs (docType="Text") don't have data files, but create_report still assigns dataRef
-- Renderer logs "WARNING: Data file not found" for text specs — this is benign
+### cli Package
+- No inline if/else in glue strings
+- Pre-compute conditional values before passing to cli_* functions
+- Use {.path}, {.val}, {.file}, {.fn}, {.field} for styled output
