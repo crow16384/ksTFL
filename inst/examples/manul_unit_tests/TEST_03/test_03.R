@@ -120,11 +120,11 @@ Target lesion failure: composite of cardiac death, myocardial infarction that co
 clinically driven target lesion revascularisation. Target vessel failure: composite of cardiac death, target vessel MI and TVR. Patient-oriented composite
 endpoint: composite of any death, any MI and any coronary revascularisation. BARC: Bleeding Academic Research Consortium")) %>% 
   define_cols(c(section, endpoint, `complex_pci_30-day`, `non_complex_pci_30-day`, `p_value_30-day`, `complex_pci_1-year`, `non_complex_pci_1-year`, `p_value_1-year`),
-              label = c(' ', ' ', "Complex PCI<p>(N=10,119)", "Non-complex<p>PCI (N=26,485)", "<i>p</i>-value", 
+              label = c(NA, NA, "Complex PCI<p>(N=10,119)", "Non-complex<p>PCI (N=26,485)", "<i>p</i>-value", 
                                    "Complex PCI<p>(N=9,793)", "Non-complex<p>PCI (N=25,596)", "<i>p</i>-value"), 
                labelStyleRef = 'header_style', valueStyleRef = 'body_style1') %>% 
   define_cols(c( section, `complex_pci_30-day`, `non_complex_pci_30-day`, `p_value_30-day`, `complex_pci_1-year`, `non_complex_pci_1-year`, `p_value_1-year`),
-                colWidth = c('13%', '12%','12%','9%','12%','12%','9%')
+                colWidth = c('2cm', '12%','12%','9%','12%','12%','9%')
                 ) %>% 
   define_cols(c(`complex_pci_30-day`, `non_complex_pci_30-day`, `complex_pci_1-year`, `non_complex_pci_1-year`),
               labelStyleRef = f_combine('header_style'), valueStyleRef = f_combine('body_style1', 'indent_1')) %>% 
@@ -132,7 +132,7 @@ endpoint: composite of any death, any MI and any coronary revascularisation. BAR
   add_span_header(c(`complex_pci_30-day`, `non_complex_pci_30-day`, `p_value_30-day`), label = '30-day', labelStyleRef = 'header_style') %>% 
   add_span_header(c(`complex_pci_1-year`, `non_complex_pci_1-year`, `p_value_1-year`), label = '1-year', labelStyleRef = 'header_style', stubOrder = 1) %>% 
   compute_cols(everyNth(2), c_style(everything(), 'body_style2')) %>% 
-  set_document(contentWidth = '95%')
+  set_document(contentWidth = '70%')
 
 report_03_03 <- create_report(spec_03_03)
 save_and_render(report_03_03, "test_03_03")
