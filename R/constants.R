@@ -280,6 +280,14 @@ NULL
 #' @noRd
 .const_default_bodytext_order <- 999L
 
+#' Meta-folder index filename
+#' @noRd
+.const_index_file <- "_index.json"
+
+#' Known asset file extensions for orphan detection in meta folders
+#' @noRd
+.const_asset_extensions <- c("png", "jpg", "jpeg", "svg", "pdf", "bmp", "tiff")
+
 #' Schema file names
 #' @noRd
 .const_spec_schema_file = "spec_schema_v1.json"

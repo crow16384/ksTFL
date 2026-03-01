@@ -8,15 +8,13 @@
 ##   clean_reports() – remove obsolete / orphaned JSON files
 ##
 ## Internal helpers:
-##   .read_spec_index()   – parse _index.json (if present) or scan folder
-##   .update_spec_index() – append / update a row in _index.json
-##   .collect_spec_meta() – read _metadata + dataRef from one spec JSON
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-.const_index_file <- "_index.json"
+##   .read_spec_index()        – parse _index.json (if present) or scan folder
+##   .normalize_data_refs()    – ensure data_refs is always a list-column
+##   .write_spec_index()       – write an index data frame to _index.json
+##   .update_spec_index()      – append / update a row in _index.json
+##   .collect_spec_meta()      – read _metadata + dataRef from one spec JSON
+##   .identify_obsolete_specs()– split index into obsolete / surviving specs
+##   .collect_live_refs()      – gather data + image refs from surviving specs
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -28,13 +26,34 @@
 .read_spec_index <- function(meta_dir) {
   index_path <- file.path(meta_dir, .const_index_file)
   if (file.exists(index_path)) {
-    tryCatch(
+    idx <- tryCatch(
       jsonlite::fromJSON(index_path, simplifyDataFrame = TRUE),
       error = function(e) .scan_meta_folder(meta_dir)
     )
   } else {
-    .scan_meta_folder(meta_dir)
+    idx <- .scan_meta_folder(meta_dir)
   }
+  .normalize_data_refs(idx)
+}
+
+#' Ensure data_refs is always a list-column of character vectors
+#'
+#' jsonlite::fromJSON(simplifyDataFrame = TRUE) may flatten data_refs into a
+#' matrix when every row has the same number of refs.  This normalizer
+#' guarantees the column is an I()-wrapped list of character vectors.
+#' @keywords internal
+#' @noRd
+.normalize_data_refs <- function(idx) {
+  if (nrow(idx) == 0 || is.null(idx[["data_refs"]])) return(idx)
+  dr <- idx[["data_refs"]]
+  if (is.list(dr) && !is.data.frame(dr)) {
+    idx[["data_refs"]] <- I(lapply(dr, function(x) as.character(unlist(x))))
+  } else {
+    idx[["data_refs"]] <- I(lapply(seq_len(nrow(idx)), function(i) {
+      as.character(unlist(dr[i, , drop = TRUE]))
+    }))
+  }
+  idx
 }
 
 #' Scan a meta folder and build an index data frame from spec JSONs
@@ -93,10 +112,32 @@
 
   list(
     doc_file   = as.character(meta[["docFileName"]] %||% ""),
+    out_dir    = as.character(meta[["outDir"]]      %||% "."),
     datetime   = as.character(meta[["datetime"]]    %||% ""),
     n_specs    = length(spec_keys),
     data_refs  = data_refs
   )
+}
+
+#' Write a spec index data frame to _index.json
+#' @keywords internal
+#' @noRd
+.write_spec_index <- function(meta_dir, idx_df) {
+  index_path <- file.path(meta_dir, .const_index_file)
+  records <- lapply(seq_len(nrow(idx_df)), function(i) {
+    list(
+      spec_file = idx_df$spec_file[i],
+      doc_file  = idx_df$doc_file[i],
+      datetime  = idx_df$datetime[i],
+      n_specs   = idx_df$n_specs[i],
+      data_refs = as.list(idx_df$data_refs[[i]])
+    )
+  })
+  writeLines(
+    jsonlite::toJSON(records, auto_unbox = TRUE, pretty = TRUE),
+    con = index_path
+  )
+  invisible(NULL)
 }
 
 #' Append or update a row in _index.json
@@ -120,7 +161,6 @@
       error = function(e) list()
     )
     if (!is.list(existing)) existing <- list()
-    # Replace entry for same spec_file if it exists, otherwise append
     idx <- which(vapply(existing, function(x) identical(x$spec_file, spec_file),
                         logical(1)))
     if (length(idx) > 0) {
@@ -138,6 +178,61 @@
     con = index_path
   )
   invisible(NULL)
+}
+
+#' Split an index into obsolete and surviving spec files
+#' @return list(obsolete, surviving) — character vectors of spec_file names
+#' @keywords internal
+#' @noRd
+.identify_obsolete_specs <- function(idx, keep_versions) {
+  obsolete  <- character(0)
+  surviving <- character(0)
+  if (nrow(idx) == 0) return(list(obsolete = obsolete, surviving = surviving))
+
+  for (doc in unique(idx$doc_file)) {
+    rows <- idx[idx$doc_file == doc, , drop = FALSE]
+    rows <- rows[order(rows$datetime, decreasing = TRUE), , drop = FALSE]
+    if (nrow(rows) > keep_versions) {
+      obsolete  <- c(obsolete,  rows$spec_file[seq(keep_versions + 1, nrow(rows))])
+      surviving <- c(surviving, rows$spec_file[seq_len(keep_versions)])
+    } else {
+      surviving <- c(surviving, rows$spec_file)
+    }
+  }
+  list(obsolete = obsolete, surviving = surviving)
+}
+
+#' Collect all live data-ref and image-ref filenames from surviving specs
+#'
+#' Reads each surviving spec JSON once and returns both data JSON refs and
+#' image asset refs.
+#' @return list(data_refs, img_refs) — character vectors of filenames
+#' @keywords internal
+#' @noRd
+.collect_live_refs <- function(meta_dir, surviving_specs) {
+  data_refs <- character(0)
+  img_refs  <- character(0)
+
+  for (sf in surviving_specs) {
+    path <- file.path(meta_dir, sf)
+    if (!file.exists(path)) next
+    d <- tryCatch(jsonlite::fromJSON(path, simplifyVector = FALSE),
+                  error = function(e) NULL)
+    if (is.null(d)) next
+
+    for (k in setdiff(names(d), "_metadata")) {
+      refs <- d[[k]][["dataRef"]]
+      if (is.null(refs)) next
+      for (ref in as.character(unlist(refs))) {
+        data_refs <- c(data_refs, paste0(ref, ".json"))
+        for (ext in .const_asset_extensions) {
+          img_refs <- c(img_refs, paste0(ref, ".", ext))
+        }
+      }
+    }
+  }
+
+  list(data_refs = unique(data_refs), img_refs = unique(img_refs))
 }
 
 # ---------------------------------------------------------------------------
@@ -211,9 +306,10 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
   n_total   <- nrow(idx)
   n_latest  <- sum(idx$is_latest)
   n_obsolete <- n_total - n_latest
+  pl_total  <- if (n_total != 1) "s" else ""
 
   cli::cli_alert_info(
-    "Meta folder: {n_total} spec JSON{if(n_total!=1)'s' else ''} \u2014 {n_latest} latest, {n_obsolete} obsolete"
+    "Meta folder: {n_total} spec JSON{pl_total} \u2014 {n_latest} latest, {n_obsolete} obsolete"
   )
 
   idx
@@ -276,10 +372,7 @@ replay_report <- function(spec_json,
 
   # --- Resolve output path ---
   if (is.null(output_path)) {
-    d <- jsonlite::fromJSON(spec_path, simplifyVector = FALSE)
-    stored_out_dir  <- d[["_metadata"]][["outDir"]]       %||% "."
-    stored_doc_file <- d[["_metadata"]][["docFileName"]]  %||% "output.docx"
-    output_path <- file.path(stored_out_dir, stored_doc_file)
+    output_path <- file.path(meta$out_dir, meta$doc_file)
   }
   checkmate::assert_string(output_path)
 
@@ -291,6 +384,8 @@ replay_report <- function(spec_json,
     output_path   = output_path,
     verbose       = verbose
   )
+
+  invisible(output_path)
 }
 
 #' Resolve a spec JSON path from a name or path
@@ -377,70 +472,27 @@ clean_reports <- function(meta_dir,
   idx <- .read_spec_index(meta_dir)
 
   # ---- 1. Identify obsolete spec JSONs ----
-  obsolete_specs <- character(0)
-  surviving_specs <- character(0)
+  split <- .identify_obsolete_specs(idx, keep_versions)
+  obsolete_specs  <- split$obsolete
+  surviving_specs <- split$surviving
 
-  if (nrow(idx) > 0) {
-    for (doc in unique(idx$doc_file)) {
-      rows <- idx[idx$doc_file == doc, , drop = FALSE]
-      # Sort newest first
-      rows <- rows[order(rows$datetime, decreasing = TRUE), , drop = FALSE]
-      if (nrow(rows) > keep_versions) {
-        obsolete_specs  <- c(obsolete_specs,  rows$spec_file[seq(keep_versions + 1, nrow(rows))])
-        surviving_specs <- c(surviving_specs, rows$spec_file[seq_len(keep_versions)])
-      } else {
-        surviving_specs <- c(surviving_specs, rows$spec_file)
-      }
-    }
-  }
+  # ---- 2. Collect live refs (single pass over surviving specs) ----
+  live <- .collect_live_refs(meta_dir, surviving_specs)
 
-  # ---- 2. Identify orphaned data JSONs ----
-  # Collect all dataRefs from SURVIVING specs
-  live_refs <- character(0)
-  for (sf in surviving_specs) {
-    path <- file.path(meta_dir, sf)
-    if (!file.exists(path)) next
-    meta <- tryCatch(.collect_spec_meta(path), error = function(e) NULL)
-    if (!is.null(meta)) {
-      live_refs <- c(live_refs, paste0(meta$data_refs, ".json"))
-    }
-  }
-  live_refs <- unique(live_refs)
-
-  # All JSON files that are NOT spec JSONs and NOT the index
+  # ---- 3. Identify orphaned data JSONs ----
   all_json <- list.files(meta_dir, pattern = "\\.json$", full.names = FALSE)
   spec_files_set <- unique(c(idx$spec_file, .const_index_file))
   candidate_data <- setdiff(all_json, spec_files_set)
+  orphaned_data  <- setdiff(candidate_data, live$data_refs)
 
-  orphaned_data <- setdiff(candidate_data, live_refs)
-
-  # ---- 3. Also collect non-JSON orphaned assets (png, etc.) ----
-  # Images referenced by surviving specs
-  live_img_refs <- character(0)
-  for (sf in surviving_specs) {
-    path <- file.path(meta_dir, sf)
-    if (!file.exists(path)) next
-    d <- tryCatch(jsonlite::fromJSON(path, simplifyVector = FALSE),
-                  error = function(e) NULL)
-    if (is.null(d)) next
-    for (k in setdiff(names(d), "_metadata")) {
-      refs <- d[[k]][["dataRef"]]
-      if (is.null(refs)) next
-      for (ref in unlist(refs)) {
-        # Figure files can be .png/.jpg/.svg — check all extensions
-        for (ext in c("png", "jpg", "jpeg", "svg")) {
-          live_img_refs <- c(live_img_refs, paste0(ref, ".", ext))
-        }
-      }
-    }
-  }
-  live_img_refs <- unique(live_img_refs)
-
+  # ---- 4. Identify orphaned image/asset files ----
   all_files <- list.files(meta_dir, full.names = FALSE)
   non_json  <- setdiff(all_files, all_json)
-  orphaned_imgs <- setdiff(non_json, c(live_img_refs, .const_index_file))
+  asset_pattern <- paste0("\\.(", paste(.const_asset_extensions, collapse = "|"), ")$")
+  non_json  <- non_json[grepl(asset_pattern, non_json, ignore.case = TRUE)]
+  orphaned_imgs <- setdiff(non_json, live$img_refs)
 
-  # ---- 4. Report ----
+  # ---- 5. Report ----
   n_obs  <- length(obsolete_specs)
   n_data <- length(orphaned_data)
   n_img  <- length(orphaned_imgs)
@@ -454,26 +506,31 @@ clean_reports <- function(meta_dir,
                           deleted        = character(0))))
   }
 
+  pl_total <- if (n_total != 1) "s" else ""
+  pl_obs   <- if (n_obs   != 1) "s" else ""
+  pl_data  <- if (n_data  != 1) "s" else ""
+  pl_img   <- if (n_img   != 1) "s" else ""
+
   if (dry_run) {
     cli::cli_alert_info(
-      "Dry run \u2014 {n_total} file{if(n_total!=1)'s' else ''} would be removed (pass {.code dry_run = FALSE} to delete):"
+      "Dry run \u2014 {n_total} file{pl_total} would be removed (pass {.code dry_run = FALSE} to delete):"
     )
   } else {
     cli::cli_alert_info(
-      "Removing {n_total} file{if(n_total!=1)'s' else ''}:"
+      "Removing {n_total} file{pl_total}:"
     )
   }
 
   if (n_obs > 0) {
-    cli::cli_alert_info("  {n_obs} obsolete spec JSON{if(n_obs!=1)'s' else ''}:")
+    cli::cli_alert_info("  {n_obs} obsolete spec JSON{pl_obs}:")
     for (f in obsolete_specs) cli::cli_text("    {.file {f}}")
   }
   if (n_data > 0) {
-    cli::cli_alert_info("  {n_data} orphaned data JSON{if(n_data!=1)'s' else ''}:")
+    cli::cli_alert_info("  {n_data} orphaned data JSON{pl_data}:")
     for (f in orphaned_data) cli::cli_text("    {.file {f}}")
   }
   if (n_img > 0) {
-    cli::cli_alert_info("  {n_img} orphaned image file{if(n_img!=1)'s' else ''}:")
+    cli::cli_alert_info("  {n_img} orphaned image file{pl_img}:")
     for (f in orphaned_imgs) cli::cli_text("    {.file {f}}")
   }
 
@@ -491,25 +548,16 @@ clean_reports <- function(meta_dir,
 
     # Rebuild index after deletion
     new_idx <- .scan_meta_folder(meta_dir)
+    index_path <- file.path(meta_dir, .const_index_file)
     if (nrow(new_idx) > 0) {
-      index_path <- file.path(meta_dir, .const_index_file)
-      # Convert to list-of-records for JSON
-      records <- lapply(seq_len(nrow(new_idx)), function(i) {
-        list(
-          spec_file = new_idx$spec_file[i],
-          doc_file  = new_idx$doc_file[i],
-          datetime  = new_idx$datetime[i],
-          n_specs   = new_idx$n_specs[i],
-          data_refs = as.list(new_idx$data_refs[[i]])
-        )
-      })
-      writeLines(
-        jsonlite::toJSON(records, auto_unbox = TRUE, pretty = TRUE),
-        con = index_path
-      )
+      .write_spec_index(meta_dir, new_idx)
+    } else if (file.exists(index_path)) {
+      file.remove(index_path)
     }
 
-    cli::cli_alert_success("Removed {length(deleted)} file{if(length(deleted)!=1)'s' else ''}.")
+    n_del  <- length(deleted)
+    pl_del <- if (n_del != 1) "s" else ""
+    cli::cli_alert_success("Removed {n_del} file{pl_del}.")
   }
 
   invisible(list(

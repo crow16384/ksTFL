@@ -146,10 +146,11 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
   }
   
   # ---- Create _metadata section ----
+  now <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
   metadata_section <- list(
     outDir = outDir,
     docFileName = docFileName,
-    datetime = format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
+    datetime = now
   )
   
   # ---- Wrap fixed with _metadata ----
@@ -190,7 +191,7 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
     meta_dir   = metaPath,
     spec_file  = spec_filename,
     doc_file   = docFileName,
-    datetime   = format(Sys.time(), "%Y-%m-%dT%H:%M:%S"),
+    datetime   = now,
     n_specs    = n_specs_in_report,
     data_refs  = all_data_refs
   )
@@ -198,7 +199,7 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
   # ---- Return metadata ----
   result <- list(
     spec_file = spec_filename,
-    datetime = format(Sys.time(), "%Y-%m-%dT%H:%M:%S"),
+    datetime = now,
     metaPath = metaPath
   )
   
