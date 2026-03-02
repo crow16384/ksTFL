@@ -128,7 +128,15 @@ border_ui <- function(id_prefix, label) {
   shiny::tagList(
     shiny::h5(label),
     shiny::fluidRow(
-      shiny::column(4, shiny::textInput(ns("color"), "Color (hex)", value = "")),
+      shiny::column(
+        4,
+        colourpicker::colourInput(
+          ns("color"),
+          "Color",
+          value = "#000000",
+          allowTransparent = TRUE
+        )
+      ),
       shiny::column(4, shiny::textInput(ns("width"), "Width (pt)", value = "")),
       shiny::column(
         4,
@@ -162,7 +170,14 @@ border_from_inputs <- function(input, id_prefix, template_border = NULL) {
   }
 
   list(
-    color      = local_or_default(get_val("color"), NULL),
+    color = {
+      raw <- get_val("color")
+      if (is.null(raw) || !nzchar(raw)) {
+        NULL
+      } else {
+        sub("^#", "", raw)
+      }
+    },
     width      = local_or_default(get_val("width"), NULL),
     line_style = local_or_default(get_val("line_style"), NULL)
   )
@@ -174,7 +189,12 @@ row_style_ui <- function(id_prefix, label) {
     shiny::h4(label),
     shiny::fluidRow(
       shiny::column(6,
-        shiny::textInput(ns("background_color"), "Background color (hex)", value = ""),
+        colourpicker::colourInput(
+          ns("background_color"),
+          "Background color",
+          value = "#FFFFFF",
+          allowTransparent = TRUE
+        ),
         shiny::textInput(ns("row_height"), "Row height (e.g. auto, 10pt)", value = "auto"),
         shiny::selectInput(
           ns("vertical_alignment"),
@@ -232,7 +252,14 @@ row_style_from_inputs <- function(input, id_prefix, template_row = NULL) {
   borders <- template_row$borders %||% list()
 
   list(
-    background_color = local_or_default(get_val("background_color"), NULL),
+    background_color = {
+      raw_bg <- get_val("background_color")
+      if (is.null(raw_bg) || !nzchar(raw_bg)) {
+        NULL
+      } else {
+        sub("^#", "", raw_bg)
+      }
+    },
     row_height       = local_or_default(get_val("row_height"), "auto"),
     vertical_alignment = local_or_default(get_val("vertical_alignment"), "center"),
     text_orientation = local_or_default(get_val("text_orientation"), "horizontal"),
@@ -265,6 +292,8 @@ ui <- shiny::fluidPage(
       shiny::fileInput("uploaded_template", "Upload template JSON", accept = ".json"),
       shiny::actionButton("load_bundled", "Load bundled template"),
       shiny::actionButton("load_uploaded", "Load uploaded template"),
+      shiny::hr(),
+      shiny::actionButton("reset_template", "Reset JSON to initial"),
       shiny::hr(),
       shiny::downloadButton("download_template", "Download JSON")
     ),
@@ -372,7 +401,11 @@ ui <- shiny::fluidPage(
 
 server <- function(input, output, session) {
   # Current template (as list) used to seed UI and as a reference for unmapped fields
-  current_template <- shiny::reactiveVal(initial_template())
+  # Initialize both current and original templates from the same initial value
+  initial <- initial_template()
+  current_template <- shiny::reactiveVal(initial)
+  # Keep track of the original template used to seed the current editing session
+  original_template <- shiny::reactiveVal(initial)
 
   # Load bundled template
   shiny::observeEvent(input$load_bundled, {
@@ -380,6 +413,8 @@ server <- function(input, output, session) {
     name <- input$bundled_template %||% names(paths)[[1L]]
     path <- paths[[name]]
     tmpl <- load_template_file(path)
+    # When a new bundled template is loaded, reset both current and original
+    original_template(tmpl)
     current_template(tmpl)
   })
 
@@ -390,6 +425,16 @@ server <- function(input, output, session) {
       return()
     }
     tmpl <- load_template_file(file$datapath)
+    # When a new uploaded template is loaded, reset both current and original
+    original_template(tmpl)
+    current_template(tmpl)
+  })
+
+  # Reset JSON/editor state back to the original template for this session
+  shiny::observeEvent(input$reset_template, {
+    tmpl <- original_template()
+    # Force reactive invalidation even if template object is identical
+    current_template(NULL)
     current_template(tmpl)
   })
 
@@ -466,7 +511,14 @@ server <- function(input, output, session) {
     seed_border <- function(prefix, border) {
       ns <- function(x) paste0(prefix, "_", x)
       if (is.null(border)) return()
-      shiny::updateTextInput(session, ns("color"), value = local_or_default(border$color, ""))
+      colour_val <- local_or_default(border$color, "")
+      if (!is.null(colour_val) && nzchar(colour_val)) {
+        colourpicker::updateColourInput(
+          session,
+          ns("color"),
+          value = paste0("#", gsub("^#", "", colour_val))
+        )
+      }
       shiny::updateTextInput(session, ns("width"), value = local_or_default(border$width, ""))
       shiny::updateSelectInput(session, ns("line_style"), selected = local_or_default(border$line_style, "single"))
     }
@@ -502,7 +554,14 @@ server <- function(input, output, session) {
     seed_row <- function(prefix, row_style) {
       ns <- function(x) paste0(prefix, "_", x)
       if (is.null(row_style)) return()
-      shiny::updateTextInput(session, ns("background_color"), value = local_or_default(row_style$background_color, ""))
+      bg_val <- local_or_default(row_style$background_color, "")
+      if (!is.null(bg_val) && nzchar(bg_val)) {
+        colourpicker::updateColourInput(
+          session,
+          ns("background_color"),
+          value = paste0("#", gsub("^#", "", bg_val))
+        )
+      }
       shiny::updateTextInput(session, ns("row_height"), value = local_or_default(row_style$row_height, "auto"))
       shiny::updateSelectInput(session, ns("vertical_alignment"), selected = local_or_default(row_style$vertical_alignment, "center"))
       shiny::updateSelectInput(session, ns("text_orientation"), selected = local_or_default(row_style$text_orientation, "horizontal"))

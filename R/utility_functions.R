@@ -267,9 +267,25 @@ utils::globalVariables(
   text_width <- function(x) {
     nchar(x, type = "width", allowNA = TRUE, keepNA = FALSE)
   }
-
-  # longest line width (handles manual \n)
+ 
+  # longest line width (handles manual \n and basic HTML tags)
   max_line_width <- function(x) {
+    # Normalize HTML markup for width calculation:
+    # - Replace <p>, </p> and <br> tags with newline characters
+    # - Strip all other HTML tags so only visible text contributes to width
+    if (length(x)) {
+      x <- as.character(x)
+      # Treat <br>, <br/>, <br /> as line breaks
+      x <- gsub("(?i)<\\s*br\\s*/?>", "\n", x, perl = TRUE)
+      # Treat <p> and </p> (with optional attributes/whitespace) as line breaks
+      x <- gsub("(?i)</?\\s*p\\b[^>]*>", "\n", x, perl = TRUE)
+      # Remove any remaining tags (formatting etc.) from width calculation
+      x <- gsub("(?i)<[^>]+>", "", x, perl = TRUE)
+      # Collapse multiple newlines and trim leading/trailing newlines
+      x <- gsub("\n{2,}", "\n", x, perl = TRUE)
+      x <- gsub("^\n+|\n+$", "", x, perl = TRUE)
+    }
+ 
     lines <- strsplit(x, "\n", fixed = TRUE)
     max(vapply(lines, function(l) {
       w <- text_width(l)
