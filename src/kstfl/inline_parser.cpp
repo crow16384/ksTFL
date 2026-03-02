@@ -85,7 +85,7 @@ static std::string extract_tag(const std::string& text, size_t& pos,
     if (pos >= text.size()) return "";
 
     // Skip '<'
-    size_t start = pos;
+    //size_t start = pos;
     if (text[pos] == '<') ++pos;
 
     // Check closing tag

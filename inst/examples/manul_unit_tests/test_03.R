@@ -1,61 +1,4 @@
-###TEST 03 Unit
-
-devtools::load_all()
-suppressPackageStartupMessages({
-  library(tidyr)
-  library(dplyr)
-  library(stringr)
-  library(tictoc)
-})
-
-source(file.path(getwd(), './inst/examples/manul_unit_tests/dummy_data.R')) ##sourcing dummy data definitions
-
-##paths
-out_dir  <- file.path(getwd(), "tmp", "output")
-dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
-meta_dir <- file.path(out_dir, "meta")
-dir.create(meta_dir, showWarnings = FALSE, recursive = TRUE)
-
-## =============================================================================
-## Helper: save + render a report in one step
-## =============================================================================
-save_and_render <- function(report, name, verbose = TRUE) {
-  docx_name <- paste0(name, ".docx")
-  
-  result <- save_report(
-    report,
-    docFileName = docx_name,
-    metaPath    = meta_dir,
-    prettify    = TRUE
-  )
-  
-  spec_path   <- file.path(meta_dir, result$spec_file)
-  output_path <- file.path(out_dir, docx_name)
-  
-  render_docx(
-    spec_json   = spec_path,
-    output_path = output_path,
-    verbose     = verbose
-  )
-  
-  cat(sprintf("  [OK] %s -> %s\n", name, output_path))
-  invisible(output_path)
-}
-
-
-#############################################
-##Common doc headers/footers
-tfl_reset_options()
-tfl_set_options(
-  add_header(c("Miracle Drug" , "CONFIDENTIAL", "KeyStat LLC.")),
-  add_footer(c("Test Outputs", "Page {PAGE} of {NUMPAGES}")),
-  add_footer(c("Program: test_03.R"))
-)
-###########################
-
-
-
-### TEST 03_01
+### TEST 03_01 ####
 spec_03_01 <- create_table(whodd_tbl) %>% 
   add_title(c("Listing 3.1 WHO Drug Data", "Safety Population")) %>% 
   add_title(c("(Test unit 03)"), styleRef = "font_italic") %>% 
@@ -66,11 +9,9 @@ spec_03_01 <- create_table(whodd_tbl) %>%
   define_cols(Preferred_Drug_Name, label = 'Description', colWidth = '1.5cm') 
   
 report_03_01 <- create_report(spec_03_01)
-save_and_render(report_03_01, "test_03_01")
+write_doc(report_03_01,"test_03_01")
 
-
-
-### TEST 03_02
+### TEST 03_02 ####
 tic()
 spec_03_02 <- create_table(big_listing) %>% 
   add_title(c("Listing 3.1 WHO Drug Data", "Safety Population")) %>% 
@@ -82,13 +23,10 @@ spec_03_02 <- create_table(big_listing) %>%
   define_cols(Preferred_Drug_Name, label = 'Description', colWidth = '5cm') 
 
 report_03_02 <- create_report(spec_03_02)
-save_and_render(report_03_02, "test_03_02",verbose = F)
+write_doc(report_03_02, "test_03_02",verbose = F)
 toc()
 
-
-
-### TEST 03_03
-
+### TEST 03_03 ####
 spec_03_03 <- create_table(stat_table_01) %>%
   set_page_style(
     page = p_page(
@@ -135,10 +73,9 @@ endpoint: composite of any death, any MI and any coronary revascularisation. BAR
   set_document(contentWidth = '70%')
 
 report_03_03 <- create_report(spec_03_03)
-save_and_render(report_03_03, "test_03_03")
+write_doc(report_03_03, "test_03_03")
 
-### TEST 03_04
-
+### TEST 03_04 ####
 spec_03_04 <- create_table(stat_table_02) %>%
   set_page_style(
     page = p_page(
@@ -191,11 +128,10 @@ spec_03_04 <- create_table(stat_table_02) %>%
   set_document(contentWidth = '95%') 
 
 report_03_04 <- create_report(spec_03_04)
-save_and_render(report_03_04, "test_03_04")
+write_doc(report_03_04, "test_03_04")
 
 
-
-### TEST 03_05 
+### TEST 03_05 ####
 spec_03_05 <- create_table(demography_tbl_01) %>% 
   add_title(c("Demographics Table", "Safety Population")) %>% 
   add_title(c("Third separate title"), styleRef = "font_italic") %>% 
@@ -217,10 +153,10 @@ spec_03_05 <- create_table(demography_tbl_01) %>%
 
 print(spec_03_05)
 report_03_05 <- create_report(spec_03_05)
-save_and_render(report_03_05, "test_03_05")
+write_doc(report_03_05, "test_03_05")
 
 
-### TEST 03_06 
+### TEST 03_06 ####   
 spec_03_06_a <- create_table(demography_tbl_01) %>% 
   add_title(c("Demographics Table", "Safety Population")) %>% 
   add_title(c("Third separate title"), styleRef = "font_italic") %>% 
@@ -246,45 +182,36 @@ spec_03_06_a <- create_table(demography_tbl_01) %>%
 spec_03_06 <- spec_03_06_a %>% set_page_style(docTemplate = 'Navy_Pro') 
 
 report_03_06 <- create_report(spec_03_06)
-save_and_render(report_03_06, "test_03_06")
+write_doc(report_03_06, "test_03_06")
 
-spec_03_07 <- spec_03_06_a %>% set_page_style(docTemplate = 'Classic_landscape') 
+#### Example 07 ####   
+spec_03_07 <- spec_03_06_a %>% set_page_style(docTemplate = 'Classic_landscape')
+create_report(spec_03_07) %>% write_doc("test_03_07")
 
-report_03_07 <- create_report(spec_03_07)
-save_and_render(report_03_07, "test_03_07")
-
+#### Example 08 ####   
 spec_03_08 <- spec_03_06_a %>% set_page_style(docTemplate = 'Listings') 
+create_report(spec_03_08) %>% write_doc("test_03_08")
 
-report_03_08 <- create_report(spec_03_08)
-save_and_render(report_03_08, "test_03_08")
-
+#### Example 09 ####   
 spec_03_09 <- spec_03_06_a %>% set_page_style(docTemplate = 'Regulatory_Arial') 
+create_report(spec_03_09) %>% write_doc("test_03_09")
 
-report_03_09 <- create_report(spec_03_09)
-save_and_render(report_03_09, "test_03_09")
-
+#### Example 10 ####   
 spec_03_10 <- spec_03_06_a %>% set_page_style(docTemplate = 'Sage_Report') 
+create_report(spec_03_10) %>% write_doc("test_03_10")
 
-report_03_10 <- create_report(spec_03_10)
-save_and_render(report_03_10, "test_03_10")
-
+#### Example 11 ####   
 spec_03_11 <- spec_03_06_a %>% set_page_style(docTemplate = 'Warm_Slate') 
+create_report(spec_03_11) %>% write_doc("test_03_11")
 
-report_03_11 <- create_report(spec_03_11)
-save_and_render(report_03_11, "test_03_11")
-
+#### Example 12 ####   
 spec_03_12 <- spec_03_06_a %>% set_page_style(docTemplate = 'Carbon_Dark') 
+create_report(spec_03_12) %>% write_doc("test_03_12")
 
-report_03_12 <- create_report(spec_03_12)
-save_and_render(report_03_12, "test_03_12")
-
+#### Example 13 ####   
 spec_03_13 <- spec_03_06_a %>% set_page_style(docTemplate = 'Graphite_Rule') 
+create_report(spec_03_13) %>% write_doc("test_03_13")
 
-report_03_13 <- create_report(spec_03_13)
-save_and_render(report_03_13, "test_03_13")
-
+#### Example 14 ####   
 spec_03_14 <- spec_03_06_a %>% set_page_style(docTemplate = 'Silver_Grid') 
-
-report_03_14 <- create_report(spec_03_14) 
-save_and_render(report_03_14, "test_03_14")
-
+create_report(spec_03_14) %>%write_doc("test_03_14")

@@ -2028,7 +2028,7 @@ void DocxEmitter::emit(
         // Create style resolver for this spec
         StyleResolver resolver(tmpl_, spec.spec_styles);
 
-        const auto& refs = spec_hdr_ftr_refs[spec_idx];
+        //const auto& refs = spec_hdr_ftr_refs[spec_idx];
 
         // ----- Emit section break for previous spec (not before first) -----
         if (spec_idx > 0) {

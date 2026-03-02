@@ -290,10 +290,19 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
 
   # Mark latest entry per doc_file
   idx$is_latest <- FALSE
+  # Parse ISO-8601 datetimes once to avoid numeric coercion warnings in which.max()
+  dt_parsed <- as.POSIXct(idx$datetime, format = "%Y-%m-%dT%H:%M:%S", tz = "UTC")
   for (doc in unique(idx$doc_file)) {
     rows <- which(idx$doc_file == doc)
-    # rows are already sorted newest-first for datetime sort
-    latest_row <- rows[which.max(idx$datetime[rows])]
+    if (length(rows) == 0) next
+    rows_dt <- dt_parsed[rows]
+    # Prefer the row with the latest parsed datetime; if all are NA, fall back to
+    # the first row for that document (which respects the chosen sort order).
+    if (all(is.na(rows_dt))) {
+      latest_row <- rows[1L]
+    } else {
+      latest_row <- rows[which.max(rows_dt)]
+    }
     idx$is_latest[latest_row] <- TRUE
   }
 

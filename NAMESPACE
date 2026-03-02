@@ -69,6 +69,7 @@ export(
   create_report,
   save_report,
   render_docx,
+  write_doc,
 
   # Meta folder management
   list_reports,
