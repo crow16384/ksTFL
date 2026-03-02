@@ -7,7 +7,7 @@
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <fstream>
-#include <iostream>
+#include <Rcpp.h>
 #include <sstream>
 
 using json = nlohmann::json;
@@ -882,7 +882,7 @@ static DataTable parse_data_internal(const json& root) {
     for (const auto& col_name : dt.col_names) {
         auto col_it = dt.columns.find(col_name);
         if (col_it != dt.columns.end() && col_it->second.size() != dt.n_rows) {
-            std::cerr << "[ksTFL] WARNING: Column '" << col_name
+            Rcpp::Rcerr << "[ksTFL] WARNING: Column '" << col_name
                       << "' has " << col_it->second.size()
                       << " rows but expected " << dt.n_rows
                       << ". Data may be ragged.\n";

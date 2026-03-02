@@ -21,7 +21,7 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <Rcpp.h>
 
 namespace fs = std::filesystem;
 
@@ -173,7 +173,7 @@ const CachedFace& FontCache::get_face(const FaceKey& key) {
 
     if (path.empty() && key.name != FALLBACK_FONT_NAME) {
         // Fallback to LiberationSans with matching style
-        std::cerr << "[ksTFL] WARNING: Font '" << key.name
+        Rcpp::Rcerr << "[ksTFL] WARNING: Font '" << key.name
                   << "' not found in inst/fonts/. Falling back to "
                   << FALLBACK_FONT_NAME << ".\n";
         FaceKey fallback_key{FALLBACK_FONT_NAME, key.bold, key.italic};

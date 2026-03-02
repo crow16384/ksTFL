@@ -8,7 +8,7 @@
 #include "inline_parser.h"
 #include <algorithm>
 #include <cmath>
-#include <iostream>
+#include <Rcpp.h>
 #include <unordered_set>
 
 namespace kstfl {
@@ -401,7 +401,7 @@ PaginationResult Paginator::paginate(
                 // Warn when a single row is taller than the available page body
                 // height — it will be placed on its own page but may overflow.
                 if (used_height.emu == 0 && rh > available) {
-                    std::cerr << "[ksTFL] WARNING: Row " << row_idx
+                    Rcpp::Rcerr << "[ksTFL] WARNING: Row " << row_idx
                               << " height (" << rh.to_pt() << "pt) exceeds available"
                               << " page body height (" << available.to_pt() << "pt)."
                               << " The row will be split across pages by Word.\n";

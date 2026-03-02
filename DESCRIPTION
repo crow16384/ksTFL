@@ -2,35 +2,48 @@ Package: ksTFL
 Type: Package
 Title: ksTFL Framework
 Version: 0.1.0
-Authors@R: person("Igor", "Aleschenkov", email = "igor.aleschenkov@keystatsolutions.com", role = c("aut", "cre"))
+Authors@R:
+    c(
+    person("Igor", "Aleschenkov",
+           email = "igor.aleschenkov@keystatsolutions.com",
+           role = c("aut", "cre", "cph")),
+    person("Vladimir", "Larchenko",
+           email = "vladimir.larchenko@keystatsolutions.com",
+           role = c("aut", "cph"))
+    )
+Author: Igor Aleschenkov [aut, cre, cph],
+    Vladimir Larchenko [aut, cph]
 Maintainer: Igor Aleschenkov <igor.aleschenkov@keystatsolutions.com>
-Description: Library provides framework for generation of clinical TFLs. The purpose is to provide functionality to prepare metadata that describes TFL and pass this metadata together with data to the C++ rendering engine to generate final DOCX documents with styles and deterministic pagination.
+Description: Library provides framework for generation of clinical TFLs. The
+    purpose is to provide functionality to prepare metadata that describes TFL
+    and pass this metadata together with data to the C++ rendering engine to
+    generate final DOCX documents with styles and deterministic pagination.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Imports:
-	cli,
-	checkmate,
-	jsonlite,
-	purrr,
-	rlang,
-	tidyselect,
-	utils,
-	digest,
-	htmltools,
-	rstudioapi,
-	Rcpp (>= 1.0.0)
+    cli,
+    checkmate,
+    jsonlite,
+    purrr,
+    rlang,
+    tidyselect,
+    utils,
+    digest,
+    htmltools,
+    rstudioapi,
+    Rcpp (>= 1.0.0)
 LinkingTo: Rcpp
 SystemRequirements:
-	C++20,
-	HarfBuzz (>= 2.0),
-	FreeType (>= 2.0),
-	minizip (zlib)
+    C++20,
+    GNU make,
+    HarfBuzz (>= 2.0),
+    FreeType (>= 2.0),
+    minizip (zlib)
 Suggests:
-	testthat (>= 3.0.0),
-	knitr,
-	rmarkdown,
-	ggplot2
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    ggplot2
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

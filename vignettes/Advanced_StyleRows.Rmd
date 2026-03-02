@@ -4,6 +4,7 @@ author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
+    dev: ragg_png
     toc: true
     toc_depth: 3
 vignette: >
@@ -16,7 +17,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE
+  eval = FALSE,
+  dev = "ragg_png"
 )
 ```
 
@@ -341,7 +343,7 @@ Insert section headers:
 ```{r c-addrow-header}
 spec <- create_table(data_sales) |>
   add_style("section_header",
-            s_font(bold = TRUE, font_size = 12),
+            s_font(bold = TRUE, font_size = "12pt"),
             s_table_style(background_color = "#4682B4")) |>
   # If you want a header text inserted, precompute a helper column and use
   # `value_from` to copy that single column into the inserted row. Here we
@@ -576,7 +578,7 @@ spec <- create_table(data) |>
 ```{r pattern-grouped}
 spec <- create_table(data_groups) |>
   add_style("group_header", 
-            s_font(bold = TRUE, font_size = 11),
+            s_font(bold = TRUE, font_size = "11pt"),
             s_table_style(background_color = "#D0D0D0")) |>
   # Insert header row before each new group
   compute_cols(
@@ -726,9 +728,11 @@ Each spec can have independent `compute_cols()` logic:
 
 ```{r integrate-report}
 spec1 <- create_table(data[1:10, ]) |>
+  add_style("elderly", s_font(bold = TRUE)) |>
   compute_cols(age > 60, c_style(age, styleRef = "elderly"))
 
 spec2 <- create_table(data[11:20, ]) |>
+  add_style("success", s_font(bold = TRUE)) |>
   compute_cols(response == "CR", c_style(response, styleRef = "success"))
 
 report <- create_report(spec1, spec2)

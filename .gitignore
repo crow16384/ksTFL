@@ -1,11 +1,10 @@
 # R package build artifacts
+*.Rcheck/
+src/symbols.rds
 .Rhistory
 .RData
 .Rproj.user/
 *.Rproj
-
-# Generated documentation
-man/*.Rd
 
 # Build outputs
 *.tar.gz

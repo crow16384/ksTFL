@@ -1,7 +1,9 @@
 ---
 title: "Reporting Examples — ksTFL (v3)"
 author: "ksTFL Team"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    dev: ragg_png
 vignette: >
   %\VignetteIndexEntry{Reporting Examples — ksTFL (v3)}
   %\VignetteEngine{knitr::rmarkdown}

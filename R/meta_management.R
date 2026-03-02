@@ -3,18 +3,18 @@
 ## Three public functions for working with the JSON artefacts produced by
 ## save_report():
 ##
-##   list_reports()  – scan a meta folder and return a summary data frame
-##   replay_report() – re-render a DOCX from stored JSON without any R objects
-##   clean_reports() – remove obsolete / orphaned JSON files
+##   list_reports()  - scan a meta folder and return a summary data frame
+##   replay_report() - re-render a DOCX from stored JSON without any R objects
+##   clean_reports() - remove obsolete / orphaned JSON files
 ##
 ## Internal helpers:
-##   .read_spec_index()        – parse _index.json (if present) or scan folder
-##   .normalize_data_refs()    – ensure data_refs is always a list-column
-##   .write_spec_index()       – write an index data frame to _index.json
-##   .update_spec_index()      – append / update a row in _index.json
-##   .collect_spec_meta()      – read _metadata + dataRef from one spec JSON
-##   .identify_obsolete_specs()– split index into obsolete / surviving specs
-##   .collect_live_refs()      – gather data + image refs from surviving specs
+##   .read_spec_index()        - parse _index.json (if present) or scan folder
+##   .normalize_data_refs()    - ensure data_refs is always a list-column
+##   .write_spec_index()       - write an index data frame to _index.json
+##   .update_spec_index()      - append / update a row in _index.json
+##   .collect_spec_meta()      - read _metadata + dataRef from one spec JSON
+##   .identify_obsolete_specs()- split index into obsolete / surviving specs
+##   .collect_live_refs()      - gather data + image refs from surviving specs
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -181,7 +181,7 @@
 }
 
 #' Split an index into obsolete and surviving spec files
-#' @return list(obsolete, surviving) — character vectors of spec_file names
+#' @return list(obsolete, surviving) - character vectors of spec_file names
 #' @keywords internal
 #' @noRd
 .identify_obsolete_specs <- function(idx, keep_versions) {
@@ -206,7 +206,7 @@
 #'
 #' Reads each surviving spec JSON once and returns both data JSON refs and
 #' image asset refs.
-#' @return list(data_refs, img_refs) — character vectors of filenames
+#' @return list(data_refs, img_refs) - character vectors of filenames
 #' @keywords internal
 #' @noRd
 .collect_live_refs <- function(meta_dir, surviving_specs) {
@@ -255,7 +255,7 @@
 #'   \item{doc_file}{Target DOCX filename stored at save time.}
 #'   \item{datetime}{ISO-8601 timestamp of when \code{save_report()} was called.}
 #'   \item{n_specs}{Number of TFL specs inside the JSON.}
-#'   \item{is_latest}{Logical — \code{TRUE} for the most-recent entry per
+#'   \item{is_latest}{Logical - \code{TRUE} for the most-recent entry per
 #'     \code{doc_file}; older entries are \code{FALSE} (obsolete candidates).}
 #'   \item{data_refs}{Character vector of data JSON base-names referenced by
 #'     this spec (without \code{.json} extension).}
@@ -319,13 +319,13 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
 #' Re-render a DOCX from Stored JSON
 #'
 #' Re-renders a DOCX document entirely from JSON files stored in the meta
-#' folder — no R spec objects or data frames required.  Useful for
+#' folder - no R spec objects or data frames required.  Useful for
 #' reproducing outputs after code changes or on a different machine.
 #'
 #' @param spec_json Character string. Either:
 #'   \itemize{
 #'     \item A full path to a spec JSON file, or
-#'     \item A \code{doc_file} name (e.g. \code{"test_01.docx"}) — the most
+#'     \item A \code{doc_file} name (e.g. \code{"test_01.docx"}) - the most
 #'       recent spec for that document is used.
 #'   }
 #' @param meta_dir Character string. Path to the meta folder.  Required when
@@ -392,7 +392,7 @@ replay_report <- function(spec_json,
 #' @keywords internal
 #' @noRd
 .resolve_spec_path <- function(spec_json, meta_dir) {
-  # Full path that exists — use directly
+  # Full path that exists - use directly
   if (file.exists(spec_json)) return(normalizePath(spec_json))
 
   if (is.null(meta_dir)) {
@@ -410,7 +410,7 @@ replay_report <- function(spec_json,
     if (file.exists(candidate)) return(normalizePath(candidate))
   }
 
-  # doc_file name — find latest spec for that document
+  # doc_file name - find latest spec for that document
   idx <- .read_spec_index(meta_dir)
   matches <- idx[idx$doc_file == spec_json, , drop = FALSE]
   if (nrow(matches) == 0) {
@@ -429,10 +429,10 @@ replay_report <- function(spec_json,
 #'
 #' Removes two categories of stale files from a meta folder:
 #' \enumerate{
-#'   \item \strong{Obsolete spec JSONs} — older versions of a document when
+#'   \item \strong{Obsolete spec JSONs} - older versions of a document when
 #'     multiple spec JSONs exist for the same \code{doc_file}.  Only the
 #'     most-recent spec per document is kept.
-#'   \item \strong{Orphaned data JSONs} — data JSON files that are no longer
+#'   \item \strong{Orphaned data JSONs} - data JSON files that are no longer
 #'     referenced by any surviving spec JSON.
 #' }
 #'
@@ -499,7 +499,7 @@ clean_reports <- function(meta_dir,
   n_total <- n_obs + n_data + n_img
 
   if (n_total == 0) {
-    cli::cli_alert_success("Meta folder is clean — nothing to remove.")
+    cli::cli_alert_success("Meta folder is clean - nothing to remove.")
     return(invisible(list(obsolete_specs = character(0),
                           orphaned_data  = character(0),
                           orphaned_imgs  = character(0),

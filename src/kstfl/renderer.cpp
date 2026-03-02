@@ -17,7 +17,7 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <Rcpp.h>
 
 namespace fs = std::filesystem;
 
@@ -94,7 +94,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
                                       const std::string& output_path,
                                       const std::string& data_dir) {
     if (config_.verbose) {
-        std::cerr << "[ksTFL] Starting render pipeline...\n";
+        Rcpp::Rcerr << "[ksTFL] Starting render pipeline...\n";
     }
 
     // -----------------------------------------------------------------------
@@ -102,7 +102,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
     // -----------------------------------------------------------------------
 
     if (config_.verbose) {
-        std::cerr << "[ksTFL] Phase 1: Parsing JSON inputs...\n";
+        Rcpp::Rcerr << "[ksTFL] Phase 1: Parsing JSON inputs...\n";
     }
 
     // Parse template
@@ -132,12 +132,12 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
             std::string data_json = read_file_to_string(data_path);
             data_tables[spec.data_ref] = parse_data_json_string(data_json);
             if (config_.verbose) {
-                std::cerr << "[ksTFL]   Loaded data: " << spec.data_ref
+                Rcpp::Rcerr << "[ksTFL]   Loaded data: " << spec.data_ref
                           << " (" << data_tables[spec.data_ref].n_rows << " rows)\n";
             }
         } else {
             if (config_.verbose) {
-                std::cerr << "[ksTFL]   WARNING: Data file not found: " << data_path << "\n";
+                Rcpp::Rcerr << "[ksTFL]   WARNING: Data file not found: " << data_path << "\n";
             }
         }
     }
@@ -158,14 +158,14 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
             if (fs::exists(candidate)) {
                 spec.figure_path = candidate;
                 if (config_.verbose) {
-                    std::cerr << "[ksTFL]   Loaded figure: " << spec.data_ref
+                    Rcpp::Rcerr << "[ksTFL]   Loaded figure: " << spec.data_ref
                               << " -> " << candidate << "\n";
                 }
                 break;
             }
         }
         if (spec.figure_path.empty() && config_.verbose) {
-            std::cerr << "[ksTFL]   WARNING: Figure file not found for dataRef: "
+            Rcpp::Rcerr << "[ksTFL]   WARNING: Figure file not found for dataRef: "
                       << spec.data_ref << "\n";
         }
     }
@@ -175,7 +175,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
     // -----------------------------------------------------------------------
 
     if (config_.verbose) {
-        std::cerr << "[ksTFL] Phase 2: Initializing font cache...\n";
+        Rcpp::Rcerr << "[ksTFL] Phase 2: Initializing font cache...\n";
     }
 
     FontCache font_cache;
@@ -203,45 +203,45 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
 
     for (auto& spec : doc.specs) {
         if (config_.verbose) {
-            std::cerr << "[ksTFL] Processing spec: " << spec.key << "\n";
+            Rcpp::Rcerr << "[ksTFL] Processing spec: " << spec.key << "\n";
         }
 
         // --- Phase 3a: Resolve styles and page config (spec §22.2) ---
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Phase 3a: Resolving styles...\n";
+            Rcpp::Rcerr << "[ksTFL]   Phase 3a: Resolving styles...\n";
         }
         StyleResolver resolver(tmpl, spec.spec_styles);
 
         PageConfig page_config = resolver.resolve_page_config(spec);
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Page config resolved, usable_width="
+            Rcpp::Rcerr << "[ksTFL]   Page config resolved, usable_width="
                       << page_config.usable_width().emu << " emu\n";
         }
         Length usable_width = page_config.usable_width();
         Length table_width = resolver.resolve_table_width(spec, usable_width);
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Table width=" << table_width.emu
+            Rcpp::Rcerr << "[ksTFL]   Table width=" << table_width.emu
                       << " emu, columns=" << spec.columns.size() << "\n";
         }
 
         // Resolve column widths
         resolver.resolve_column_widths(spec.columns, table_width);
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Column widths resolved\n";
+            Rcpp::Rcerr << "[ksTFL]   Column widths resolved\n";
         }
 
         if (spec.document.doc_type != DocType::Table || !spec.document.has_data) {
             // No table to paginate (Text or Figure)
             if (config_.verbose) {
-                std::cerr << "[ksTFL]   Non-table spec, skipping model/paginate\n";
+                Rcpp::Rcerr << "[ksTFL]   Non-table spec, skipping model/paginate\n";
             }
             continue;
         }
 
         // --- Phase 3b: Build logical table (spec §22.3) ---
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Phase 3b: Building logical table...\n";
-            std::cerr << "[ksTFL]     data_ref='" << spec.data_ref << "'\n";
+            Rcpp::Rcerr << "[ksTFL]   Phase 3b: Building logical table...\n";
+            Rcpp::Rcerr << "[ksTFL]     data_ref='" << spec.data_ref << "'\n";
         }
         DataTable* data = nullptr;
         auto dt_it = data_tables.find(spec.data_ref);
@@ -251,19 +251,19 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
 
         if (!data) {
             if (config_.verbose) {
-                std::cerr << "[ksTFL]   WARNING: No data for spec " << spec.key << "\n";
+                Rcpp::Rcerr << "[ksTFL]   WARNING: No data for spec " << spec.key << "\n";
             }
             continue;
         }
 
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Data loaded: " << data->n_rows << " rows, "
+            Rcpp::Rcerr << "[ksTFL]   Data loaded: " << data->n_rows << " rows, "
                       << data->columns.size() << " data columns\n";
-            std::cerr << "[ksTFL]   Calling LogicalTableBuilder::build...\n";
+            Rcpp::Rcerr << "[ksTFL]   Calling LogicalTableBuilder::build...\n";
         }
         auto table_result = LogicalTableBuilder::build(spec, *data);
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Logical table built: " << table_result.rows.size()
+            Rcpp::Rcerr << "[ksTFL]   Logical table built: " << table_result.rows.size()
                       << " rows, " << table_result.header_grid.rows.size() << " header rows\n";
         }
         auto& rows = table_result.rows;
@@ -271,7 +271,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
 
         // --- Phase 3c: Measure (spec §22.4) ---
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Phase 3c: Measuring...\n";
+            Rcpp::Rcerr << "[ksTFL]   Phase 3c: Measuring...\n";
         }
 
         // Measure header grid cells
@@ -300,37 +300,37 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         // Row heights are computed once inside Paginator::paginate() and
         // stored back into row.measured_height (single source of truth).
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Phase 3d: Paginating...\n";
+            Rcpp::Rcerr << "[ksTFL]   Phase 3d: Paginating...\n";
         }
         PaginationResult pagination = Paginator::paginate(
             spec, rows, header_grid, page_config, table_width,
             measurer, resolver);
 
         if (config_.verbose) {
-            std::cerr << "[ksTFL]   Paginated: " << pagination.total_pages
+            Rcpp::Rcerr << "[ksTFL]   Paginated: " << pagination.total_pages
                       << " total pages across "
                       << pagination.segments.size() << " segments\n";
 
             // Detailed page geometry diagnostics
-            std::cerr << "[ksTFL]   Page geometry: "
+            Rcpp::Rcerr << "[ksTFL]   Page geometry: "
                       << "page_h=" << page_config.page_height().to_pt() << "pt"
                       << " top=" << page_config.margins.top.to_pt() << "pt"
                       << " bot=" << page_config.margins.bottom.to_pt() << "pt"
                       << " usable_h=" << page_config.usable_height().to_pt() << "pt"
                       << "\n";
-            std::cerr << "[ksTFL]   Header grid: total_h=" << header_grid.total_height.to_pt() << "pt"
+            Rcpp::Rcerr << "[ksTFL]   Header grid: total_h=" << header_grid.total_height.to_pt() << "pt"
                       << " rows=" << header_grid.rows.size();
             for (size_t i = 0; i < header_grid.row_heights.size(); ++i) {
-                std::cerr << " rh[" << i << "]=" << header_grid.row_heights[i].to_pt() << "pt";
+                Rcpp::Rcerr << " rh[" << i << "]=" << header_grid.row_heights[i].to_pt() << "pt";
             }
-            std::cerr << "\n";
+            Rcpp::Rcerr << "\n";
 
             // Show first 5 body row heights
-            std::cerr << "[ksTFL]   Body row heights (first 5): ";
+            Rcpp::Rcerr << "[ksTFL]   Body row heights (first 5): ";
             for (size_t i = 0; i < 5 && i < rows.size(); ++i) {
-                std::cerr << "[" << i << "]=" << rows[i].measured_height.to_pt() << "pt ";
+                Rcpp::Rcerr << "[" << i << "]=" << rows[i].measured_height.to_pt() << "pt ";
             }
-            std::cerr << "\n";
+            Rcpp::Rcerr << "\n";
 
             // Per-page details (first 3 pages)
             for (const auto& seg : pagination.segments) {
@@ -346,20 +346,20 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
                     if (p.is_last_page) {
                         total_content = total_content + p.footnotes_height;
                     }
-                    std::cerr << "[ksTFL]   Page " << p.page_number
+                    Rcpp::Rcerr << "[ksTFL]   Page " << p.page_number
                               << ": rows[" << p.first_row << ".." << p.last_row << "]"
                               << " nrows=" << (p.last_row - p.first_row + 1)
                               << " body_h=" << body_h.to_pt() << "pt"
                               << " titles=" << p.has_titles
                               << "\n";
-                    std::cerr << "[ksTFL]     titles_h=" << p.titles_height.to_pt() << "pt"
+                    Rcpp::Rcerr << "[ksTFL]     titles_h=" << p.titles_height.to_pt() << "pt"
                               << " sub_h=" << p.subtitles_height.to_pt() << "pt"
                               << " hdr_tbl_h=" << p.table_header_height.to_pt() << "pt"
                               << " hdr_sec_h=" << p.header_section_height.to_pt() << "pt"
                               << " ftr_sec_h=" << p.footer_section_height.to_pt() << "pt"
                               << " fn_h=" << p.footnotes_height.to_pt() << "pt"
                               << "\n";
-                    std::cerr << "[ksTFL]     total_content=" << total_content.to_pt() << "pt"
+                    Rcpp::Rcerr << "[ksTFL]     total_content=" << total_content.to_pt() << "pt"
                               << " usable=" << page_config.usable_height().to_pt() << "pt"
                               << " slack=" << (page_config.usable_height() - total_content).to_pt() << "pt"
                               << "\n";
@@ -383,22 +383,22 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
 
             if (!dedupe_indices.empty()) {
                 if (config_.verbose) {
-                    std::cerr << "[ksTFL]   Dedupe columns: ";
+                    Rcpp::Rcerr << "[ksTFL]   Dedupe columns: ";
                     for (size_t di : dedupe_indices) {
-                        std::cerr << di << "(" << spec.columns[di].id << ") ";
+                        Rcpp::Rcerr << di << "(" << spec.columns[di].id << ") ";
                     }
-                    std::cerr << "\n";
+                    Rcpp::Rcerr << "\n";
                 }
                 size_t restorations = 0;
                 for (const auto& seg : pagination.segments) {
                     if (config_.verbose) {
-                        std::cerr << "[ksTFL]   Segment " << seg.segment_index
+                        Rcpp::Rcerr << "[ksTFL]   Segment " << seg.segment_index
                                   << ": " << seg.pages.size() << " pages\n";
                     }
                     for (size_t pi = 1; pi < seg.pages.size(); ++pi) {
                         const auto& pg = seg.pages[pi];
                         if (config_.verbose) {
-                            std::cerr << "[ksTFL]     Page " << pi
+                            Rcpp::Rcerr << "[ksTFL]     Page " << pi
                                       << ": rows [" << pg.first_row
                                       << ".." << pg.last_row << "]\n";
                         }
@@ -408,13 +408,13 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
                             if (rows[ri].type != LogicalRowType::DataRow) continue;
                             auto& row = rows[ri];
                             if (config_.verbose) {
-                                std::cerr << "[ksTFL]     First DataRow at " << ri
+                                Rcpp::Rcerr << "[ksTFL]     First DataRow at " << ri
                                           << ", cells=" << row.cells.size() << ":";
                                 for (size_t ci = 0; ci < row.cells.size() && ci < 4; ++ci) {
-                                    std::cerr << " [" << ci << "]='"
+                                    Rcpp::Rcerr << " [" << ci << "]='"
                                               << row.cells[ci].text.substr(0, 20) << "'";
                                 }
-                                std::cerr << "\n";
+                                Rcpp::Rcerr << "\n";
                             }
                             for (size_t col_idx : dedupe_indices) {
                                 if (col_idx >= row.cells.size()) continue;
@@ -429,7 +429,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
                                             prev.cells[col_idx].text;
                                         restorations++;
                                         if (config_.verbose) {
-                                            std::cerr << "[ksTFL]       Restored col "
+                                            Rcpp::Rcerr << "[ksTFL]       Restored col "
                                                       << col_idx << " = '"
                                                       << prev.cells[col_idx].text << "'\n";
                                         }
@@ -442,7 +442,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
                     }
                 }
                 if (config_.verbose) {
-                    std::cerr << "[ksTFL]   Dedupe: " << restorations
+                    Rcpp::Rcerr << "[ksTFL]   Dedupe: " << restorations
                               << " values restored at page boundaries\n";
                 }
             }
@@ -458,7 +458,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
     // -----------------------------------------------------------------------
 
     if (config_.verbose) {
-        std::cerr << "[ksTFL] Phase 4: Emitting DOCX...\n";
+        Rcpp::Rcerr << "[ksTFL] Phase 4: Emitting DOCX...\n";
     }
 
     DocxEmitter emitter(tmpl, config_);
@@ -472,10 +472,10 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
     }
 
     if (config_.verbose) {
-        std::cerr << "[ksTFL] Render complete: " << output_path << "\n";
+        Rcpp::Rcerr << "[ksTFL] Render complete: " << output_path << "\n";
     }
     if (config_.verbose) {
-        std::cerr << "[ksTFL] Pages produced: " << total_pages << "\n";
+        Rcpp::Rcerr << "[ksTFL] Pages produced: " << total_pages << "\n";
     }
 
     return total_pages;

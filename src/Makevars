@@ -1,4 +1,4 @@
-## ksTFL C++ renderer — Makevars for Linux/macOS
+## ksTFL C++ renderer - Makevars for Linux/macOS
 ## Dependencies: HarfBuzz, FreeType, minizip-ng (linked statically or via pkg-config)
 
 CXX_STD = CXX20
@@ -10,7 +10,7 @@ PKG_CPPFLAGS = -I../inst/include -I./vendor \
 PKG_LIBS = $(shell pkg-config --libs harfbuzz freetype2 minizip 2>/dev/null) \
     $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
-## Source files — renderer core + Rcpp bindings + C++ tests
+## Source files - renderer core + Rcpp bindings + C++ tests
 SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/units.cpp \
     kstfl/xml_writer.cpp \
@@ -25,4 +25,16 @@ SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/docx_emitter.cpp \
     kstfl/renderer.cpp
 
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS = init.o rcpp_bindings.o RcppExports.o cpp_tests.o \
+    kstfl/units.o \
+    kstfl/xml_writer.o \
+    kstfl/json_parser.o \
+    kstfl/style_resolver.o \
+    kstfl/inline_parser.o \
+    kstfl/font_cache.o \
+    kstfl/text_measurer.o \
+    kstfl/logical_table.o \
+    kstfl/paginator.o \
+    kstfl/zip_writer.o \
+    kstfl/docx_emitter.o \
+    kstfl/renderer.o

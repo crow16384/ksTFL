@@ -8,7 +8,7 @@
 #include "docx_emitter.h"
 #include "inline_parser.h"
 #include <algorithm>
-#include <iostream>
+#include <Rcpp.h>
 #include <sstream>
 #include <cmath>
 #include <cstring>
@@ -1448,7 +1448,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
     // and referenced via <w:sectPr> section properties.
 
     if (config_.verbose) {
-        std::cerr << "[ksTFL] emit_page: page_num=" << page.page_number
+        Rcpp::Rcerr << "[ksTFL] emit_page: page_num=" << page.page_number
                   << " first_row=" << page.first_row
                   << " last_row=" << page.last_row
                   << " has_titles=" << page.has_titles
@@ -1457,11 +1457,11 @@ void DocxEmitter::emit_page(XmlWriter& w,
                   << " is_last=" << page.is_last_page
                   << "\n";
         if (page.first_row < rows.size() && !rows[page.first_row].cells.empty()) {
-            std::cerr << "[ksTFL]   first_row cells:";
+            Rcpp::Rcerr << "[ksTFL]   first_row cells:";
             for (size_t ci = 0; ci < rows[page.first_row].cells.size() && ci < 4; ++ci) {
-                std::cerr << " [" << ci << "]='" << rows[page.first_row].cells[ci].text.substr(0, 20) << "'";
+                Rcpp::Rcerr << " [" << ci << "]='" << rows[page.first_row].cells[ci].text.substr(0, 20) << "'";
             }
-            std::cerr << "\n";
+            Rcpp::Rcerr << "\n";
         }
     }
 
