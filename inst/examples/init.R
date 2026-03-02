@@ -17,14 +17,15 @@ cat("Output directory:", out_dir, "\n")
 ## =============================================================================
 ## Helper: save + render a report in one step                               ####
 ## =============================================================================
-save_and_render <- function(report, name, verbose = TRUE) {
+save_and_render <- function(report, name, verbose = TRUE, toc=F) {
   docx_name <- paste0(name, ".docx")
 
   result <- save_report(
     report,
     docFileName = docx_name,
     metaPath    = meta_dir,
-    prettify    = TRUE
+    prettify    = TRUE,
+    insertTOC = toc
   )
 
   spec_path   <- file.path(meta_dir, result$spec_file)

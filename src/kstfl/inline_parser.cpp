@@ -271,4 +271,21 @@ ParsedCell parse_inline_markup(const std::string& text) {
     return cell;
 }
 
+// ---------------------------------------------------------------------------
+// Plain text extraction (strip all inline markup)
+// ---------------------------------------------------------------------------
+
+std::string get_plain_text(const std::string& text) {
+    ParsedCell cell = parse_inline_markup(text);
+    std::string out;
+    for (const auto& para : cell.paragraphs) {
+        for (const auto& run : para.runs) {
+            for (char c : run.text) {
+                out += (c == '\n') ? ' ' : c;
+            }
+        }
+    }
+    return out;
+}
+
 }  // namespace kstfl

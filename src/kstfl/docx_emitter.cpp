@@ -216,7 +216,7 @@ std::string DocxEmitter::emit_document_rels(const TFLDocument& doc,
 // word/styles.xml
 // ---------------------------------------------------------------------------
 
-std::string DocxEmitter::emit_styles() const {
+std::string DocxEmitter::emit_styles(std::optional<int> toc_tab_pos_twips) const {
     XmlWriter w;
     w.write_declaration();
     w.start_element("w:styles");
@@ -279,6 +279,38 @@ std::string DocxEmitter::emit_styles() const {
     w.element_with_attr("w:name", "w:val", "Normal");
     w.end_element();
 
+    // TOC 1–9 styles: required for Word to render TC-field-based TOC entries.
+    // Without these styles Word may report "No table of contents entries found"
+    // even when TC fields are present and correctly formed.
+    // Tab position for right-aligned page numbers: use first section's content width
+    // when available so TOC spans full width for any page size/orientation; else 15840 twips.
+    const int toc_tab_twips = toc_tab_pos_twips.value_or(15840);
+    for (int level = 1; level <= 9; ++level) {
+        std::string style_id = "TOC" + std::to_string(level);
+        std::string style_name = "toc " + std::to_string(level);
+        int indent_twips = (level - 1) * 360;  // 0.25in per level
+        w.start_element("w:style");
+        w.attribute("w:type", "paragraph");
+        w.attribute("w:styleId", style_id);
+        w.element_with_attr("w:name", "w:val", style_name);
+        w.element_with_attr("w:basedOn", "w:val", "Normal");
+        w.start_element("w:pPr");
+        if (indent_twips > 0) {
+            w.start_element("w:ind");
+            w.attribute("w:left", std::to_string(indent_twips));
+            w.end_element();
+        }
+        w.start_element("w:tabs");
+        w.start_element("w:tab");
+        w.attribute("w:val", "right");
+        w.attribute("w:leader", "dot");
+        w.attribute("w:pos", std::to_string(toc_tab_twips));
+        w.end_element();
+        w.end_element();  // w:tabs
+        w.end_element();  // w:pPr
+        w.end_element();  // w:style
+    }
+
     w.end_element();  // w:styles
     return w.str();
 }
@@ -301,6 +333,12 @@ std::string DocxEmitter::emit_settings() const {
     w.attribute("w:uri", "http://schemas.microsoft.com/office/word");
     w.attribute("w:val", "15");
     w.end_element();
+    w.end_element();
+
+    // Do not update fields when the document is opened (avoids the "fields that may
+    // refer to other files" prompt for TOC and other fields).
+    w.start_element("w:updateFields");
+    w.attribute("w:val", "false");
     w.end_element();
 
     // Widow/orphan control
@@ -654,15 +692,19 @@ void DocxEmitter::emit_parsed_paragraph(XmlWriter& w,
         emit_para_props(w, base_style.paragraph.value());
     }
 
+    emit_parsed_paragraph_runs(w, para, base_style);
+    w.end_element();  // w:p
+}
+
+void DocxEmitter::emit_parsed_paragraph_runs(XmlWriter& w,
+                                               const ParsedParagraph& para,
+                                               const StyleDef& base_style) const {
     FontProps base_font = base_style.font.value_or(FontProps{});
 
     for (const auto& run : para.runs) {
         w.start_element("w:r");
         emit_run_props(w, base_font, run.style);
 
-        // Check for line breaks in text
-        // The inline parser should have handled <br> tags, but we still
-        // need to emit w:br for them.
         if (run.text == "\n") {
             w.self_closing_element("w:br");
         } else {
@@ -671,8 +713,6 @@ void DocxEmitter::emit_parsed_paragraph(XmlWriter& w,
 
         w.end_element();  // w:r
     }
-
-    w.end_element();  // w:p
 }
 
 // ---------------------------------------------------------------------------
@@ -701,7 +741,27 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
             if (i > 0) combined += "<br>";
             combined += group.text[i];
         }
-        emit_paragraph(w, combined, style);
+
+        // When toclevel is set: put TC field in the same paragraph as the title so Word finds the entry
+        if (group.toc_level > 0) {
+            std::string toc_plain;
+            for (size_t i = 0; i < group.text.size(); ++i) {
+                if (i > 0) toc_plain += ' ';
+                toc_plain += get_plain_text(group.text[i]);
+            }
+            w.start_element("w:p");
+            if (style.paragraph.has_value()) {
+                emit_para_props(w, style.paragraph.value());
+            }
+            emit_tc_field(w, toc_plain, group.toc_level);
+            ParsedCell parsed = parse_inline_markup(combined);
+            if (!parsed.paragraphs.empty()) {
+                emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
+            }
+            w.end_element();  // w:p
+        } else {
+            emit_paragraph(w, combined, style);
+        }
     }
 }
 
@@ -966,6 +1026,167 @@ void DocxEmitter::emit_numpages_field(XmlWriter& w) const {
     w.attribute("w:fldCharType", "end");
     w.end_element();
     w.end_element();
+}
+
+// ---------------------------------------------------------------------------
+// TC (Table of Contents Entry) field runs (no w:p wrapper — caller owns the paragraph).
+//
+// TC fields must NOT use w:vanish on their runs. Word hides TC fields via its own
+// internal mechanism; adding w:vanish causes Word to skip them during TOC generation.
+// Structure: bookmarkStart → begin → instrText → end → bookmarkEnd
+//
+// The w:bookmarkStart/End pair (name "_TocXXXXXX") is required for two reasons:
+//   1. When the TOC field uses \h, Word generates internal hyperlinks that point to
+//      these bookmarks — not external file paths — so PDF navigation works correctly.
+//   2. Word's "Generate Bookmarks" option in PDF export becomes active when the
+//      document contains named bookmarks, enabling clickable PDF bookmarks.
+// ---------------------------------------------------------------------------
+
+void DocxEmitter::emit_tc_field(XmlWriter& w, const std::string& entry_text, int level) const {
+    // Allocate a unique bookmark ID and build the _Toc name.
+    int bm_id = ++toc_bookmark_counter_;
+    // Format as _Toc + zero-padded 9-digit number (matches Word's own naming).
+    char bm_name[32];
+    std::snprintf(bm_name, sizeof(bm_name), "_Toc%09d", bm_id);
+
+    // Escape double-quotes for Word field code: " -> ""
+    std::string escaped;
+    escaped.reserve(entry_text.size() + 4);
+    for (char c : entry_text) {
+        if (c == '"') escaped += "\"\"";
+        else escaped += c;
+    }
+    // Leading and trailing spaces required by OOXML field instruction syntax.
+    // No \f type — untyped TC entries are collected by { TOC \f } (no letter).
+    std::string instr = " TC \"" + escaped + "\" \\l " + std::to_string(level) + " ";
+
+    // bookmarkStart — wraps the TC field so the TOC \h switch can target it
+    w.start_element("w:bookmarkStart");
+    w.attribute("w:id", std::to_string(bm_id));
+    w.attribute("w:name", bm_name);
+    w.end_element();
+
+    // begin — no w:rPr, no w:vanish
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "begin");
+    w.end_element();
+    w.end_element();
+
+    // instrText
+    w.start_element("w:r");
+    w.start_element("w:instrText");
+    w.attribute("xml:space", "preserve");
+    w.text(instr);
+    w.end_element();
+    w.end_element();
+
+    // end
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "end");
+    w.end_element();
+    w.end_element();
+
+    // bookmarkEnd
+    w.start_element("w:bookmarkEnd");
+    w.attribute("w:id", std::to_string(bm_id));
+    w.end_element();
+}
+
+// ---------------------------------------------------------------------------
+// TOC page — a separate Word section prepended before all specs.
+//
+// Structure emitted into w:body:
+//   [optional] <w:p> title paragraph (e.g. "Table of Contents")
+//   <w:p> containing the { TOC \f \h \z } complex field
+//   <w:p> section-break paragraph (nextPage) that ends the TOC section
+//
+// The TOC field uses:
+//   \f  — collect all untyped TC fields (no letter = all TC entries)
+//   \h  — make entries hyperlinks; safe because each TC field paragraph carries a
+//          w:bookmarkStart/End (_TocXXXXXX), so Word generates internal #anchor
+//          links rather than external file:// paths — no security prompt, and PDF
+//          navigation (Ctrl+Click in Word, clickable bookmarks in PDF) works correctly.
+//   \z  — hide tab leader and page numbers in Web Layout view
+// ---------------------------------------------------------------------------
+
+void DocxEmitter::emit_toc_page(XmlWriter& w,
+                                 const std::string& toc_title,
+                                 const PageConfig& page,
+                                 const std::string& header_rid,
+                                 const std::string& footer_rid) const
+{
+    // Optional title paragraph
+    if (!toc_title.empty()) {
+        w.start_element("w:p");
+        w.start_element("w:r");
+        w.start_element("w:rPr");
+        w.self_closing_element("w:b");
+        w.end_element();  // w:rPr
+        w.start_element("w:t");
+        w.attribute("xml:space", "preserve");
+        w.text(toc_title);
+        w.end_element();  // w:t
+        w.end_element();  // w:r
+        w.end_element();  // w:p
+    }
+
+    // TOC field paragraph: { TOC \f \z }
+    // \f  — collect all untyped TC fields
+    // \z  — hide tab/page numbers in Web Layout view
+    // No \h — omitting hyperlinks avoids the "fields that may refer to other files" prompt.
+    // No fldLock — field must remain unlocked so the user can press F9 to update it.
+    // Complex field: begin → instrText → separate → (result placeholder) → end
+    w.start_element("w:p");
+
+    // begin
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "begin");
+    w.end_element();
+    w.end_element();
+
+    // instrText — \f \h \z: collect TC fields, make entries hyperlinks, hide in Web view.
+    // \h is safe here because TC field paragraphs carry _Toc bookmarks, so Word
+    // generates internal #anchor links (not file:// paths) — no security prompt.
+    w.start_element("w:r");
+    w.start_element("w:instrText");
+    w.attribute("xml:space", "preserve");
+    w.text(" TOC \\f \\h \\z ");
+    w.end_element();
+    w.end_element();
+
+    // separate
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "separate");
+    w.end_element();
+    w.end_element();
+
+    // placeholder result run (empty — Word fills this on F9 update)
+    w.start_element("w:r");
+    w.start_element("w:rPr");
+    w.self_closing_element("w:noProof");
+    w.end_element();
+    w.end_element();
+
+    // end
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "end");
+    w.end_element();
+    w.end_element();
+
+    w.end_element();  // w:p (TOC field)
+
+    // Section-break paragraph — ends the TOC section with a nextPage break.
+    // This paragraph carries the sectPr for the TOC section (same page config as first spec).
+    w.start_element("w:p");
+    w.start_element("w:pPr");
+    emit_section_props(w, page, header_rid, footer_rid, /*continuous=*/false, /*is_body_level=*/false);
+    w.end_element();  // w:pPr
+    w.end_element();  // w:p
 }
 
 // ---------------------------------------------------------------------------
@@ -1493,7 +1714,26 @@ void DocxEmitter::emit_page(XmlWriter& w,
                 combined += group.text[i];
             }
 
-            emit_paragraph(w, combined, style);
+            // When toclevel is set, emit TC only on first page; put TC in same paragraph as title so Word finds it
+            if (page.is_first_page && group.toc_level > 0) {
+                std::string toc_plain;
+                for (size_t i = 0; i < group.text.size(); ++i) {
+                    if (i > 0) toc_plain += ' ';
+                    toc_plain += get_plain_text(group.text[i]);
+                }
+                w.start_element("w:p");
+                if (style.paragraph.has_value()) {
+                    emit_para_props(w, style.paragraph.value());
+                }
+                emit_tc_field(w, toc_plain, group.toc_level);
+                ParsedCell parsed = parse_inline_markup(combined);
+                if (!parsed.paragraphs.empty()) {
+                    emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
+                }
+                w.end_element();  // w:p
+            } else {
+                emit_paragraph(w, combined, style);
+            }
         }
     }
 
@@ -1501,11 +1741,10 @@ void DocxEmitter::emit_page(XmlWriter& w,
     if (page.has_subtitles && !spec.subtitles.empty()) {
         StyleDef sub_style = resolver.resolve_subtitle_style();
 
-        // Handle dynamic subtitles (#ByGroupX)
+        // Deep-copy subtitles and substitute #ByGroupX placeholders.
         std::vector<TextGroup> resolved_subtitles = spec.subtitles;
         for (auto& group : resolved_subtitles) {
             for (auto& line : group.text) {
-                // Replace #ByGroup1, #ByGroup2, etc. with actual values
                 for (size_t gi = 0; gi < page.dynamic_subtitle_values.size(); ++gi) {
                     std::string placeholder = "#ByGroup" + std::to_string(gi + 1);
                     size_t pos;
@@ -1516,7 +1755,62 @@ void DocxEmitter::emit_page(XmlWriter& w,
                 }
             }
         }
-        emit_text_groups(w, resolved_subtitles, sub_style, resolver);
+
+        // Emit each resolved subtitle group.
+        // For groups with toc_level > 0:
+        //   - Static subtitles (no #ByGroupX in original): TC only on first page.
+        //   - Dynamic subtitles (contain #ByGroupX in original): TC on every page
+        //     so each distinct group value gets its own TOC entry.
+        for (size_t gi = 0; gi < resolved_subtitles.size(); ++gi) {
+            const auto& group = resolved_subtitles[gi];
+            StyleDef style = sub_style;
+            for (const auto& ref : group.style_refs) {
+                const StyleDef* ref_style = resolver.find_style(ref);
+                if (ref_style) style = style.merged_with(*ref_style);
+            }
+            stamp_exact_line_height(style);
+
+            std::string combined;
+            for (size_t li = 0; li < group.text.size(); ++li) {
+                if (li > 0) combined += "<br>";
+                combined += group.text[li];
+            }
+
+            if (group.toc_level > 0) {
+                // Determine whether the original (pre-substitution) subtitle is dynamic.
+                bool is_dynamic = false;
+                for (const auto& orig_line : spec.subtitles[gi].text) {
+                    if (orig_line.find("#ByGroup") != std::string::npos) {
+                        is_dynamic = true;
+                        break;
+                    }
+                }
+
+                bool emit_tc = is_dynamic || page.is_first_page;
+                if (emit_tc) {
+                    // Build plain-text TC entry from the resolved (substituted) lines.
+                    std::string toc_plain;
+                    for (size_t li = 0; li < group.text.size(); ++li) {
+                        if (li > 0) toc_plain += ' ';
+                        toc_plain += get_plain_text(group.text[li]);
+                    }
+                    w.start_element("w:p");
+                    if (style.paragraph.has_value()) {
+                        emit_para_props(w, style.paragraph.value());
+                    }
+                    emit_tc_field(w, toc_plain, group.toc_level);
+                    ParsedCell parsed = parse_inline_markup(combined);
+                    if (!parsed.paragraphs.empty()) {
+                        emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
+                    }
+                    w.end_element();  // w:p
+                } else {
+                    emit_paragraph(w, combined, style);
+                }
+            } else {
+                emit_paragraph(w, combined, style);
+            }
+        }
     }
 
     // 3. Table (for Table docType)
@@ -1641,6 +1935,7 @@ void DocxEmitter::emit(
     TextMeasurer* measurer) {
 
     measurer_ = measurer;  // store for use in emit_page / emit_text_groups
+    toc_bookmark_counter_ = 0;  // reset per document so IDs are deterministic
 
     // ======================================================================
     // Phase 1: Pre-compute header/footer XML parts and relationship IDs
@@ -1703,6 +1998,17 @@ void DocxEmitter::emit(
     doc_w.namespace_decl("mc", MC_NS);
 
     doc_w.start_element("w:body");
+
+    // Emit TOC page as the first section when requested.
+    // Uses the first spec's page config and header/footer refs so the TOC page
+    // inherits the same page size, margins, and running headers/footers.
+    if (doc.metadata.insert_toc && !doc.specs.empty()) {
+        StyleResolver first_resolver(tmpl_, doc.specs[0].spec_styles);
+        PageConfig toc_page = first_resolver.resolve_page_config(doc.specs[0]);
+        const auto& first_refs = spec_hdr_ftr_refs[0];
+        emit_toc_page(doc_w, doc.metadata.toc_title, toc_page,
+                      first_refs.header_rid, first_refs.footer_rid);
+    }
 
     // Pre-compute rId assignments for Figure specs (rId4, rId5, ... in spec order)
     std::unordered_map<std::string, std::string> figure_rids;
@@ -1832,6 +2138,15 @@ void DocxEmitter::emit(
     // Phase 3: Assemble the DOCX ZIP package
     // ======================================================================
 
+    // TOC 1–9 tab position: use first section's content width so TOC spans full width
+    // for whatever page size and orientation the document uses.
+    std::optional<int> toc_tab_twips;
+    if (!doc.specs.empty()) {
+        StyleResolver first_resolver(tmpl_, doc.specs[0].spec_styles);
+        PageConfig first_page = first_resolver.resolve_page_config(doc.specs[0]);
+        toc_tab_twips = static_cast<int>(first_page.usable_width().to_twips());
+    }
+
     ZipWriter zip(output_path);
 
     zip.add_entry("[Content_Types].xml", emit_content_types(doc, all_hdr_ftr_parts));
@@ -1839,7 +2154,7 @@ void DocxEmitter::emit(
     zip.add_entry("word/_rels/document.xml.rels",
                   emit_document_rels(doc, all_hdr_ftr_parts));
     zip.add_entry("word/document.xml", doc_w.str());
-    zip.add_entry("word/styles.xml", emit_styles());
+    zip.add_entry("word/styles.xml", emit_styles(toc_tab_twips));
     zip.add_entry("word/settings.xml", emit_settings());
     zip.add_entry("word/fontTable.xml", emit_font_table());
 

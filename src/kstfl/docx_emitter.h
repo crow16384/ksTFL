@@ -54,7 +54,10 @@ private:
     std::string emit_rels() const;
     std::string emit_document_rels(const TFLDocument& doc,
                                     const std::vector<HdrFtrPartInfo>& hdr_ftr_parts) const;
-    std::string emit_styles() const;
+    /// @param toc_tab_pos_twips When set, TOC 1–9 styles use this as the right-aligned
+    ///   tab position (content width) so the TOC spans the full width of the first section's page.
+    ///   When nullopt, a default (15840 twips) is used.
+    std::string emit_styles(std::optional<int> toc_tab_pos_twips = std::nullopt) const;
     std::string emit_settings() const;
     std::string emit_font_table() const;
 
@@ -105,6 +108,11 @@ private:
     void emit_parsed_paragraph(XmlWriter& w,
                                const ParsedParagraph& para,
                                const StyleDef& base_style) const;
+
+    /// Emit only the runs of a parsed paragraph (no w:p). Used for TC+title in one paragraph.
+    void emit_parsed_paragraph_runs(XmlWriter& w,
+                                     const ParsedParagraph& para,
+                                     const StyleDef& base_style) const;
 
     /// Emit run properties (<w:rPr>).
     void emit_run_props(XmlWriter& w,
@@ -163,6 +171,22 @@ private:
     void emit_page_field(XmlWriter& w) const;
     /// Emit NUMPAGES field code.
     void emit_numpages_field(XmlWriter& w) const;
+    /// Emit TC (Table of Contents Entry) field runs plus a surrounding w:bookmarkStart/End
+    /// pair (name "_TocXXXXXX") so Word can generate internal hyperlinks and PDF bookmarks.
+    /// Must be called inside an open w:p element. Allocates a unique bookmark ID from
+    /// toc_bookmark_counter_.
+    void emit_tc_field(XmlWriter& w, const std::string& entry_text, int level) const;
+    /// Emit a complete TOC page as a separate Word section (nextPage break after it).
+    /// @param w         XmlWriter for document.xml (w:body must already be open).
+    /// @param toc_title Heading text above the TOC field; empty string omits the heading.
+    /// @param page      Page config to use for the TOC section (taken from first spec).
+    /// @param header_rid Relationship ID for the header part (may be empty).
+    /// @param footer_rid Relationship ID for the footer part (may be empty).
+    void emit_toc_page(XmlWriter& w,
+                       const std::string& toc_title,
+                       const PageConfig& page,
+                       const std::string& header_rid,
+                       const std::string& footer_rid) const;
 
     /// Generate a standalone header or footer XML part.
     /// @param rows    The header/footer row content.
@@ -182,6 +206,10 @@ private:
     const StylesTemplate& tmpl_;
     const RendererConfig& config_;
     TextMeasurer* measurer_ = nullptr;  ///< set during emit(), cleared after
+
+    /// Monotonically increasing counter for _Toc bookmark IDs.
+    /// Mutable so const emit helpers can allocate unique IDs.
+    mutable int toc_bookmark_counter_ = 0;
 };
 
 }  // namespace kstfl

@@ -742,6 +742,15 @@
                                     "type": "integer",
                                     "description": "Order of the title group",
                                     "minimum": 0
+                                },
+                                "toclevel": {
+                                    "type": [
+                                        "null",
+                                        "integer"
+                                    ],
+                                    "description": "Optional TOC level (1-9). When set, the first occurrence of this title is marked as a Table of Contents entry so the user can add a TOC in Word. Multi-line titles are concatenated with space; inline styling is stripped for the TOC entry.",
+                                    "minimum": 1,
+                                    "maximum": 9
                                 }
                             },
                             "required": [

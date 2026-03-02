@@ -1918,29 +1918,59 @@ define_cols <- function(spec, cols,
 }
 
 #' Add a title
-#' 
+#'
 #' Add a title to the specification. Multiple calls add multiple title groups.
 #' Calling with the same ID merges with last-win strategy.
-#' 
-#' @param spec TFL spec object
-#' @param text Character vector of title text lines
-#' @param id Title identifier (auto-generated if NULL)
-#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
-#' @param order Order of title group (auto-assigned if NULL)
-#' 
-#' @return Updated spec object
+#'
+#' @param spec TFL spec object.
+#' @param text Character vector of title text lines. Multiple elements are
+#'   rendered as separate lines within the same title paragraph.
+#' @param id Title identifier (auto-generated if `NULL`).
+#' @param styleRef Character vector of style names to apply. Styles are merged
+#'   with last-win strategy.
+#' @param order Integer ordering key (auto-assigned if `NULL`).
+#' @param toclevel Optional integer 1--9. When set, the **first page** occurrence
+#'   of this title is marked as a Table of Contents entry at the given level.
+#'   Multi-line titles are concatenated with a space for the TOC entry text;
+#'   inline styling tags (e.g. `<b>`, `<i>`) are stripped automatically.
+#'
+#'   To generate a TOC page, set `toclevel` here and either call
+#'   `tfl_set_options(insertTOC = TRUE)` for the whole session or pass
+#'   `insertTOC = TRUE` to `save_report()`. The renderer will prepend a
+  #'   "Table of Contents" page with a `{ TOC \f \h \z }` field. Open the generated
+#'   document in Word, click inside the TOC area, and press **F9** to populate it.
+#'
+#' @return Updated spec object.
 #' @export
-#' 
+#'
 #' @examples
 #' \dontrun{
-#' spec <- create_text() |>
-#'   add_title(c("Study ABC-123", "Demographics Table")) |>
-#'   add_title("Full Analysis Set", styleRef = c("subtitle_style", "emphasis"))
+#' # Basic multi-line title (no TOC)
+#' spec <- create_table(adsl) |>
+#'   add_title(c("Study ABC-123", "Table 1: Demographics")) |>
+#'   add_title("Full Analysis Set", styleRef = "subtitle_style")
+#'
+#' # Title marked for TOC at level 1 — renderer will emit a TC field on the first page
+#' spec <- create_table(adsl) |>
+#'   add_title("Table 1: Demographics", toclevel = 1)
+#'
+#' # Full TOC workflow across a multi-spec report
+#' t1 <- create_table(adsl) |>
+#'   add_title("Table 1: Demographics", toclevel = 1) |>
+#'   set_document(docType = "Table", hasData = TRUE)
+#'
+#' t2 <- create_table(advs) |>
+#'   add_title("Table 2: Vital Signs", toclevel = 1) |>
+#'   set_document(docType = "Table", hasData = TRUE)
+#'
+#' report <- create_report(t1, t2)
+#' save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
+#' # Open tables.docx in Word, click the TOC placeholder, press F9 to update.
 #' }
-add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
+add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL, toclevel = NULL) {
   assert_class(spec, "TFL_spec")
   spec <- .add_text_group_impl(spec = spec, target = "titles", text = text, id = id,
-                               styleRef = styleRef, order = order,
+                               styleRef = styleRef, order = order, toclevel = toclevel,
                                id_prefix = "title_", fn_name = "add_title")
   spec
 }
@@ -1948,6 +1978,7 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 
 # Internal helper for adding title/subtitle/footnote/body text groups for TFL_spec
 .add_text_group_impl <- function(spec, target, text, id = NULL, styleRef = NULL, order = NULL,
+                                toclevel = NULL,
                                 id_prefix = NULL, fn_name = NULL,
                                 remove_defaults = FALSE, default_prefix = NULL,
                                 default_order = NULL, as_options_class = FALSE,
@@ -1978,10 +2009,19 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
     }
   }
 
+  if (!is.null(toclevel)) {
+    toc_int <- as.integer(toclevel)
+    if (is.na(toc_int) || length(toc_int) != 1L || toc_int < 1L || toc_int > 9L) {
+      cli_abort("{.arg toclevel} must be an integer between 1 and 9 in {.fn {fn_name}}")
+    }
+    toclevel <- toc_int
+  }
+
   new_data <- list(
     text = as.character(text),
     styleRef = styleRef,
-    order = as.integer(order)
+    order = as.integer(order),
+    toclevel = toclevel
   )
   new_data <- new_data[!sapply(new_data, is.null)]
 
@@ -1996,29 +2036,58 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 }
 
 #' Add a subtitle
-#' 
+#'
 #' Add a subtitle to the specification. Multiple calls add multiple subtitle groups.
 #' Calling with the same ID merges with last-win strategy.
-#' 
-#' @param spec TFL spec object
-#' @param text Character vector of subtitle text lines
-#' @param id Subtitle identifier (auto-generated if NULL)
-#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
-#' @param order Order of subtitle group (auto-assigned if NULL)
-#' 
-#' @return Updated spec object
+#'
+#' @param spec TFL spec object.
+#' @param text Character vector of subtitle text lines. May contain `#ByGroup1`,
+#'   `#ByGroup2`, … placeholders that are replaced at render time with the current
+#'   value of the first, second, … grouping/paging column on each page.
+#' @param id Subtitle identifier (auto-generated if `NULL`).
+#' @param styleRef Character vector of style names to apply. Styles are merged
+#'   with last-win strategy.
+#' @param order Integer ordering key (auto-assigned if `NULL`).
+#' @param toclevel Optional integer 1--9. When set, this subtitle is marked as a
+#'   Table of Contents entry at the given level.
+#'
+#'   **Static subtitles** (no `#ByGroupX` placeholders): the TC entry is emitted
+#'   only on the **first page** of the spec, producing a single TOC entry.
+#'
+#'   **Dynamic subtitles** (containing `#ByGroupX`): a TC entry is emitted on
+#'   **every page**, so each distinct group value gets its own TOC entry. The
+#'   resolved (substituted) text is used as the TOC entry text.
+#'
+#'   In both cases, multi-line subtitles are concatenated with a space and inline
+#'   styling tags are stripped for the TOC entry text. Use together with
+#'   `add_title(toclevel = )` and `tfl_set_options(insertTOC = TRUE)` or
+#'   `save_report(insertTOC = TRUE)`.
+#'
+#' @return Updated spec object.
 #' @export
-#' 
+#'
 #' @examples
 #' \dontrun{
-#' spec <- create_text() |>
-#'   add_subtitle("Safety Analysis Set") |>
-#'   add_subtitle("Data Cutoff: 2025-12-14", styleRef = "footnote_style")
+#' # Static subtitle — one TOC entry for the whole report
+#' spec <- create_table(adsl) |>
+#'   add_title("Table 1: Demographics", toclevel = 1) |>
+#'   add_subtitle("Safety Analysis Set", toclevel = 2) |>
+#'   add_subtitle("Data Cutoff: 2025-12-14")
+#'
+#' # Dynamic subtitle — one TOC entry per group value (e.g. one per visit)
+#' spec <- create_table(advs) |>
+#'   add_title("Table 2: Vital Signs by Visit and Parameter", toclevel = 1) |>
+#'   add_subtitle("#ByGroup1 - #ByGroup2", toclevel = 2)
+#'
+#' # Generate the TOC page
+#' report <- create_report(spec)
+#' save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
+#' # Open tables.docx in Word, click the TOC placeholder, press F9 to update.
 #' }
-add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
+add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL, toclevel = NULL) {
   assert_class(spec, "TFL_spec")
   spec <- .add_text_group_impl(spec = spec, target = "subtitles", text = text, id = id,
-                               styleRef = styleRef, order = order,
+                               styleRef = styleRef, order = order, toclevel = toclevel,
                                id_prefix = "subtitle_", fn_name = "add_subtitle")
   spec
 }

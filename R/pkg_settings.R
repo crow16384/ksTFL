@@ -32,6 +32,10 @@
     bodyText            = .const_options_bodytext,
     styles              = .const_options_styles,
     
+    # Table of Contents
+    insertTOC           = FALSE,
+    tocTitle            = "Table of Contents",
+
     # Metadata/Output
     output_directory    = '.'
 ), class = "TFL_options")
@@ -70,7 +74,10 @@ tfl_get_options <- function() {
 #' convenience wrapper around `tfl_get_options()` that returns one element or
 #' throws a friendly error if the option does not exist.
 #'
-#' @param name Character(1). Name of the option to fetch (e.g. "page", "styles").
+#' @param name Character(1). Name of the option to fetch. Common options:
+#'   `"page"`, `"styles"`, `"bodyTitles"`, `"bodySubtitles"`, `"bodyFootnotes"`,
+#'   `"isContinues"`, `"contentWidth"`, `"missings"`, `"autoColWidth"`,
+#'   `"minColWidth"`, `"insertTOC"`, `"tocTitle"`, `"output_directory"`.
 #'
 #' @return The value associated with `name` (type depends on the option).
 #'
@@ -78,6 +85,10 @@ tfl_get_options <- function() {
 #' \dontrun{
 #' # Get the current page settings
 #' tfl_get_option("page")
+#'
+#' # Check whether TOC generation is enabled
+#' tfl_get_option("insertTOC")
+#' tfl_get_option("tocTitle")
 #' }
 #'
 #' @export
@@ -121,6 +132,13 @@ tfl_get_option <- function(name) {
 #'   Set FALSE to disable auto-recalculation and manage widths manually.
 #' @param minColWidth Numeric; minimum relative column width (%) for unlocked columns during recalculation.
 #'   Default 0.5. Used to validate that relative widths don't squeeze columns below acceptable minimum.
+#' @param insertTOC Logical; when `TRUE` the renderer prepends a Table of Contents
+#'   page (using a `{ TOC \f \h \z }` field) before the first spec. Requires at least
+#'   one `add_title()` or `add_subtitle()` call with `toclevel` set. Default `FALSE`.
+#'   Can be overridden per-render via `save_report(insertTOC = )`.
+#' @param tocTitle Character; heading text placed above the TOC field on the TOC page.
+#'   Default `"Table of Contents"`. Set to `""` to omit the heading.
+#'   Can be overridden per-render via `save_report(tocTitle = )`.
 #' @param output_directory Character; path to default output directory of rendered document.
 #'
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
@@ -159,12 +177,21 @@ tfl_get_option <- function(name) {
 #' tfl_set_options(autoColWidth = FALSE)
 #' spec <- create_table(data) |>
 #'   define_cols(c("id", "age"), colWidth = c("20%", "30%"))  # Exact widths, no auto-adjust
+#'
+#' # Enable TOC page for all reports in the session
+#' tfl_set_options(insertTOC = TRUE, tocTitle = "List of Tables")
+#' # Then mark individual titles/subtitles with toclevel:
+#' spec <- create_table(adsl) |>
+#'   add_title("Table 1: Demographics", toclevel = 1)
+#' # save_report() will now prepend a TOC page automatically.
+#' # In Word: click the TOC placeholder and press F9 to populate it.
 #' }
 #' @export
 tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
                          bodyFootnotes = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
                          autoColWidth = NULL, minColWidth = NULL,
+                         insertTOC = NULL, tocTitle = NULL,
                          output_directory='.') {
   
   params <- as.list(environment())
@@ -175,11 +202,11 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
       val <- params[[pname]]
 
       # Type checks for known option names
-      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "isContinues", "autoColWidth")) {
+      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "isContinues", "autoColWidth", "insertTOC")) {
         checkmate::assert_logical(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname == "minColWidth") {
         checkmate::assert_numeric(val, len = 1, lower = 0, any.missing = FALSE, .var.name = pname)
-      } else if (pname %in% c("doc_style_template", "missings")) {
+      } else if (pname %in% c("doc_style_template", "missings", "tocTitle")) {
         checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("output_directory")) {
         if (!.is_readable_dir(val)) {

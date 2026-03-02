@@ -396,6 +396,8 @@ struct TextGroup {
     std::vector<std::string> style_refs;     // style refs merged in order (R side may pass multiple)
     // Placement flags
     bool body_placement = false;             // true = render in body area, false = header/footer section
+    // TOC: when > 0, first occurrence of this title is marked as TC field at this level (1-9)
+    int toc_level = 0;
 };
 
 // ---------------------------------------------------------------------------
@@ -551,6 +553,8 @@ struct ReportMetadata {
     std::string out_dir;
     std::string doc_file_name;
     std::string datetime;
+    bool insert_toc = false;
+    std::string toc_title = "Table of Contents";
 };
 
 /// A complete parsed TFL document (N specs from a single spec JSON).

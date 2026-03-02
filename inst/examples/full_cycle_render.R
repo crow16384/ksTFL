@@ -25,7 +25,7 @@ spec1 <- spec1 |>
   add_footnote("Source: 1974 Motor Trend US magazine.")
 
 report1 <- create_report(spec1)
-save_and_render(report1, "ex01_minimal_table")
+save_and_render(report1, "ex01_minimal_table", toc = T)
 
 
 ## EXAMPLE 2: Styled Table with Custom Columns #####
@@ -92,7 +92,7 @@ spec2 <- spec2 |>
 
 # -- Content --
 spec2 <- spec2 |>
-  add_title(c("Study ABC-123", "Demographics and Baseline Characteristics")) |>
+  add_title(c("Study ABC-123", "Demographics and Baseline Characteristics"), toclevel = 1) |>
   add_subtitle("Full Analysis Set") |>
   add_footnote(c(
     "BMI = Body Mass Index (weight / height<sup>2</sup>).",
@@ -117,7 +117,7 @@ spec2 <- spec2 |>
   )
 
 report2 <- create_report(spec2)
-save_and_render(report2, "ex02_styled_demographics")
+save_and_render(report2, "ex02_styled_demographics", toc = T)
 
 
 ## EXAMPLE 3: Multi-Spec Report (Table + Text + Table) ####
@@ -154,7 +154,7 @@ spec3a <- spec3a |>
   define_cols(c(Placebo, Treatment),
     label = c("Placebo\n(N=50)", "Treatment\n(N=52)")
   ) |>
-  add_title(c("Study ABC-123", "Summary of Vital Signs")) |>
+  add_title(c("<i>Study ABC-123</i>", "Summary of Vital Signs"), toclevel = 1) |>
   add_subtitle("Safety Analysis Set") |>
   add_footnote("BP = Blood Pressure; SD = Standard Deviation.")
 
@@ -169,7 +169,7 @@ spec3a <- spec3a |>
 # --- Narrative text spec ---
 spec3b <- create_text()
 spec3b <- spec3b |>
-  add_title(c("Study ABC-123", "Narrative Summary of Vital Signs")) |>
+  add_title(c("Study \\ABC-123/", "Narrative Summary of Vital Signs ⏰"), toclevel = 1) |>
   add_body_text(paste(
     "Mean systolic blood pressure in the treatment group was 125.8 mmHg",
     "compared with 132.4 mmHg in the placebo group, a reduction of 6.6 mmHg.",
@@ -203,13 +203,13 @@ spec3c <- spec3c |>
     label = c("Systolic BP", "Diastolic BP", "Heart Rate"),
     type  = "numeric"
   ) |>
-  add_title(c("Study ABC-123", "Listing of Vital Signs by Visit")) |>
+  add_title(c("Study ABC-123", "Listing of Vital Signs by Visit"), toclevel = 1) |>
   add_subtitle("Safety Analysis Set") |>
   add_footnote("All values in mmHg (BP) or bpm (HR).")
 
 # --- Combine into one report ---
 report3 <- create_report(spec3a, spec3b, spec3c)
-save_and_render(report3, "ex03_multi_spec_report")
+save_and_render(report3, "ex03_multi_spec_report", toc = T)
 
 
 ## EXAMPLE 4: Global Options & Page Layout (Landscape A4) ####
@@ -388,7 +388,7 @@ spec5 <- spec5 |>
   )
 
 report5 <- create_report(spec5)
-save_and_render(report5, "ex05_ae_listing_colbreak")
+save_and_render(report5, "ex05_ae_listing_colbreak", toc = T)
 
 
 ## EXAMPLE 6: Row Actions — Merge, AddRow, PageBreak ####
@@ -493,7 +493,7 @@ spec6 <- spec6 |>
   )
 
 report6 <- create_report(spec6)
-save_and_render(report6, "ex06_efficacy_row_actions")
+save_and_render(report6, "ex06_efficacy_row_actions", toc = T)
 
 
 ## EXAMPLE 7: Text-Only Document ####
@@ -533,7 +533,7 @@ spec7 <- spec7 |>
   add_footnote("This summary is for illustrative purposes only.")
 
 report7 <- create_report(spec7)
-save_and_render(report7, "ex07_text_only")
+save_and_render(report7, "ex07_text_only", toc = T)
 
 
 ## EXAMPLE 8: Combined Report — Table + Text + Listing (Full Clinical Package) ####
@@ -726,8 +726,8 @@ spec9 <- spec9 |>
     type   = "numeric",
     format = "%.1f"
   ) |>
-  add_title("Vital Signs by Visit and Parameter") |>
-  add_subtitle("#ByGroup1 - #ByGroup2") |>
+  add_title("Vital Signs by Visit and Parameter", toclevel = 3) |>
+  add_subtitle("#ByGroup1 - #ByGroup2", toclevel = 2) |>
   add_footnote("Values shown as observed. No imputation applied.") |>
   set_document(
     glueNumType   = TRUE,
@@ -737,7 +737,7 @@ spec9 <- spec9 |>
   )
 
 report9 <- create_report(spec9)
-save_and_render(report9, "ex09_long_paging_table")
+save_and_render(report9, "ex09_long_paging_table", toc = T)
 
 
 ## EXAMPLE 10: Rich Inline Markup ####
@@ -772,7 +772,7 @@ spec10 <- spec10 |>
   add_footnote("Inline tags supported: <b>, <i>, <u>, <sup>, <sub>, <br>, <p>.")
 
 report10 <- create_report(spec10)
-save_and_render(report10, "ex10_inline_markup")
+save_and_render(report10, "ex10_inline_markup", toc = T)
 
 
 ## EXAMPLE 11: Minimal ggplot2 Figure ####
@@ -803,7 +803,7 @@ spec11 <- create_figure(p11, width = 6, height = 4, dpi = 300) |>
   add_footnote("Source: 1974 Motor Trend US magazine (n = 32 vehicles).")
 
 report11 <- create_report(spec11)
-save_and_render(report11, "ex11_ggplot2_minimal_figure")
+save_and_render(report11, "ex11_ggplot2_minimal_figure", toc = T)
 
 
 ## EXAMPLE 12: ggplot2 Figure + Table Combined Report ####
@@ -989,7 +989,7 @@ spec13c <- create_figure(p13c, width = 7, height = 4, device = "svg") |>
   ))
 
 report13 <- create_report(spec13a, spec13b, spec13c)
-save_and_render(report13, "ex13_ggplot2_multi_figure")
+save_and_render(report13, "ex13_ggplot2_multi_figure", toc = T)
 
 } # end ggplot2 block
 

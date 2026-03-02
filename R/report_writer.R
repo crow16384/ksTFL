@@ -47,6 +47,13 @@
 #'   Default: `tempdir()`
 #' @param prettify Logical. If TRUE, format JSON output with indentation and line breaks
 #'   for readability. Default: FALSE (compact format)
+#' @param insertTOC Logical. When `TRUE` the renderer prepends a Table of Contents
+#'   page (using a `{ TOC \f \h \z }` field) before the first spec. Requires at least
+#'   one `add_title()` or `add_subtitle()` call with `toclevel` set. Defaults to
+#'   the `insertTOC` package option (see `tfl_set_options()`). Default `FALSE`.
+#' @param tocTitle Character. Heading text placed above the TOC field on the TOC page.
+#'   Defaults to the `tocTitle` package option (default `"Table of Contents"`).
+#'   Set to `""` to omit the heading.
 #'
 #' @return Invisibly returns a list with:
 #'   - `spec_file`: Name of the saved spec JSON file (hash-based filename)
@@ -94,8 +101,29 @@
 #'
 #' cat("Spec saved as:", result$spec_file, "\n")
 #' cat("Saved to:", result$metaPath, "\n")
+#'
+#' # Generate a report with an auto-populated TOC page
+#' t1 <- create_table(adsl) |>
+#'   add_title("Table 1: Demographics", toclevel = 1) |>
+#'   set_document(docType = "Table", hasData = TRUE)
+#'
+#' t2 <- create_table(advs) |>
+#'   add_title("Table 2: Vital Signs by Visit", toclevel = 1) |>
+#'   add_subtitle("#ByGroup1", toclevel = 2) |>
+#'   set_document(docType = "Table", hasData = TRUE)
+#'
+#' report <- create_report(t1, t2)
+#' save_report(
+#'   report,
+#'   docFileName  = "tables.docx",
+#'   outDir       = "output/",
+#'   insertTOC    = TRUE,
+#'   tocTitle     = "List of Tables"
+#' )
+#' # Open tables.docx in Word, click the TOC placeholder, press F9 to populate it.
 #' }
-save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, prettify = FALSE) {
+save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, prettify = FALSE,
+                        insertTOC = NULL, tocTitle = NULL) {
   
   # ---- Validation ----
   if (!inherits(report, "TFL_report")) {
@@ -109,6 +137,16 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
     outDir <- tfl_get_option("output_directory")
   }
   checkmate::assert_character(outDir, len = 1, any.missing = FALSE, .var.name = "outDir")
+
+  if (is.null(insertTOC)) {
+    insertTOC <- tfl_get_option("insertTOC")
+  }
+  checkmate::assert_logical(insertTOC, len = 1, any.missing = FALSE, .var.name = "insertTOC")
+
+  if (is.null(tocTitle)) {
+    tocTitle <- tfl_get_option("tocTitle")
+  }
+  checkmate::assert_character(tocTitle, len = 1, any.missing = FALSE, .var.name = "tocTitle")
   
   # Normalize outDir to full system path
   outDir <- normalizePath(outDir, winslash = "/", mustWork = FALSE)
@@ -150,7 +188,9 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
   metadata_section <- list(
     outDir = outDir,
     docFileName = docFileName,
-    datetime = now
+    datetime = now,
+    insertTOC = insertTOC,
+    tocTitle = tocTitle
   )
   
   # ---- Wrap fixed with _metadata ----

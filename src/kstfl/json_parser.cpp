@@ -362,6 +362,8 @@ static std::vector<TextGroup> parse_text_groups(const json& j) {
         tg.text = get_str_array(*it, "text");
         tg.order = get_int(*it, "order", 0);
         tg.style_refs = get_str_array(*it, "styleRef");
+        int toc = get_int(*it, "toclevel", 0);
+        if (toc >= 1 && toc <= 9) tg.toc_level = toc;
         groups.push_back(std::move(tg));
     }
     // Sort by order
@@ -685,6 +687,9 @@ static TFLDocument parse_spec_internal(const json& root) {
         doc.metadata.out_dir       = get_str(meta, "outDir");
         doc.metadata.doc_file_name = get_str(meta, "docFileName");
         doc.metadata.datetime      = get_str(meta, "datetime");
+        doc.metadata.insert_toc    = get_bool(meta, "insertTOC", false);
+        auto tt = get_opt_str(meta, "tocTitle");
+        if (tt.has_value()) doc.metadata.toc_title = *tt;
     }
 
     // Parse each spec entry (keys matching pattern ^[A-Za-z0-9]..._[a-f0-9]{16}$)
