@@ -184,7 +184,8 @@ spec_03_06 <- spec_03_06_a %>% set_page_style(docTemplate = 'Navy_Pro')
 report_03_06 <- create_report(spec_03_06)
 write_doc(report_03_06, "test_03_06")
 
-spec_03_06_1 <- spec_03_06_a %>% set_page_style(docTemplate = file.path(getwd(),"tmp","templates","Navy_Pro2.json")) 
+spec_03_06_1 <- spec_03_06_a %>% 
+  set_page_style(docTemplate = file.path(getwd(),"tmp","templates","Navy_Pro2.json")) 
 
 report_03_06_1 <- create_report(spec_03_06_1)
 write_doc(report_03_06_1, "test_03_06_1")

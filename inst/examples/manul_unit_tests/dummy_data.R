@@ -1,4 +1,5 @@
 ### Dummy data for tests
+NROWS <- 5000
 
 set.seed(2025)
 demography_tbl_01 <- tibble(
@@ -548,7 +549,7 @@ create_whodd_dummy <- function(n_rows = 30, seed = NULL) {
   )
 }
 
-big_listing <- create_whodd_dummy(n_rows = 30000, seed = 123)
+big_listing <- create_whodd_dummy(n_rows = NROWS, seed = 123)
 
 
 stat_table_01 <- tribble(
