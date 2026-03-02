@@ -7,6 +7,7 @@ suppressPackageStartupMessages({
   library(tibble)
   library(stringr)
   library(stringi)
+  library(ksformat)
   library(tictoc)
 })
 
@@ -39,7 +40,7 @@ tfl_reset_options()
 tfl_set_options(
   add_header(c("Miracle Drug" , "CONFIDENTIAL", "KeyStat LLC.")),
   add_footer(c("Test Outputs", "Page {PAGE} of {NUMPAGES}")),
-  add_footer(c("Program: test_03.R")),
+  add_footer(c("Program: TestProgram.R")),
   output_directory = out_dir
 )
 ###########################

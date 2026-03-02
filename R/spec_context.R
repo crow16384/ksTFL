@@ -2575,7 +2575,6 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' Define document-level properties. Multiple calls merge with last-win strategy.
 #' 
 #' @param spec TFL spec object
-#' @param glueNumType Whether to glue type and number to first title
 #' @param isContinues Whether page breaks should be ignored
 #' @param contentWidth Width of content, e.g. "100%", "25cm", "10in"
 #' @param bodyTitles Whether to place titles in body (vs header)
@@ -2594,8 +2593,7 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'     bodyTitles = TRUE
 #'   )
 #' }
-set_document <- function(spec, glueNumType = NULL,
-                         isContinues = NULL, contentWidth = NULL,
+set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
                          bodyTitles = NULL, bodyFootnotes = NULL, hasData = NULL,
                          bodySubtitles = NULL) {
   assert_class(spec, "TFL_spec")
@@ -2609,7 +2607,6 @@ set_document <- function(spec, glueNumType = NULL,
   }
   
   params <- list(
-    glueNumType = glueNumType,
     isContinues = isContinues,
     contentWidth = contentWidth,
     bodyTitles = bodyTitles,
@@ -2635,63 +2632,42 @@ set_document <- function(spec, glueNumType = NULL,
 }
 
 #' Set document style properties
-#' 
+#'
 #' Set document-level style configuration. Multiple calls merge with last-win strategy.
-#' 
+#'
 #' @param spec TFL spec object
-#' @param docTemplate Name of predefined document template
+#' @param docTemplate Character. Template to use for rendering. Accepts either:
+#'   \itemize{
+#'     \item A predefined bundled template name (e.g. `"KeyStat_default"`, `"Navy_Pro"`).
+#'       Use \code{tfl_list_templates()} to see all available names.
+#'     \item A file path (absolute or relative) to an external template JSON file.
+#'       The path must point to an existing file conforming to \code{styles_schema_v1.json}.
+#'   }
+#'   When \code{NULL} (default) the current session template is used.
 #' @param page Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins
-#' 
+#'
 #' @return Updated spec object
 #' @export
-#' 
+#'
 #' @examples
 #' \dontrun{
+#' # Use a predefined bundled template
 #' spec <- create_text() |>
 #'   set_page_style(
-#'     docTemplate = "KeyStat_default",
-#'     page = p_page(
-#'       size = "A4",
-#'       orientation = "landscape",
-#'       margins = p_margins(
-#'         top = "25mm", bottom = "25mm",
-#'         left = "20mm", right = "20mm",
-#'         header = "12mm", footer = "12mm"
-#'       )
-#'     )
+#'     docTemplate = "Navy_Pro",
+#'     page = p_page(size = "A4", orientation = "landscape")
 #'   )
+#'
+#' # Use an external template file
+#' spec <- create_text() |>
+#'   set_page_style(docTemplate = "/path/to/my_template.json")
 #' }
 set_page_style <- function(spec, docTemplate = NULL, page = NULL) {
   UseMethod("set_page_style", spec)
 }
 
-#' Set document style properties
-#' 
-#' Set document-level style configuration. Multiple calls merge with last-win strategy.
-#' 
-#' @param spec TFL spec object
-#' @param docTemplate Name of predefined document template
-#' @param page Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins
-#' 
-#' @return Updated spec object
+#' @rdname set_page_style
 #' @export
-#' 
-#' @examples
-#' \dontrun{
-#' spec <- create_text() |>
-#'   set_page_style(
-#'     docTemplate = "KeyStat_default",
-#'     page = p_page(
-#'       size = "A4",
-#'       orientation = "landscape",
-#'       margins = p_margins(
-#'         top = "25mm", bottom = "25mm",
-#'         left = "20mm", right = "20mm",
-#'         header = "12mm", footer = "12mm"
-#'       )
-#'     )
-#'   )
-#' }
 set_page_style.TFL_spec <- function(spec, docTemplate = NULL, page = NULL) {
   assert_class(spec, "TFL_spec")
   
@@ -2703,6 +2679,15 @@ set_page_style.TFL_spec <- function(spec, docTemplate = NULL, page = NULL) {
   params <- list()
   
   if (!is.null(docTemplate)) {
+    checkmate::assert_string(docTemplate, .var.name = "docTemplate")
+    is_file_path <- grepl("[/\\\\]", docTemplate) || grepl("\\.json$", docTemplate, ignore.case = TRUE)
+    if (is_file_path && !file.exists(docTemplate)) {
+      cli_abort(c(
+        "{.fn set_page_style} cannot find the external template file.",
+        x = "File not found: {.path {docTemplate}}",
+        i = "Provide a valid file path or use a predefined template name (see {.fn tfl_list_templates})"
+      ))
+    }
     params$docTemplate <- docTemplate
   }
   
@@ -2735,33 +2720,8 @@ set_page_style.TFL_spec <- function(spec, docTemplate = NULL, page = NULL) {
   spec
 }
 
-#' Set document style properties
-#' 
-#' Set document-level style configuration. Multiple calls merge with last-win strategy.
-#' 
-#' @param spec TFL spec object
-#' @param docTemplate Name of predefined document template
-#' @param page Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins
-#' 
-#' @return Updated spec object
+#' @rdname set_page_style
 #' @export
-#' 
-#' @examples
-#' \dontrun{
-#' spec <- create_text() |>
-#'   set_page_style(
-#'     docTemplate = "KeyStat_default",
-#'     page = p_page(
-#'       size = "A4",
-#'       orientation = "landscape",
-#'       margins = p_margins(
-#'         top = "25mm", bottom = "25mm",
-#'         left = "20mm", right = "20mm",
-#'         header = "12mm", footer = "12mm"
-#'       )
-#'     )
-#'   )
-#' }
 set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
   assert_class(spec, "TFL_options")
   
@@ -2773,6 +2733,15 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
   params <- list()
   
   if (!is.null(docTemplate)) {
+    checkmate::assert_string(docTemplate, .var.name = "docTemplate")
+    is_file_path <- grepl("[/\\\\]", docTemplate) || grepl("\\.json$", docTemplate, ignore.case = TRUE)
+    if (is_file_path && !file.exists(docTemplate)) {
+      cli_abort(c(
+        "{.fn set_page_style} cannot find the external template file.",
+        x = "File not found: {.path {docTemplate}}",
+        i = "Provide a valid file path or use a predefined template name (see {.fn tfl_list_templates})"
+      ))
+    }
     params$docTemplate <- docTemplate
   }
   

@@ -110,6 +110,11 @@ Manual unit tests: inst/examples/manul_unit_tests/TEST_03/ (test_03.R, 11 specs)
 - R is NOT installed on host — all R execution via docker exec
 
 ## Git History (recent)
+- feat: doc template handling and defaults — `tfl_set_options()`, `set_page_style()`, `set_document()` (pending commit, Mar 2 2026)
+  - Added `docTemplate` parameter to `tfl_set_options()` to set the session default document template (bundled name or external JSON file path).
+  - Removed deprecated `glueNumType` document property from `set_document()`, schema, and printing paths.
+  - Updated `set_page_style()` to accept either bundled template names or external JSON file paths, with validation and clearer docs.
+  - Updated `.resolve_template_path()` in `render_docx.R` to resolve both bundled names and external paths, with robust fallbacks.
 - fix: C++ code review — 9 bug/safety/perf fixes (Mar 1 2026, second session)
 - feat: meta folder management — list, replay, clean (f9874c4, Mar 1 2026)
 - Previous commits: C++ renderer fixes, pagination, text measurement, column width resolution

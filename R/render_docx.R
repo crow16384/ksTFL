@@ -1,8 +1,14 @@
-#' Resolve a bundled template path from the docTemplate name stored in a spec JSON
+#' Resolve a template path from the docTemplate value stored in a spec JSON
 #'
 #' Reads the first spec entry's `attribs$documentStyle$docTemplate` field and
-#' looks it up in `inst/templates/`. Falls back to `KeyStat_default.json` with
-#' a warning when the name is absent or no matching file is found.
+#' resolves it to an absolute JSON file path. The value may be:
+#' \itemize{
+#'   \item A predefined bundled template name (e.g. `"Navy_Pro"`) — looked up in
+#'     `inst/templates/<name>.json`.
+#'   \item A file path to an external template JSON file (absolute or relative).
+#' }
+#' Falls back to `KeyStat_default.json` with a warning when the value is absent
+#' or cannot be resolved.
 #'
 #' @param spec_json_path Path to the spec JSON file.
 #' @return Absolute path to the resolved template JSON file.
@@ -20,18 +26,32 @@
   }, error = function(e) NULL)
 
   if (!is.null(doc_template) && nzchar(doc_template)) {
-    resolved <- system.file(
-      "templates", paste0(doc_template, ".json"),
-      package = "ksTFL"
-    )
-    if (nzchar(resolved)) {
-      return(resolved)
+    # If the value looks like a file path (contains a path separator or ends
+    # with .json), treat it as an external file path.
+    is_file_path <- grepl("[/\\\\]", doc_template) || grepl("\\.json$", doc_template, ignore.case = TRUE)
+
+    if (is_file_path) {
+      if (file.exists(doc_template)) {
+        return(normalizePath(doc_template))
+      }
+      cli::cli_warn(c(
+        "External template file {.path {doc_template}} not found.",
+        i = "Falling back to {.val KeyStat_default}."
+      ))
+    } else {
+      resolved <- system.file(
+        "templates", paste0(doc_template, ".json"),
+        package = "ksTFL"
+      )
+      if (nzchar(resolved)) {
+        return(resolved)
+      }
+      cli::cli_warn(c(
+        "Template {.val {doc_template}} not found in package templates.",
+        i = "Falling back to {.val KeyStat_default}.",
+        i = "Available templates: {.val {.list_bundled_templates()}}"
+      ))
     }
-    cli::cli_warn(c(
-      "Template {.val {doc_template}} not found in package templates.",
-      i = "Falling back to {.val KeyStat_default}.",
-      i = "Available templates: {.val {.list_bundled_templates()}}"
-    ))
   }
 
   system.file("templates", "KeyStat_default.json",

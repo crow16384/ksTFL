@@ -121,6 +121,10 @@ tfl_get_option <- function(name) {
 #'   \item Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_style()`, `add_body_text()`, and `set_page_style(`p_page(`p_margins()`)`)`.
 #'   \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 #' }
+#' @param docTemplate Character; name of a predefined bundled template (e.g. `"KeyStat_default"`,
+#'   `"Navy_Pro"`) or a file path to an external template JSON file. When `NULL` (default) the
+#'   current session template is left unchanged. Use `tfl_reset_options()` to restore the
+#'   built-in default (`"KeyStat_default"`).
 #' @param bodyTitles Logical; override whether body titles are shown.
 #' @param bodySubtitles Logical; override whether body subtitles are shown.
 #' @param bodyFootnotes Logical; override whether body footnotes are shown.
@@ -147,6 +151,12 @@ tfl_get_option <- function(name) {
 #' \dontrun{
 #' # Set a named option
 #' tfl_set_options(bodyTitles = FALSE, contentWidth = "95%", missings = ".")
+#'
+#' # Set a predefined bundled template
+#' tfl_set_options(docTemplate = "Navy_Pro")
+#'
+#' # Set an external template file
+#' tfl_set_options(docTemplate = "/path/to/my_template.json")
 #'
 #' # Update page style via helper
 #'  tfl_set_options(
@@ -187,14 +197,21 @@ tfl_get_option <- function(name) {
 #' # In Word: click the TOC placeholder and press F9 to populate it.
 #' }
 #' @export
-tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
+tfl_set_options <- function(..., docTemplate = NULL,
+                         bodyTitles = NULL, bodySubtitles = NULL,
                          bodyFootnotes = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
                          autoColWidth = NULL, minColWidth = NULL,
                          insertTOC = NULL, tocTitle = NULL,
-                         output_directory='.') {
-  
+                         output_directory = NULL) {
+
+  if (!is.null(docTemplate)) {
+    checkmate::assert_string(docTemplate, .var.name = "docTemplate")
+    .options_env$settings$doc_style_template <- docTemplate
+  }
+
   params <- as.list(environment())
+  params$docTemplate <- NULL
   params <- params[!sapply(params, is.null)]
 
   for (pname in names(params)) {
@@ -211,14 +228,12 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
       } else if (pname %in% c("output_directory")) {
         if (!.is_readable_dir(val)) {
           cli_warn("The specified output directory {.var {val}} does not exist or is not writable.")
-      }
-       } else 
-       if (pname %in% c("contentWidth")) {
-        .validate_pattern(contentWidth, .const_pattern_content_width, 
+        }
+      } else if (pname %in% c("contentWidth")) {
+        .validate_pattern(contentWidth, .const_pattern_content_width,
                       "contentWidth", "tfl_set_options",
                       "Must be like '100%', '6.5in', or '16.51cm'")
-      } else
-      {
+      } else {
         # Fallback: if a default exists, warn when types differ
         default_val <- .options_env$defaults[[pname]]
         if (!is.null(default_val) && !inherits(val, class(default_val))) {
@@ -312,4 +327,27 @@ tfl_set_options <- function(..., bodyTitles = NULL, bodySubtitles = NULL,
 tfl_reset_options <- function() {
   .options_env$settings <- .options_env$defaults
   invisible(.options_env$settings)
+}
+
+
+#' List available bundled templates
+#'
+#' Returns the names of all template JSON files bundled with the package in
+#' `inst/templates/`. These names can be passed directly to
+#' `set_page_style(docTemplate = ...)` or `tfl_set_options(docTemplate = ...)`.
+#'
+#' @return A character vector of template names (without the `.json` extension),
+#'   sorted alphabetically.
+#'
+#' @examples
+#' \dontrun{
+#' tfl_list_templates()
+#' }
+#'
+#' @export
+tfl_list_templates <- function() {
+  tmpl_dir <- system.file("templates", package = "ksTFL")
+  if (!nzchar(tmpl_dir)) return(character(0L))
+  files <- list.files(tmpl_dir, pattern = "\\.json$", full.names = FALSE)
+  sort(tools::file_path_sans_ext(files))
 }

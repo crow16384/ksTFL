@@ -1,6 +1,3 @@
-source("inst/examples/init.R")
-
-
 # ============================================================================
 # Build a multi-page laboratory results dataset
 # ============================================================================
@@ -103,8 +100,8 @@ analytes <- list(
        unit = "mg/dL", lo = 200, hi = 400)
 )
 
-# Generate 3 visits of data; some values are deliberately out of range.
-visits <- c("Baseline", "Week 4", "Week 12")
+# Generate 5 visits of data; some values are deliberately out of range.
+visits <- c("Baseline", "Week 2", "Week 4", "Week 6", "Week 12")
 rows <- list()
 
 for (a in analytes) {
@@ -151,10 +148,13 @@ for (a in analytes) {
     Units = if (nchar(a$unit) > 0) a$unit else "\u2014",
     Reference = ref_range,
     Baseline = format_val(vals[1], a$lo, a$hi),
-    Week4 = format_val(vals[2], a$lo, a$hi),
-    Week12 = format_val(vals[3], a$lo, a$hi),
+    Week2 = format_val(vals[2], a$lo, a$hi),
+    Week4 = format_val(vals[3], a$lo, a$hi),
+    Week6 = format_val(vals[4], a$lo, a$hi),
+    Week12 = format_val(vals[5], a$lo, a$hi),
     # hidden columns for conditional styling
     v1 = vals[1], v2 = vals[2], v3 = vals[3],
+    v4 = vals[4], v5 = vals[5],
     lo = a$lo, hi = a$hi,
     stringsAsFactors = FALSE
   )
@@ -168,3 +168,6 @@ df_lab <- tibble(df_lab)
 cat("Lab dataset:", nrow(df_lab), "analytes across",
     length(unique(df_lab$Group)), "groups,",
     length(visits), "visits\n\n")
+
+spec_lab <- create_table(df_lab) %>%
+  add_header()
