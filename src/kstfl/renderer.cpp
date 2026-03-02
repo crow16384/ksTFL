@@ -274,17 +274,47 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
             Rcpp::Rcerr << "[ksTFL]   Phase 3c: Measuring...\n";
         }
 
-        // Measure header grid cells
+        // Measure header grid cells.
+        // First, resolve a representative header style once to extract the
+        // text_orientation that the template applies to all header cells.
+        // Then stamp it onto every HeaderGridCell so the measurer can swap
+        // width/height for rotated labels.
+        {
+            ColumnSpec dummy_col;
+            StyleDef proto_hdr_style = resolver.resolve_header_cell_style(dummy_col);
+            std::optional<TextOrientation> hdr_orientation;
+            if (proto_hdr_style.table_style.has_value()) {
+                hdr_orientation = proto_hdr_style.table_style->text_orientation;
+            }
+            for (auto& header_row : header_grid.rows) {
+                for (auto& cell : header_row) {
+                    if (!cell.text_orientation.has_value()) {
+                        cell.text_orientation = hdr_orientation;
+                    }
+                }
+            }
+        }
+
         Length total_header_height{0};
         header_grid.row_heights.clear();
         for (auto& header_row : header_grid.rows) {
             Length max_row_height{0};
             for (auto& cell : header_row) {
-                // Resolve header cell style
-                StyleDef hdr_style;
+                // Resolve header cell style (carries text_orientation via table_style)
                 ColumnSpec dummy;
                 dummy.label_style_ref = cell.style_ref;
-                hdr_style = resolver.resolve_header_cell_style(dummy);
+                StyleDef hdr_style = resolver.resolve_header_cell_style(dummy);
+
+                // Ensure the resolved style carries the cell's orientation so
+                // the measurer performs the correct width/height swap.
+                if (cell.text_orientation.has_value()) {
+                    if (!hdr_style.table_style.has_value()) {
+                        hdr_style.table_style = TableCellProps{};
+                    }
+                    if (!hdr_style.table_style->text_orientation.has_value()) {
+                        hdr_style.table_style->text_orientation = cell.text_orientation;
+                    }
+                }
 
                 MeasuredText m = measurer.measure_plain(cell.label, hdr_style, cell.width);
                 if (m.height > max_row_height) {

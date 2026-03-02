@@ -143,6 +143,66 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
     ParagraphProps base_pp = style.paragraph.value_or(ParagraphProps{});
     TableCellProps base_tcp = style.table_style.value_or(TableCellProps{});
 
+    // -----------------------------------------------------------------------
+    // Rotated text (vertical_90 / vertical_270)
+    // -----------------------------------------------------------------------
+    // When a cell is rotated 90° or 270°, Word renders the text vertically.
+    // The column width becomes the visual cell HEIGHT, and the text's natural
+    // (horizontal) width becomes the visual cell HEIGHT contribution.
+    // Word does NOT word-wrap inside rotated cells — the full label runs as a
+    // single unwrapped line.
+    //
+    // Measurement strategy:
+    //   • Measure the text as one unwrapped horizontal line → natural_width.
+    //   • The cell's HEIGHT contribution = natural_width + top/bottom cell margins.
+    //   • The cell's WIDTH contribution = one line height (the font height).
+    //     (This is what the column width must accommodate, but column widths are
+    //     already fixed at this point, so we only return the height contribution.)
+    //
+    // Returned MeasuredText: { width = line_height, height = natural_text_width
+    //                          + cell_margin_top + cell_margin_bottom }
+    if (base_tcp.text_orientation.has_value() &&
+        base_tcp.text_orientation.value() != TextOrientation::Horizontal) {
+
+        double line_spacing_mult = 1.0;
+        if (base_pp.spacing.has_value() &&
+            base_pp.spacing->line_spacing_multiplier.has_value()) {
+            line_spacing_mult = base_pp.spacing->line_spacing_multiplier.value();
+        }
+        Length lh = line_height(base_font, line_spacing_mult);
+
+        // Measure the full text as one unwrapped line
+        Length natural_width{0};
+        for (const auto& para : parsed.paragraphs) {
+            Length para_width{0};
+            for (const auto& run : para.runs) {
+                if (run.text.empty() || run.text == "\n") continue;
+                FontProps run_font = base_font;
+                if (run.style.bold_override)   run_font.bold   = true;
+                if (run.style.italic_override) run_font.italic = true;
+                FontProps measure_font = run_font;
+                if (run.style.superscript || run.style.subscript) {
+                    measure_font.font_size = effective_font_size(base_font, run.style);
+                }
+                para_width = para_width + measure_run_width(run.text, measure_font, {});
+            }
+            if (para_width > natural_width) natural_width = para_width;
+        }
+
+        // Add cell top/bottom margins (they become the horizontal padding in
+        // the rotated view, but contribute to the required cell height).
+        Length cell_margin_top    = base_tcp.cell_margin_top.value_or(Length{0});
+        Length cell_margin_bottom = base_tcp.cell_margin_bottom.value_or(Length{0});
+        Length required_height = natural_width + cell_margin_top + cell_margin_bottom;
+
+        // Width contribution = one line height (font height after rotation)
+        Length cell_margin_left  = base_tcp.cell_margin_left.value_or(Length{0});
+        Length cell_margin_right = base_tcp.cell_margin_right.value_or(Length{0});
+        Length reported_width = lh + cell_margin_left + cell_margin_right;
+
+        return MeasuredText{reported_width, required_height, 1};
+    }
+
     double line_spacing_mult = 1.0;
     if (base_pp.spacing.has_value() && base_pp.spacing->line_spacing_multiplier.has_value()) {
         line_spacing_mult = base_pp.spacing->line_spacing_multiplier.value();

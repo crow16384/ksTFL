@@ -641,6 +641,9 @@ struct HeaderGridCell {
     Length width;
     std::optional<std::string> style_ref;
     VMergeState v_merge = VMergeState::None;  // vertical merge state
+    // Carries the column's text_orientation so the measurer can swap
+    // width/height when the label is rendered rotated.
+    std::optional<TextOrientation> text_orientation;
 };
 
 /// The complete header grid (one or more rows).
