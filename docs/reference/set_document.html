@@ -73,7 +73,7 @@
 <span>  isContinues <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  contentWidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bodyTitles <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bodyFootnotes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  footnotePlace <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hasData <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bodySubtitles <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -107,8 +107,12 @@
 <dd><p>Whether to place titles in body (vs header)</p></dd>
 
 
-<dt id="arg-bodyfootnotes">bodyFootnotes<a class="anchor" aria-label="anchor" href="#arg-bodyfootnotes"></a></dt>
-<dd><p>Whether to place footnotes in body (vs footer)</p></dd>
+<dt id="arg-footnoteplace">footnotePlace<a class="anchor" aria-label="anchor" href="#arg-footnoteplace"></a></dt>
+<dd><p>Character; controls where footnotes are rendered.
+  One of <code>"doc_footer"</code> (place in the document footer section only),
+  <code>"repeated"</code> (place under the table on every page),
+  or <code>"last_page"</code> (place under the table on the last page only).
+  Default <code>"repeated"</code>.</p></dd>
 
 
 <dt id="arg-hasdata">hasData<a class="anchor" aria-label="anchor" href="#arg-hasdata"></a></dt>

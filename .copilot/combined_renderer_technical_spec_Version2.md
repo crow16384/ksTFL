@@ -174,7 +174,7 @@ Subtract dynamic blocks to derive available table-body height:
 - titles height
 - subtitles height (dynamic per page if `#ByGroupX`)
 - table header height (repeated)
-- footnotes height (if `bodyFootnotes = true` and on the page where they appear)
+- footnotes height (if `footnotePlace` is `"repeated"`, reserved on every page; if `"last_page"`, only reserved on the last page via a post-pass adjustment; if `"doc_footer"`, added to footer section height)
 
 The remaining height is table body capacity.
 
@@ -430,12 +430,10 @@ From renderer_notes §12:
 - groups: `text[]`, `styleRef`, `order`
 - sort by `order`
 - concatenate text via soft break
-- placement:
-  - if `bodyFootnotes=true`:
-    - render below table on final page
-    - subtract height during layout
-  - else:
-    - render in footer section
+- placement controlled by `footnotePlace` (string enum):
+  - `"doc_footer"`: render inside the Word footer XML part (`w:ftr`), below the regular footer rows; footnote height is added to footer section height during pagination
+  - `"repeated"`: render below the table on **every** page; footnote height reserved on every page
+  - `"last_page"`: render below the table on the **last page** only; non-last pages are paginated without footnote reservation, then a post-pass ensures the last page has room for footnotes (spilling rows to a new page if needed)
 
 ---
 

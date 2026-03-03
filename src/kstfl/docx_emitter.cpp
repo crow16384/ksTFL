@@ -1194,13 +1194,22 @@ std::string DocxEmitter::emit_hdr_ftr_xml_part(
     const std::vector<HeaderFooterRow>& rows,
     const StyleDef& style,
     Length usable_w,
-    const char* root_element) const
+    const char* root_element,
+    const std::vector<TextGroup>* footnotes,
+    const StyleResolver* resolver) const
 {
     XmlWriter w;
     w.write_declaration();
     w.start_element(root_element);
     w.namespace_decl("w", W_NS);
     w.namespace_decl("r", R_NS);
+
+    // When doc_footer footnotes are present, emit them first so they appear
+    // directly below the table content, then the footer rows underneath.
+    if (footnotes && resolver && !footnotes->empty()) {
+        StyleDef fn_style = resolver->resolve_footnote_style();
+        emit_text_groups(w, *footnotes, fn_style, *resolver);
+    }
 
     // Always use field codes in header/footer parts (Word resolves them)
     emit_header_footer_section(w, rows, style, usable_w, 0, 0, true);
@@ -1815,8 +1824,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
         emit_table(w, spec, page, segment, rows, header_grid, resolver);
     }
 
-    // 4. Footnotes (if body placement and last page)
-    if (spec.document.body_footnotes && page.is_last_page && !spec.footnotes.empty()) {
+    // 4. Footnotes (if this page should show them per footnote_place strategy)
+    if (page.has_footnotes && !spec.footnotes.empty()) {
         StyleDef fn_style = resolver.resolve_footnote_style();
         emit_text_groups(w, spec.footnotes, fn_style, resolver);
     }
@@ -1975,8 +1984,12 @@ void DocxEmitter::emit(
             std::string rid = "rId" + std::to_string(next_rid++);
             std::string part_path = "word/footer" + std::to_string(hdr_ftr_idx) + ".xml";
             StyleDef ftr_style = resolver.resolve_doc_footer_style();
+            const std::vector<TextGroup>* fn_ptr =
+                (spec.document.footnote_place == FootnotePlace::DocFooter && !spec.footnotes.empty())
+                    ? &spec.footnotes : nullptr;
             std::string xml = emit_hdr_ftr_xml_part(spec.footers, ftr_style,
-                                                     usable_w, "w:ftr");
+                                                     usable_w, "w:ftr",
+                                                     fn_ptr, &resolver);
             all_hdr_ftr_parts.push_back({part_path, rid, xml, false});
             spec_hdr_ftr_refs[spec_idx].footer_rid = rid;
             hdr_ftr_idx++;
@@ -2109,11 +2122,8 @@ void DocxEmitter::emit(
             }
         }
 
-        // Non-body footnotes (rendered after all pages)
-        if (!spec.document.body_footnotes && !spec.footnotes.empty()) {
-            StyleDef fn_style = resolver.resolve_footnote_style();
-            emit_text_groups(doc_w, spec.footnotes, fn_style, resolver);
-        }
+        // doc_footer footnotes are now emitted inside the Word footer XML part
+        // (w:ftr) rather than in the body, so they appear below the footer rows.
     }
 
     // Final section properties (for the last section — direct child of w:body)

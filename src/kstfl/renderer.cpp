@@ -372,7 +372,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
                     Length total_content = p.titles_height + p.subtitles_height
                         + p.table_header_height + body_h
                         + p.header_section_height + p.footer_section_height;
-                    if (p.is_last_page) {
+                    if (p.has_footnotes) {
                         total_content = total_content + p.footnotes_height;
                     }
                     Rcpp::Rcerr << "[ksTFL]   Page " << p.page_number

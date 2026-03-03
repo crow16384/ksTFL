@@ -140,7 +140,7 @@
 #   docPrefix = "Table 14.2",
 #   contentWidth = "95%",        # Narrower content (default 100%)
 #   bodyTitles = FALSE,          # Titles in header, not body
-#   bodyFootnotes = TRUE,        # Footnotes in body
+#   footnotePlace = "repeated",  # Footnotes on every page
 #   glueNumType = FALSE)         # Prefix separate from title
 
 ## ----example_combine_report, eval = FALSE-------------------------------------

@@ -17,7 +17,7 @@
     # Document Renderer Defaults
     bodyTitles          = TRUE,
     bodySubtitles       = TRUE,
-    bodyFootnotes       = TRUE,
+    footnotePlace       = "repeated",
     isContinues         = FALSE,
     contentWidth        = "100%",
     
@@ -37,7 +37,8 @@
     tocTitle            = "Table of Contents",
 
     # Metadata/Output
-    output_directory    = '.'
+    output_directory    = ".",
+    meta_directory      = tempdir()
 ), class = "TFL_options")
 
 
@@ -75,9 +76,10 @@ tfl_get_options <- function() {
 #' throws a friendly error if the option does not exist.
 #'
 #' @param name Character(1). Name of the option to fetch. Common options:
-#'   `"page"`, `"styles"`, `"bodyTitles"`, `"bodySubtitles"`, `"bodyFootnotes"`,
+#'   `"page"`, `"styles"`, `"footnotePlace"`,
 #'   `"isContinues"`, `"contentWidth"`, `"missings"`, `"autoColWidth"`,
-#'   `"minColWidth"`, `"insertTOC"`, `"tocTitle"`, `"output_directory"`.
+#'   `"minColWidth"`, `"insertTOC"`, `"tocTitle"`, `"output_directory"`,
+#'   `"meta_directory"`.
 #'
 #' @return The value associated with `name` (type depends on the option).
 #'
@@ -107,7 +109,7 @@ tfl_get_option <- function(name) {
 #'
 #' Update ksTFL session options. This function accepts:
 #' \itemize{
-#'   \item{Named scalar options (e.g. `bodyTitles = FALSE`, `contentWidth = "95%"`).}
+#'   \item{Named scalar options (e.g. `contentWidth = "95%"`, `missings = "."`).}
 #'   \item{Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_body_text()`, or page objects from `p_page()`.}
 #'   \item{A mixture of both named values and settings objects.}
 #' }
@@ -117,7 +119,7 @@ tfl_get_option <- function(name) {
 #'
 #' @param ... Named arguments OR settings objects returned from helper constructors.
 #' \itemize{
-#'   \item Named scalar options (e.g. `bodyTitles = FALSE`, `contentWidth = "95%"`).
+#'   \item Named scalar options (e.g. `contentWidth = "95%"`, `missings = "."`).
 #'   \item Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_style()`, `add_body_text()`, and `set_page_style(`p_page(`p_margins()`)`)`.
 #'   \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 #' }
@@ -125,9 +127,11 @@ tfl_get_option <- function(name) {
 #'   `"Navy_Pro"`) or a file path to an external template JSON file. When `NULL` (default) the
 #'   current session template is left unchanged. Use `tfl_reset_options()` to restore the
 #'   built-in default (`"KeyStat_default"`).
-#' @param bodyTitles Logical; override whether body titles are shown.
-#' @param bodySubtitles Logical; override whether body subtitles are shown.
-#' @param bodyFootnotes Logical; override whether body footnotes are shown.
+#' @param footnotePlace Character; controls where footnotes are rendered.
+#'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
+#'   `"repeated"` (place under the table on every page),
+#'   or `"last_page"` (place under the table on the last page only).
+#'   Default `"repeated"`.
 #' @param isContinues Logical; override continuation behavior.
 #' @param contentWidth Character; width for content area (e.g. "100%", "95%").
 #' @param missings Character; default representation for missing values (e.g. "NA", ".", "---").
@@ -144,13 +148,15 @@ tfl_get_option <- function(name) {
 #'   Default `"Table of Contents"`. Set to `""` to omit the heading.
 #'   Can be overridden per-render via `save_report(tocTitle = )`.
 #' @param output_directory Character; path to default output directory of rendered document.
+#' @param meta_directory Character; path to default directory for intermediate
+#'   metadata (JSON specs, data, and asset files) created during rendering.
 #'
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
 #'
 #' @examples
 #' \dontrun{
 #' # Set a named option
-#' tfl_set_options(bodyTitles = FALSE, contentWidth = "95%", missings = ".")
+#' tfl_set_options(contentWidth = "95%", missings = ".")
 #'
 #' # Set a predefined bundled template
 #' tfl_set_options(docTemplate = "Navy_Pro")
@@ -198,12 +204,11 @@ tfl_get_option <- function(name) {
 #' }
 #' @export
 tfl_set_options <- function(..., docTemplate = NULL,
-                         bodyTitles = NULL, bodySubtitles = NULL,
-                         bodyFootnotes = NULL,
+                         footnotePlace = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
                          autoColWidth = NULL, minColWidth = NULL,
                          insertTOC = NULL, tocTitle = NULL,
-                         output_directory = NULL) {
+                         output_directory = NULL, meta_directory = NULL) {
 
   if (!is.null(docTemplate)) {
     checkmate::assert_string(docTemplate, .var.name = "docTemplate")
@@ -219,15 +224,17 @@ tfl_set_options <- function(..., docTemplate = NULL,
       val <- params[[pname]]
 
       # Type checks for known option names
-      if (pname %in% c("bodyTitles", "bodySubtitles", "bodyFootnotes", "isContinues", "autoColWidth", "insertTOC")) {
+      if (pname %in% c("isContinues", "autoColWidth", "insertTOC")) {
         checkmate::assert_logical(val, len = 1, any.missing = FALSE, .var.name = pname)
+      } else if (pname == "footnotePlace") {
+        checkmate::assert_choice(val, choices = c("doc_footer", "repeated", "last_page"), .var.name = pname)
       } else if (pname == "minColWidth") {
         checkmate::assert_numeric(val, len = 1, lower = 0, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("doc_style_template", "missings", "tocTitle")) {
         checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)
-      } else if (pname %in% c("output_directory")) {
+      } else if (pname %in% c("output_directory", "meta_directory")) {
         if (!.is_readable_dir(val)) {
-          cli_warn("The specified output directory {.var {val}} does not exist or is not writable.")
+          cli_warn("The specified directory {.var {val}} does not exist or is not writable.")
         }
       } else if (pname %in% c("contentWidth")) {
         .validate_pattern(contentWidth, .const_pattern_content_width,

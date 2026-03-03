@@ -233,7 +233,7 @@ Goal: configure document-level properties like data availability flag, content w
 **Key function**: `set_document()`
 - `glueNumType`: Whether to combine type and number with first title (default TRUE)
 - `hasData`: Whether document contains data (important for Text specs)
-- `bodyTitles`, `bodyFootnotes`, `bodySubtitles`: Place these in body vs header
+- `bodyTitles`, `footnotePlace`, `bodySubtitles`: Control placement of titles, footnotes, and subtitles
 - `contentWidth`: Content width (e.g., "100%", "6.5in", "16.51cm")
 - `isContinues`: Ignore page breaks between sections
 
@@ -256,7 +256,7 @@ spec <- create_table(demog_tbl)
 spec <- set_document(spec,
   contentWidth = "95%",        # Narrower content (default 100%)
   bodyTitles = FALSE,          # Titles in header, not body
-  bodyFootnotes = TRUE,        # Footnotes in body
+  footnotePlace = "repeated",  # Footnotes on every page
   glueNumType = FALSE)
 ```
 

@@ -29,7 +29,7 @@
 - f_combine(...): combine style references
 
 ## Document Configuration
-- set_document(spec, docPrefix, isContinues, gluePrefix, contentWidth)
+- set_document(spec, docPrefix, isContinues, gluePrefix, contentWidth, footnotePlace)
 - set_page_style(spec, page, margins): S3 generic
 - p_page(size, orientation)
 - p_margins(top, bottom, left, right, header, footer)

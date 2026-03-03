@@ -6,9 +6,7 @@
 \usage{
 tfl_set_options(
   ...,
-  bodyTitles = NULL,
-  bodySubtitles = NULL,
-  bodyFootnotes = NULL,
+  footnotePlace = NULL,
   isContinues = NULL,
   contentWidth = NULL,
   missings = NULL,
@@ -20,16 +18,16 @@ tfl_set_options(
 \arguments{
 \item{...}{Named arguments OR settings objects returned from helper constructors.
 \itemize{
-\item Named scalar options (e.g. \code{bodyTitles = FALSE}, \code{contentWidth = "95\%"}).
+\item Named scalar options (e.g. \code{contentWidth = "95\%"}, \code{missings = "."}).
 \item Settings objects produced by helper constructors such as \code{add_header()}, \code{add_footer()}, \code{add_style()}, \code{add_body_text()}, and \verb{set_page_style(}p_page(\code{p_margins()})\verb{)}.
 \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 }}
 
-\item{bodyTitles}{Logical; override whether body titles are shown.}
-
-\item{bodySubtitles}{Logical; override whether body subtitles are shown.}
-
-\item{bodyFootnotes}{Logical; override whether body footnotes are shown.}
+\item{footnotePlace}{Character; controls where footnotes are rendered.
+  One of \code{"doc_footer"} (place in the document footer section only),
+  \code{"repeated"} (place under the table on every page),
+  or \code{"last_page"} (place under the table on the last page only).
+  Default \code{"repeated"}.}
 
 \item{isContinues}{Logical; override continuation behavior.}
 
@@ -52,7 +50,7 @@ The updated settings list, returned invisibly. Use \code{tfl_get_options()} to i
 \description{
 Update ksTFL session options. This function accepts:
 \itemize{
-\item{Named scalar options (e.g. \code{bodyTitles = FALSE}, \code{contentWidth = "95\%"}).}
+\item{Named scalar options (e.g. \code{contentWidth = "95\%"}, \code{missings = "."}).}
 \item{Settings objects produced by helper constructors such as \code{add_header()}, \code{add_footer()}, \code{add_body_text()}, or page objects from \code{p_page()}.}
 \item{A mixture of both named values and settings objects.}
 }
@@ -64,7 +62,7 @@ appropriate internal settings slot (headers, footers, styles, bodyText, page).
 \examples{
 \dontrun{
 # Set a named option
-tfl_set_options(bodyTitles = FALSE, contentWidth = "95\%", missings = ".")
+tfl_set_options(contentWidth = "95\%", missings = ".")
 
 # Update page style via helper
  tfl_set_options(

@@ -496,6 +496,13 @@ enum class DocType {
     Text
 };
 
+/// Footnote placement strategy.
+enum class FootnotePlace {
+    DocFooter,   // place footnotes inside the Word footer part (w:ftr), below footer rows
+    Repeated,    // place footnotes under the table on every page
+    LastPage     // place footnotes under the table on the last page only
+};
+
 /// Document info from spec JSON.
 struct DocumentInfo {
     DocType doc_type = DocType::Table;
@@ -506,7 +513,7 @@ struct DocumentInfo {
     std::optional<double> content_width;     // percent of usable width (0.0–1.0 or 0–100)
     bool body_titles = false;
     bool body_subtitles = false;
-    bool body_footnotes = false;
+    FootnotePlace footnote_place = FootnotePlace::Repeated;
     double figure_width_in = 6.0;            // figure width in inches (for Figure docType)
     double figure_height_in = 4.0;           // figure height in inches (for Figure docType)
 };
@@ -669,6 +676,7 @@ struct PageSlice {
     // What content appears on this page
     bool has_titles = true;
     bool has_subtitles = true;
+    bool has_footnotes = false;              // whether footnotes render on this page
     std::vector<std::string> dynamic_subtitle_values;  // resolved #ByGroupX values
 
     // Heights reserved

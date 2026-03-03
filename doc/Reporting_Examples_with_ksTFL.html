@@ -556,8 +556,8 @@ placement)</h2>
 5.2”) - <code>glueNumType</code>: Whether to combine prefix with first
 title (default TRUE) - <code>hasData</code>: Whether document contains
 data (important for Text specs) - <code>bodyTitles</code>,
-<code>bodyFootnotes</code>, <code>bodySubtitles</code>: Place these in
-body vs header - <code>contentWidth</code>: Content width (e.g., “100%”,
+<code>footnotePlace</code>, <code>bodySubtitles</code>: Control placement of
+footnotes and subtitles - <code>contentWidth</code>: Content width (e.g., “100%”,
 “6.5in”, “16.51cm”) - <code>isContinues</code>: Ignore page breaks
 between sections</p>
 <p><strong>Example 1: Simple document prefix</strong></p>
@@ -576,7 +576,7 @@ between sections</p>
 <span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>  <span class="at">docPrefix =</span> <span class="st">&quot;Table 14.2&quot;</span>,</span>
 <span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>  <span class="at">contentWidth =</span> <span class="st">&quot;95%&quot;</span>,        <span class="co"># Narrower content (default 100%)</span></span>
 <span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">bodyTitles =</span> <span class="cn">FALSE</span>,          <span class="co"># Titles in header, not body</span></span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">bodyFootnotes =</span> <span class="cn">TRUE</span>,        <span class="co"># Footnotes in body</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">footnotePlace =</span> <span class="st">&quot;repeated&quot;</span>,  <span class="co"># Footnotes on every page</span></span>
 <span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">glueNumType =</span> <span class="cn">FALSE</span>)         <span class="co"># Prefix separate from title</span></span></code></pre></div>
 <p><strong>Notes</strong>: - Most defaults are sensible; you typically
 only need <code>set_document()</code> for <code>docPrefix</code> and

@@ -324,7 +324,7 @@ placement)<a class="anchor" aria-label="anchor" href="#set-document-properties-d
 5.2”) - <code>glueNumType</code>: Whether to combine prefix with first
 title (default TRUE) - <code>hasData</code>: Whether document contains
 data (important for Text specs) - <code>bodyTitles</code>,
-<code>bodyFootnotes</code>, <code>bodySubtitles</code>: Place these in
+<code>footnotePlace</code>, <code>bodySubtitles</code>: Place these in
 body vs header - <code>contentWidth</code>: Content width (e.g., “100%”,
 “6.5in”, “16.51cm”) - <code>isContinues</code>: Ignore page breaks
 between sections</p>
@@ -346,7 +346,7 @@ between sections</p>
 <span>  docPrefix <span class="op">=</span> <span class="st">"Table 14.2"</span>,</span>
 <span>  contentWidth <span class="op">=</span> <span class="st">"95%"</span>,        <span class="co"># Narrower content (default 100%)</span></span>
 <span>  bodyTitles <span class="op">=</span> <span class="cn">FALSE</span>,          <span class="co"># Titles in header, not body</span></span>
-<span>  bodyFootnotes <span class="op">=</span> <span class="cn">TRUE</span>,        <span class="co"># Footnotes in body</span></span>
+<span>  footnotePlace <span class="op">=</span> <span class="st">"repeated"</span>,        <span class="co"># Footnotes under table on every page</span></span>
 <span>  glueNumType <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>         <span class="co"># Prefix separate from title</span></span></code></pre></div>
 <p><strong>Notes</strong>: - Most defaults are sensible; you typically
 only need <code><a href="../reference/set_document.html">set_document()</a></code> for <code>docPrefix</code> and

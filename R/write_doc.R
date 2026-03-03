@@ -19,7 +19,7 @@
 #'   written. Defaults to `tfl_get_option("output_directory")`.
 #' @param metaPath Character(1). Directory where the intermediate specification
 #'   JSON and associated data/figure files will be stored. Defaults to
-#'   [tempdir()].
+#'   `tfl_get_option("meta_directory")`.
 #' @param prettify Logical. When `TRUE`, pretty‑prints the JSON written by
 #'   [save_report()] for easier inspection. Default `FALSE` (compact JSON).
 #' @param toc Logical. When `TRUE`, enables automatic insertion of a Table of
@@ -85,7 +85,7 @@
 write_doc <- function(report,
                       name,
                       outDir = tfl_get_option("output_directory"),
-                      metaPath = tempdir(),
+                      metaPath = tfl_get_option("meta_directory"),
                       prettify = FALSE,
                       toc = tfl_get_option("insertTOC"),
                       tocTitle = tfl_get_option("tocTitle"),

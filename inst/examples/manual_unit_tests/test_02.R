@@ -29,7 +29,7 @@ spec_02_01 <- create_table(ae_tbl_01) %>%
     c_style(pt, "indent_2")
   ) 
   
-create_report(spec_02_01) %>% write_doc("test_02_01")
+create_report(spec_02_01) %>% write_doc("test_02_01",metaPath = meta_dir)
 
 
 ### TEST 02_02 ####
@@ -86,7 +86,7 @@ spec_02_02 <- create_table(ae_tbl_02_01) %>%
   ) %>% 
   set_document(contentWidth = '80%')
 
-create_report(spec_02_02) %>% write_doc("test_02_02")
+create_report(spec_02_02) %>% write_doc("test_02_02",metaPath = meta_dir)
 
 
 ### TEST 02_03 ####
@@ -107,4 +107,4 @@ spec_02_03 <- create_table(vitals_tbl_01_02) %>%
   define_cols(c(parameter, analysis), isVisible = F) %>% 
   set_document(contentWidth = '80%')
 
-create_report(spec_02_03) %>% write_doc("test_02_03")
+create_report(spec_02_03) %>% write_doc("test_02_03",metaPath = meta_dir)

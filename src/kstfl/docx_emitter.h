@@ -193,11 +193,16 @@ private:
     /// @param style   Resolved style for the content.
     /// @param usable_w Usable page width for tab stops.
     /// @param root_element "w:hdr" or "w:ftr"
+    /// @param footnotes  Optional footnotes to append after footer rows
+    ///                   (used when footnotePlace="doc_footer").
+    /// @param resolver   Required when footnotes is non-null.
     /// @return Complete XML string for the part.
     std::string emit_hdr_ftr_xml_part(const std::vector<HeaderFooterRow>& rows,
                                        const StyleDef& style,
                                        Length usable_w,
-                                       const char* root_element) const;
+                                       const char* root_element,
+                                       const std::vector<TextGroup>* footnotes = nullptr,
+                                       const StyleResolver* resolver = nullptr) const;
 
     /// Stamp exact line height on a style's spacing props so the emitter
     /// can use w:lineRule="exact" for deterministic pagination.

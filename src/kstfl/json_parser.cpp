@@ -585,7 +585,12 @@ static DocumentInfo parse_document_info(const json& j) {
     if (j.contains("figureHeightIn") && j["figureHeightIn"].is_number())
         di.figure_height_in = j["figureHeightIn"].get<double>();
     di.body_subtitles = get_bool(j, "bodySubtitles", true);
-    di.body_footnotes = get_bool(j, "bodyFootnotes", false);
+
+    // footnotePlace: "doc_footer" | "repeated" | "last_page" (default "repeated")
+    auto fp = get_str(j, "footnotePlace");
+    if (fp == "doc_footer")       di.footnote_place = FootnotePlace::DocFooter;
+    else if (fp == "last_page")   di.footnote_place = FootnotePlace::LastPage;
+    else                          di.footnote_place = FootnotePlace::Repeated;
 
     auto cw = get_opt_str(j, "contentWidth");
     if (cw.has_value()) {

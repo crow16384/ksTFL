@@ -53,7 +53,7 @@ The central object created by `create_table()`, `create_figure()`, or `create_te
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `document` | list | Doc metadata: `docType`, `hasData`, `docPrefix`, `docOrder`, `isContinues`, `contentWidth`, `bodyTitles`, `bodySubtitles`, `bodyFootnotes`, `gluePrefix` |
+| `document` | list | Doc metadata: `docType`, `hasData`, `docPrefix`, `docOrder`, `isContinues`, `contentWidth`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `gluePrefix` |
 | `attribs` | list | `documentStyle` (template, page settings) and `styles` (named style definitions) |
 | `headers` | list | Header row entries |
 | `footers` | list | Footer row entries |
@@ -240,7 +240,7 @@ Managed via `.options_env` environment in `pkg_settings.R`.
 | `page` | `list(size="A4", orientation="landscape")` | Page settings |
 | `bodyTitles` | `TRUE` | Include titles in body |
 | `bodySubtitles` | `TRUE` | Include subtitles in body |
-| `bodyFootnotes` | `TRUE` | Include footnotes in body |
+| `footnotePlace` | `"repeated"` | Footnote placement: `"doc_footer"`, `"repeated"`, or `"last_page"` |
 | `gluePrefix` | `TRUE` | Glue docPrefix to title |
 | `isContinues` | `FALSE` | Continuation flag |
 | `contentWidth` | `"100%"` | Content width |

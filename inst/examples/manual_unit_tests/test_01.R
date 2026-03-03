@@ -13,7 +13,7 @@ spec_01_01 <- create_table(demography_tbl_01) %>%
              c_addrow("above", value_from = param, styleRef = "font_bold")
            )
 
-create_report(spec_01_01) %>% write_doc("test_01_01")
+create_report(spec_01_01) %>% write_doc("test_01_01",metaPath = meta_dir)
 
 ### TEST 01_02 ####
 spec_01_02 <- create_table(demography_tbl_01) %>% 
@@ -55,5 +55,5 @@ spec_01_03 <- create_table(demography_tbl_01) %>%
   ) %>% set_document(contentWidth = '70%')
 
 #print(spec_01_03) ####
-create_report(spec_01_03) %>% write_doc("test_01_03")
+create_report(spec_01_03) %>% write_doc("test_01_03",metaPath = meta_dir)
 

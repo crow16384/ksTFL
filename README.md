@@ -193,7 +193,7 @@ Configure document-level settings:
 
 | Function | Purpose | Key Parameters |
 |----------|---------|----------------|
-| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `bodyTitles`, `bodySubtitles`, `bodyFootnotes`, `hasData` |
+| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `hasData` |
 | `set_page_style(spec, docTemplate, page)` | Configure page layout & template | Template name, page settings |
 | `p_page(size, orientation, margins)` | Page settings helper | A4/Letter/Legal, portrait/landscape |
 | `p_margins(top, bottom, left, right, header, footer)` | Margin settings helper | Dimensions with units (in, cm, pt, mm) |

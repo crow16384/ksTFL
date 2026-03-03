@@ -10,7 +10,7 @@ set_document(
   isContinues = NULL,
   contentWidth = NULL,
   bodyTitles = NULL,
-  bodyFootnotes = NULL,
+  footnotePlace = NULL,
   hasData = NULL,
   bodySubtitles = NULL
 )
@@ -26,7 +26,11 @@ set_document(
 
 \item{bodyTitles}{Whether to place titles in body (vs header)}
 
-\item{bodyFootnotes}{Whether to place footnotes in body (vs footer)}
+\item{footnotePlace}{Character; controls where footnotes are rendered.
+  One of \code{"doc_footer"} (place in the document footer section only),
+  \code{"repeated"} (place under the table on every page),
+  or \code{"last_page"} (place under the table on the last page only).
+  Default \code{"repeated"}.}
 
 \item{hasData}{Whether document has data to report}
 

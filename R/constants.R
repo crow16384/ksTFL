@@ -218,7 +218,7 @@ NULL
   col_format = c("type", "format", "missings", "colWidth", "valueStyleRef"),
   column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter", "format"),
   stub_column = c("label", "cols", "labelStyleRef", "stubOrder"),
-  document = c("docType", "docOrder", "isContinues", "contentWidth", "bodyTitles", "bodyFootnotes", "hasData", "bodySubtitles"),
+  document = c("docType", "docOrder", "isContinues", "contentWidth", "footnotePlace", "hasData"),
   text_group = c("text", "styleRef", "order", "toclevel")
 )
 

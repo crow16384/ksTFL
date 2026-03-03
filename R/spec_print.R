@@ -241,7 +241,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   if (!is.null(doc_props$contentWidth)) cli::cli_text("{.strong Content Width:} {doc_props$contentWidth}")
   if (!is.null(doc_props$bodyTitles)) cli::cli_text("{.strong Body Titles:} {if (doc_props$bodyTitles) 'Yes' else 'No'}")
   if (!is.null(doc_props$bodySubtitles)) cli::cli_text("{.strong Body Subtitles:} {if (doc_props$bodySubtitles) 'Yes' else 'No'}")
-  if (!is.null(doc_props$bodyFootnotes)) cli::cli_text("{.strong Body Footnotes:} {if (doc_props$bodyFootnotes) 'Yes' else 'No'}")
+  if (!is.null(doc_props$footnotePlace)) cli::cli_text("{.strong Footnote Place:} {doc_props$footnotePlace}")
 
   # Document Style Template
   if (!is.null(x$attribs$documentStyle$docTemplate)) {
@@ -787,7 +787,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
               if (!is.null(x$document$contentWidth)) h$div(class = "prop-item", h$strong("Content Width: "), .scalar_text(x$document$contentWidth)),
               if (!is.null(x$document$bodyTitles)) h$div(class = "prop-item", h$strong("Body Titles: "), .scalar_text(x$document$bodyTitles)),
               if (!is.null(x$document$bodySubtitles)) h$div(class = "prop-item", h$strong("Body Subtitles: "), .scalar_text(x$document$bodySubtitles)),
-              if (!is.null(x$document$bodyFootnotes)) h$div(class = "prop-item", h$strong("Body Footnotes: "), .scalar_text(x$document$bodyFootnotes))
+              if (!is.null(x$document$footnotePlace)) h$div(class = "prop-item", h$strong("Footnote Place: "), .scalar_text(x$document$footnotePlace))
             )
           )
         ),

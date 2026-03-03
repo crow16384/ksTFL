@@ -112,7 +112,7 @@ spec2 <- spec2 |>
   set_document(
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
-    bodyFootnotes = TRUE,
+    footnotePlace = "repeated",
     hasData       = TRUE
   )
 
@@ -306,7 +306,7 @@ spec4 <- spec4 |>
   set_document(
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
-    bodyFootnotes = TRUE,
+    footnotePlace = "repeated",
     hasData       = TRUE
   )
 
@@ -375,7 +375,7 @@ spec5 <- spec5 |>
               "Listing of Adverse Events")) |>
   add_subtitle("Safety Analysis Set") |>
   add_footnote("Events with Severity = Severe are highlighted in red.") |>
-  set_document(hasData = TRUE, bodyTitles = TRUE, bodyFootnotes = TRUE)
+  set_document(hasData = TRUE, footnotePlace = "repeated")
 
 # Highlight severe AEs
 spec5 <- spec5 |>
@@ -465,7 +465,7 @@ spec6 <- spec6 |>
   set_document(
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
-    bodyFootnotes = TRUE,
+    footnotePlace = "repeated",
     hasData       = TRUE,
     #isContinues   = TRUE
   )
@@ -594,7 +594,7 @@ tbl_demo <- tbl_demo |>
   set_document(
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
-    bodyFootnotes = TRUE,
+    footnotePlace = "repeated",
     hasData       = TRUE
   )
 
@@ -657,7 +657,7 @@ lst_subj <- lst_subj |>
   set_document(
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
-    bodyFootnotes = TRUE,
+    footnotePlace = "repeated",
     hasData       = TRUE
   )
 
@@ -732,7 +732,7 @@ spec9 <- spec9 |>
   set_document(
     glueNumType   = TRUE,
     bodyTitles    = TRUE,
-    bodyFootnotes = TRUE,
+    footnotePlace = "repeated",
     hasData       = TRUE
   )
 

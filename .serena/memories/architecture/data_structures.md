@@ -5,7 +5,7 @@
 ### TFL_spec (S3 class)
 Created by create_table/create_text/create_figure via internal .tfl_init().
 Structure:
-- document: list(docType, hasData, docPrefix, docOrder, isContinues, contentWidth, bodyTitles, bodySubtitles, bodyFootnotes, gluePrefix)
+- document: list(docType, hasData, docPrefix, docOrder, isContinues, contentWidth, bodyTitles, bodySubtitles, footnotePlace, gluePrefix)
 - attribs: list(documentStyle = list(docTemplate, page = list(size, orientation, margins)), styles = list(...named styles...))
 - headers: list of header entries
 - footers: list of footer entries

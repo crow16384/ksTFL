@@ -67,7 +67,7 @@ A mixture of both named values and settings objects.
     </div>
 
     <div class="ref-description">
-    <p>Update ksTFL session options. This function accepts:</p><ul><li><p>Named scalar options (e.g. <code>bodyTitles = FALSE</code>, <code>contentWidth = "95%"</code>).</p></li>
+    <p>Update ksTFL session options. This function accepts:</p><ul><li><p>Named scalar options (e.g. <code>contentWidth = "95%"</code>, <code>missings = "."</code>).</p></li>
 <li><p>Settings objects produced by helper constructors such as <code><a href="add_header.html">add_header()</a></code>, <code><a href="add_footer.html">add_footer()</a></code>, <code><a href="add_body_text.html">add_body_text()</a></code>, or page objects from <code><a href="p_page.html">p_page()</a></code>.</p></li>
 <li><p>A mixture of both named values and settings objects.</p></li>
 </ul></div>
@@ -75,9 +75,7 @@ A mixture of both named values and settings objects.
     <div id="ref-usage">
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tfl_set_options</span><span class="op">(</span></span>
 <span>  <span class="va">...</span>,</span>
-<span>  bodyTitles <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bodySubtitles <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  bodyFootnotes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  footnotePlace <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gluePrefix <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  isContinues <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  contentWidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -93,22 +91,18 @@ A mixture of both named values and settings objects.
 
 
 <dl><dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Named arguments OR settings objects returned from helper constructors.</p><ul><li><p>Named scalar options (e.g. <code>bodyTitles = FALSE</code>, <code>contentWidth = "95%"</code>).</p></li>
+<dd><p>Named arguments OR settings objects returned from helper constructors.</p><ul><li><p>Named scalar options (e.g. <code>contentWidth = "95%"</code>, <code>missings = "."</code>).</p></li>
 <li><p>Settings objects produced by helper constructors such as <code><a href="add_header.html">add_header()</a></code>, <code><a href="add_footer.html">add_footer()</a></code>, <code><a href="add_style.html">add_style()</a></code>, <code><a href="add_body_text.html">add_body_text()</a></code>, and <code>set_page_style(</code>p_page(<code><a href="p_margins.html">p_margins()</a></code>)<code>)</code>.</p></li>
 <li><p>A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.</p></li>
 </ul></dd>
 
 
-<dt id="arg-bodytitles">bodyTitles<a class="anchor" aria-label="anchor" href="#arg-bodytitles"></a></dt>
-<dd><p>Logical; override whether body titles are shown.</p></dd>
-
-
-<dt id="arg-bodysubtitles">bodySubtitles<a class="anchor" aria-label="anchor" href="#arg-bodysubtitles"></a></dt>
-<dd><p>Logical; override whether body subtitles are shown.</p></dd>
-
-
-<dt id="arg-bodyfootnotes">bodyFootnotes<a class="anchor" aria-label="anchor" href="#arg-bodyfootnotes"></a></dt>
-<dd><p>Logical; override whether body footnotes are shown.</p></dd>
+<dt id="arg-footnoteplace">footnotePlace<a class="anchor" aria-label="anchor" href="#arg-footnoteplace"></a></dt>
+<dd><p>Character; controls where footnotes are rendered.
+  One of <code>"doc_footer"</code> (place in the document footer section only),
+  <code>"repeated"</code> (place under the table on every page),
+  or <code>"last_page"</code> (place under the table on the last page only).
+  Default <code>"repeated"</code>.</p></dd>
 
 
 <dt id="arg-glueprefix">gluePrefix<a class="anchor" aria-label="anchor" href="#arg-glueprefix"></a></dt>
@@ -156,7 +150,7 @@ appropriate internal settings slot (headers, footers, styles, bodyText, page).</
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Set a named option</span></span></span>
-<span class="r-in"><span><span class="fu">tfl_set_options</span><span class="op">(</span>bodyTitles <span class="op">=</span> <span class="cn">FALSE</span>, contentWidth <span class="op">=</span> <span class="st">"95%"</span>, missings <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">tfl_set_options</span><span class="op">(</span>contentWidth <span class="op">=</span> <span class="st">"95%"</span>, missings <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Update page style via helper</span></span></span>
 <span class="r-in"><span> <span class="fu">tfl_set_options</span><span class="op">(</span></span></span>

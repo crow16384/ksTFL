@@ -23,7 +23,7 @@ spec_03_02 <- create_table(big_listing) %>%
   define_cols(Preferred_Drug_Name, label = 'Description', colWidth = '5cm') 
 
 report_03_02 <- create_report(spec_03_02)
-write_doc(report_03_02, "test_03_02",verbose = F)
+write_doc(report_03_02, "test_03_02",verbose = F,metaPath = meta_dir)
 toc()
 
 ### TEST 03_03 ####
@@ -73,7 +73,7 @@ endpoint: composite of any death, any MI and any coronary revascularisation. BAR
   set_document(contentWidth = '70%')
 
 report_03_03 <- create_report(spec_03_03)
-write_doc(report_03_03, "test_03_03")
+write_doc(report_03_03, "test_03_03",metaPath = meta_dir)
 
 ### TEST 03_04 ####
 spec_03_04 <- create_table(stat_table_02) %>%
@@ -128,7 +128,7 @@ spec_03_04 <- create_table(stat_table_02) %>%
   set_document(contentWidth = '95%') 
 
 report_03_04 <- create_report(spec_03_04)
-write_doc(report_03_04, "test_03_04")
+write_doc(report_03_04, "test_03_04",metaPath = meta_dir)
 
 
 ### TEST 03_05 ####
@@ -153,7 +153,7 @@ spec_03_05 <- create_table(demography_tbl_01) %>%
 
 print(spec_03_05)
 report_03_05 <- create_report(spec_03_05)
-write_doc(report_03_05, "test_03_05")
+write_doc(report_03_05, "test_03_05",metaPath = meta_dir)
 
 
 ### TEST 03_06 ####   
@@ -182,42 +182,42 @@ spec_03_06_a <- create_table(demography_tbl_01) %>%
 spec_03_06 <- spec_03_06_a %>% set_page_style(docTemplate = 'Navy_Pro') 
 
 report_03_06 <- create_report(spec_03_06)
-write_doc(report_03_06, "test_03_06")
+write_doc(report_03_06, "test_03_06",metaPath = meta_dir)
 
 spec_03_06_1 <- spec_03_06_a %>% 
   set_page_style(docTemplate = file.path(getwd(),"tmp","templates","Navy_Pro2.json")) 
 
 report_03_06_1 <- create_report(spec_03_06_1)
-write_doc(report_03_06_1, "test_03_06_1")
+write_doc(report_03_06_1, "test_03_06_1",metaPath = meta_dir)
 
 #### Example 07 ####   
 spec_03_07 <- spec_03_06_a %>% set_page_style(docTemplate = 'Classic_landscape')
-create_report(spec_03_07) %>% write_doc("test_03_07")
+create_report(spec_03_07) %>% write_doc("test_03_07",metaPath = meta_dir)
 
 #### Example 08 ####   
 spec_03_08 <- spec_03_06_a %>% set_page_style(docTemplate = 'Listings') 
-create_report(spec_03_08) %>% write_doc("test_03_08")
+create_report(spec_03_08) %>% write_doc("test_03_08",metaPath = meta_dir)
 
 #### Example 09 ####   
 spec_03_09 <- spec_03_06_a %>% set_page_style(docTemplate = 'Regulatory_Arial') 
-create_report(spec_03_09) %>% write_doc("test_03_09")
+create_report(spec_03_09) %>% write_doc("test_03_09",metaPath = meta_dir)
 
 #### Example 10 ####   
 spec_03_10 <- spec_03_06_a %>% set_page_style(docTemplate = 'Sage_Report') 
-create_report(spec_03_10) %>% write_doc("test_03_10")
+create_report(spec_03_10) %>% write_doc("test_03_10",metaPath = meta_dir)
 
 #### Example 11 ####   
 spec_03_11 <- spec_03_06_a %>% set_page_style(docTemplate = 'Warm_Slate') 
-create_report(spec_03_11) %>% write_doc("test_03_11")
+create_report(spec_03_11) %>% write_doc("test_03_11",metaPath = meta_dir)
 
 #### Example 12 ####   
 spec_03_12 <- spec_03_06_a %>% set_page_style(docTemplate = 'Carbon_Dark') 
-create_report(spec_03_12) %>% write_doc("test_03_12")
+create_report(spec_03_12) %>% write_doc("test_03_12",metaPath = meta_dir)
 
 #### Example 13 ####   
 spec_03_13 <- spec_03_06_a %>% set_page_style(docTemplate = 'Graphite_Rule') 
-create_report(spec_03_13) %>% write_doc("test_03_13")
+create_report(spec_03_13) %>% write_doc("test_03_13",metaPath = meta_dir)
 
 #### Example 14 ####   
 spec_03_14 <- spec_03_06_a %>% set_page_style(docTemplate = 'Silver_Grid') 
-create_report(spec_03_14) %>%write_doc("test_03_14")
+create_report(spec_03_14) %>%write_doc("test_03_14",metaPath = meta_dir)

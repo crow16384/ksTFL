@@ -332,7 +332,14 @@ PaginationResult Paginator::paginate(
         }
     }
 
-    bool body_footnotes = spec.document.body_footnotes;
+    FootnotePlace fn_place = spec.document.footnote_place;
+
+    // When footnotes go into the Word footer part, add their height to the
+    // footer section so pagination reserves the correct total footer space.
+    if (fn_place == FootnotePlace::DocFooter) {
+        footer_section_height = footer_section_height + footnotes_height;
+    }
+
     bool is_continues = spec.document.is_continues;
 
     // When is_continues=false (default), titles repeat on every page.
@@ -364,18 +371,24 @@ PaginationResult Paginator::paginate(
             page.titles_height = show_titles ? titles_height : Length{0};
             page.subtitles_height = page_subtitle_h;
             page.table_header_height = table_header_height;
-            page.footnotes_height = footnotes_height;
+            page.footnotes_height = (fn_place == FootnotePlace::DocFooter)
+                                        ? Length{0} : footnotes_height;
             page.footer_section_height = footer_section_height;
 
-            // Always reserve footnotes space so the last page never
-            // overflows its footnote onto a new (empty) page.
+            // Reserve footnotes space based on placement strategy:
+            //   repeated  — footnotes on every page, always reserve
+            //   last_page — footnotes only on last page; do NOT reserve on
+            //               non-last pages (a post-pass adjusts the last page)
+            //   doc_footer — footnotes in Word footer part, no body reservation
+            Length fn_reserve = (fn_place == FootnotePlace::Repeated)
+                                    ? footnotes_height : Length{0};
             Length available = compute_available_height(
                 page_config,
                 header_section_height,
                 show_titles ? titles_height : Length{0},
                 page_subtitle_h,
                 table_header_height,
-                body_footnotes ? footnotes_height : Length{0},
+                fn_reserve,
                 footer_section_height);
 
 
@@ -432,10 +445,149 @@ PaginationResult Paginator::paginate(
             // Determine if this is the last page
             page.is_last_page = (row_idx >= rows.size());
 
+            // Determine whether footnotes appear on this page
+            switch (fn_place) {
+                case FootnotePlace::Repeated:
+                    page.has_footnotes = true;
+                    break;
+                case FootnotePlace::LastPage:
+                    page.has_footnotes = page.is_last_page;
+                    break;
+                case FootnotePlace::DocFooter:
+                    page.has_footnotes = false;
+                    break;
+            }
 
             segment.pages.push_back(std::move(page));
             is_first = false;
             page_num++;
+        }
+
+        // Post-pass for last_page: ensure the last page has room for footnotes.
+        // We paginated without footnote reservation, so the last page may need
+        // rows moved to a new page if body_height + footnotes > available.
+        if (fn_place == FootnotePlace::LastPage && !segment.pages.empty()
+            && footnotes_height.emu > 0) {
+
+            auto& last = segment.pages.back();
+            bool show_titles_last = last.is_first_page || repeat_titles;
+
+            Length avail_with_fn = compute_available_height(
+                page_config,
+                header_section_height,
+                show_titles_last ? titles_height : Length{0},
+                subtitles_height,
+                table_header_height,
+                footnotes_height,
+                footer_section_height);
+
+            // If the last page's content overflows with footnotes, spill rows
+            while (last.body_height > avail_with_fn
+                   && last.last_row > last.first_row) {
+
+                // Remove the last row from this page
+                Length removed_h = row_heights[last.last_row];
+                last.body_height = last.body_height - removed_h;
+                last.last_row--;
+
+                // Create a new last page for the spilled row(s)
+                PageSlice extra;
+                extra.page_number = page_num++;
+                extra.is_first_page = false;
+                extra.first_row = last.last_row + 1;
+                extra.last_row = extra.first_row;
+                extra.is_last_page = false;
+                extra.has_titles = repeat_titles;
+                extra.has_subtitles = true;
+                extra.header_section_height = header_section_height;
+                extra.titles_height = repeat_titles ? titles_height : Length{0};
+                extra.subtitles_height = subtitles_height;
+                extra.table_header_height = table_header_height;
+                extra.footnotes_height = footnotes_height;
+                extra.footer_section_height = footer_section_height;
+                extra.body_height = removed_h;
+                extra.has_footnotes = false;
+
+                last.is_last_page = false;
+                last.has_footnotes = false;
+
+                segment.pages.push_back(std::move(extra));
+                last = segment.pages.back();
+
+                show_titles_last = last.is_first_page || repeat_titles;
+                avail_with_fn = compute_available_height(
+                    page_config,
+                    header_section_height,
+                    show_titles_last ? titles_height : Length{0},
+                    subtitles_height,
+                    table_header_height,
+                    footnotes_height,
+                    footer_section_height);
+            }
+
+            // Fill remaining rows into the new last page (if we created one
+            // and there are more rows after the first spilled row)
+            auto& final_page = segment.pages.back();
+            size_t fill_start = final_page.last_row + 1;
+            Length fill_avail = compute_available_height(
+                page_config,
+                header_section_height,
+                (final_page.is_first_page || repeat_titles) ? titles_height : Length{0},
+                subtitles_height,
+                table_header_height,
+                footnotes_height,
+                footer_section_height);
+
+            while (fill_start < rows.size()
+                   && !rows[fill_start].force_page_break
+                   && (final_page.body_height + row_heights[fill_start]) <= fill_avail) {
+                final_page.body_height = final_page.body_height + row_heights[fill_start];
+                final_page.last_row = fill_start;
+                fill_start++;
+            }
+
+            // Mark the true last page
+            final_page.is_last_page = (fill_start >= rows.size());
+            final_page.has_footnotes = final_page.is_last_page;
+
+            // If there are still unplaced rows, continue paginating
+            // (rare edge case: footnotes are extremely tall)
+            while (fill_start < rows.size()) {
+                PageSlice overflow;
+                overflow.page_number = page_num++;
+                overflow.is_first_page = false;
+                overflow.first_row = fill_start;
+                overflow.has_titles = repeat_titles;
+                overflow.has_subtitles = true;
+                overflow.header_section_height = header_section_height;
+                overflow.titles_height = repeat_titles ? titles_height : Length{0};
+                overflow.subtitles_height = subtitles_height;
+                overflow.table_header_height = table_header_height;
+                overflow.footnotes_height = footnotes_height;
+                overflow.footer_section_height = footer_section_height;
+
+                Length ov_avail = compute_available_height(
+                    page_config,
+                    header_section_height,
+                    repeat_titles ? titles_height : Length{0},
+                    subtitles_height,
+                    table_header_height,
+                    footnotes_height,
+                    footer_section_height);
+
+                while (fill_start < rows.size()
+                       && !rows[fill_start].force_page_break
+                       && (overflow.body_height.emu == 0
+                           || (overflow.body_height + row_heights[fill_start]) <= ov_avail)) {
+                    overflow.body_height = overflow.body_height + row_heights[fill_start];
+                    overflow.last_row = fill_start;
+                    fill_start++;
+                }
+
+                overflow.is_last_page = (fill_start >= rows.size());
+                overflow.has_footnotes = overflow.is_last_page;
+                segment.pages.push_back(std::move(overflow));
+            }
         }
     }
 

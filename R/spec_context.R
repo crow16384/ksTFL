@@ -2577,10 +2577,17 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' @param spec TFL spec object
 #' @param isContinues Whether page breaks should be ignored
 #' @param contentWidth Width of content, e.g. "100%", "25cm", "10in"
-#' @param bodyTitles Whether to place titles in body (vs header)
-#' @param bodyFootnotes Whether to place footnotes in body (vs footer)
+#' @param footnotePlace Character; controls where footnotes are rendered.
+#'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
+#'   `"repeated"` (place under the table on every page),
+#'   or `"last_page"` (place under the table on the last page only).
+#'   Default `"repeated"`.
 #' @param hasData Whether document has data to report
-#' @param bodySubtitles Whether to place subtitles in body (vs header)
+#' @param docTemplate Character. Template to use for rendering. Accepts either:
+#'   \itemize{
+#'     \item Name of a bundled template (see `tfl_list_templates()`).
+#'     \item Full path to a custom styles JSON file.
+#'   }
 #' 
 #' @return Updated spec object
 #' @export
@@ -2589,13 +2596,12 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' \dontrun{
 #' spec <- create_text() |>
 #'   set_document(
-#'     hasData = TRUE,
-#'     bodyTitles = TRUE
+#'     hasData = TRUE
 #'   )
 #' }
 set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
-                         bodyTitles = NULL, bodyFootnotes = NULL, hasData = NULL,
-                         bodySubtitles = NULL) {
+                         footnotePlace = NULL, hasData = NULL,
+                         docTemplate = NULL) {
   assert_class(spec, "TFL_spec")
   
   
@@ -2609,10 +2615,8 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
   params <- list(
     isContinues = isContinues,
     contentWidth = contentWidth,
-    bodyTitles = bodyTitles,
-    bodyFootnotes = bodyFootnotes,
-    hasData = hasData,
-    bodySubtitles = bodySubtitles
+    footnotePlace = footnotePlace,
+    hasData = hasData
   )
   params <- params[!sapply(params, is.null)]
   
@@ -2627,8 +2631,12 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
   
   # Merge with last-win
   spec$document <- .merge_recursive(spec$document, params)
-  
-  spec
+
+  if (!is.null(docTemplate)) {
+    set_page_style(spec, docTemplate = docTemplate)
+  } else {
+    spec
+  }
 }
 
 #' Set document style properties

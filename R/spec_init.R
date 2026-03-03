@@ -31,7 +31,7 @@
   
   spec$document$bodyTitles <- unclass(settings$bodyTitles)
   spec$document$bodySubtitles <- unclass(settings$bodySubtitles)
-  spec$document$bodyFootnotes <- unclass(settings$bodyFootnotes)
+  spec$document$footnotePlace <- unclass(settings$footnotePlace)
   spec$document$contentWidth <- unclass(settings$contentWidth)
   
   spec
@@ -269,16 +269,14 @@
   
   # Populate document properties from settings (only schema-defined fields)
   if (is.null(spec$document$bodyTitles)) {
-    spec$document$bodyTitles <- settings$body_titles
-    spec$document$bodyTitles <- unclass(spec$document$bodyTitles)
+    spec$document$bodyTitles <- unclass(settings$bodyTitles)
   }
   if (is.null(spec$document$bodySubtitles)) {
-    spec$document$bodySubtitles <- settings$body_subtitles
-    spec$document$bodySubtitles <- unclass(spec$document$bodySubtitles)
+    spec$document$bodySubtitles <- unclass(settings$bodySubtitles)
   }
-  if (is.null(spec$document$bodyFootnotes)) {
-    spec$document$bodyFootnotes <- settings$body_footnotes
-    spec$document$bodyFootnotes <-  unclass(spec$document$bodyFootnotes)
+  if (is.null(spec$document$footnotePlace)) {
+    spec$document$footnotePlace <- settings$footnotePlace
+    spec$document$footnotePlace <- unclass(spec$document$footnotePlace)
   }
   if (is.null(spec$document$isContinues)) {
     spec$document$isContinues <- settings$isContinues
