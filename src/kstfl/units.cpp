@@ -1,13 +1,11 @@
 // kstfl/units.cpp — Unit system implementation
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "units.h"
 #include <algorithm>
 #include <cctype>
-#include <charconv>
 #include <cmath>
-#include <stdexcept>
 #include <string_view>
 
 namespace kstfl {

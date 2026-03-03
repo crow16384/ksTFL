@@ -2,10 +2,9 @@
 //
 // Implements spec §13: pagination algorithm, break precedence, dynamic subtitles.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "paginator.h"
-#include "inline_parser.h"
 #include <algorithm>
 #include <cmath>
 #include <Rcpp.h>

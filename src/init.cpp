@@ -2,7 +2,7 @@
 //
 // Generated for Rcpp integration. Registers compiled functions with R.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include <Rcpp.h>
 

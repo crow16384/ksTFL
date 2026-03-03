@@ -1,0 +1,12 @@
+CompileFlags:
+  Add: [
+    "-I/usr/local/lib/R/include",
+    "-I/home/meguty/R/x86_64-pc-linux-gnu-library/4.5/Rcpp/include",
+    "-I/usr/include/freetype2",
+    "-I/usr/include/libpng16",
+    "-I/usr/include/harfbuzz",
+    "-I/usr/include/glib-2.0",
+    "-I/usr/lib/x86_64-linux-gnu/glib-2.0/include",
+    "-I/usr/include/sysprof-6",
+    "-I/home/meguty/Develop/R/ksTFL/src/vendor"
+  ]

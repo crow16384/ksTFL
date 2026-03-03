@@ -1,6 +1,6 @@
 // kstfl/text_measurer.h — HarfBuzz-based text measurement + wrapping
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_TEXT_MEASURER_H
 #define KSTFL_TEXT_MEASURER_H

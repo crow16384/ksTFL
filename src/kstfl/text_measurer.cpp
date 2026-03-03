@@ -3,16 +3,14 @@
 // Implements spec §16: text measurement, line wrapping, paragraph spacing.
 // Deterministic measurement: same input + same fonts = same result.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "text_measurer.h"
 #include "font_cache.h"
 #include "inline_parser.h"
 
 #include <hb.h>
-#include <algorithm>
 #include <cmath>
-#include <sstream>
 
 namespace kstfl {
 

@@ -3,16 +3,13 @@
 // Implements spec §19: streaming OOXML emission, fixed-layout tables,
 // header repetition, page/section breaks, field codes.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "docx_emitter.h"
 #include "inline_parser.h"
-#include <algorithm>
 #include <Rcpp.h>
-#include <sstream>
 #include <cmath>
 #include <cstring>
-#include <iomanip>
 #include <unordered_set>
 
 namespace kstfl {

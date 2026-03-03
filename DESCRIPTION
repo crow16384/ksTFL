@@ -1,24 +1,24 @@
 Package: ksTFL
 Type: Package
 Title: ksTFL Framework
-Version: 0.1.0
+Version: 0.2.0
 Authors@R:
     c(
     person("Igor", "Aleschenkov",
-           email = "igor.aleschenkov@keystatsolutions.com",
+           email = "igor.aleschenkov@gmail.com",
            role = c("aut", "cre", "cph")),
     person("Vladimir", "Larchenko",
-           email = "vladimir.larchenko@keystatsolutions.com",
+           email = "crow16384@gmail.com",
            role = c("aut", "cph"))
     )
 Author: Igor Aleschenkov [aut, cre, cph],
     Vladimir Larchenko [aut, cph]
-Maintainer: Igor Aleschenkov <igor.aleschenkov@keystatsolutions.com>
+Maintainer: Igor Aleschenkov <igor.aleschenkov@gmail.com>
 Description: Library provides framework for generation of clinical TFLs. The
     purpose is to provide functionality to prepare metadata that describes TFL
     and pass this metadata together with data to the C++ rendering engine to
     generate final DOCX documents with styles and deterministic pagination.
-License: MIT + file LICENSE
+License: GPL (>= 3)
 Encoding: UTF-8
 Imports:
     cli,

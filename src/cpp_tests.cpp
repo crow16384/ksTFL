@@ -7,7 +7,7 @@
 //
 // Called from R via .Call() in tests/testthat/test-18-cpp-units.R.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include <Rcpp.h>
 #include "kstfl/units.h"

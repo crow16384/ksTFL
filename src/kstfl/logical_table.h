@@ -1,6 +1,6 @@
 // kstfl/logical_table.h — Build logical row stream from data + styleRows
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_LOGICAL_TABLE_H
 #define KSTFL_LOGICAL_TABLE_H

@@ -1,11 +1,8 @@
 // kstfl/style_resolver.cpp — Style merging and resolution implementation
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "style_resolver.h"
-#include "units.h"
-#include <algorithm>
-#include <numeric>
 
 namespace kstfl {
 

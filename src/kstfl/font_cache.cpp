@@ -6,7 +6,7 @@
 // (usWinAscent / usWinDescent) to match Microsoft Word's line height
 // calculation.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "font_cache.h"
 #include "types.h"
@@ -20,7 +20,6 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <fstream>
 #include <Rcpp.h>
 
 namespace fs = std::filesystem;

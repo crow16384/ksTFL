@@ -3,7 +3,7 @@
 // Supported tags: <sup>, <sub>, <b>, <i>, <u>, <br>, <p>
 // Stack-based state machine (no regex).
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_INLINE_PARSER_H
 #define KSTFL_INLINE_PARSER_H

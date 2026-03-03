@@ -3,7 +3,7 @@
 // Implements the full cascade: template defaults -> region styles -> structural ->
 // column refs -> styleRows -> merge refs -> add_row refs -> inline markup.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_STYLE_RESOLVER_H
 #define KSTFL_STYLE_RESOLVER_H

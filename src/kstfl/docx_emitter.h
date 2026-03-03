@@ -3,7 +3,7 @@
 // Streaming emission: generates document.xml, styles.xml, etc.
 // and packages into .docx via ZipWriter.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_DOCX_EMITTER_H
 #define KSTFL_DOCX_EMITTER_H

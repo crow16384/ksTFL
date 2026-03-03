@@ -1,6 +1,6 @@
 // kstfl/paginator.h — Deterministic vertical + horizontal pagination
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_PAGINATOR_H
 #define KSTFL_PAGINATOR_H

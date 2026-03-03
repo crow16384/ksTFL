@@ -1,14 +1,12 @@
 // kstfl/json_parser.cpp — Parse spec JSON, template JSON, data JSON
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "json_parser.h"
-#include "units.h"
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <fstream>
 #include <Rcpp.h>
-#include <sstream>
 
 using json = nlohmann::json;
 

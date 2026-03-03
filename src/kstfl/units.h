@@ -1,6 +1,6 @@
 // kstfl/units.h — Unit system: Length parsing, EMU/twips/pt/cm/in conversions
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_UNITS_H
 #define KSTFL_UNITS_H

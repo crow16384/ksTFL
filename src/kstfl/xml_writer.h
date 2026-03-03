@@ -3,7 +3,7 @@
 // No DOM. Writes directly to a string buffer. Manages tag stack,
 // proper escaping, and self-closing tags.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_XML_WRITER_H
 #define KSTFL_XML_WRITER_H

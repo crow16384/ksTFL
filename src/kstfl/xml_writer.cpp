@@ -1,10 +1,9 @@
 // kstfl/xml_writer.cpp — Streaming XML writer implementation
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "xml_writer.h"
 #include "types.h"
-#include <stdexcept>
 
 namespace kstfl {
 

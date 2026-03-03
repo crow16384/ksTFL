@@ -1,6 +1,6 @@
 // kstfl/font_cache.h — FreeType face loading + HarfBuzz font creation + caching
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_FONT_CACHE_H
 #define KSTFL_FONT_CACHE_H

@@ -2,7 +2,7 @@
 //
 // Uses nlohmann/json (header-only, bundled in src/vendor/).
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_JSON_PARSER_H
 #define KSTFL_JSON_PARSER_H

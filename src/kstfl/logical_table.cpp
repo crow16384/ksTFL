@@ -3,12 +3,10 @@
 // Implements spec §11–12: row stream construction, dedupe, styleRows expansion,
 // grouping boundary detection.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "logical_table.h"
 #include <algorithm>
-#include <numeric>
-#include <unordered_set>
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>

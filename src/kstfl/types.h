@@ -1,7 +1,7 @@
 // kstfl/types.h — Core data structures for the ksTFL DOCX renderer
 // Mirrors the JSON schema structures from spec_schema_v1.json and styles_schema_v1.json
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_TYPES_H
 #define KSTFL_TYPES_H
@@ -13,6 +13,7 @@
 #include <vector>
 #include <variant>
 #include <memory>
+#include <stdexcept>
 
 namespace kstfl {
 

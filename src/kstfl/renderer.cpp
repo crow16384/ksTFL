@@ -3,13 +3,12 @@
 // Pipeline: Parse → Resolve → Model → Measure → Paginate → Emit
 // Implements spec §3.1: full execution sequence.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "renderer.h"
 #include "json_parser.h"
 #include "style_resolver.h"
 #include "logical_table.h"
-#include "inline_parser.h"
 #include "font_cache.h"
 #include "text_measurer.h"
 #include "paginator.h"

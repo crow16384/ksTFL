@@ -2,7 +2,7 @@
 //
 // Pipeline: Parse → Resolve → Model → Measure → Paginate → Emit
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #ifndef KSTFL_RENDERER_H
 #define KSTFL_RENDERER_H

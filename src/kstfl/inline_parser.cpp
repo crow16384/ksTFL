@@ -2,7 +2,7 @@
 //
 // Supported tags: <sup>, <sub>, <b>, <i>, <u>, <br>, <p>
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "inline_parser.h"
 #include <algorithm>

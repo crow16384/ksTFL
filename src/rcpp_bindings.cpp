@@ -3,7 +3,7 @@
 // Exposes render_docx_impl() to R via .Call().
 // Spec §23: R integration via Rcpp.
 //
-// Copyright (c) 2026 KeyStat Solutions. MIT License.
+// Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include <Rcpp.h>
 #include "kstfl/renderer.h"
