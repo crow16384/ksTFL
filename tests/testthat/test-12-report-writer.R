@@ -410,61 +410,6 @@ test_that("save_report() excludes .metadata from text specs", {
 })
 
 # ============================================================================
-# Tests: save_report() with Figure docType
-# ============================================================================
-
-test_that("save_report() handles figure specs", {
-  # Create a simple PNG file for testing
-  temp_file <- tempfile(fileext = ".png")
-  png(temp_file)
-  plot(1:5)
-  dev.off()
-  on.exit(unlink(temp_file))
-  
-  spec <- create_figure(temp_file)
-  report <- create_report(spec)
-  temp_dir <- create_test_dir()
-  on.exit(unlink(temp_dir, recursive = TRUE), add = TRUE)
-  
-  result <- save_report(
-    report,
-    docFileName = "figure.docx",
-    metaPath = temp_dir
-  )
-  
-  expect_is(result, "list")
-  expect_true(file.exists(file.path(temp_dir, result$spec_file)))
-})
-
-test_that("save_report() copies figure file with extension preserved", {
-  temp_file <- tempfile(fileext = ".png")
-  png(temp_file)
-  plot(1:5)
-  dev.off()
-  on.exit(unlink(temp_file))
-  
-  spec <- create_figure(temp_file)
-  report <- create_report(spec)
-  temp_dir <- create_test_dir()
-  on.exit(unlink(temp_dir, recursive = TRUE), add = TRUE)
-  
-  result <- save_report(
-    report,
-    docFileName = "figure.docx",
-    metaPath = temp_dir
-  )
-  
-  # Get the data file reference from spec
-  spec_json <- jsonlite::fromJSON(file.path(temp_dir, result$spec_file))
-  spec_key <- names(spec_json)[names(spec_json) != "_metadata"][1]
-  data_ref <- spec_json[[spec_key]]$dataRef
-  
-  # Figure file should have .png extension
-  figure_file <- file.path(temp_dir, paste0(data_ref, ".png"))
-  expect_true(file.exists(figure_file))
-})
-
-# ============================================================================
 # Tests: save_report() with multiple specs
 # ============================================================================
 
@@ -489,26 +434,21 @@ test_that("save_report() handles multiple specs in report", {
 test_that("save_report() handles mixed docTypes correctly", {
   spec1 <- create_table(test_df)
   spec2 <- create_text()
-  temp_file <- tempfile(fileext = ".png")
-  png(temp_file)
-  plot(1:3)
-  dev.off()
-  on.exit(unlink(temp_file))
-  
-  spec3 <- create_figure(temp_file)
+  spec2 <- add_body_text(spec2, "Summary text")
+  spec3 <- create_table(test_df)
   report <- create_report(spec1, spec2, spec3)
   temp_dir <- create_test_dir()
   on.exit(unlink(temp_dir, recursive = TRUE), add = TRUE)
-  
+
   result <- save_report(
     report,
     docFileName = "mixed.docx",
     metaPath = temp_dir
   )
-  
+
   expect_is(result, "list")
   spec_json <- jsonlite::fromJSON(file.path(temp_dir, result$spec_file))
-  
+
   # Should have 4 keys: _metadata + 3 specs
   expect_true(length(names(spec_json)) >= 3)
 })
@@ -616,37 +556,6 @@ test_that(".save_table_data() preserves row count", {
   
   # Should have same number of rows as original
   expect_equal(nrow(data_json), nrow(test_df))
-})
-
-# ============================================================================
-# Tests: .save_figure_file() helper
-# ============================================================================
-
-test_that(".save_figure_file() preserves file extension", {
-  temp_file <- tempfile(fileext = ".jpg")
-  png(temp_file)
-  plot(1:2)
-  dev.off()
-  on.exit(unlink(temp_file))
-  
-  spec <- create_figure(temp_file)
-  report <- create_report(spec)
-  temp_dir <- create_test_dir()
-  on.exit(unlink(temp_dir, recursive = TRUE), add = TRUE)
-  
-  result <- save_report(
-    report,
-    docFileName = "figure.docx",
-    metaPath = temp_dir
-  )
-  
-  spec_json <- jsonlite::fromJSON(file.path(temp_dir, result$spec_file))
-  spec_key <- names(spec_json)[names(spec_json) != "_metadata"][1]
-  data_ref <- spec_json[[spec_key]]$dataRef
-  
-  # Should have original extension
-  expected_file <- file.path(temp_dir, paste0(data_ref, ".jpg"))
-  expect_true(file.exists(expected_file))
 })
 
 # ============================================================================

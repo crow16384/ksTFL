@@ -192,11 +192,11 @@ ParsedCell parse_inline_markup(const std::string& text) {
             buffer.clear();
 
             if (type == TagType::Br) {
-                // Line break within paragraph — add a break run
-                TextRun br_run;
-                br_run.text = "\n";
-                br_run.style = state.to_run_style();
-                current_para.runs.push_back(std::move(br_run));
+                // <br> and <br/> start a new paragraph (same as <p>)
+                if (!current_para.runs.empty()) {
+                    cell.paragraphs.push_back(std::move(current_para));
+                    current_para = ParsedParagraph{};
+                }
                 continue;
             }
 

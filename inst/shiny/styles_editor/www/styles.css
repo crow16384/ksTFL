@@ -55,6 +55,101 @@ body {
   color: var(--ks-text) !important;
 }
 
+/* Top toolbar – single row, left/right layout */
+.editor-toolbar {
+  background: var(--ks-bg);
+  border-bottom: 1px solid var(--ks-border);
+  padding: 14px 24px;
+  margin: -15px -15px 20px -15px;
+}
+
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+
+.toolbar-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+}
+
+.toolbar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-app-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ks-heading);
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--ks-border);
+  flex-shrink: 0;
+}
+
+.toolbar-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-inline .form-group {
+  margin: 0;
+}
+
+.toolbar-inline-label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ks-text-muted);
+  font-weight: normal;
+}
+
+.toolbar-inline .form-control,
+.toolbar-inline select {
+  height: 32px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  display: inline-block;
+}
+
+.toolbar-inline .shiny-input-container {
+  margin: 0;
+  display: inline-block;
+}
+
+.toolbar-inline input[type="file"] {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+}
+
+.toolbar-right .btn {
+  margin: 0;
+}
+
+.main-content {
+  padding: 0 5px;
+}
+
+/* Colour inputs: show selected color as background (backup for showColour="background") */
+.colourpicker-input-container input {
+  min-height: 28px;
+}
+
+[data-theme="dark"] .colourpicker-input-container input {
+  border-color: var(--ks-input-border);
+}
+
 /* Sidebar and main */
 .sidebar,
 .well {
@@ -81,9 +176,9 @@ hr {
   border-color: var(--ks-hr) !important;
 }
 
-/* Text inputs and selects */
+/* Text inputs and selects (background without !important so colourpicker inline style can show) */
 .form-control {
-  background-color: var(--ks-input-bg) !important;
+  background-color: var(--ks-input-bg);
   color: var(--ks-input-text) !important;
   border-color: var(--ks-input-border) !important;
 }
@@ -179,7 +274,12 @@ select.form-control {
   color: var(--ks-text);
 }
 
-/* Colour picker (colourpicker package) – basic darkening of container */
+/* Colour picker – do NOT override input background so showColour="background" is visible */
+.colourpicker-container .form-control,
+.colourpicker-input-container input {
+  min-height: 32px;
+}
+
 [data-theme="dark"] .colourpicker-container,
 [data-theme="dark"] .colourpicker-wrapper {
   background: var(--ks-bg-secondary) !important;
@@ -187,7 +287,7 @@ select.form-control {
 }
 
 [data-theme="dark"] .colourpicker-input-container input {
-  background: var(--ks-input-bg) !important;
   color: var(--ks-input-text) !important;
   border-color: var(--ks-input-border) !important;
+  /* background left unset so package inline style shows the selected color */
 }

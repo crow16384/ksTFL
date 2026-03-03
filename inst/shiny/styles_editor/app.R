@@ -48,7 +48,8 @@ text_style_ui <- function(id_prefix, label) {
           ns("color"),
           "Text color",
           value = "#000000",
-          allowTransparent = TRUE
+          allowTransparent = TRUE,
+          showColour = "background"
         )
       ),
       shiny::column(
@@ -130,7 +131,7 @@ text_style_from_inputs <- function(input, id_prefix, template_style = NULL) {
 
 border_ui <- function(id_prefix, label) {
   ns <- function(x) paste0(id_prefix, "_", x)
-  shiny::tagList(
+    shiny::tagList(
     shiny::h5(label),
     shiny::fluidRow(
       shiny::column(
@@ -139,7 +140,8 @@ border_ui <- function(id_prefix, label) {
           ns("color"),
           "Color",
           value = "#000000",
-          allowTransparent = TRUE
+          allowTransparent = TRUE,
+          showColour = "background"
         )
       ),
       shiny::column(4, shiny::textInput(ns("width"), "Width (pt)", value = "")),
@@ -198,7 +200,8 @@ row_style_ui <- function(id_prefix, label) {
           ns("background_color"),
           "Background color",
           value = "#FFFFFF",
-          allowTransparent = TRUE
+          allowTransparent = TRUE,
+          showColour = "background"
         ),
         shiny::textInput(ns("row_height"), "Row height (e.g. auto, 10pt)", value = "auto"),
         shiny::selectInput(
@@ -311,24 +314,34 @@ ui <- shiny::fluidPage(
       })();
     '))
   ),
-  shiny::titlePanel("ksTFL Styles Template Editor"),
-  shiny::sidebarLayout(
-    shiny::sidebarPanel(
-      shiny::checkboxInput("dark_theme", "Dark theme", value = FALSE),
-      shiny::selectInput(
-        "bundled_template",
-        "Bundled template",
-        choices = names(bundled_template_paths())
+  shiny::div(
+    class = "editor-toolbar",
+    shiny::div(
+      class = "toolbar-row",
+      shiny::div(class = "toolbar-left",
+        shiny::span("ksTFL Template Editor", class = "toolbar-app-name"),
+        shiny::span(class = "toolbar-sep"),
+        shiny::div(class = "toolbar-inline", shiny::checkboxInput("dark_theme", "Dark theme", value = FALSE)),
+        shiny::span(class = "toolbar-sep"),
+        shiny::div(class = "toolbar-inline",
+          shiny::tags$label(class = "toolbar-inline-label", "Template"),
+          shiny::selectInput("bundled_template", NULL, choices = names(bundled_template_paths()), width = "160px")
+        ),
+        shiny::div(class = "toolbar-inline",
+          shiny::tags$label(class = "toolbar-inline-label", "Upload"),
+          shiny::fileInput("uploaded_template", NULL, accept = ".json", width = "140px", buttonLabel = "Browse…")
+        )
       ),
-      shiny::fileInput("uploaded_template", "Upload template JSON", accept = ".json"),
-      shiny::actionButton("load_bundled", "Load bundled template"),
-      shiny::actionButton("load_uploaded", "Load uploaded template"),
-      shiny::hr(),
-      shiny::actionButton("reset_template", "Reset JSON to initial"),
-      shiny::hr(),
-      shiny::downloadButton("download_template", "Download JSON")
-    ),
-    shiny::mainPanel(
+      shiny::div(class = "toolbar-right",
+        shiny::actionButton("load_bundled", "Load template", class = "btn-primary"),
+        shiny::actionButton("load_uploaded", "Load uploaded", class = "btn-primary"),
+        shiny::actionButton("reset_template", "Reset"),
+        shiny::downloadButton("download_template", "Download JSON")
+      )
+    )
+  ),
+  shiny::div(
+    class = "main-content",
       shiny::tabsetPanel(
         id = "main_tabs",
         shiny::tabPanel(
@@ -426,7 +439,6 @@ ui <- shiny::fluidPage(
           shiny::verbatimTextOutput("template_json")
         )
       )
-    )
   )
 )
 
