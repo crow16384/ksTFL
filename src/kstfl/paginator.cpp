@@ -199,10 +199,28 @@ Length Paginator::compute_available_height(
     // Doc headers/footers are rendered in Word header/footer XML parts
     // (w:hdr / w:ftr), which occupy the margin area between the page edge
     // and the body.  usable_height() already excludes top+bottom margins,
-    // so we must NOT subtract header_section_height / footer_section_height
-    // again — that would double-count the space and shrink the body area.
-    (void)header_section_height;
-    (void)footer_section_height;
+    // so we must NOT subtract their full heights — that would double-count.
+    //
+    // However, when footer (or header) content is taller than the space
+    // between margin boundary and the w:footer/w:header distance line,
+    // Word pushes the body content to make room.  We must account for
+    // that overflow.
+    //
+    // Available space for header content: top_margin - header_distance
+    // Available space for footer content: bottom_margin - footer_distance
+    {
+        Length hdr_space = page.margins.top - page.margins.header_distance;
+        if (hdr_space.emu < 0) hdr_space.emu = 0;
+        if (header_section_height > hdr_space) {
+            available = available - (header_section_height - hdr_space);
+        }
+
+        Length ftr_space = page.margins.bottom - page.margins.footer_distance;
+        if (ftr_space.emu < 0) ftr_space.emu = 0;
+        if (footer_section_height > ftr_space) {
+            available = available - (footer_section_height - ftr_space);
+        }
+    }
 
     // Titles: callers pass titles_height=0 for pages that don't show titles
     available = available - titles_height;

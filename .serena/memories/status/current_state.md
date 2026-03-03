@@ -1,4 +1,12 @@
-# Current Status (Mar 1, 2026)
+# Current Status (Mar 3, 2026)
+
+## doc_footer Pagination Fix (Mar 3, 2026)
+
+- **Bug: `footnotePlace = "doc_footer"` caused table broken across too many pages**
+  - Symptom: With `set_document(footnotePlace = "doc_footer")`, tables broke prematurely; some pages showed only 1–2 rows while footnotes repeated on every page.
+  - Root cause: In `paginator.cpp`, `compute_available_height()` ignored `footer_section_height`. When footnotes are placed in the Word footer part (`w:ftr`), `footer_section_height` = footer rows + footnotes. If that exceeds the space between bottom margin and `w:footer` distance, Word pushes the body up — but the paginator didn’t reserve that space, so it placed too many rows per page and Word broke them inconsistently.
+  - Fix: In `compute_available_height()`, when `footer_section_height > (bottom_margin - footer_distance)`, subtract the overflow from available body height. Same logic for header overflow. File: `src/kstfl/paginator.cpp`.
+  - Result: All three modes (`repeated`, `doc_footer`, `last_page`) now paginate consistently (e.g. 5 pages for the AE table example); all 1027 tests pass.
 
 ## C++ Code Review Fixes (Mar 1, 2026 — second session)
 
@@ -110,7 +118,8 @@ Manual unit tests: inst/examples/manul_unit_tests/TEST_03/ (test_03.R, 11 specs)
 - R is NOT installed on host — all R execution via docker exec
 
 ## Git History (recent)
-- feat: doc template handling and defaults — `tfl_set_options()`, `set_page_style()`, `set_document()` (pending commit, Mar 2 2026)
+- fix: doc_footer pagination — account for footer overflow in compute_available_height (Mar 3 2026)
+- feat: doc template handling and defaults — `tfl_set_options()`, `set_page_style()`, `set_document()` (Mar 2 2026)
   - Added `docTemplate` parameter to `tfl_set_options()` to set the session default document template (bundled name or external JSON file path).
   - Removed deprecated `glueNumType` document property from `set_document()`, schema, and printing paths.
   - Updated `set_page_style()` to accept either bundled template names or external JSON file paths, with validation and clearer docs.
