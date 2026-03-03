@@ -89,9 +89,9 @@
       "paragraph": {
         "alignment": "center",
         "spacing": {
-          "before": "0pt",
+          "before": "1pt",
           "after": "1pt",
-          "line_spacing": 1.2
+          "line_spacing": 1.0
         }
       }
     },
@@ -107,8 +107,8 @@
       "paragraph": {
         "alignment": "left",
         "spacing": {
-          "before": "0pt",
-          "after": "2pt",
+          "before": "1pt",
+          "after": "1pt",
           "line_spacing": 1.0
         }
       }
@@ -143,8 +143,8 @@
       "paragraph": {
         "alignment": "center",
         "spacing": {
-          "before": "0pt",
-          "after": "0pt",
+          "before": "1pt",
+          "after": "1pt",
           "line_spacing": 1.0
         }
       }
@@ -163,7 +163,7 @@
         "spacing": {
           "before": "0pt",
           "after": "0pt",
-          "line_spacing": 1.0
+          "line_spacing": 0.95
         }
       }
     }
@@ -206,7 +206,7 @@
         "top": "1pt",
         "bottom": "1pt",
         "left": "2pt",
-        "right": "1pt"
+        "right": "2pt"
       },
       "vertical_alignment": "center"
     },
@@ -256,7 +256,7 @@
           "top": "1pt",
           "bottom": "1pt",
           "left": "2pt",
-          "right": "1pt"
+          "right": "2pt"
         },
         "borders": {
           "top": {
