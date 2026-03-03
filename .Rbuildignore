@@ -15,6 +15,7 @@
 ^ksTFL\.Rcheck$
 ^tmp_check$
 ^\.DS_Store$
+^\._*
 ^\.env$
 ^docs$
 ^README\.md$
