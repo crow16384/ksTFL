@@ -49,7 +49,7 @@ spec_02_02 <- create_table(ae_tbl_02_01) %>%
   add_subtitle(c("(Test unit 02)"), styleRef = "font_italic") %>% 
   #add_footnote(c("This is <sup>the</sup> <b>test</b> unit 02 02, a < b > c, x < 5, x > 3")) %>% 
   add_footnote(c("This is the test unit 02 02, <b>k < b</b>, a<b, a > 4, x>5  >🐈")) %>% 
-  add_footnote(c("<sup>a</sup> Number of events exceeds 20 (> 20) 10<sup>3</sup>/>\u0298L"), styleRef = 'text_red') %>% 
+  add_footnote(c("<sup>a</sup> Number of events exceeds 20 (> 20) 10<sup>3</sup>/>\u0298L"), styleRef = 'font_bold') %>% 
   define_cols(c(pt, starts_with('trt_')),
               label = c("AESI<br>  MedDRA SOC<br>    MedDRA Preferred Term", "n (%)", 
                         "Events", "n (%)", "Events")) %>%
@@ -78,11 +78,11 @@ spec_02_02 <- create_table(ae_tbl_02_01) %>%
   ##just for fun :)
   compute_cols(
     str_detect(trt_a_e, 'sup'),
-    c_style(trt_a_e, f_combine("text_red","font_bold"))
+    c_style(trt_a_e, f_combine("font_bold"))
   ) %>% 
   compute_cols(
     str_detect(trt_b_e, 'sup'),
-    c_style(trt_b_e, f_combine("text_red","font_bold"))
+    c_style(trt_b_e, f_combine("font_bold"))
   ) %>% 
   set_document(contentWidth = '80%')
 
