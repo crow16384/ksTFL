@@ -2,6 +2,11 @@ local_or_default <- function(x, default = NULL) {
   if (is.null(x) || !nzchar(x)) default else x
 }
 
+# Schema compliance: output null instead of "" for optional enum/string fields
+null_if_empty <- function(x) {
+  if (is.null(x) || !nzchar(as.character(x))) NULL else x
+}
+
 load_template_file <- function(path) {
   jsonlite::fromJSON(path, simplifyVector = FALSE)
 }
@@ -178,8 +183,8 @@ border_from_inputs <- function(input, id_prefix, template_border = NULL) {
         sub("^#", "", raw)
       }
     },
-    width      = local_or_default(get_val("width"), NULL),
-    line_style = local_or_default(get_val("line_style"), NULL)
+    width      = null_if_empty(get_val("width")),
+    line_style = null_if_empty(get_val("line_style"))
   )
 }
 
@@ -260,14 +265,14 @@ row_style_from_inputs <- function(input, id_prefix, template_row = NULL) {
         sub("^#", "", raw_bg)
       }
     },
-    row_height       = local_or_default(get_val("row_height"), "auto"),
-    vertical_alignment = local_or_default(get_val("vertical_alignment"), "center"),
-    text_orientation = local_or_default(get_val("text_orientation"), "horizontal"),
+    row_height         = local_or_default(get_val("row_height"), "auto"),
+    vertical_alignment = null_if_empty(get_val("vertical_alignment")) %||% "center",
+    text_orientation  = null_if_empty(get_val("text_orientation")) %||% "horizontal",
     cell_margins = list(
-      top    = local_or_default(get_val("cell_top"), NULL),
-      bottom = local_or_default(get_val("cell_bottom"), NULL),
-      left   = local_or_default(get_val("cell_left"), NULL),
-      right  = local_or_default(get_val("cell_right"), NULL)
+      top    = null_if_empty(get_val("cell_top")),
+      bottom = null_if_empty(get_val("cell_bottom")),
+      left   = null_if_empty(get_val("cell_left")),
+      right  = null_if_empty(get_val("cell_right"))
     ),
     borders = list(
       top    = border_from_inputs(input, paste0(id_prefix, "_border_top"),    template_border = borders$top),
@@ -281,9 +286,35 @@ row_style_from_inputs <- function(input, id_prefix, template_row = NULL) {
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
 ui <- shiny::fluidPage(
+  shiny::tags$head(
+    shiny::tags$link(rel = "stylesheet", href = "styles.css", type = "text/css"),
+    shiny::tags$script(shiny::HTML('
+      (function() {
+        var key = "ksTFL-theme";
+        var theme = localStorage.getItem(key) || "light";
+        document.documentElement.setAttribute("data-theme", theme);
+        Shiny.addCustomMessageHandler("set-theme", function(msg) {
+          var t = msg.dark ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", t);
+          localStorage.setItem(key, t);
+        });
+        $(document).on("shiny:connected", function() {
+          var theme = localStorage.getItem(key) || "light";
+          if (theme === "dark") {
+            var cb = document.getElementById("dark_theme");
+            if (cb) {
+              cb.checked = true;
+              Shiny.setInputValue("dark_theme", true);
+            }
+          }
+        });
+      })();
+    '))
+  ),
   shiny::titlePanel("ksTFL Styles Template Editor"),
   shiny::sidebarLayout(
     shiny::sidebarPanel(
+      shiny::checkboxInput("dark_theme", "Dark theme", value = FALSE),
       shiny::selectInput(
         "bundled_template",
         "Bundled template",
@@ -406,6 +437,11 @@ server <- function(input, output, session) {
   current_template <- shiny::reactiveVal(initial)
   # Keep track of the original template used to seed the current editing session
   original_template <- shiny::reactiveVal(initial)
+
+  # Sync dark theme with UI and localStorage
+  shiny::observeEvent(input$dark_theme, {
+    session$sendCustomMessage("set-theme", list(dark = isTRUE(input$dark_theme)))
+  }, ignoreNULL = TRUE)
 
   # Load bundled template
   shiny::observeEvent(input$load_bundled, {
@@ -621,7 +657,7 @@ server <- function(input, output, session) {
       allow_row_break_across_pages = isTRUE(input$tbl_allow_row_break),
       repeat_header_on_each_page   = isTRUE(input$tbl_repeat_header),
       prevent_header_row_break     = isTRUE(input$tbl_prevent_header_break),
-      table_alignment              = local_or_default(input$tbl_alignment, NULL)
+      table_alignment              = null_if_empty(input$tbl_alignment)
     )
 
     structural <- list(
@@ -629,21 +665,21 @@ server <- function(input, output, session) {
       header_bottom_border = border_from_inputs(input, "struct_header_bottom", tmpl$tableStyle$structural$header_bottom_border),
       table_bottom_border  = border_from_inputs(input, "struct_table_bottom",  tmpl$tableStyle$structural$table_bottom_border),
       allHeaders = list(
-        vertical_alignment = local_or_default(input$struct_allheaders_vertical, "center")
+        vertical_alignment = null_if_empty(input$struct_allheaders_vertical) %||% "center"
       ),
       tableBody = list(
-        vertical_alignment = local_or_default(input$struct_tablebody_vertical, "center")
+        vertical_alignment = null_if_empty(input$struct_tablebody_vertical) %||% "center"
       )
     )
 
     cellDefaults <- list(
       cell_margins = list(
-        top    = local_or_default(input$cell_default_top, NULL),
-        bottom = local_or_default(input$cell_default_bottom, NULL),
-        left   = local_or_default(input$cell_default_left, NULL),
-        right  = local_or_default(input$cell_default_right, NULL)
+        top    = null_if_empty(input$cell_default_top),
+        bottom = null_if_empty(input$cell_default_bottom),
+        left   = null_if_empty(input$cell_default_left),
+        right  = null_if_empty(input$cell_default_right)
       ),
-      vertical_alignment = local_or_default(input$cell_default_vertical, "center")
+      vertical_alignment = null_if_empty(input$cell_default_vertical) %||% "center"
     )
 
     header_row <- row_style_from_inputs(input, "header_row", tmpl$tableStyle$header$row)

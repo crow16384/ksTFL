@@ -443,15 +443,26 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
             continue;
         }
 
+        // --- page_break ---
+        // Set force_page_break before emitting any "above" synthetic rows so
+        // the flag lands on the first row of this group (the synthetic row if
+        // present, otherwise the data row itself).  This ensures the new page
+        // starts from the row that owns the c_pageBreak() action.
+        bool has_page_break = !actions->page_breaks.empty();
+
         // --- add_row "above" insertions ---
         for (const auto& ar : actions->add_rows) {
             if (ar.pos == AddRowAction::Position::Above) {
-                result.push_back(build_addrow_synthetic(src_idx, ar));
+                LogicalRow synthetic = build_addrow_synthetic(src_idx, ar);
+                if (has_page_break) {
+                    synthetic.force_page_break = true;
+                    has_page_break = false;
+                }
+                result.push_back(std::move(synthetic));
             }
         }
 
-        // --- page_break ---
-        if (!actions->page_breaks.empty()) {
+        if (has_page_break) {
             row.force_page_break = true;
         }
 

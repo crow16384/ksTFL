@@ -1,0 +1,193 @@
+/* ksTFL Styles Editor – light (default) and dark theme */
+
+:root,
+[data-theme="light"] {
+  --ks-bg: #ffffff;
+  --ks-bg-secondary: #f5f5f5;
+  --ks-text: #333333;
+  --ks-text-muted: #6c757d;
+  --ks-border: #dee2e6;
+  --ks-input-bg: #ffffff;
+  --ks-input-text: #212529;
+  --ks-input-border: #ced4da;
+  --ks-heading: #212529;
+  --ks-hr: #dee2e6;
+  --ks-tab-border: #dee2e6;
+  --ks-tab-active-bg: #ffffff;
+  --ks-tab-active-text: #495057;
+  --ks-tab-inactive-bg: transparent;
+  --ks-tab-inactive-text: #0d6efd;
+  --ks-well-bg: #f8f9fa;
+  --ks-btn-primary-bg: #0d6efd;
+  --ks-btn-primary-text: #ffffff;
+  --ks-verbatim-bg: #f5f5f5;
+  --ks-verbatim-text: #333333;
+  --ks-select-arrow: #212529;
+}
+
+[data-theme="dark"] {
+  --ks-bg: #1a1d21;
+  --ks-bg-secondary: #25282c;
+  --ks-text: #e4e6eb;
+  --ks-text-muted: #b0b3b8;
+  --ks-border: #3e4248;
+  --ks-input-bg: #25282c;
+  --ks-input-text: #e4e6eb;
+  --ks-input-border: #3e4248;
+  --ks-heading: #f0f2f5;
+  --ks-hr: #3e4248;
+  --ks-tab-border: #3e4248;
+  --ks-tab-active-bg: #25282c;
+  --ks-tab-active-text: #e4e6eb;
+  --ks-tab-inactive-bg: transparent;
+  --ks-tab-inactive-text: #6ea8fe;
+  --ks-well-bg: #25282c;
+  --ks-btn-primary-bg: #0d6efd;
+  --ks-btn-primary-text: #ffffff;
+  --ks-verbatim-bg: #25282c;
+  --ks-verbatim-text: #e4e6eb;
+  --ks-select-arrow: #e4e6eb;
+}
+
+/* Base */
+body {
+  background-color: var(--ks-bg) !important;
+  color: var(--ks-text) !important;
+}
+
+/* Sidebar and main */
+.sidebar,
+.well {
+  background-color: var(--ks-bg-secondary) !important;
+  border-color: var(--ks-border) !important;
+}
+
+.container-fluid {
+  background-color: var(--ks-bg) !important;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, .title {
+  color: var(--ks-heading) !important;
+}
+
+/* Labels */
+label {
+  color: var(--ks-text) !important;
+}
+
+/* Horizontal rules */
+hr {
+  border-color: var(--ks-hr) !important;
+}
+
+/* Text inputs and selects */
+.form-control {
+  background-color: var(--ks-input-bg) !important;
+  color: var(--ks-input-text) !important;
+  border-color: var(--ks-input-border) !important;
+}
+
+.form-control:focus {
+  background-color: var(--ks-input-bg) !important;
+  color: var(--ks-input-text) !important;
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+select.form-control {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+[data-theme="dark"] select.form-control {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e4e6eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* Checkboxes */
+.form-check-input {
+  background-color: var(--ks-input-bg);
+  border-color: var(--ks-border);
+}
+
+.form-check-input:checked {
+  background-color: var(--ks-btn-primary-bg);
+  border-color: var(--ks-btn-primary-bg);
+}
+
+.form-check-label {
+  color: var(--ks-text) !important;
+}
+
+/* Buttons */
+.btn-default,
+.btn-secondary {
+  background-color: var(--ks-bg-secondary) !important;
+  color: var(--ks-text) !important;
+  border-color: var(--ks-border) !important;
+}
+
+.btn-default:hover,
+.btn-secondary:hover {
+  background-color: var(--ks-border) !important;
+  color: var(--ks-text) !important;
+  border-color: var(--ks-border) !important;
+}
+
+.btn-primary {
+  background-color: var(--ks-btn-primary-bg) !important;
+  color: var(--ks-btn-primary-text) !important;
+  border-color: var(--ks-btn-primary-bg) !important;
+}
+
+/* Tab panel */
+.nav-tabs {
+  border-bottom-color: var(--ks-tab-border) !important;
+}
+
+.nav-tabs > li > a {
+  color: var(--ks-tab-inactive-text) !important;
+  background-color: var(--ks-tab-inactive-bg) !important;
+  border-color: var(--ks-tab-border) !important;
+}
+
+.nav-tabs > li > a:hover {
+  background-color: var(--ks-bg-secondary) !important;
+  border-color: var(--ks-tab-border) var(--ks-tab-border) transparent !important;
+  color: var(--ks-tab-inactive-text) !important;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  color: var(--ks-tab-active-text) !important;
+  background-color: var(--ks-tab-active-bg) !important;
+  border-color: var(--ks-tab-border) var(--ks-tab-border) transparent !important;
+}
+
+/* Raw JSON / verbatim output */
+.shiny-text-output pre,
+#template_json {
+  background-color: var(--ks-verbatim-bg) !important;
+  color: var(--ks-verbatim-text) !important;
+  border: 1px solid var(--ks-border);
+  border-radius: 4px;
+  padding: 10px;
+}
+
+/* File input (Shiny renders this; darkening the button area) */
+[data-theme="dark"] .shiny-input-container input[type="file"] {
+  color: var(--ks-text);
+}
+
+/* Colour picker (colourpicker package) – basic darkening of container */
+[data-theme="dark"] .colourpicker-container,
+[data-theme="dark"] .colourpicker-wrapper {
+  background: var(--ks-bg-secondary) !important;
+  border-color: var(--ks-border) !important;
+}
+
+[data-theme="dark"] .colourpicker-input-container input {
+  background: var(--ks-input-bg) !important;
+  color: var(--ks-input-text) !important;
+  border-color: var(--ks-input-border) !important;
+}
