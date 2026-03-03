@@ -628,9 +628,11 @@ void DocxEmitter::emit_cell_props(XmlWriter& w,
         w.end_element();  // w:tcBorders
     }
 
-    // Cell margins
-    bool has_margins = tcp.cell_margin_top.has_value() || tcp.cell_margin_bottom.has_value() ||
-                       tcp.cell_margin_left.has_value() || tcp.cell_margin_right.has_value();
+    // Cell margins — only left/right are emitted.  Top/bottom are zeroed
+    // because Word adds tcMar top/bottom OUTSIDE trHeight even with
+    // hRule="exact".  Vertical padding is already included in the row height
+    // computed by the paginator.
+    bool has_margins = tcp.cell_margin_left.has_value() || tcp.cell_margin_right.has_value();
     if (has_margins) {
         w.start_element("w:tcMar");
         auto emit_margin = [&](const char* name, const std::optional<Length>& m) {
@@ -640,8 +642,6 @@ void DocxEmitter::emit_cell_props(XmlWriter& w,
             w.attribute("w:type", "dxa");
             w.end_element();
         };
-        emit_margin("w:top", tcp.cell_margin_top);
-        emit_margin("w:bottom", tcp.cell_margin_bottom);
         emit_margin("w:left", tcp.cell_margin_left);
         emit_margin("w:right", tcp.cell_margin_right);
         w.end_element();  // w:tcMar
@@ -995,6 +995,12 @@ void DocxEmitter::emit_page_field(XmlWriter& w) const {
 
     w.start_element("w:r");
     w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "separate");
+    w.end_element();
+    w.end_element();
+
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
     w.attribute("w:fldCharType", "end");
     w.end_element();
     w.end_element();
@@ -1020,6 +1026,12 @@ void DocxEmitter::emit_numpages_field(XmlWriter& w) const {
 
     w.start_element("w:r");
     w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "separate");
+    w.end_element();
+    w.end_element();
+
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
     w.attribute("w:fldCharType", "end");
     w.end_element();
     w.end_element();
@@ -1030,7 +1042,9 @@ void DocxEmitter::emit_numpages_field(XmlWriter& w) const {
 //
 // TC fields must NOT use w:vanish on their runs. Word hides TC fields via its own
 // internal mechanism; adding w:vanish causes Word to skip them during TOC generation.
-// Structure: bookmarkStart → begin → instrText → end → bookmarkEnd
+// Structure: bookmarkStart → begin → instrText → separate → end → bookmarkEnd
+// The 'separate' fldChar is required even though TC fields have no visible result;
+// without it Word treats the field as malformed and renders instrText as visible text.
 //
 // The w:bookmarkStart/End pair (name "_TocXXXXXX") is required for two reasons:
 //   1. When the TOC field uses \h, Word generates internal hyperlinks that point to
@@ -1075,6 +1089,13 @@ void DocxEmitter::emit_tc_field(XmlWriter& w, const std::string& entry_text, int
     w.start_element("w:instrText");
     w.attribute("xml:space", "preserve");
     w.text(instr);
+    w.end_element();
+    w.end_element();
+
+    // separate — required so Word hides the instrText
+    w.start_element("w:r");
+    w.start_element("w:fldChar");
+    w.attribute("w:fldCharType", "separate");
     w.end_element();
     w.end_element();
 
@@ -1224,13 +1245,11 @@ std::string DocxEmitter::emit_hdr_ftr_xml_part(
 
 void DocxEmitter::emit_page_break(XmlWriter& w) const {
     w.start_element("w:p");
-    // Minimize height: tiny font + zero spacing so page break paragraph
-    // doesn't consume vertical space on the previous page.
     w.start_element("w:pPr");
     w.start_element("w:spacing");
     w.attribute("w:before", "0");
     w.attribute("w:after", "0");
-    w.attribute("w:line", "0");
+    w.attribute("w:line", "20");
     w.attribute("w:lineRule", "exact");
     w.end_element();  // w:spacing
     w.start_element("w:rPr");
@@ -1600,13 +1619,13 @@ void DocxEmitter::emit_table(XmlWriter& w,
         w.end_element();
     }
 
-    // Default cell margins from template
-    bool has_default_margins =
-        tmpl_.table_style.default_cell_margin_top.has_value() ||
-        tmpl_.table_style.default_cell_margin_bottom.has_value() ||
-        tmpl_.table_style.default_cell_margin_left.has_value() ||
-        tmpl_.table_style.default_cell_margin_right.has_value();
-    if (has_default_margins) {
+    // Default cell margins from template.
+    // IMPORTANT: Word adds tblCellMar top/bottom OUTSIDE trHeight even when
+    // hRule="exact", causing rows to be taller than specified.  Our paginator
+    // already includes cell_margin_top/bottom in the computed trHeight, so we
+    // must emit top=0 bottom=0 here to avoid double-counting.  Left/right
+    // margins are horizontal and don't affect row height.
+    {
         w.start_element("w:tblCellMar");
         auto emit_margin = [&](const char* name, const std::optional<Length>& m) {
             if (!m.has_value()) return;
@@ -1615,8 +1634,15 @@ void DocxEmitter::emit_table(XmlWriter& w,
             w.attribute("w:type", "dxa");
             w.end_element();
         };
-        emit_margin("w:top", tmpl_.table_style.default_cell_margin_top);
-        emit_margin("w:bottom", tmpl_.table_style.default_cell_margin_bottom);
+        // Force top/bottom to zero — vertical padding is baked into trHeight
+        w.start_element("w:top");
+        w.attribute("w:w", "0");
+        w.attribute("w:type", "dxa");
+        w.end_element();
+        w.start_element("w:bottom");
+        w.attribute("w:w", "0");
+        w.attribute("w:type", "dxa");
+        w.end_element();
         emit_margin("w:left", tmpl_.table_style.default_cell_margin_left);
         emit_margin("w:right", tmpl_.table_style.default_cell_margin_right);
         w.end_element();
@@ -1720,7 +1746,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
                 combined += group.text[i];
             }
 
-            // When toclevel is set, emit TC only on first page; put TC in same paragraph as title so Word finds it
+            // When toclevel is set, emit TC field in same paragraph as title
             if (page.is_first_page && group.toc_level > 0) {
                 std::string toc_plain;
                 for (size_t i = 0; i < group.text.size(); ++i) {

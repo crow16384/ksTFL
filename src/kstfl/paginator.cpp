@@ -196,8 +196,13 @@ Length Paginator::compute_available_height(
     // so that Word's internal layout never overflows onto an extra page.
     available = available - PAGE_SAFETY_MARGIN;
 
-    // Header/footer sections
-    available = available - header_section_height - footer_section_height;
+    // Doc headers/footers are rendered in Word header/footer XML parts
+    // (w:hdr / w:ftr), which occupy the margin area between the page edge
+    // and the body.  usable_height() already excludes top+bottom margins,
+    // so we must NOT subtract header_section_height / footer_section_height
+    // again — that would double-count the space and shrink the body area.
+    (void)header_section_height;
+    (void)footer_section_height;
 
     // Titles: callers pass titles_height=0 for pages that don't show titles
     available = available - titles_height;
