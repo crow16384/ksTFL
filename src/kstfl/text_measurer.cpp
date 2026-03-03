@@ -187,11 +187,31 @@ MeasuredText TextMeasurer::measure_cell(const ParsedCell& parsed,
             if (para_width > natural_width) natural_width = para_width;
         }
 
-        // Add cell top/bottom margins (they become the horizontal padding in
-        // the rotated view, but contribute to the required cell height).
+        // In a btLr/tbRl cell the row height becomes the text-flow "width".
+        // Word subtracts paragraph indents from this width before wrapping,
+        // and adds paragraph spacing (before/after) between paragraphs.
+        // We must include all of these so the row is tall enough.
+        Length indent_left  = base_pp.indents.has_value() && base_pp.indents->left.has_value()
+                                  ? *base_pp.indents->left : Length{0};
+        Length indent_right = base_pp.indents.has_value() && base_pp.indents->right.has_value()
+                                  ? *base_pp.indents->right : Length{0};
+
+        Length spacing_before = (base_pp.spacing.has_value() && base_pp.spacing->before.has_value())
+                                    ? *base_pp.spacing->before : Length{0};
+        Length spacing_after  = (base_pp.spacing.has_value() && base_pp.spacing->after.has_value())
+                                    ? *base_pp.spacing->after : Length{0};
+
+        size_t n_paras = parsed.paragraphs.size();
+        Length total_para_spacing{0};
+        if (n_paras > 0) {
+            total_para_spacing = (spacing_before + spacing_after) * static_cast<double>(n_paras);
+        }
+
         Length cell_margin_top    = base_tcp.cell_margin_top.value_or(Length{0});
         Length cell_margin_bottom = base_tcp.cell_margin_bottom.value_or(Length{0});
-        Length required_height = natural_width + cell_margin_top + cell_margin_bottom;
+        Length required_height = natural_width + indent_left + indent_right
+                               + total_para_spacing
+                               + cell_margin_top + cell_margin_bottom;
 
         // Width contribution = one line height (font height after rotation)
         Length cell_margin_left  = base_tcp.cell_margin_left.value_or(Length{0});

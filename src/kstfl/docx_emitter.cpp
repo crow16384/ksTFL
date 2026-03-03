@@ -595,6 +595,11 @@ void DocxEmitter::emit_cell_props(XmlWriter& w,
                 break;
             default: break;
         }
+        // For vertical text, prevent Word from wrapping; we measure and size
+        // the row for a single unwrapped line.
+        if (tcp.text_orientation.value() != TextOrientation::Horizontal) {
+            w.self_closing_element("w:noWrap");
+        }
     }
 
     // Cell borders
