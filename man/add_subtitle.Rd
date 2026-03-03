@@ -4,21 +4,46 @@
 \alias{add_subtitle}
 \title{Add a subtitle}
 \usage{
-add_subtitle(spec, text, id = NULL, styleRef = NULL, order = NULL)
+add_subtitle(
+  spec,
+  text,
+  id = NULL,
+  styleRef = NULL,
+  order = NULL,
+  toclevel = NULL
+)
 }
 \arguments{
-\item{spec}{TFL spec object}
+\item{spec}{TFL spec object.}
 
-\item{text}{Character vector of subtitle text lines}
+\item{text}{Character vector of subtitle text lines. May contain \verb{#ByGroup1},
+\verb{#ByGroup2}, … placeholders that are replaced at render time with the current
+value of the first, second, … grouping/paging column on each page.}
 
-\item{id}{Subtitle identifier (auto-generated if NULL)}
+\item{id}{Subtitle identifier (auto-generated if \code{NULL}).}
 
-\item{styleRef}{List of style names to be applied. Provided styles will be merged with last-win strategy for report}
+\item{styleRef}{Character vector of style names to apply. Styles are merged
+with last-win strategy.}
 
-\item{order}{Order of subtitle group (auto-assigned if NULL)}
+\item{order}{Integer ordering key (auto-assigned if \code{NULL}).}
+
+\item{toclevel}{Optional integer 1--9. When set, this subtitle is marked as a
+Table of Contents entry at the given level.
+
+\strong{Static subtitles} (no \verb{#ByGroupX} placeholders): the TC entry is emitted
+only on the \strong{first page} of the spec, producing a single TOC entry.
+
+\strong{Dynamic subtitles} (containing \verb{#ByGroupX}): a TC entry is emitted on
+\strong{every page}, so each distinct group value gets its own TOC entry. The
+resolved (substituted) text is used as the TOC entry text.
+
+In both cases, multi-line subtitles are concatenated with a space and inline
+styling tags are stripped for the TOC entry text. Use together with
+\code{add_title(toclevel = )} and \code{tfl_set_options(insertTOC = TRUE)} or
+\code{save_report(insertTOC = TRUE)}.}
 }
 \value{
-Updated spec object
+Updated spec object.
 }
 \description{
 Add a subtitle to the specification. Multiple calls add multiple subtitle groups.
@@ -26,8 +51,20 @@ Calling with the same ID merges with last-win strategy.
 }
 \examples{
 \dontrun{
-spec <- create_text() |>
-  add_subtitle("Safety Analysis Set") |>
-  add_subtitle("Data Cutoff: 2025-12-14", styleRef = "footnote_style")
+# Static subtitle — one TOC entry for the whole report
+spec <- create_table(adsl) |>
+  add_title("Table 1: Demographics", toclevel = 1) |>
+  add_subtitle("Safety Analysis Set", toclevel = 2) |>
+  add_subtitle("Data Cutoff: 2025-12-14")
+
+# Dynamic subtitle — one TOC entry per group value (e.g. one per visit)
+spec <- create_table(advs) |>
+  add_title("Table 2: Vital Signs by Visit and Parameter", toclevel = 1) |>
+  add_subtitle("#ByGroup1 - #ByGroup2", toclevel = 2)
+
+# Generate the TOC page
+report <- create_report(spec)
+save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
+# Open tables.docx in Word, click the TOC placeholder, press F9 to update.
 }
 }

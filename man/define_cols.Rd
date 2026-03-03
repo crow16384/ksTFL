@@ -34,41 +34,49 @@ define_cols(
 \item Negation: \code{-id} or \code{!matches("^temp")}
 }}
 
-\item{label}{Column label (length 1 or length of cols)}
+\item{label}{Column label (length 1 or length of cols; \code{NA} skips that position)}
 
-\item{isID}{Whether column is identifier (length 1 or length of cols)}
+\item{isID}{Whether column is identifier (length 1 or length of cols; \code{NA} skips that position)}
 
-\item{isVisible}{Whether column is visible in report output (length 1 or length of cols).
+\item{isVisible}{Whether column is visible in report output (length 1 or length of cols;
+\code{NA} skips that position).
 When set to FALSE, column is hidden from output and automatically assigned width "0.0cm".
 Invisible columns do NOT participate in width recalculation; only visible columns are included.
 Cannot set \code{colWidth} for invisible columns (error raised if attempted).}
 
-\item{isGrouping}{Whether column defines groups (length 1 or length of cols)}
+\item{isGrouping}{Whether column defines groups (length 1 or length of cols; \code{NA} skips that position)}
 
-\item{isPaging}{Whether column defines pages (length 1 or length of cols)}
+\item{isPaging}{Whether column defines pages (length 1 or length of cols; \code{NA} skips that position)}
 
 \item{labelStyleRef}{List of style names to be applied. Provided styles will be merged with last-win strategy for report.
 Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled),
-or list of \code{\link{f_combine}} results (one-to-one mapping to columns)}
+or list of \code{\link{f_combine}} results or \code{NA} sentinels (one-to-one mapping to columns).
+Use \code{NA} as a list element to skip updating \code{labelStyleRef} for that column.}
 
-\item{isColBreak}{Whether column triggers page break (length 1 or length of cols)}
+\item{isColBreak}{Whether column triggers page break (length 1 or length of cols; \code{NA} skips that position)}
 
-\item{dedupe}{Whether to deduplicate values (length 1 or length of cols)}
+\item{dedupe}{Whether to deduplicate values (length 1 or length of cols; \code{NA} skips that position)}
 
-\item{blankAfter}{Whether to add blank after value change (length 1 or length of cols)}
+\item{blankAfter}{Whether to add blank after value change (length 1 or length of cols; \code{NA} skips that position)}
 
-\item{type}{Data type for column format: "string" or "numeric" (length 1 or length of cols). Optional; omit to preserve existing.}
+\item{type}{Data type for column format: "string" or "numeric" (length 1 or length of cols;
+\code{NA} skips that position). Optional; omit to preserve existing.}
 
-\item{format}{Format string for numeric data (sprintf style), e.g. "\%.1f" (length 1 or length of cols). Optional.}
+\item{format}{Format string for numeric data (sprintf style), e.g. "\%.1f" (length 1 or length of cols;
+\code{NA} skips that position). Optional.}
 
-\item{missings}{How to display missing values in columns (length 1 or length of cols). Optional.}
+\item{missings}{How to display missing values in columns (length 1 or length of cols;
+\code{NA} skips that position). Optional.}
 
-\item{colWidth}{Column width, e.g. "2in", "5cm", "20\%" (length 1 or length of cols). Optional.
-When specified, marks columns as LOCKED and triggers automatic recalculation of remaining unlocked
-columns if \code{autoColWidth = TRUE} in \code{tfl_set_options()}. Locked columns maintain their exact width
-while unlocked columns normalize to fill remaining available space.}
+\item{colWidth}{Column width, e.g. "2in", "5cm", "20\%" (length 1 or length of cols;
+\code{NA} skips that position — the column's width is left unchanged). Optional.
+When at least one non-\code{NA} value is specified, affected columns are marked as LOCKED and
+automatic recalculation of remaining unlocked columns is triggered if \code{autoColWidth = TRUE}
+in \code{tfl_set_options()}. Locked columns maintain their exact width while unlocked columns
+normalize to fill remaining available space.}
 
 \item{valueStyleRef}{Style names to apply to cell values. Provided styles will be merged with last-win strategy for report.
+Use \code{NA} as a list element to skip updating \code{valueStyleRef} for that column.
 return Updated TFL_spec object with modified column definitions. Changes are merged with existing
 column properties using last-win strategy. When \code{colWidth} is specified or \code{isVisible} changes,
 automatic width recalculation is triggered (if \code{autoColWidth = TRUE}).}

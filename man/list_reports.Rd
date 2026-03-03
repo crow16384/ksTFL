@@ -15,19 +15,21 @@ list_reports(meta_dir, sort_by = c("datetime", "doc_file", "spec_file"))
 \value{
 A data frame with columns:
 \describe{
-  \item{spec_file}{Hash-named spec JSON filename.}
-  \item{doc_file}{Target DOCX filename stored at save time.}
-  \item{datetime}{ISO-8601 timestamp of when \code{save_report()} was called.}
-  \item{n_specs}{Number of TFL specs inside the JSON.}
-  \item{is_latest}{Logical - \code{TRUE} for the most-recent entry per
-    \code{doc_file}; older entries are \code{FALSE} (obsolete candidates).}
-  \item{data_refs}{Character vector of data JSON base-names referenced by
-    this spec (without \code{.json} extension).}
+\item{spec_file}{Hash-named spec JSON filename.}
+\item{doc_file}{Target DOCX filename stored at save time.}
+\item{datetime}{ISO-8601 timestamp of when \code{save_report()} was called.}
+\item{n_specs}{Number of TFL specs inside the JSON.}
+\item{is_latest}{Logical - \code{TRUE} for the most-recent entry per
+\code{doc_file}; older entries are \code{FALSE} (obsolete candidates).}
+\item{data_refs}{Character vector of data JSON base-names referenced by
+this spec (without \code{.json} extension).}
 }
+When no spec JSONs are found in \code{meta_dir}, returns
+\code{invisible(empty_data_frame)} and prints an informational message.
 }
 \description{
 Scans a meta folder produced by \code{\link{save_report}} and returns a
-summary data frame with one row per spec JSON file. Uses \code{_index.json}
+summary data frame with one row per spec JSON file.  Uses \code{_index.json}
 when available (fast); falls back to scanning every JSON file otherwise.
 }
 \examples{

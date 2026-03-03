@@ -11,7 +11,6 @@ create_table(data = NULL, cols = everything())
 
 \item{cols}{Tidyselect expression indicating which columns from \code{data} to
 include in the report. Defaults to \code{everything()}.}
-
 }
 \value{
 A \code{TFL_spec} object with \code{docType = "Table"}.

@@ -13,7 +13,7 @@
 
 \item{id}{Body text identifier (auto-generated as __default_NNN if NULL)}
 
-\item{styleRef}{List of style names to be applied. Provided styles will be merged with last-win strategy for report}
+\item{styleRef}{Character vector of style names or result of \code{f_combine()}. Merged with last-win strategy.}
 
 \item{order}{Order of body text group (auto-assigned if NULL)}
 }

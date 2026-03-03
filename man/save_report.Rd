@@ -9,7 +9,9 @@ save_report(
   docFileName,
   outDir = NULL,
   metaPath = NULL,
-  prettify = FALSE
+  prettify = FALSE,
+  insertTOC = NULL,
+  tocTitle = NULL
 )
 }
 \arguments{
@@ -29,6 +31,15 @@ Default: \code{tempdir()}}
 
 \item{prettify}{Logical. If TRUE, format JSON output with indentation and line breaks
 for readability. Default: FALSE (compact format)}
+
+\item{insertTOC}{Logical. When \code{TRUE} the renderer prepends a Table of Contents
+page (using a \verb{\{ TOC \\f \\h \\z \}} field) before the first spec. Requires at least
+one \code{add_title()} or \code{add_subtitle()} call with \code{toclevel} set. Defaults to
+the \code{insertTOC} package option (see \code{tfl_set_options()}). Default \code{FALSE}.}
+
+\item{tocTitle}{Character. Heading text placed above the TOC field on the TOC page.
+Defaults to the \code{tocTitle} package option (default \code{"Table of Contents"}).
+Set to \code{""} to omit the heading.}
 }
 \value{
 Invisibly returns a list with:
@@ -84,5 +95,25 @@ result <- save_report(report, docFileName = "report.docx")
 
 cat("Spec saved as:", result$spec_file, "\n")
 cat("Saved to:", result$metaPath, "\n")
+
+# Generate a report with an auto-populated TOC page
+t1 <- create_table(adsl) |>
+  add_title("Table 1: Demographics", toclevel = 1) |>
+  set_document(hasData = TRUE)
+
+t2 <- create_table(advs) |>
+  add_title("Table 2: Vital Signs by Visit", toclevel = 1) |>
+  add_subtitle("#ByGroup1", toclevel = 2) |>
+  set_document(hasData = TRUE)
+
+report <- create_report(t1, t2)
+save_report(
+  report,
+  docFileName  = "tables.docx",
+  outDir       = "output/",
+  insertTOC    = TRUE,
+  tocTitle     = "List of Tables"
+)
+# Open tables.docx in Word, click the TOC placeholder, press F9 to populate it.
 }
 }

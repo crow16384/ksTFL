@@ -1,5 +1,5 @@
-pandoc: 3.8.2.1
-pkgdown: 2.1.3
+pandoc: 3.8.3
+pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   Advanced_StyleRows: Advanced_StyleRows.html
@@ -7,4 +7,4 @@ articles:
   Getting_Started_with_ksTFL: Getting_Started_with_ksTFL.html
   Reporting_Examples_with_ksTFL: Reporting_Examples_with_ksTFL.html
   Styling_Guide_with_ksTFL: Styling_Guide_with_ksTFL.html
-last_built: 2025-12-25T14:06Z
+last_built: 2026-03-03T13:16Z

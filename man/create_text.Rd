@@ -20,9 +20,6 @@ specifications. Text documents do not accept \code{data} and will have
 \dontrun{
 ## Create a simple text spec
 spec <- create_text()
-
-## With a prefix
-spec <- create_text(docPrefix = "Narrative 1.1")
 }
 
 }

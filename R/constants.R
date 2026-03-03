@@ -293,7 +293,7 @@ NULL
 .const_spec_schema_file = "spec_schema_v1.json"
 #' Style schema file name
 #' @noRd
-.const_style_schema_file = "styles_schema_v0.json"
+.const_style_schema_file = "styles_schema_v1.json"
 #' Row style schema file name
 #' @noRd
 .const_row_style_schema_file = "row_style_actions_schema_v0.json"
@@ -369,81 +369,262 @@ NULL
   class = "TFL_options"
 )
 
+# =============================================================================
+# Built-in style atoms
+#
+# Design principle: each atom sets exactly one visual property.
+# Combine atoms with f_combine() to build composite styles on the fly.
+#
+# Naming convention
+# -----------------
+#  b / i / u            font: bold / italic / underline
+#                        aliases: font_bold / font_italic / font_underline
+#  fs_N                 font size in pt  (fs_7 … fs_11)
+#  fc_<colour>          font (text) colour
+#  hl_<colour>          cell text highlight / shading
+#  al / ar / ac         paragraph alignment: left / right / centre
+#                        aliases: text_left / text_right / text_center
+#  ind1 … ind4          left-indent levels (0.5 cm steps)
+#                        aliases: indent_1 … indent_4
+#  sp_0 / sp_2 / sp_4   paragraph spacing before+after: 0 / 2 / 4 pt
+#  kl / kn              pagination: keep_lines / keep_next
+#  va_t / va_m / va_b   cell vertical alignment: top / middle / bottom
+#                        aliases: va_top / va_center / va_bottom
+#  to_h / to_90 / to_270  cell text orientation: horizontal / 90° / 270°
+#                        aliases: text_horizontal / text_vertical_90 / text_vertical_270
+#  bg_<colour>          cell background colour
+#  row_h2 / row_h4 / row_h6  row height atoms (2 / 4 / 6 pt)
+#  bt / bb / bl / br    border side 1 pt black: top / bottom / left / right
+#  bt_th / bb_th        border side 0.5 pt black: top / bottom (thin)
+#  bc_gray / bc_white   border colour override: gray / white (suppress)
+#                        alias: bc_grey
+#  grp_hdr / grp_hdr_i  group-header composites: bold + space-above
+# =============================================================================
 .const_options_styles <- structure(
   list(
-    # Font styles
-    font_bold = list(
-      font = list(bold = TRUE)
+
+    # -------------------------------------------------------------------------
+    # Font — decoration
+    # -------------------------------------------------------------------------
+    b              = list(font = list(bold      = TRUE)),
+    i              = list(font = list(italic    = TRUE)),
+    u              = list(font = list(underline = TRUE)),
+    # aliases
+    font_bold      = list(font = list(bold      = TRUE)),
+    font_italic    = list(font = list(italic    = TRUE)),
+    font_underline = list(font = list(underline = TRUE)),
+
+    # -------------------------------------------------------------------------
+    # Font — size  (explicit pt values; use the value closest to your template)
+    # -------------------------------------------------------------------------
+    fs_7  = list(font = list(font_size = "7pt")),
+    fs_8  = list(font = list(font_size = "8pt")),
+    fs_9  = list(font = list(font_size = "9pt")),
+    fs_10 = list(font = list(font_size = "10pt")),
+    fs_11 = list(font = list(font_size = "11pt")),
+
+    # -------------------------------------------------------------------------
+    # Font — colour  (text colour)
+    # Pure colours for flags/alerts; muted colours for secondary content
+    # -------------------------------------------------------------------------
+    fc_black  = list(font = list(color = "#000000")),  # reset to black
+    fc_red    = list(font = list(color = "#FF0000")),  # alert / out-of-range
+    fc_blue   = list(font = list(color = "#0000FF")),  # informational
+    fc_green  = list(font = list(color = "#008000")),  # within-range / pass
+    fc_gray   = list(font = list(color = "#595959")),  # secondary / reference values
+    fc_grey   = list(font = list(color = "#595959")),  # alias for fc_gray
+    # Muted / softer palette — less aggressive than pure primaries
+    fc_navy   = list(font = list(color = "#1F3864")),  # dark navy — formal headers
+    fc_teal   = list(font = list(color = "#2E75B6")),  # medium blue — informational
+    fc_olive  = list(font = list(color = "#5C7A29")),  # muted green — pass / normal
+    fc_rust   = list(font = list(color = "#C0392B")),  # muted red — caution
+    fc_plum   = list(font = list(color = "#7B2D8B")),  # purple — special category
+    fc_slate  = list(font = list(color = "#44546A")),  # blue-gray — subdued label
+
+    # -------------------------------------------------------------------------
+    # Text highlight  (background shading behind text)
+    # Pure colours for strong flags; pastel colours for subtle banding
+    # -------------------------------------------------------------------------
+    hl_yellow = list(font = list(highlight = "#FFFF00")),  # strong flag / attention
+    hl_red    = list(font = list(highlight = "#FF0000")),  # critical / TEAE
+    hl_green  = list(font = list(highlight = "#90EE90")),  # within-range
+    hl_gray   = list(font = list(highlight = "#EEEEEE")),  # suppressed / N/A
+    hl_grey   = list(font = list(highlight = "#EEEEEE")),  # alias for hl_gray
+    # Pastel palette — softer attention markers
+    hl_peach  = list(font = list(highlight = "#FADADD")),  # soft red — mild alert
+    hl_mint   = list(font = list(highlight = "#D5F5E3")),  # soft green — normal range
+    hl_sky    = list(font = list(highlight = "#D6EAF8")),  # soft blue — informational
+    hl_lemon  = list(font = list(highlight = "#FEFBD8")),  # soft yellow — caution
+    hl_lilac  = list(font = list(highlight = "#E8DAEF")),  # soft purple — special
+
+    # -------------------------------------------------------------------------
+    # Paragraph — alignment
+    # -------------------------------------------------------------------------
+    al         = list(paragraph = list(alignment = "left")),
+    ar         = list(paragraph = list(alignment = "right")),
+    ac         = list(paragraph = list(alignment = "center")),
+    # aliases
+    text_left   = list(paragraph = list(alignment = "left")),
+    text_right  = list(paragraph = list(alignment = "right")),
+    text_center = list(paragraph = list(alignment = "center")),
+
+    # -------------------------------------------------------------------------
+    # Paragraph — indentation  (stub / sub-group hierarchy)
+    #   ind1 = top-level category label  e.g. "Age (years)"
+    #   ind2 = first sub-group           e.g. "  < 18"
+    #   ind3 = second sub-group          e.g. "    Missing"
+    #   ind4 = third sub-group / detail
+    # -------------------------------------------------------------------------
+    ind1    = list(paragraph = list(indents = list(left = "0.5cm"))),
+    ind2    = list(paragraph = list(indents = list(left = "1.0cm"))),
+    ind3    = list(paragraph = list(indents = list(left = "1.5cm"))),
+    ind4    = list(paragraph = list(indents = list(left = "2.0cm"))),
+    # aliases
+    indent_1 = list(paragraph = list(indents = list(left = "0.5cm"))),
+    indent_2 = list(paragraph = list(indents = list(left = "1.0cm"))),
+    indent_3 = list(paragraph = list(indents = list(left = "1.5cm"))),
+    indent_4 = list(paragraph = list(indents = list(left = "2.0cm"))),
+
+    # -------------------------------------------------------------------------
+    # Paragraph — vertical spacing  (before + after, same value each side)
+    #   sp_0 : no space  — dense safety listings / large tables
+    #   sp_2 : 2 pt      — sub-section breathing room
+    #   sp_4 : 4 pt      — summary / efficacy tables
+    # -------------------------------------------------------------------------
+    sp_0 = list(paragraph = list(spacing = list(before = "0pt", after = "0pt", line_spacing = 1.0))),
+    sp_2 = list(paragraph = list(spacing = list(before = "2pt", after = "2pt", line_spacing = 1.0))),
+    sp_4 = list(paragraph = list(spacing = list(before = "4pt", after = "4pt", line_spacing = 1.0))),
+
+    # -------------------------------------------------------------------------
+    # Paragraph — pagination control
+    #   kl : keep all lines of a cell together on the same page
+    #   kn : keep this row on the same page as the following row
+    #        (prevents group headers from being orphaned at page bottom)
+    # -------------------------------------------------------------------------
+    kl = list(paragraph = list(keep_lines = TRUE)),
+    kn = list(paragraph = list(keep_next  = TRUE)),
+
+    # -------------------------------------------------------------------------
+    # Group / category header composites
+    # Convenience atoms that combine bold + space-above + no-indent.
+    # Equivalent to f_combine("b", "sp_4") with an explicit left-indent reset.
+    #   grp_hdr   : bold — marks a new parameter/category block
+    #   grp_hdr_i : bold + italic — sub-parameter label within a by-visit table
+    # -------------------------------------------------------------------------
+    grp_hdr = list(
+      font      = list(bold = TRUE),
+      paragraph = list(indents = list(left = "0cm"),
+                       spacing = list(before = "4pt", after = "0pt"))
     ),
-    font_italic = list(
-      font = list(italic = TRUE)
+    grp_hdr_i = list(
+      font      = list(bold = TRUE, italic = TRUE),
+      paragraph = list(indents = list(left = "0cm"),
+                       spacing = list(before = "4pt", after = "0pt"))
     ),
-    font_underline = list(
-      font = list(underline = TRUE)
-    ),
-    
-    # Color styles (commonly used in clinical programming)
-    text_blue = list(
-      font = list(color = "#0000FF")
-    ),
-    text_red = list(
-      font = list(color = "#FF0000")
-    ),
-    text_green = list(
-      font = list(color = "#008000")
-    ),
-    
-    # Alignment styles
-    text_center = list(
-      paragraph = list(alignment = "center")
-    ),
-    text_right = list(
-      paragraph = list(alignment = "right")
-    ),
-    text_left = list(
-      paragraph = list(alignment = "left")
-    ),
-    
-    # Cell highlighting (warnings, out-of-range)
-    cell_highlight_yellow = list(
-      font = list(highlight = "#FFFF00")
-    ),
-    cell_highlight_red = list(
-      font = list(highlight = "#FF0000")
-    ),
-    cell_highlight_green = list(
-      font = list(highlight = "#90EE90")
-    ),
-    cell_highlight_gray = list(
-      font = list(highlight = "#EEEEEE")
-    ),
-    
-    # Border styles
-    cell_border_bottom = list(
-      table_style = list(
-        borders = list(
-          bottom = list(width = "1pt", line_style = "single", color = "#000000")
-        )
-      )
-    ),
-    cell_border_top = list(
-      table_style = list(
-        borders = list(
-          top = list(width = "1pt", line_style = "single", color = "#000000")
-        )
-      )
-    ),
-    
-    # Combination styles (common in clinical reports)
-    indent_1 = list(
-      paragraph = list(indents = list(left = "0.5cm"))
-    ),
-    indent_2 = list(
-      paragraph = list(indents = list(left = "1.0cm"))
-    ),
-    indent_3 = list(
-      paragraph = list(indents = list(left = "1.5cm")) 
-  )
+
+    # -------------------------------------------------------------------------
+    # Cell — vertical alignment
+    # -------------------------------------------------------------------------
+    va_t      = list(table_style = list(vertical_alignment = "top")),
+    va_m      = list(table_style = list(vertical_alignment = "center")),
+    va_b      = list(table_style = list(vertical_alignment = "bottom")),
+    # aliases
+    va_top    = list(table_style = list(vertical_alignment = "top")),
+    va_center = list(table_style = list(vertical_alignment = "center")),
+    va_bottom = list(table_style = list(vertical_alignment = "bottom")),
+
+    # -------------------------------------------------------------------------
+    # Cell — text orientation
+    # Useful for narrow column headers in dense tables (e.g. visit/parameter grids)
+    #   to_h   : horizontal (default)
+    #   to_90  : rotated 90°  counter-clockwise — text reads bottom-to-top
+    #   to_270 : rotated 270° counter-clockwise — text reads top-to-bottom
+    # aliases: text_horizontal / text_vertical_90 / text_vertical_270
+    # -------------------------------------------------------------------------
+    to_h   = list(table_style = list(text_orientation = "horizontal")),
+    to_90  = list(table_style = list(text_orientation = "vertical_90")),
+    to_270 = list(table_style = list(text_orientation = "vertical_270")),
+    # aliases
+    text_horizontal   = list(table_style = list(text_orientation = "horizontal")),
+    text_vertical_90  = list(table_style = list(text_orientation = "vertical_90")),
+    text_vertical_270 = list(table_style = list(text_orientation = "vertical_270")),
+
+    # -------------------------------------------------------------------------
+    # Cell — background colour
+    # Pure / strong backgrounds for clear section breaks
+    # Pastel backgrounds for subtle banding without overpowering the content
+    # -------------------------------------------------------------------------
+    bg_blue      = list(table_style = list(background_color = "#D9E1F2")),  # soft blue — emphasis rows
+    bg_gray      = list(table_style = list(background_color = "#F2F2F2")),  # light gray — alternating / sub-totals
+    bg_grey      = list(table_style = list(background_color = "#F2F2F2")),  # alias for bg_gray
+    # Pastel palette
+    bg_peach     = list(table_style = list(background_color = "#FADADD")),  # soft red — mild alert row
+    bg_mint      = list(table_style = list(background_color = "#D5F5E3")),  # soft green — normal range row
+    bg_sky       = list(table_style = list(background_color = "#D6EAF8")),  # soft blue — informational row
+    bg_lemon     = list(table_style = list(background_color = "#FEFBD8")),  # soft yellow — caution row
+    bg_lilac     = list(table_style = list(background_color = "#E8DAEF")),  # soft purple — special category
+    bg_navy      = list(table_style = list(background_color = "#1F3864")),  # dark navy — strong header band
+    bg_slate     = list(table_style = list(background_color = "#44546A")),  # blue-gray — header band
+    bg_steel     = list(table_style = list(background_color = "#BDD7EE")),  # medium blue — column group header
+
+    # -------------------------------------------------------------------------
+    # Row height atoms  (use with add_row() to build separator rows)
+    #   row_h2 : 2 pt — near-invisible spacer
+    #   row_h4 : 4 pt — small gap
+    #   row_h6 : 6 pt — visible gap
+    # Combine with border atoms, e.g.:
+    #   f_combine("row_h2", "bb_th")   → thin ruled separator
+    #   f_combine("row_h2", "bc_white") → invisible spacer (all borders suppressed)
+    # -------------------------------------------------------------------------
+    row_h2 = list(table_style = list(row_height = "2pt")),
+    row_h4 = list(table_style = list(row_height = "4pt")),
+    row_h6 = list(table_style = list(row_height = "6pt")),
+
+    # -------------------------------------------------------------------------
+    # Border — side atoms  (1 pt black, single line)
+    # -------------------------------------------------------------------------
+    bt = list(table_style = list(borders = list(top    = list(width = "1pt",   line_style = "single", color = "#000000")))),
+    bb = list(table_style = list(borders = list(bottom = list(width = "1pt",   line_style = "single", color = "#000000")))),
+    bl = list(table_style = list(borders = list(left   = list(width = "1pt",   line_style = "single", color = "#000000")))),
+    br = list(table_style = list(borders = list(right  = list(width = "1pt",   line_style = "single", color = "#000000")))),
+
+    # -------------------------------------------------------------------------
+    # Border — thin side atoms  (0.5 pt black, single line)
+    # Use for sub-section dividers, subtotal separators
+    # -------------------------------------------------------------------------
+    bt_th = list(table_style = list(borders = list(top    = list(width = "0.5pt", line_style = "single", color = "#000000")))),
+    bb_th = list(table_style = list(borders = list(bottom = list(width = "0.5pt", line_style = "single", color = "#000000")))),
+
+    # -------------------------------------------------------------------------
+    # Border — colour override atoms
+    # Apply AFTER a side atom to change its colour.  The merge is last-win, so
+    # the colour override replaces the colour set by the preceding side atom.
+    # Examples:
+    #   f_combine("bt", "bc_gray")   → gray 1 pt top border
+    #   f_combine("row_h2", "bc_white") → invisible separator (all sides suppressed)
+    #
+    #   bc_gray  : medium gray (#AAAAAA) — softer dividers in banded tables
+    #   bc_white : white / no border     — suppress all sides (separator rows)
+    # -------------------------------------------------------------------------
+    bc_gray  = list(table_style = list(borders = list(
+      top    = list(color = "#AAAAAA"),
+      bottom = list(color = "#AAAAAA"),
+      left   = list(color = "#AAAAAA"),
+      right  = list(color = "#AAAAAA")
+    ))),
+    bc_grey  = list(table_style = list(borders = list(
+      top    = list(color = "#AAAAAA"),
+      bottom = list(color = "#AAAAAA"),
+      left   = list(color = "#AAAAAA"),
+      right  = list(color = "#AAAAAA")
+    ))),
+    bc_white = list(table_style = list(borders = list(
+      top    = list(width = "0pt", line_style = "none", color = "#FFFFFF"),
+      bottom = list(width = "0pt", line_style = "none", color = "#FFFFFF"),
+      left   = list(width = "0pt", line_style = "none", color = "#FFFFFF"),
+      right  = list(width = "0pt", line_style = "none", color = "#FFFFFF")
+    )))
+
   ),
   class = "TFL_options"
 )

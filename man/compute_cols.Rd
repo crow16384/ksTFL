@@ -17,7 +17,7 @@ Can reference:
 }
 Must return a logical vector of length equal to \code{nrow(data)}.}
 
-\item{...}{Action function calls: \code{c_style()}, \code{c_merge()}, \code{c_addrow()}.
+\item{...}{Action function calls: \code{c_style()}, \code{c_merge()}, \code{c_addrow()}, \code{c_glue()}, \code{c_clear()}.
 Multiple actions allowed, including duplicates. Actions are captured unevaluated.}
 }
 \value{
@@ -54,6 +54,8 @@ data columns and helper functions.
 \item \code{c_merge(cols, styleRef = NULL)}: Merge adjacent columns in matching rows
 \item \code{c_addrow(pos, value_from = NULL, styleRef = NULL)}: Insert row above/below matching rows
 \item \code{c_pageBreak()}: Insert a page break at the matching row (no args)
+\item \code{c_glue(cols, position, glue_col = NULL, text = NULL, separator = NULL)}: Concatenate a data column value or literal text to matching cell text
+\item \code{c_clear(cols)}: Clear the display text of matching cells (render as blank)
 }
 }
 \examples{

@@ -13,16 +13,19 @@ replay_report(
 )
 }
 \arguments{
-\item{spec_json}{Character string. Either a full path to a spec JSON file, or
-a \code{doc_file} name (e.g. \code{"test_01.docx"}) - the most recent spec
-for that document is used.}
+\item{spec_json}{Character string. Either:
+\itemize{
+\item A full path to a spec JSON file, or
+\item A \code{doc_file} name (e.g. \code{"test_01.docx"}) - the most
+recent spec for that document is used.
+}}
 
-\item{meta_dir}{Character string. Path to the meta folder. Required when
+\item{meta_dir}{Character string. Path to the meta folder.  Required when
 \code{spec_json} is a \code{doc_file} name rather than a full path.}
 
-\item{output_path}{Character string. Override the output DOCX path. If
+\item{output_path}{Character string. Override the output DOCX path.  If
 \code{NULL} (default), the path stored in the spec's \code{_metadata}
-is used.}
+(\code{outDir/docFileName}) is used.}
 
 \item{template_json}{Character string. Override the template JSON path.
 If \code{NULL}, resolved automatically from the spec.}
@@ -34,13 +37,16 @@ Invisibly returns the path to the rendered DOCX file.
 }
 \description{
 Re-renders a DOCX document entirely from JSON files stored in the meta
-folder - no R spec objects or data frames required. Useful for reproducing
-outputs after code changes or on a different machine.
+folder - no R spec objects or data frames required.  Useful for
+reproducing outputs after code changes or on a different machine.
 }
 \examples{
 \dontrun{
 # By doc name (uses latest spec)
 replay_report("test_01.docx", meta_dir = "path/to/meta")
+
+# By spec hash (exact version)
+replay_report("abc123def456.json", meta_dir = "path/to/meta")
 
 # Override output location
 replay_report("test_01.docx", meta_dir = "path/to/meta",

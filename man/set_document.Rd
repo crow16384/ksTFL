@@ -6,7 +6,6 @@
 \usage{
 set_document(
   spec,
-  glueNumType = NULL,
   isContinues = NULL,
   contentWidth = NULL,
   bodyTitles = NULL,
@@ -17,8 +16,6 @@ set_document(
 }
 \arguments{
 \item{spec}{TFL spec object}
-
-\item{glueNumType}{Whether to glue type and number to first title}
 
 \item{isContinues}{Whether page breaks should be ignored}
 
@@ -41,13 +38,14 @@ Updated spec object
 }
 \description{
 Define document-level properties. Multiple calls merge with last-win strategy.
+Document type (\code{docType}) is set automatically by \code{create_table()},
+\code{create_figure()}, or \code{create_text()} and cannot be changed here. Global
+document order (\code{docOrder}) is assigned by \code{create_report()}.
 }
 \examples{
 \dontrun{
 spec <- create_text() |>
   set_document(
-    docType = "Table",
-    docPrefix = "Table 14.1",
     hasData = TRUE,
     bodyTitles = TRUE
   )

@@ -7,7 +7,10 @@
 tfl_get_option(name)
 }
 \arguments{
-\item{name}{Character(1). Name of the option to fetch (e.g. "page", "styles").}
+\item{name}{Character(1). Name of the option to fetch. Common options:
+\code{"page"}, \code{"styles"}, \code{"bodyTitles"}, \code{"bodySubtitles"}, \code{"bodyFootnotes"},
+\code{"isContinues"}, \code{"contentWidth"}, \code{"missings"}, \code{"autoColWidth"},
+\code{"minColWidth"}, \code{"insertTOC"}, \code{"tocTitle"}, \code{"output_directory"}.}
 }
 \value{
 The value associated with \code{name} (type depends on the option).
@@ -21,6 +24,10 @@ throws a friendly error if the option does not exist.
 \dontrun{
 # Get the current page settings
 tfl_get_option("page")
+
+# Check whether TOC generation is enabled
+tfl_get_option("insertTOC")
+tfl_get_option("tocTitle")
 }
 
 }

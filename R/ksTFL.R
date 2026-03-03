@@ -1,14 +1,29 @@
 #' ksTFL Package
-#' 
+#'
 #' @description
-#' Generate metadata for clinical Tables, Figures, and Listings (TFLs).
-#' 
+#' Generate metadata for clinical Tables, Figures, and Listings (TFLs). You
+#' build specs with \code{create_table()}, \code{create_figure()}, or
+#' \code{create_text()}, then add titles, column definitions, styles, and
+#' options. Combine specs with \code{create_report()}, save to JSON (and data
+#' files) with \code{save_report()}, and render to DOCX with \code{render_docx()}
+#' or in one step with \code{write_doc()}.
+#'
 #' @details
+#' **Typical workflow:** (1) Create one or more specs with \code{create_table()},
+#' \code{create_figure()}, or \code{create_text()}. (2) Add content and styling
+#' (e.g. \code{add_title()}, \code{define_cols()}, \code{add_style()},
+#' \code{set_document()}). (3) Combine specs with \code{create_report()}. (4)
+#' Save and render: \code{save_report()} writes the spec JSON and data files;
+#' \code{render_docx()} produces the DOCX; or use \code{write_doc()} to do both
+#' in one call.
+#'
 #' To get started, see the vignettes:
-#' - `vignette("Getting Started with ksTFL")` - Quick start guide
-#' - `vignette("Comprehensive Styling Guide")` - Styling reference
-#' - `vignette("Advanced Examples & Complex Workflows")` - Real-world examples
-#' - `vignette("ksTFL Documentation Index")` - Complete documentation index
+#' \itemize{
+#'   \item \code{vignette("Getting Started with ksTFL")} — Quick start guide
+#'   \item \code{vignette("Comprehensive Styling Guide")} — Styling reference
+#'   \item \code{vignette("Advanced Examples & Complex Workflows")} — Real-world examples
+#'   \item \code{vignette("ksTFL Documentation Index")} — Complete documentation index
+#' }
 #'
 #' @keywords internal
 "_PACKAGE"

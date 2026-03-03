@@ -12,7 +12,9 @@ tfl_set_options(
   missings = NULL,
   autoColWidth = NULL,
   minColWidth = NULL,
-  output_directory = "."
+  insertTOC = NULL,
+  tocTitle = NULL,
+  output_directory = NULL
 )
 }
 \arguments{
@@ -42,6 +44,15 @@ Set FALSE to disable auto-recalculation and manage widths manually.}
 \item{minColWidth}{Numeric; minimum relative column width (\%) for unlocked columns during recalculation.
 Default 0.5. Used to validate that relative widths don't squeeze columns below acceptable minimum.}
 
+\item{insertTOC}{Logical; when \code{TRUE} the renderer prepends a Table of Contents
+page (using a \verb{\{ TOC \\f \\h \\z \}} field) before the first spec. Requires at least
+one \code{add_title()} or \code{add_subtitle()} call with \code{toclevel} set. Default \code{FALSE}.
+Can be overridden per-render via \code{save_report(insertTOC = )}.}
+
+\item{tocTitle}{Character; heading text placed above the TOC field on the TOC page.
+Default \code{"Table of Contents"}. Set to \code{""} to omit the heading.
+Can be overridden per-render via \code{save_report(tocTitle = )}.}
+
 \item{output_directory}{Character; path to default output directory of rendered document.}
 }
 \value{
@@ -63,6 +74,12 @@ appropriate internal settings slot (headers, footers, styles, bodyText, page).
 \dontrun{
 # Set a named option
 tfl_set_options(contentWidth = "95\%", missings = ".")
+
+# Set a predefined bundled template
+tfl_set_options(docTemplate = "Navy_Pro")
+
+# Set an external template file
+tfl_set_options(docTemplate = "/path/to/my_template.json")
 
 # Update page style via helper
  tfl_set_options(
@@ -93,5 +110,13 @@ spec <- create_table(data) |>
 tfl_set_options(autoColWidth = FALSE)
 spec <- create_table(data) |>
   define_cols(c("id", "age"), colWidth = c("20\%", "30\%"))  # Exact widths, no auto-adjust
+
+# Enable TOC page for all reports in the session
+tfl_set_options(insertTOC = TRUE, tocTitle = "List of Tables")
+# Then mark individual titles/subtitles with toclevel:
+spec <- create_table(adsl) |>
+  add_title("Table 1: Demographics", toclevel = 1)
+# save_report() will now prepend a TOC page automatically.
+# In Word: click the TOC placeholder and press F9 to populate it.
 }
 }

@@ -9,16 +9,15 @@ create_figure(plot_or_path, width = 6, height = 4, dpi = 300L, device = "png")
 \arguments{
 \item{plot_or_path}{One of:
 \itemize{
-  \item A \strong{character string} — path to an existing, readable image file
-    (\code{.png}, \code{.jpeg}/\code{.jpg}, or \code{.svg}).
-  \item A \strong{ggplot2 object} (class \code{"gg"} or \code{"ggplot"}) —
-    the plot is rendered to a temporary file via \code{ggplot2::ggsave()}.
-    Use \code{width}, \code{height}, \code{dpi}, and \code{device} to control
-    output dimensions.
+\item A \strong{character string} — path to an existing, readable image file
+(\code{.png}, \code{.jpeg}/\code{.jpg}, or \code{.svg}).
+\item A \strong{ggplot2 object} (class \code{"gg"} or \code{"ggplot"}) — the plot is
+rendered to a temporary file via \code{ggplot2::ggsave()}. Use \code{width},
+\code{height}, \code{dpi}, and \code{device} to control output dimensions.
 }}
 
-\item{width}{Numeric. Plot width in inches when \code{plot_or_path} is a
-ggplot2 object. Ignored for file paths. Default: \code{6}.}
+\item{width}{Numeric. Plot width in inches when \code{plot_or_path} is a ggplot2
+object. Ignored for file paths. Default: \code{6}.}
 
 \item{height}{Numeric. Plot height in inches when \code{plot_or_path} is a
 ggplot2 object. Ignored for file paths. Default: \code{4}.}
@@ -27,30 +26,30 @@ ggplot2 object. Ignored for file paths. Default: \code{4}.}
 ggplot2 object. Ignored for file paths. Default: \code{300}.}
 
 \item{device}{Character. Output format when \code{plot_or_path} is a ggplot2
-object. One of \code{"png"} (default), \code{"jpeg"}, \code{"jpg"},
-\code{"svg"}. Ignored for file paths.}
+object. One of \code{"png"} (default), \code{"jpeg"}, \code{"jpg"}, \code{"svg"}.
+Ignored for file paths.}
 }
 \value{
 A \code{TFL_spec} object with \code{docType = "Figure"}.
 }
 \description{
 Create and initialize a TFL specification for embedding a figure. Accepts
-either a \strong{file path} to an existing image or a \strong{ggplot2 object}
-that is rendered automatically to a temporary PNG file.
+either a \strong{file path} to an existing image or a \strong{ggplot2 object} that is
+rendered automatically to a temporary PNG file.
 }
 \details{
 When a ggplot2 object is passed:
 \enumerate{
-  \item The plot is rendered via \code{ggplot2::ggsave()} to a temporary file
-    in \code{tempdir()}.
-  \item The temporary file path is stored in \code{spec$.metadata$filePath}.
-  \item \code{save_report()} copies the file (prefixed with \code{dataRef})
-    into \code{metaPath}, where the C++ renderer reads it.
-  \item The temporary file persists for the duration of the R session.
+\item The plot is rendered via \code{ggplot2::ggsave()} to a temporary file in
+\code{tempdir()}.
+\item The temporary file path is stored in \code{spec$.metadata$filePath}.
+\item \code{save_report()} copies the file (prefixed with \code{dataRef}) into
+\code{metaPath}, where the C++ renderer reads it.
+\item The temporary file persists for the duration of the R session.
 }
 
-The C++ renderer natively supports \code{.png}, \code{.jpeg}/\code{.jpg},
-and \code{.svg} formats.
+The C++ renderer natively supports \code{.png}, \code{.jpeg}/\code{.jpg}, and \code{.svg}
+formats.
 }
 \examples{
 \dontrun{
@@ -67,6 +66,17 @@ spec <- create_figure(p, width = 8, height = 5, dpi = 150)
 
 ## Use JPEG output
 spec <- create_figure(p, device = "jpeg", width = 7, height = 4.5)
+
+## Full pipeline
+spec <- create_figure(p, width = 6, height = 4) |>
+  add_title("Weight vs MPG") |>
+  add_footnote("Source: Motor Trend, 1974.")
+report <- create_report(spec)
+saved  <- save_report(report, docFileName = "fig01.docx")
+render_docx(
+  spec_json   = file.path(saved$metaPath, saved$spec_file),
+  output_path = "output/fig01.docx"
+)
 }
 
 }

@@ -105,12 +105,12 @@
 #' # Generate a report with an auto-populated TOC page
 #' t1 <- create_table(adsl) |>
 #'   add_title("Table 1: Demographics", toclevel = 1) |>
-#'   set_document(docType = "Table", hasData = TRUE)
+#'   set_document(hasData = TRUE)
 #'
 #' t2 <- create_table(advs) |>
 #'   add_title("Table 2: Vital Signs by Visit", toclevel = 1) |>
 #'   add_subtitle("#ByGroup1", toclevel = 2) |>
-#'   set_document(docType = "Table", hasData = TRUE)
+#'   set_document(hasData = TRUE)
 #'
 #' report <- create_report(t1, t2)
 #' save_report(

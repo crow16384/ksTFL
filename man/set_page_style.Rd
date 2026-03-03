@@ -2,14 +2,27 @@
 % Please edit documentation in R/spec_context.R
 \name{set_page_style}
 \alias{set_page_style}
+\alias{set_page_style.TFL_spec}
+\alias{set_page_style.TFL_options}
 \title{Set document style properties}
 \usage{
 set_page_style(spec, docTemplate = NULL, page = NULL)
+
+\method{set_page_style}{TFL_spec}(spec, docTemplate = NULL, page = NULL)
+
+\method{set_page_style}{TFL_options}(spec, docTemplate = NULL, page = NULL)
 }
 \arguments{
 \item{spec}{TFL spec object}
 
-\item{docTemplate}{Name of predefined document template}
+\item{docTemplate}{Character. Template to use for rendering. Accepts either:
+\itemize{
+\item A predefined bundled template name (e.g. \code{"KeyStat_default"}, \code{"Navy_Pro"}).
+Use \code{tfl_list_templates()} to see all available names.
+\item A file path (absolute or relative) to an external template JSON file.
+The path must point to an existing file conforming to \code{styles_schema_v1.json}.
+}
+When \code{NULL} (default) the current session template is used.}
 
 \item{page}{Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins}
 }
@@ -21,18 +34,15 @@ Set document-level style configuration. Multiple calls merge with last-win strat
 }
 \examples{
 \dontrun{
+# Use a predefined bundled template
 spec <- create_text() |>
   set_page_style(
-    docTemplate = "KeyStat_default",
-    page = p_page(
-      size = "A4",
-      orientation = "landscape",
-      margins = p_margins(
-        top = "25mm", bottom = "25mm",
-        left = "20mm", right = "20mm",
-        header = "12mm", footer = "12mm"
-      )
-    )
+    docTemplate = "Navy_Pro",
+    page = p_page(size = "A4", orientation = "landscape")
   )
+
+# Use an external template file
+spec <- create_text() |>
+  set_page_style(docTemplate = "/path/to/my_template.json")
 }
 }

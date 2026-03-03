@@ -10,8 +10,8 @@ c_merge(cols, styleRef = NULL)
 \item{cols}{Tidyselect expression for column selection. Must resolve
 to at least 2 columns that are consecutive in the report column order.}
 
-\item{styleRef}{Character. Optional style to apply to the merged cell.
-If NULL, no special styling. Can be a single style or \code{f_combine()} result.}
+\item{styleRef}{Character vector or result of \code{f_combine()}. Optional style
+to apply to the merged cell. If NULL, no special styling.}
 }
 \value{
 Quosure structure (internal use within \code{compute_cols()})
@@ -22,6 +22,7 @@ Declares adjacent columns to be merged in rows matching the parent
 }
 \details{
 Must be called inside \code{compute_cols()}. Columns must be adjacent in the
+final report column order.
 }
 \examples{
 \dontrun{
@@ -39,8 +40,6 @@ Must be called inside \code{compute_cols()}. Columns must be adjacent in the
 }
 \seealso{
 \code{\link[=compute_cols]{compute_cols()}} for conditional row actions, \code{\link[=c_style]{c_style()}}, \code{\link[=c_addrow]{c_addrow()}} for other action types
-
-final report column order.
 
 \strong{Validation:}
 \itemize{

@@ -260,6 +260,8 @@
 #'   \item{data_refs}{Character vector of data JSON base-names referenced by
 #'     this spec (without \code{.json} extension).}
 #' }
+#' When no spec JSONs are found in \code{meta_dir}, returns
+#' \code{invisible(empty_data_frame)} and prints an informational message.
 #'
 #' @export
 #' @examples

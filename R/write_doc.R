@@ -5,7 +5,7 @@
 #' Save and Render a TFL Report to DOCX
 #'
 #' Convenience wrapper around [save_report()] and [render_docx()] that saves a
-#' [`TFL_report`] object to JSON (plus any required data/figure files) and
+#' `TFL_report` object to JSON (plus any required data/figure files) and
 #' immediately renders it to a DOCX file in a single call.
 #'
 #' This mirrors the helper used in the example `inst/examples/init.R` script
@@ -52,7 +52,7 @@
 #' # Create a simple table spec
 #' tbl <- create_table(mtcars) |>
 #'   add_title("Table 1: Motor Trend Car Road Tests") |>
-#'   set_document(docType = "Table", hasData = TRUE)
+#'   set_document(hasData = TRUE)
 #'
 #' # Combine into a report
 #' rpt <- create_report(tbl)

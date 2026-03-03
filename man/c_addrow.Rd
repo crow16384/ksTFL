@@ -12,8 +12,8 @@ c_addrow(pos, value_from = NULL, styleRef = NULL)
 \item{value_from}{Character or unquoted column name. Optional source column
 for the inserted row's content. If NULL or missing, creates an empty separator row.}
 
-\item{styleRef}{Character. Optional style to apply to the inserted row.
-If NULL, no special styling. Can be a single style or \code{f_combine()} result.}
+\item{styleRef}{Character vector or result of \code{f_combine()}. Optional style
+to apply to the inserted row. If NULL, no special styling.}
 }
 \value{
 Quosure structure (internal use within \code{compute_cols()})

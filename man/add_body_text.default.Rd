@@ -13,9 +13,9 @@
 
 \item{id}{Body text identifier}
 
-\item{styleRef}{List of style names to be applied. Provided styles will be merged with last-win strategy for report}
+\item{styleRef}{Character vector of style names or result of \code{f_combine()}. Merged with last-win strategy.}
 
-\item{order}{Order}
+\item{order}{Order of body text group}
 }
 \value{
 Error if no method found

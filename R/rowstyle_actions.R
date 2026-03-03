@@ -217,16 +217,16 @@ c_style <- function(cols, styleRef) {
 #'
 #' @param cols Tidyselect expression for column selection. Must resolve
 #'   to at least 2 columns that are consecutive in the report column order.
-#' @param styleRef Character. Optional style to apply to the merged cell.
-#'   If NULL, no special styling. Can be a single style or `f_combine()` result.
+#' @param styleRef Character vector or result of `f_combine()`. Optional style
+#'   to apply to the merged cell. If NULL, no special styling.
 #'
 #' @return Quosure structure (internal use within `compute_cols()`)
 #'
 #' @details
 #' Must be called inside `compute_cols()`. Columns must be adjacent in the
-#' @seealso [compute_cols()] for conditional row actions, [c_style()], [c_addrow()] for other action types
-#'
 #' final report column order.
+#'
+#' @seealso [compute_cols()] for conditional row actions, [c_style()], [c_addrow()] for other action types
 #'
 #' **Validation:**
 #' \itemize{
@@ -289,13 +289,13 @@ c_merge <- function(cols, styleRef = NULL) {
 #' @param pos Character. Position for insertion: "above" or "below".
 #' @param value_from Character or unquoted column name. Optional source column
 #'   for the inserted row's content. If NULL or missing, creates an empty separator row.
-#' @param styleRef Character. Optional style to apply to the inserted row.
-#'   If NULL, no special styling. Can be a single style or `f_combine()` result.
+#' @param styleRef Character vector or result of `f_combine()`. Optional style
+#'   to apply to the inserted row. If NULL, no special styling.
 #'
 #' @return Quosure structure (internal use within `compute_cols()`)
-#'@seealso [compute_cols()] for conditional row actions, [c_style()], [c_merge()] for other action types
 #'
-#' 
+#' @seealso [compute_cols()] for conditional row actions, [c_style()], [c_merge()] for other action types
+#'
 #' @details
 #' Must be called inside `compute_cols()`.
 #'

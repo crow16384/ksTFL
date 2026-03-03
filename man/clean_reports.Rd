@@ -10,7 +10,7 @@ clean_reports(meta_dir, keep_versions = 1L, dry_run = TRUE)
 \item{meta_dir}{Character string. Path to the meta folder.}
 
 \item{keep_versions}{Integer. Number of most-recent spec versions to keep
-per document. Default \code{1} (keep only the latest). Set to \code{2}
+per document. Default \code{1} (keep only the latest).  Set to \code{2}
 to keep the latest and one previous version for rollback.}
 
 \item{dry_run}{Logical. If \code{TRUE} (default), only report what would be
@@ -21,10 +21,18 @@ Invisibly returns a list with elements \code{obsolete_specs},
 \code{orphaned_data}, and \code{deleted} (character vectors of filenames).
 }
 \description{
-Removes obsolete spec JSONs (older versions of a document) and orphaned
-data JSON files (no longer referenced by any surviving spec JSON) from a
-meta folder. By default runs in dry-run mode and only reports what would
-be deleted. Pass \code{dry_run = FALSE} to actually delete files.
+Removes two categories of stale files from a meta folder:
+\enumerate{
+\item \strong{Obsolete spec JSONs} - older versions of a document when
+multiple spec JSONs exist for the same \code{doc_file}.  Only the
+most-recent spec per document is kept.
+\item \strong{Orphaned data JSONs} - data JSON files that are no longer
+referenced by any surviving spec JSON.
+}
+}
+\details{
+By default the function runs in \strong{dry-run} mode and only reports what
+would be deleted.  Pass \code{dry_run = FALSE} to actually delete files.
 }
 \examples{
 \dontrun{

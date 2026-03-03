@@ -1957,11 +1957,11 @@ define_cols <- function(spec, cols,
 #' # Full TOC workflow across a multi-spec report
 #' t1 <- create_table(adsl) |>
 #'   add_title("Table 1: Demographics", toclevel = 1) |>
-#'   set_document(docType = "Table", hasData = TRUE)
+#'   set_document(hasData = TRUE)
 #'
 #' t2 <- create_table(advs) |>
 #'   add_title("Table 2: Vital Signs", toclevel = 1) |>
-#'   set_document(docType = "Table", hasData = TRUE)
+#'   set_document(hasData = TRUE)
 #'
 #' report <- create_report(t1, t2)
 #' save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
@@ -2103,7 +2103,7 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL, t
 #' @param spec TFL spec object
 #' @param text Character vector of footnote text lines
 #' @param id Footnote identifier (auto-generated if NULL)
-#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
+#' @param styleRef Character vector of style names or result of `f_combine()`. Merged with last-win strategy.
 #' @param order Order of footnote group (auto-assigned if NULL)
 #' 
 #' @return Updated spec object
@@ -2135,16 +2135,16 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' @param spec Spec object (dispatches on class)
 #' @param text Character vector of body text lines
 #' @param id Body text identifier (auto-generated if NULL)
-#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
+#' @param styleRef Character vector of style names or result of `f_combine()`. Merged with last-win strategy.
 #' @param order Order of body text group (auto-assigned if NULL)
-#' 
+#'
 #' @return Updated spec object
 #' @export
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' spec <- create_text() |>
-#'   set_document(docType = "Table", hasData = FALSE) |>
+#'   set_document(hasData = FALSE) |>
 #'   add_body_text("No data available for the specified criteria", styleRef = c("error_style", "bold"))
 #' }
 add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
@@ -2159,7 +2159,7 @@ add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, 
 #' @param spec TFL_spec object
 #' @param text Character vector of body text lines
 #' @param id Body text identifier (auto-generated if NULL)
-#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
+#' @param styleRef Character vector of style names or result of `f_combine()`. Merged with last-win strategy.
 #' @param order Order of body text group (auto-assigned if NULL)
 #' @return Updated spec object
 #' @export
@@ -2182,7 +2182,7 @@ add_body_text.TFL_spec <- function(spec, text = NULL, id = NULL, styleRef = NULL
 #' @param spec TFL_options object
 #' @param text Character vector of body text lines
 #' @param id Body text identifier (auto-generated as __default_NNN if NULL)
-#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
+#' @param styleRef Character vector of style names or result of `f_combine()`. Merged with last-win strategy.
 #' @param order Order of body text group (auto-assigned if NULL)
 #' @return Updated options object
 #' @export
@@ -2202,8 +2202,8 @@ add_body_text.TFL_options <- function(spec, text = NULL, id = NULL, styleRef = N
 #' @param spec Spec object
 #' @param text Character vector of body text lines
 #' @param id Body text identifier
-#' @param styleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
-#' @param order Order
+#' @param styleRef Character vector of style names or result of `f_combine()`. Merged with last-win strategy.
+#' @param order Order of body text group
 #' @return Error if no method found
 #' @export
 add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
@@ -2571,9 +2571,12 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 }
 
 #' Set document properties
-#' 
+#'
 #' Define document-level properties. Multiple calls merge with last-win strategy.
-#' 
+#' Document type (`docType`) is set automatically by `create_table()`,
+#' `create_figure()`, or `create_text()` and cannot be changed here. Global
+#' document order (`docOrder`) is assigned by `create_report()`.
+#'
 #' @param spec TFL spec object
 #' @param isContinues Whether page breaks should be ignored
 #' @param contentWidth Width of content, e.g. "100%", "25cm", "10in"
@@ -2591,7 +2594,7 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' 
 #' @return Updated spec object
 #' @export
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' spec <- create_text() |>

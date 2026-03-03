@@ -4,21 +4,41 @@
 \alias{add_title}
 \title{Add a title}
 \usage{
-add_title(spec, text, id = NULL, styleRef = NULL, order = NULL)
+add_title(
+  spec,
+  text,
+  id = NULL,
+  styleRef = NULL,
+  order = NULL,
+  toclevel = NULL
+)
 }
 \arguments{
-\item{spec}{TFL spec object}
+\item{spec}{TFL spec object.}
 
-\item{text}{Character vector of title text lines}
+\item{text}{Character vector of title text lines. Multiple elements are
+rendered as separate lines within the same title paragraph.}
 
-\item{id}{Title identifier (auto-generated if NULL)}
+\item{id}{Title identifier (auto-generated if \code{NULL}).}
 
-\item{styleRef}{List of style names to be applied. Provided styles will be merged with last-win strategy for report}
+\item{styleRef}{Character vector of style names to apply. Styles are merged
+with last-win strategy.}
 
-\item{order}{Order of title group (auto-assigned if NULL)}
+\item{order}{Integer ordering key (auto-assigned if \code{NULL}).}
+
+\item{toclevel}{Optional integer 1--9. When set, the \strong{first page} occurrence
+of this title is marked as a Table of Contents entry at the given level.
+Multi-line titles are concatenated with a space for the TOC entry text;
+inline styling tags (e.g. \verb{<b>}, \verb{<i>}) are stripped automatically.
+
+To generate a TOC page, set \code{toclevel} here and either call
+\code{tfl_set_options(insertTOC = TRUE)} for the whole session or pass
+\code{insertTOC = TRUE} to \code{save_report()}. The renderer will prepend a
+"Table of Contents" page with a \verb{\{ TOC \\f \\h \\z \}} field. Open the generated
+document in Word, click inside the TOC area, and press \strong{F9} to populate it.}
 }
 \value{
-Updated spec object
+Updated spec object.
 }
 \description{
 Add a title to the specification. Multiple calls add multiple title groups.
@@ -26,8 +46,26 @@ Calling with the same ID merges with last-win strategy.
 }
 \examples{
 \dontrun{
-spec <- create_text() |>
-  add_title(c("Study ABC-123", "Demographics Table")) |>
-  add_title("Full Analysis Set", styleRef = c("subtitle_style", "emphasis"))
+# Basic multi-line title (no TOC)
+spec <- create_table(adsl) |>
+  add_title(c("Study ABC-123", "Table 1: Demographics")) |>
+  add_title("Full Analysis Set", styleRef = "subtitle_style")
+
+# Title marked for TOC at level 1 — renderer will emit a TC field on the first page
+spec <- create_table(adsl) |>
+  add_title("Table 1: Demographics", toclevel = 1)
+
+# Full TOC workflow across a multi-spec report
+t1 <- create_table(adsl) |>
+  add_title("Table 1: Demographics", toclevel = 1) |>
+  set_document(hasData = TRUE)
+
+t2 <- create_table(advs) |>
+  add_title("Table 2: Vital Signs", toclevel = 1) |>
+  set_document(hasData = TRUE)
+
+report <- create_report(t1, t2)
+save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
+# Open tables.docx in Word, click the TOC placeholder, press F9 to update.
 }
 }
