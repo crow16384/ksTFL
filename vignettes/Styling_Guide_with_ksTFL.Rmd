@@ -1,11 +1,7 @@
 ---
 title: "Styling Guide — ksTFL"
 author: "ksTFL Team"
-output:
-  rmarkdown::html_vignette:
-    dev: ragg_png
-    fig_width: 6
-    fig_height: 4
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Styling Guide — ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
@@ -13,7 +9,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE, dev = "ragg_png")
+knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
 ```
 
 ## Overview
@@ -449,8 +445,8 @@ Color parameters accept both **hex codes** (e.g., `"#FF0000"`) and **named color
 
 ### Text orientation
 - "horizontal" (default)
-- "vertical_90" (rotated 90 degrees clockwise)
-- "vertical_270" (rotated 270 degrees clockwise)
+- "vertical_90" (rotated 90° counter-clockwise)
+- "vertical_270" (rotated 270° counter-clockwise)
 
 ---
 
@@ -467,7 +463,7 @@ spec <- add_style(spec, id = "clinical_header",
   s_table_style(background_color = "#003366", row_height = "28pt", vertical_alignment = "center")
 )
 
-spec <- define_cols(spec, c(all columns), labelStyleRef = "clinical_header")
+spec <- define_cols(spec, c("col1", "col2", "col3"), labelStyleRef = "clinical_header")
 ```
 
 ### Pattern 2: Right-aligned numeric columns
@@ -551,11 +547,11 @@ spec <- create_table(mtcars)
 spec <- define_cols(spec, mpg, labelStyleRef = f_combine("bold", "red"))
 
 # WRONG: save directly without consolidation
-save_report(spec, ...)  # Combined styles may not be consolidated
+save_report(create_report(spec), docFileName = "out.docx")  # Combined styles may not be consolidated
 
 # CORRECT: consolidate first
 report <- create_report(spec)  # Merges "bold" + "red"
-save_report(report, ...)
+save_report(report, docFileName = "out.docx")
 ```
 
 ### Styles looking different in renderer than expected
@@ -588,10 +584,298 @@ Style references are resolved in this order:
 
 ---
 
+## Built-in style atoms
+
+ksTFL ships a library of small, single-purpose **style atoms** that are available in every
+spec without any `add_style()` call.  The design principle is **one property per atom**;
+combine atoms with `f_combine()` to build any composite style you need.
+
+### Naming convention
+
+| Prefix | Meaning | Examples |
+|---|---|---|
+| `b` / `i` / `u` | font bold / italic / underline | `b`, `i`, `u` |
+| `fs_N` | font size in pt | `fs_7`, `fs_9`, `fs_11` |
+| `fc_<colour>` | font (text) colour | `fc_red`, `fc_navy`, `fc_slate` |
+| `hl_<colour>` | text highlight / cell shading | `hl_yellow`, `hl_peach`, `hl_mint` |
+| `al` / `ar` / `ac` | paragraph alignment | `al` (left), `ar` (right), `ac` (centre) |
+| `ind1` … `ind4` | left-indent levels (0.5 cm steps) | `ind1`, `ind2`, `ind3`, `ind4` |
+| `sp_0` / `sp_2` / `sp_4` | spacing before+after in pt | `sp_0`, `sp_2`, `sp_4` |
+| `kl` / `kn` | pagination: keep_lines / keep_next | `kl`, `kn` |
+| `va_t` / `va_m` / `va_b` | cell vertical alignment | `va_t`, `va_m`, `va_b` |
+| `to_h` / `to_90` / `to_270` | cell text orientation | `to_h`, `to_90`, `to_270` |
+| `bg_<colour>` | cell background colour | `bg_blue`, `bg_mint`, `bg_steel` |
+| `row_h2` / `row_h4` / `row_h6` | row height atoms | separator rows |
+| `bt` / `bb` / `bl` / `br` | border side 1 pt black | top / bottom / left / right |
+| `bt_th` / `bb_th` | border side 0.5 pt black (thin) | subtotal dividers |
+| `bc_gray` / `bc_white` | border colour override | gray / suppress |
+| `grp_hdr` / `grp_hdr_i` | group-header composites | bold + space-above |
+
+Long-form aliases are provided for readability:
+`font_bold`, `font_italic`, `font_underline`,
+`text_left`, `text_right`, `text_center`,
+`indent_1` … `indent_4`,
+`va_top`, `va_center`, `va_bottom`,
+`text_horizontal`, `text_vertical_90`, `text_vertical_270`,
+`fc_grey`, `hl_grey`, `bg_grey`, `bc_grey`.
+
+---
+
+### Font decoration
+
+| Style | Property | Typical use |
+|---|---|---|
+| `b` / `font_bold` | bold | Group headers, totals, primary endpoint values |
+| `i` / `font_italic` | italic | Sub-parameter labels, notes |
+| `u` / `font_underline` | underline | Hyperlink-style emphasis |
+
+---
+
+### Font size
+
+| Style | Size | Typical use |
+|---|---|---|
+| `fs_7` | 7 pt | Footnote markers in dense listings |
+| `fs_8` | 8 pt | Compact safety tables |
+| `fs_9` | 9 pt | Standard clinical table body |
+| `fs_10` | 10 pt | Slightly larger body text |
+| `fs_11` | 11 pt | Emphasis / primary endpoint result |
+
+---
+
+### Font colour
+
+Pure colours are for strong visual flags; muted/pastel colours suit secondary content
+and labels where you want differentiation without distraction.
+
+| Style | Hex | Typical use |
+|---|---|---|
+| `fc_black` | `#000000` | Reset to default black |
+| `fc_red` | `#FF0000` | Out-of-range, critical alert |
+| `fc_blue` | `#0000FF` | Informational annotation |
+| `fc_green` | `#008000` | Within-range, pass |
+| `fc_gray` / `fc_grey` | `#595959` | Secondary values, "(continued)" |
+| `fc_navy` | `#1F3864` | Formal headers, dark emphasis |
+| `fc_teal` | `#2E75B6` | Softer informational blue |
+| `fc_olive` | `#5C7A29` | Muted green — normal range |
+| `fc_rust` | `#C0392B` | Muted red — caution (less alarming than pure red) |
+| `fc_plum` | `#7B2D8B` | Special category / protocol deviation |
+| `fc_slate` | `#44546A` | Subdued blue-gray label |
+
+---
+
+### Text highlight (cell shading)
+
+| Style | Hex | Typical use |
+|---|---|---|
+| `hl_yellow` | `#FFFF00` | Strong flag / attention |
+| `hl_red` | `#FF0000` | Critical value / TEAE |
+| `hl_green` | `#90EE90` | Within normal range |
+| `hl_gray` / `hl_grey` | `#EEEEEE` | Suppressed / N/A cell |
+| `hl_peach` | `#FADADD` | Soft red — mild alert |
+| `hl_mint` | `#D5F5E3` | Soft green — normal range |
+| `hl_sky` | `#D6EAF8` | Soft blue — informational |
+| `hl_lemon` | `#FEFBD8` | Soft yellow — caution |
+| `hl_lilac` | `#E8DAEF` | Soft purple — special category |
+
+---
+
+### Paragraph alignment
+
+| Style | Alignment | Alias |
+|---|---|---|
+| `al` | left | `text_left` |
+| `ar` | right | `text_right` |
+| `ac` | centre | `text_center` |
+
+---
+
+### Indentation
+
+Each level adds 0.5 cm of left indent — used for stub / sub-group hierarchies.
+
+| Style | Left indent | Alias | Typical use |
+|---|---|---|---|
+| `ind1` | 0.5 cm | `indent_1` | Top-level category label, e.g. "Age (years)" |
+| `ind2` | 1.0 cm | `indent_2` | First sub-group, e.g. "< 18" |
+| `ind3` | 1.5 cm | `indent_3` | Second sub-group, e.g. "Missing" |
+| `ind4` | 2.0 cm | `indent_4` | Third sub-group / detail level |
+
+---
+
+### Paragraph spacing
+
+| Style | Before | After | Typical use |
+|---|---|---|---|
+| `sp_0` | 0 pt | 0 pt | Dense safety listings, large tables |
+| `sp_2` | 2 pt | 2 pt | Sub-section breathing room |
+| `sp_4` | 4 pt | 4 pt | Summary / efficacy tables |
+
+---
+
+### Pagination control
+
+| Style | Property | Typical use |
+|---|---|---|
+| `kl` | `keep_lines` | Keep all lines of a multi-line cell on the same page |
+| `kn` | `keep_next` | Keep this row with the following row (prevents orphaned group headers) |
+
+---
+
+### Group / category header composites
+
+These combine bold + 4 pt space-above + left-indent reset into a single atom.
+Equivalent to `f_combine("b", "sp_4")` with an explicit `ind` reset.
+
+| Style | Properties | Typical use |
+|---|---|---|
+| `grp_hdr` | bold, 4 pt before, 0 pt after, no indent | Category label rows: "Vital Signs", "Age" |
+| `grp_hdr_i` | bold + italic, same spacing | Sub-parameter labels within by-visit tables |
+
+---
+
+### Cell vertical alignment
+
+| Style | Alignment | Alias |
+|---|---|---|
+| `va_t` | top | `va_top` |
+| `va_m` | middle (centre) | `va_center` |
+| `va_b` | bottom | `va_bottom` |
+
+---
+
+### Cell text orientation
+
+Rotate cell text for narrow column headers in dense visit/parameter grids.
+
+| Style | Rotation | Reads | Alias |
+|---|---|---|---|
+| `to_h` | 0° (default) | left → right | `text_horizontal` |
+| `to_90` | 90° counter-clockwise | bottom → top | `text_vertical_90` |
+| `to_270` | 270° counter-clockwise | top → bottom | `text_vertical_270` |
+
+`to_90` is the most common choice for column headers: text ascends from the bottom of
+the cell, which matches the reading direction of a rotated page.
+`to_270` is useful when you prefer text to descend from the top (e.g. matching a
+right-to-left column layout).
+
+```r
+# Narrow visit-column header, rotated, centred, bold, bottom-aligned
+define_cols(spec, "visit", label = "Visit",
+            labelStyleRef = f_combine("b", "to_90", "va_b", "ac"))
+
+# Parameter-grid header row — all header cells rotated
+header_style <- f_combine("b", "to_90", "va_b", "ac", "bg_steel")
+define_cols(spec, c("wk1", "wk2", "wk4", "wk8"),
+            label = c("Wk 1", "Wk 2", "Wk 4", "Wk 8"),
+            labelStyleRef = header_style)
+```
+
+---
+
+### Cell background colour
+
+| Style | Hex | Typical use |
+|---|---|---|
+| `bg_blue` | `#D9E1F2` | Emphasis rows, section headers |
+| `bg_gray` / `bg_grey` | `#F2F2F2` | Alternating rows, sub-totals |
+| `bg_peach` | `#FADADD` | Soft red — mild alert row |
+| `bg_mint` | `#D5F5E3` | Soft green — normal-range row |
+| `bg_sky` | `#D6EAF8` | Soft blue — informational row |
+| `bg_lemon` | `#FEFBD8` | Soft yellow — caution row |
+| `bg_lilac` | `#E8DAEF` | Soft purple — special category row |
+| `bg_navy` | `#1F3864` | Dark navy — strong header band |
+| `bg_slate` | `#44546A` | Blue-gray — header band |
+| `bg_steel` | `#BDD7EE` | Medium blue — column-group header |
+
+---
+
+### Row height atoms
+
+Use with `compute_cols()` and `c_addrow()` to create visual separator rows.
+Combine with border atoms to control whether a line appears.
+
+| Style | Height | Typical use |
+|---|---|---|
+| `row_h2` | 2 pt | Near-invisible spacer |
+| `row_h4` | 4 pt | Small visual gap |
+| `row_h6` | 6 pt | Visible gap between sections |
+
+```r
+# Invisible spacer above first occurrence of a grouping column (all borders suppressed)
+compute_cols(spec, firstOf(treatment), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bc_white")))
+
+# Thin ruled separator above first occurrence
+compute_cols(spec, firstOf(visit), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bb_th")))
+
+# Gray ruled separator
+compute_cols(spec, firstOf(category), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bb_th", "bc_gray")))
+```
+
+---
+
+### Border side atoms
+
+Each atom draws one side at 1 pt black.  Combine multiple sides for a box border.
+
+| Style | Side | Weight |
+|---|---|---|
+| `bt` | top | 1 pt black |
+| `bb` | bottom | 1 pt black |
+| `bl` | left | 1 pt black |
+| `br` | right | 1 pt black |
+| `bt_th` | top | 0.5 pt black (thin) |
+| `bb_th` | bottom | 0.5 pt black (thin) |
+
+---
+
+### Border colour override atoms
+
+Apply **after** a side atom to change its colour.  Styles are merged left-to-right
+(last-win), so the colour override replaces the colour set by the preceding side atom.
+
+| Style | Colour | Typical use |
+|---|---|---|
+| `bc_gray` / `bc_grey` | `#AAAAAA` | Softer dividers in banded tables |
+| `bc_white` | `#FFFFFF` / none | Suppress / hide all borders (separator rows) |
+
+```r
+f_combine("bt", "bc_gray")    # gray 1 pt top border
+f_combine("bt", "bb", "bl", "br")          # full black box
+f_combine("bt", "bb", "bl", "br", "bc_gray") # full gray box
+```
+
+---
+
+### Composition examples
+
+```r
+# Sub-group value: indented, italic, muted text
+define_cols(spec, "subcat",
+  valueStyleRef = f_combine("ind2", "i", "fc_gray"))
+
+# Group header: bold, centered, steel-blue background
+define_cols(spec, "category",
+  valueStyleRef = f_combine("grp_hdr", "ac", "bg_steel"))
+
+# Out-of-range cell: rust text + peach highlight + bold
+c_style(value, styleRef = f_combine("fc_rust", "hl_peach", "b"))
+
+# Subtotal row (via compute_cols): thin top border + light gray background + bold
+compute_cols(spec, lastOf(category), c_addrow(pos = "below", styleRef = f_combine("bt_th", "bg_gray", "b")))
+
+# Primary endpoint highlight: full box border + lemon background
+c_style(value, styleRef = f_combine("bt", "bb", "bl", "br", "bg_lemon", "b"))
+
+# Keep group header with first data row (no orphan at page bottom)
+define_cols(spec, "category", valueStyleRef = f_combine("grp_hdr", "kn"))
+```
+
+---
+
 ## See also
 
 - Function documentation: `?add_style`, `?s_font`, `?s_paragraph`, `?f_combine`
 - [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — working examples with styles
 - [Getting Started](Getting_Started_with_ksTFL.Rmd) — quick overview
-
 

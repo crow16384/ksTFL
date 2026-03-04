@@ -352,8 +352,9 @@ formatters (flextable, huxtable, officer), ksTFL separates <em>metadata
 generation</em> from <em>rendering</em>: - <strong>You define</strong>:
 Document structure, content, column formats, and styles in R -
 <strong>ksTFL generates</strong>: A structured specification (JSON
-metadata + data files) - <strong>External renderer</strong>: Consumes
-the specification and produces the final DOCX/PDF/HTML file</p>
+metadata + data files) - <strong>Built-in C++ renderer</strong>:
+Produces submission-quality DOCX documents with deterministic
+HarfBuzz-based pagination via <code>render_docx()</code></p>
 <p>This separation enables: - <strong>Consistency</strong>: All tables
 follow the same style templates - <strong>Automation</strong>: Generate
 50+ tables with consistent formatting and minimal code -
@@ -383,7 +384,7 @@ TFL_report
        ↓
 save_report() (validate, serialize, write JSON + data files)
        ↓
-Metadata + Data Files → External Renderer → Final DOCX</code></pre>
+render_docx() (C++ engine → deterministic pagination → styled .docx)</code></pre>
 </div>
 <div id="anatomy-of-a-tfl-spec" class="section level3">
 <h3>Anatomy of a TFL spec</h3>
@@ -497,10 +498,7 @@ Metadata + Data Files → External Renderer → Final DOCX</code></pre>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>spec_tbl <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars)</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
 <span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># Select specific columns with tidyselect</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>spec_tbl <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars, <span class="at">cols =</span> <span class="fu">c</span>(mpg, cyl, hp, wt))</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># With prefix (used in file naming)</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>spec_tbl <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars, <span class="at">cols =</span> <span class="fu">c</span>(mpg, cyl), <span class="at">docPrefix =</span> <span class="st">&quot;t01s01&quot;</span>)</span></code></pre></div>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>spec_tbl <span class="ot">&lt;-</span> <span class="fu">create_table</span>(mtcars, <span class="at">cols =</span> <span class="fu">c</span>(mpg, cyl, hp, wt))</span></code></pre></div>
 <p><strong>What happens</strong>: - Data is copied into the spec’s
 internal environment (not modifiable) - Columns are auto-analyzed (type
 detection, width calculation) - A <code>TFL_spec</code> object is
@@ -508,13 +506,21 @@ returned ready for customization</p>
 </div>
 <div id="figure-spec-from-image-file" class="section level3">
 <h3>Figure spec (from image file)</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>spec_fig <span class="ot">&lt;-</span> <span class="fu">create_figure</span>(<span class="at">data =</span> <span class="st">&quot;path/to/plot.png&quot;</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># Optional: with prefix</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>spec_fig <span class="ot">&lt;-</span> <span class="fu">create_figure</span>(<span class="at">data =</span> <span class="st">&quot;plots/figure1.png&quot;</span>, <span class="at">docPrefix =</span> <span class="st">&quot;fig01&quot;</span>)</span></code></pre></div>
-<p><strong>What happens</strong>: - File path is validated (must exist
-and be readable) - Minimal metadata is created - Figure will be copied
-to output directory when saved</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># From a file path (PNG, JPEG, SVG — any tool: R base, Python, Inkscape, etc.)</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>spec_fig <span class="ot">&lt;-</span> <span class="fu">create_figure</span>(<span class="st">&quot;path/to/plot.png&quot;</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># From a ggplot2 object — rendered automatically to a temporary PNG</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(mtcars, <span class="fu">aes</span>(<span class="at">x =</span> wt, <span class="at">y =</span> mpg)) <span class="sc">+</span> <span class="fu">geom_point</span>()</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>spec_fig <span class="ot">&lt;-</span> <span class="fu">create_figure</span>(p)                         <span class="co"># default 6x4in, 300 dpi</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>spec_fig <span class="ot">&lt;-</span> <span class="fu">create_figure</span>(p, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">5</span>) <span class="co"># custom dimensions</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>spec_fig <span class="ot">&lt;-</span> <span class="fu">create_figure</span>(p, <span class="at">device =</span> <span class="st">&quot;jpeg&quot;</span>)        <span class="co"># JPEG output</span></span></code></pre></div>
+<p><strong>What happens</strong>: - If a <strong>file path</strong> is
+given: it is validated (must exist and be readable) - If a
+<strong>ggplot2 object</strong> is given: rendered via
+<code>ggplot2::ggsave()</code> to <code>tempdir()</code>; the resulting
+path is stored in the spec - Minimal metadata is created; the file is
+copied to the output directory when saved</p>
 </div>
 <div id="text-spec-narrative-content" class="section level3">
 <h3>Text spec (narrative content)</h3>
@@ -764,7 +770,7 @@ columns</strong>: Create group headers by merging columns -
 <span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co"># String matching</span></span>
 <span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="fu">compute_cols</span>(spec, Parameter <span class="sc">==</span> <span class="st">&quot;Pulse&quot;</span>, <span class="fu">c_style</span>(value, <span class="at">styleRef =</span> <span class="st">&quot;numeric&quot;</span>))</span>
 <span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a></span>
-<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="co"># Helper functions (firstOf, lastOf, every_nth)</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="co"># Helper functions (firstOf, lastOf, everyNth)</span></span>
 <span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="fu">compute_cols</span>(spec, <span class="fu">firstOf</span>(group), <span class="fu">c_style</span>(<span class="fu">c</span>(col1, col2), <span class="at">styleRef =</span> <span class="st">&quot;group_header&quot;</span>))</span>
 <span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a></span>
 <span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co"># Combine conditions</span></span>
@@ -1002,8 +1008,8 @@ repository</a></li>
 </tr>
 <tr class="even">
 <td>Create figure spec</td>
-<td><code>create_figure(data = &quot;path.png&quot;)</code></td>
-<td>Path must be readable</td>
+<td><code>create_figure(plot_or_path, ...)</code></td>
+<td>File path or ggplot2 object; path must be readable</td>
 </tr>
 <tr class="odd">
 <td>Create text spec</td>
@@ -1012,8 +1018,8 @@ repository</a></li>
 </tr>
 <tr class="even">
 <td>Set document properties</td>
-<td><code>set_document(spec, docPrefix = ..., hasData = ...)</code></td>
-<td>Optional: configure doc prefix, content width, placement</td>
+<td><code>set_document(spec, hasData = ...)</code></td>
+<td>Optional: configure content width, placement</td>
 </tr>
 <tr class="odd">
 <td>Customize columns</td>

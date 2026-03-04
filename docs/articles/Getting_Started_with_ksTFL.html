@@ -4,88 +4,66 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting Started with ksTFL • ksTFL</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started with ksTFL">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started with ksTFL">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">ksTFL</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
+    <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting</a>
-    </li>
-    <li>
-      <a href="../articles/Column_Width_Management.html">Column Width Management in ksTFL</a>
-    </li>
-    <li>
-      <a href="../articles/Getting_Started_with_ksTFL.html">Getting Started with ksTFL</a>
-    </li>
-    <li>
-      <a href="../articles/Reporting_Examples_with_ksTFL.html">Reporting Examples — ksTFL (v3)</a>
-    </li>
-    <li>
-      <a href="../articles/Styling_Guide_with_ksTFL.html">Styling Guide — ksTFL</a>
-    </li>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting</a></li>
+    <li><a class="dropdown-item" href="../articles/Column_Width_Management.html">Column Width Management in ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Getting_Started_with_ksTFL.html">Getting Started with ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Reporting_Examples_with_ksTFL.html">Reporting Examples — ksTFL (v3)</a></li>
+    <li><a class="dropdown-item" href="../articles/Styling_Guide_with_ksTFL.html">Styling Guide — ksTFL</a></li>
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+      </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Getting Started with ksTFL</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>Getting Started with ksTFL</h1>
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
 
-      <div class="hidden name"><code>Getting_Started_with_ksTFL.Rmd</code></div>
-
+      <div class="d-none name"><code>Getting_Started_with_ksTFL.Rmd</code></div>
     </div>
 
     
@@ -100,8 +78,9 @@ formatters (flextable, huxtable, officer), ksTFL separates <em>metadata
 generation</em> from <em>rendering</em>: - <strong>You define</strong>:
 Document structure, content, column formats, and styles in R -
 <strong>ksTFL generates</strong>: A structured specification (JSON
-metadata + data files) - <strong>External renderer</strong>: Consumes
-the specification and produces the final DOCX/PDF/HTML file</p>
+metadata + data files) - <strong>Built-in C++ renderer</strong>:
+Produces submission-quality DOCX documents with deterministic
+HarfBuzz-based pagination via <code><a href="../reference/render_docx.html">render_docx()</a></code></p>
 <p>This separation enables: - <strong>Consistency</strong>: All tables
 follow the same style templates - <strong>Automation</strong>: Generate
 50+ tables with consistent formatting and minimal code -
@@ -133,7 +112,7 @@ TFL_report
        ↓
 save_report() (validate, serialize, write JSON + data files)
        ↓
-Metadata + Data Files → External Renderer → Final DOCX</code></pre>
+render_docx() (C++ engine → deterministic pagination → styled .docx)</code></pre>
 </div>
 <div class="section level3">
 <h3 id="anatomy-of-a-tfl-spec">Anatomy of a TFL spec<a class="anchor" aria-label="anchor" href="#anatomy-of-a-tfl-spec"></a>
@@ -254,10 +233,7 @@ Metadata + Data Files → External Renderer → Final DOCX</code></pre>
 <span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Select specific columns with tidyselect</span></span>
-<span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># With prefix (used in file naming)</span></span>
-<span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span><span class="op">)</span>, docPrefix <span class="op">=</span> <span class="st">"t01s01"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><strong>What happens</strong>: - Data is copied into the spec’s
 internal environment (not modifiable) - Columns are auto-analyzed (type
 detection, width calculation) - A <code>TFL_spec</code> object is
@@ -267,13 +243,21 @@ returned ready for customization</p>
 <h3 id="figure-spec-from-image-file">Figure spec (from image file)<a class="anchor" aria-label="anchor" href="#figure-spec-from-image-file"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span>data <span class="op">=</span> <span class="st">"path/to/plot.png"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># From a file path (PNG, JPEG, SVG — any tool: R base, Python, Inkscape, etc.)</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="st">"path/to/plot.png"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Optional: with prefix</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span>data <span class="op">=</span> <span class="st">"plots/figure1.png"</span>, docPrefix <span class="op">=</span> <span class="st">"fig01"</span><span class="op">)</span></span></code></pre></div>
-<p><strong>What happens</strong>: - File path is validated (must exist
-and be readable) - Minimal metadata is created - Figure will be copied
-to output directory when saved</p>
+<span><span class="co"># From a ggplot2 object — rendered automatically to a temporary PNG</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">mtcars</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">wt</span>, y <span class="op">=</span> <span class="va">mpg</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>                         <span class="co"># default 6x4in, 300 dpi</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="co"># custom dimensions</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, device <span class="op">=</span> <span class="st">"jpeg"</span><span class="op">)</span>        <span class="co"># JPEG output</span></span></code></pre></div>
+<p><strong>What happens</strong>: - If a <strong>file path</strong> is
+given: it is validated (must exist and be readable) - If a
+<strong>ggplot2 object</strong> is given: rendered via
+<code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> to <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>; the resulting
+path is stored in the spec - Minimal metadata is created; the file is
+copied to the output directory when saved</p>
 </div>
 <div class="section level3">
 <h3 id="text-spec-narrative-content">Text spec (narrative content)<a class="anchor" aria-label="anchor" href="#text-spec-narrative-content"></a>
@@ -544,7 +528,7 @@ columns</strong>: Create group headers by merging columns -
 <span><span class="co"># String matching</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">Parameter</span> <span class="op">==</span> <span class="st">"Pulse"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">value</span>, styleRef <span class="op">=</span> <span class="st">"numeric"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Helper functions (firstOf, lastOf, every_nth)</span></span>
+<span><span class="co"># Helper functions (firstOf, lastOf, everyNth)</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col1</span>, <span class="va">col2</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"group_header"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Combine conditions</span></span>
@@ -807,8 +791,8 @@ repository</a>
 </tr>
 <tr class="even">
 <td>Create figure spec</td>
-<td><code>create_figure(data = "path.png")</code></td>
-<td>Path must be readable</td>
+<td><code>create_figure(plot_or_path, ...)</code></td>
+<td>File path or ggplot2 object; path must be readable</td>
 </tr>
 <tr class="odd">
 <td>Create text spec</td>
@@ -817,8 +801,8 @@ repository</a>
 </tr>
 <tr class="even">
 <td>Set document properties</td>
-<td><code>set_document(spec, docPrefix = ..., hasData = ...)</code></td>
-<td>Optional: configure doc prefix, content width, placement</td>
+<td><code>set_document(spec, hasData = ...)</code></td>
+<td>Optional: configure content width, placement</td>
 </tr>
 <tr class="odd">
 <td>Customize columns</td>
@@ -888,29 +872,22 @@ repository</a>
 </tbody>
 </table>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Igor Aleschenkov.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Igor Aleschenkov, Vladimir Larchenko.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 

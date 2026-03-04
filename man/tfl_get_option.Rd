@@ -8,9 +8,10 @@ tfl_get_option(name)
 }
 \arguments{
 \item{name}{Character(1). Name of the option to fetch. Common options:
-\code{"page"}, \code{"styles"}, \code{"bodyTitles"}, \code{"bodySubtitles"}, \code{"bodyFootnotes"},
+\code{"page"}, \code{"styles"}, \code{"footnotePlace"},
 \code{"isContinues"}, \code{"contentWidth"}, \code{"missings"}, \code{"autoColWidth"},
-\code{"minColWidth"}, \code{"insertTOC"}, \code{"tocTitle"}, \code{"output_directory"}.}
+\code{"minColWidth"}, \code{"insertTOC"}, \code{"tocTitle"}, \code{"output_directory"},
+\code{"meta_directory"}.}
 }
 \value{
 The value associated with \code{name} (type depends on the option).

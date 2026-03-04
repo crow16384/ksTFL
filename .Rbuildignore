@@ -22,3 +22,6 @@
 ^src/.*\.o$
 ^src/.*\.so$
 ^src/.*\.dll$
+^\.Rprofile$
+^_pkgdown\.yml$
+^pkgdown$

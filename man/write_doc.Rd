@@ -8,7 +8,7 @@ write_doc(
   report,
   name,
   outDir = tfl_get_option("output_directory"),
-  metaPath = tempdir(),
+  metaPath = tfl_get_option("meta_directory"),
   prettify = FALSE,
   toc = tfl_get_option("insertTOC"),
   tocTitle = tfl_get_option("tocTitle"),
@@ -29,7 +29,7 @@ written. Defaults to \code{tfl_get_option("output_directory")}.}
 
 \item{metaPath}{Character(1). Directory where the intermediate specification
 JSON and associated data/figure files will be stored. Defaults to
-\code{\link[=tempdir]{tempdir()}}.}
+\code{tfl_get_option("meta_directory")}.}
 
 \item{prettify}{Logical. When \code{TRUE}, pretty‑prints the JSON written by
 \code{\link[=save_report]{save_report()}} for easier inspection. Default \code{FALSE} (compact JSON).}

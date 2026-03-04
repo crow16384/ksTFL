@@ -64,6 +64,9 @@ export(
   c_style,
   c_merge,
   c_addrow,
+  c_glue,
+  c_clear,
+  c_pageBreak,
   
   # Report creation and serialization
   create_report,

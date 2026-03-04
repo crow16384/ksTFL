@@ -8,10 +8,9 @@ set_document(
   spec,
   isContinues = NULL,
   contentWidth = NULL,
-  bodyTitles = NULL,
   footnotePlace = NULL,
   hasData = NULL,
-  bodySubtitles = NULL
+  docTemplate = NULL
 )
 }
 \arguments{
@@ -21,17 +20,19 @@ set_document(
 
 \item{contentWidth}{Width of content, e.g. "100\%", "25cm", "10in"}
 
-\item{bodyTitles}{Whether to place titles in body (vs header)}
-
 \item{footnotePlace}{Character; controls where footnotes are rendered.
-  One of \code{"doc_footer"} (place in the document footer section only),
-  \code{"repeated"} (place under the table on every page),
-  or \code{"last_page"} (place under the table on the last page only).
-  Default \code{"repeated"}.}
+One of \code{"doc_footer"} (place inside the Word footer, below footer rows),
+\code{"repeated"} (place under the table on every page),
+or \code{"last_page"} (place under the table on the last page only).
+Default \code{"repeated"}.}
 
 \item{hasData}{Whether document has data to report}
 
-\item{bodySubtitles}{Whether to place subtitles in body (vs header)}
+\item{docTemplate}{Character. Template to use for rendering. Accepts either:
+\itemize{
+\item Name of a bundled template (see \code{tfl_list_templates()}).
+\item Full path to a custom styles JSON file.
+}}
 }
 \value{
 Updated spec object
@@ -46,8 +47,7 @@ document order (\code{docOrder}) is assigned by \code{create_report()}.
 \dontrun{
 spec <- create_text() |>
   set_document(
-    hasData = TRUE,
-    bodyTitles = TRUE
+    hasData = TRUE
   )
 }
 }

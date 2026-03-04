@@ -1,9 +1,7 @@
 ---
 title: "Reporting Examples — ksTFL (v3)"
 author: "ksTFL Team"
-output:
-  rmarkdown::html_vignette:
-    dev: ragg_png
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Reporting Examples — ksTFL (v3)}
   %\VignetteEngine{knitr::rmarkdown}
@@ -814,17 +812,6 @@ spec <- spec |>
 spec <- spec |>
   compute_cols(lastOf(group), 
     c_addrow(pos = "below", value_from = "group", styleRef = "separator")
-  )
-```
-
-### Example 4b: Page break insertion
-
-Force a page break when a group ends (useful for long groups):
-
-```{r compute_pagebreak, eval = FALSE}
-spec <- spec |>
-  compute_cols(lastOf(group),
-    c_pageBreak()
   )
 ```
 

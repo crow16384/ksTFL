@@ -1,0 +1,22 @@
+# pkgdown site configuration for ksTFL
+# https://pkgdown.r-lib.org/reference/build_site.html
+#
+# Site includes only package-related content. No .md files are kept under .github/
+# so pkgdown does not copy any .github assets into docs/ (pkgdown auto-includes
+# all .md from root and .github/; keeping .github/ free of .md excludes it).
+
+template:
+  bootstrap: 5
+
+# Required by pkgdown (placeholder until you deploy; e.g. GitHub Pages)
+# When you have a site URL, set it here: url: https://your-org.github.io/ksTFL/
+url: https://example.com
+
+# Install package metadata into the package so autolinking works without
+# fetching CRAN packages.rds (avoids timeout when building behind firewall/proxy)
+deploy:
+  install_metadata: true
+
+# Development mode: auto = release vs devel based on version
+development:
+  mode: auto

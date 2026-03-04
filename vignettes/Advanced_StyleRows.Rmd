@@ -4,7 +4,6 @@ author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
-    dev: ragg_png
     toc: true
     toc_depth: 3
 vignette: >
@@ -17,8 +16,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE,
-  dev = "ragg_png"
+  eval = FALSE
 )
 ```
 
@@ -96,16 +94,12 @@ data_groups <- data.frame(
 spec <- create_table(data_groups) |>
   compute_cols(
     !firstOf(group),  # Not the first occurrence of this group value
-    c_merge(c(group, visit))
+    c_merge(c(group, visit), display_col = "group")
   )
 ```
 
 **Result:** When consecutive rows have the same `group`, their `group` and `visit` 
 cells merge, displaying the merged content in the `group` column.
-
-**Note:** The `cols` argument to `c_merge()` must resolve to at least two **consecutive**
-columns in the final report column order. The value shown in the merged cell is taken
-from the first column in the `cols` sequence.
 
 ### `c_addrow()`: Conditional Row Insertion
 
@@ -115,27 +109,19 @@ Insert new rows based on data patterns:
 spec <- create_table(data_groups) |>
   compute_cols(
     firstOf(group),  # First row of each group
-    c_addrow(pos = "before")  # Insert an empty separator/header row
+    c_addrow(
+      position = "before",
+      values = list(
+        group = paste0("=== ", group, " ==="),
+        visit = "",
+        value = NA
+      )
+    )
   )
 ```
 
-**Result:** An empty separator row is inserted before each new group. To copy a
-single column's value into the inserted row use `value_from` (see later examples).
-
-### `c_pageBreak()`: Conditional Page Break
-
-Insert a page break at the matching row. This is useful to force a new
-page when a logical grouping or large block ends.
-
-```{r c-pagebreak-basic}
-spec <- create_table(data_groups) |>
-  compute_cols(
-    firstOf(group),  # Insert page break starting from first row of each group
-    c_pageBreak()
-  )
-```
-
-**Result:** The renderer will start a new page at rows matching the condition.
+**Result:** A summary row is inserted before each new group, with formatted 
+group header text.
 
 ## Evaluation Context
 
@@ -144,7 +130,7 @@ spec <- create_table(data_groups) |>
 Conditions and actions are evaluated in `spec$.metadata$data_env`, which contains:
 
 1. **Data columns**: Direct access to all columns (even invisible ones)
-2. **Helper functions**: `firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`
+2. **Helper functions**: `firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`, `everyNth()`, `.get_names()`, `firstOfBlock()`, `eval()`
 3. **Embedded functions**: Internal utilities for column access
 
 ```{r data-env-example}
@@ -166,8 +152,11 @@ ksTFL provides these helper functions evaluated in the data context:
 - **`lastRow()`**: Logical vector TRUE only at last row
 - **`rowNumber()`**: Integer vector of row numbers (1-based)
 - **`everyNth(n)`**: Logical vector TRUE at every nth row
+- **`.get_names(...)`**: Character vector of selected column names (hidden helper)
 - **`firstOfBlock(col, n, offset)`**: Returns logical vector marking first row of every n-th block defined by `col`
+- **`eval(expr)`**: Evaluate expression with tidyverse data masking
 
+**Note**: Functions like `lag()`, `lead()`, and `n()` are NOT provided by ksTFL. If you need these, load the dplyr package.
 
 ```{r helpers-example}
 # Highlight first and last rows using helper functions
@@ -185,11 +174,11 @@ spec <- create_table(data_groups) |>
     c_style(group, styleRef = "group_boundary")
   )
 
-# Use everyNth for alternating patterns
+# Use every_nth for alternating patterns
 spec <- create_table(data) |>
   add_style("gray_bg", s_table_style(background_color = "#F5F5F5")) |>
   compute_cols(
-    everyNth(2),  # Every 2nd row starting from row 1
+    every_nth(2),  # Every 2nd row starting from row 1
     c_style(everything(), styleRef = "gray_bg")
   )
 ```
@@ -248,7 +237,7 @@ spec <- create_table(data) |>
   add_style("alternate_row", 
             s_table_style(background_color = "#F0F0F0")) |>
   compute_cols(
-    rowNumber() %% 2 == 0,  # Even rows
+    row_number() %% 2 == 0,  # Even rows
     c_style(everything(), styleRef = "alternate_row")
   )
 ```
@@ -271,12 +260,12 @@ spec <- create_table(data_nested) |>
   # Merge study column for consecutive same-study rows
   compute_cols(
     !firstOf(study),
-    c_merge(c(study, phase, site))
+    c_merge(study, display_col = "study")
   ) |>
   # Merge phase column within same study
   compute_cols(
     !firstOf(study, phase),
-    c_merge(c(phase, site))
+    c_merge(phase, display_col = "phase")
   )
 ```
 
@@ -289,7 +278,8 @@ spec <- create_table(data_groups) |>
   compute_cols(
     !firstOf(group),
     c_merge(
-      c(group, visit)
+      c(group, visit),
+      display_col = "group"
     )
   )
 ```
@@ -305,7 +295,7 @@ spec <- create_table(data_nested) |>
             s_table_style(background_color = "#E0E0E0")) |>
   compute_cols(
     !firstOf(study),
-    c_merge(c(study, phase, site))
+    c_merge(study, display_col = "study")
   ) |>
   compute_cols(
     firstOf(study),  # First row of group
@@ -332,7 +322,15 @@ spec <- create_table(data_sales) |>
             s_table_style(background_color = "#D3D3D3")) |>
   compute_cols(
     lastOf(region),  # Last row of each region
-    c_addrow(pos = "after", styleRef = "summary_row")  # Insert empty subtotal row
+    c_addrow(
+      position = "after",
+      values = list(
+        region = paste0(region, " Total"),
+        product = "",
+        revenue = NA  # Could be calculated if needed
+      ),
+      styleRef = "summary_row"
+    )
   )
 ```
 
@@ -343,14 +341,19 @@ Insert section headers:
 ```{r c-addrow-header}
 spec <- create_table(data_sales) |>
   add_style("section_header",
-            s_font(bold = TRUE, font_size = "12pt"),
+            s_font(bold = TRUE, font_size = 12),
             s_table_style(background_color = "#4682B4")) |>
-  # If you want a header text inserted, precompute a helper column and use
-  # `value_from` to copy that single column into the inserted row. Here we
-  # demonstrate an empty styled header row.
   compute_cols(
     firstOf(region),  # First row of each new region
-    c_addrow(pos = "before", styleRef = "section_header")
+    c_addrow(
+      position = "before",
+      values = list(
+        region = toupper(region),
+        product = "REGION HEADER",
+        revenue = NA
+      ),
+      styleRef = "section_header"
+    )
   )
 ```
 
@@ -363,7 +366,12 @@ spec <- create_table(data_sales) |>
   compute_cols(
     revenue > 150 & product == "A",  # Only for high-revenue product A
     c_addrow(
-      pos = "after"  # Insert an empty marker row after high-performance rows
+      position = "after",
+      values = list(
+        region = paste0("⚠ ", region, " - High Performance"),
+        product = "",
+        revenue = revenue * 1.1  # Projected next period
+      )
     )
   )
 ```
@@ -379,7 +387,10 @@ spec <- create_table(data_sales) |>
   # Step 1: Add summary rows
   compute_cols(
     lastOf(region),
-    c_addrow(pos = "after")
+    c_addrow(position = "after", 
+             values = list(region = paste(region, "Total"), 
+                          product = "", 
+                          revenue = NA))
   ) |>
   # Step 2: Style summary rows
   add_style("bold_summary", s_font(bold = TRUE)) |>
@@ -390,7 +401,7 @@ spec <- create_table(data_sales) |>
   # Step 3: Merge region cells (exclude summary rows)
   compute_cols(
     !firstOf(region) & !grepl("Total$", region),
-    c_merge(c(region, product))
+    c_merge(region, display_col = "region")
   )
 ```
 
@@ -568,7 +579,7 @@ print(spec)  # Check again
 spec <- create_table(data) |>
   add_style("gray_bg", s_table_style(background_color = "#F5F5F5")) |>
   compute_cols(
-    rowNumber() %% 2 == 0,
+    row_number() %% 2 == 0,
     c_style(everything(), styleRef = "gray_bg")
   )
 ```
@@ -578,17 +589,21 @@ spec <- create_table(data) |>
 ```{r pattern-grouped}
 spec <- create_table(data_groups) |>
   add_style("group_header", 
-            s_font(bold = TRUE, font_size = "11pt"),
+            s_font(bold = TRUE, font_size = 11),
             s_table_style(background_color = "#D0D0D0")) |>
   # Insert header row before each new group
   compute_cols(
     firstOf(group),
-    c_addrow(pos = "before", styleRef = "group_header")
+    c_addrow(
+      position = "before",
+      values = list(group = paste("===", group, "==="), visit = "", value = NA),
+      styleRef = "group_header"
+    )
   ) |>
   # Merge consecutive same-group cells
   compute_cols(
     !firstOf(group),
-    c_merge(c(group, visit))
+    c_merge(group, display_col = "group")
   )
 ```
 
@@ -622,7 +637,15 @@ spec <- create_table(data_sales) |>
             s_table_style(background_color = "#FFD700")) |>
   compute_cols(
     lastOf(region),  # Last row of each region
-    c_addrow(pos = "after", styleRef = "total_row")
+    c_addrow(
+      position = "after",
+      values = list(
+        region = "SUBTOTAL",
+        product = "",
+        revenue = NA
+      ),
+      styleRef = "total_row"
+    )
   )
 ```
 
@@ -671,7 +694,7 @@ spec <- create_table(data) |>
 ```{r workaround-nested}
 spec <- create_table(data) |>
   compute_cols(age > 60, c_style(age, styleRef = "elderly")) |>
-  compute_cols(age > 60, c_merge(c(patient, age)))
+  compute_cols(age > 60, c_merge(c(patient, age), display_col = "patient"))
 ```
 
 ### Limitation 3: Style References Must Exist
@@ -728,11 +751,9 @@ Each spec can have independent `compute_cols()` logic:
 
 ```{r integrate-report}
 spec1 <- create_table(data[1:10, ]) |>
-  add_style("elderly", s_font(bold = TRUE)) |>
   compute_cols(age > 60, c_style(age, styleRef = "elderly"))
 
 spec2 <- create_table(data[11:20, ]) |>
-  add_style("success", s_font(bold = TRUE)) |>
   compute_cols(response == "CR", c_style(response, styleRef = "success"))
 
 report <- create_report(spec1, spec2)
@@ -755,8 +776,6 @@ report <- create_report(spec1, spec2)
 - **`c_style()`**: Apply conditional styling to cells
 - **`c_merge()`**: Merge cells across columns based on conditions
 - **`c_addrow()`**: Insert new rows dynamically
-- **`c_addrow()`**: Insert new rows dynamically
-- **`c_pageBreak()`**: Insert a page break at the matching row
 -- **Evaluation context**: Data environment with helper functions (`lag`, `lead`, `rowNumber`, `n`)
 - **Performance**: Minimize calls, use vectorized operations, consolidate styles
 - **Debugging**: Inspect metadata, test conditions manually, build incrementally

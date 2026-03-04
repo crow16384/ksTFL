@@ -6,6 +6,7 @@
 \usage{
 tfl_set_options(
   ...,
+  docTemplate = NULL,
   footnotePlace = NULL,
   isContinues = NULL,
   contentWidth = NULL,
@@ -14,7 +15,8 @@ tfl_set_options(
   minColWidth = NULL,
   insertTOC = NULL,
   tocTitle = NULL,
-  output_directory = NULL
+  output_directory = NULL,
+  meta_directory = NULL
 )
 }
 \arguments{
@@ -25,11 +27,16 @@ tfl_set_options(
 \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 }}
 
+\item{docTemplate}{Character; name of a predefined bundled template (e.g. \code{"KeyStat_default"},
+\code{"Navy_Pro"}) or a file path to an external template JSON file. When \code{NULL} (default) the
+current session template is left unchanged. Use \code{tfl_reset_options()} to restore the
+built-in default (\code{"KeyStat_default"}).}
+
 \item{footnotePlace}{Character; controls where footnotes are rendered.
-  One of \code{"doc_footer"} (place in the document footer section only),
-  \code{"repeated"} (place under the table on every page),
-  or \code{"last_page"} (place under the table on the last page only).
-  Default \code{"repeated"}.}
+One of \code{"doc_footer"} (place inside the Word footer, below footer rows),
+\code{"repeated"} (place under the table on every page),
+or \code{"last_page"} (place under the table on the last page only).
+Default \code{"repeated"}.}
 
 \item{isContinues}{Logical; override continuation behavior.}
 
@@ -54,6 +61,9 @@ Default \code{"Table of Contents"}. Set to \code{""} to omit the heading.
 Can be overridden per-render via \code{save_report(tocTitle = )}.}
 
 \item{output_directory}{Character; path to default output directory of rendered document.}
+
+\item{meta_directory}{Character; path to default directory for intermediate
+metadata (JSON specs, data, and asset files) created during rendering.}
 }
 \value{
 The updated settings list, returned invisibly. Use \code{tfl_get_options()} to inspect.

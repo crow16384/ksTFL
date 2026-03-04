@@ -76,10 +76,7 @@ in \code{tfl_set_options()}. Locked columns maintain their exact width while unl
 normalize to fill remaining available space.}
 
 \item{valueStyleRef}{Style names to apply to cell values. Provided styles will be merged with last-win strategy for report.
-Use \code{NA} as a list element to skip updating \code{valueStyleRef} for that column.
-return Updated TFL_spec object with modified column definitions. Changes are merged with existing
-column properties using last-win strategy. When \code{colWidth} is specified or \code{isVisible} changes,
-automatic width recalculation is triggered (if \code{autoColWidth = TRUE}).}
+Use \code{NA} as a list element to skip updating \code{valueStyleRef} for that column.}
 }
 \value{
 Updated spec object
@@ -186,8 +183,8 @@ spec <- create_table(data) |>
   # 
 # Multiple colWidth calls preserve previous locks:
 spec <- create_table(data) |>
-  define_cols("id", colWidth = "20\%")  # Lock id at 20\%
-  |> define_cols("age", colWidth = "15\%")  # Lock age at 15\%
+  define_cols("id", colWidth = "20\%") |>
+  define_cols("age", colWidth = "15\%")
   # Result: id=20\% (locked), age=15\% (locked), group=65\% (fills remaining)
 
 # Disable auto-recalculation to manage widths manually:

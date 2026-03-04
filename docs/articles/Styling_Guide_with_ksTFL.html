@@ -4,88 +4,66 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Styling Guide — ksTFL • ksTFL</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
-<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Styling Guide — ksTFL">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Styling Guide — ksTFL">
 </head>
-<body data-spy="scroll" data-target="#toc">
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <div class="container template-article">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="../index.html">ksTFL</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
-      </span>
-    </div>
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="../reference/index.html">Reference</a>
-</li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Articles
+    <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-<li>
-      <a href="../articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting</a>
-    </li>
-    <li>
-      <a href="../articles/Column_Width_Management.html">Column Width Management in ksTFL</a>
-    </li>
-    <li>
-      <a href="../articles/Getting_Started_with_ksTFL.html">Getting Started with ksTFL</a>
-    </li>
-    <li>
-      <a href="../articles/Reporting_Examples_with_ksTFL.html">Reporting Examples — ksTFL (v3)</a>
-    </li>
-    <li>
-      <a href="../articles/Styling_Guide_with_ksTFL.html">Styling Guide — ksTFL</a>
-    </li>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="active nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting</a></li>
+    <li><a class="dropdown-item" href="../articles/Column_Width_Management.html">Column Width Management in ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Getting_Started_with_ksTFL.html">Getting Started with ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Reporting_Examples_with_ksTFL.html">Reporting Examples — ksTFL (v3)</a></li>
+    <li><a class="dropdown-item" href="../articles/Styling_Guide_with_ksTFL.html">Styling Guide — ksTFL</a></li>
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+      </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
-</div>
-<!--/.navbar -->
+</nav><div class="container template-article">
 
 
 
-      </header><div class="row">
-  <div class="col-md-9 contents">
-    <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Styling Guide — ksTFL</h1>
+
+<div class="row">
+  <main id="main" class="col-md-9"><div class="page-header">
+
+      <h1>Styling Guide — ksTFL</h1>
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
 
-      <div class="hidden name"><code>Styling_Guide_with_ksTFL.Rmd</code></div>
-
+      <div class="d-none name"><code>Styling_Guide_with_ksTFL.Rmd</code></div>
     </div>
 
     
@@ -616,8 +594,8 @@ grey70, grey80, grey90 (or gray with ‘a’)</p>
 </h3>
 <ul>
 <li>“horizontal” (default)</li>
-<li>“vertical_90” (rotated 90 degrees clockwise)</li>
-<li>“vertical_270” (rotated 270 degrees clockwise)</li>
+<li>“vertical_90” (rotated 90° counter-clockwise)</li>
+<li>“vertical_270” (rotated 270° counter-clockwise)</li>
 </ul>
 <hr>
 </div>
@@ -628,15 +606,16 @@ grey70, grey80, grey90 (or gray with ‘a’)</p>
 <div class="section level3">
 <h3 id="pattern-1-clinical-table-headers">Pattern 1: Clinical table headers<a class="anchor" aria-label="anchor" href="#pattern-1-clinical-table-headers"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(my_data)</span>
-<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">add_style</span>(spec, <span class="at">id =</span> <span class="st">"clinical_header"</span>,</span>
-<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="fu">s_font</span>(<span class="at">font_name =</span> <span class="st">"Arial"</span>, <span class="at">font_size =</span> <span class="st">"11pt"</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">color =</span> <span class="st">"#FFFFFF"</span>),</span>
-<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="fu">s_paragraph</span>(<span class="at">alignment =</span> <span class="st">"center"</span>),</span>
-<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>  <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">"#003366"</span>, <span class="at">row_height =</span> <span class="st">"28pt"</span>, <span class="at">vertical_alignment =</span> <span class="st">"center"</span>)</span>
-<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>)</span>
-<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">define_cols</span>(spec, <span class="fu">c</span>(all columns), <span class="at">labelStyleRef =</span> <span class="st">"clinical_header"</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">my_data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"clinical_header"</span>,</span>
+<span>  <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>font_name <span class="op">=</span> <span class="st">"Arial"</span>, font_size <span class="op">=</span> <span class="st">"11pt"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span>, color <span class="op">=</span> <span class="st">"#FFFFFF"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/s_paragraph.html">s_paragraph</a></span><span class="op">(</span>alignment <span class="op">=</span> <span class="st">"center"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#003366"</span>, row_height <span class="op">=</span> <span class="st">"28pt"</span>, vertical_alignment <span class="op">=</span> <span class="st">"center"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"col1"</span>, <span class="st">"col2"</span>, <span class="st">"col3"</span><span class="op">)</span>, labelStyleRef <span class="op">=</span> <span class="st">"clinical_header"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="pattern-2-right-aligned-numeric-columns">Pattern 2: Right-aligned numeric columns<a class="anchor" aria-label="anchor" href="#pattern-2-right-aligned-numeric-columns"></a>
@@ -722,11 +701,11 @@ consolidated.</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">mpg</span>, labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bold"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># WRONG: save directly without consolidation</span></span>
-<span><span class="fu"><a href="../reference/save_report.html">save_report</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span>  <span class="co"># Combined styles may not be consolidated</span></span>
+<span><span class="fu"><a href="../reference/save_report.html">save_report</a></span><span class="op">(</span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>, docFileName <span class="op">=</span> <span class="st">"out.docx"</span><span class="op">)</span>  <span class="co"># Combined styles may not be consolidated</span></span>
 <span></span>
 <span><span class="co"># CORRECT: consolidate first</span></span>
 <span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>  <span class="co"># Merges "bold" + "red"</span></span>
-<span><span class="fu"><a href="../reference/save_report.html">save_report</a></span><span class="op">(</span><span class="va">report</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/save_report.html">save_report</a></span><span class="op">(</span><span class="va">report</span>, docFileName <span class="op">=</span> <span class="st">"out.docx"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="styles-looking-different-in-renderer-than-expected">Styles looking different in renderer than expected<a class="anchor" aria-label="anchor" href="#styles-looking-different-in-renderer-than-expected"></a>
@@ -767,6 +746,865 @@ styles</strong> defined in the same spec with <code><a href="../reference/add_st
 </div>
 </div>
 <div class="section level2">
+<h2 id="built-in-style-atoms">Built-in style atoms<a class="anchor" aria-label="anchor" href="#built-in-style-atoms"></a>
+</h2>
+<p>ksTFL ships a library of small, single-purpose <strong>style
+atoms</strong> that are available in every spec without any
+<code><a href="../reference/add_style.html">add_style()</a></code> call. The design principle is <strong>one
+property per atom</strong>; combine atoms with <code><a href="../reference/f_combine.html">f_combine()</a></code>
+to build any composite style you need.</p>
+<div class="section level3">
+<h3 id="naming-convention">Naming convention<a class="anchor" aria-label="anchor" href="#naming-convention"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Prefix</th>
+<th>Meaning</th>
+<th>Examples</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>b</code> / <code>i</code> / <code>u</code>
+</td>
+<td>font bold / italic / underline</td>
+<td>
+<code>b</code>, <code>i</code>, <code>u</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>fs_N</code></td>
+<td>font size in pt</td>
+<td>
+<code>fs_7</code>, <code>fs_9</code>, <code>fs_11</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>fc_&lt;colour&gt;</code></td>
+<td>font (text) colour</td>
+<td>
+<code>fc_red</code>, <code>fc_navy</code>,
+<code>fc_slate</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>hl_&lt;colour&gt;</code></td>
+<td>text highlight / cell shading</td>
+<td>
+<code>hl_yellow</code>, <code>hl_peach</code>,
+<code>hl_mint</code>
+</td>
+</tr>
+<tr class="odd">
+<td>
+<code>al</code> / <code>ar</code> / <code>ac</code>
+</td>
+<td>paragraph alignment</td>
+<td>
+<code>al</code> (left), <code>ar</code> (right), <code>ac</code>
+(centre)</td>
+</tr>
+<tr class="even">
+<td>
+<code>ind1</code> … <code>ind4</code>
+</td>
+<td>left-indent levels (0.5 cm steps)</td>
+<td>
+<code>ind1</code>, <code>ind2</code>, <code>ind3</code>,
+<code>ind4</code>
+</td>
+</tr>
+<tr class="odd">
+<td>
+<code>sp_0</code> / <code>sp_2</code> / <code>sp_4</code>
+</td>
+<td>spacing before+after in pt</td>
+<td>
+<code>sp_0</code>, <code>sp_2</code>, <code>sp_4</code>
+</td>
+</tr>
+<tr class="even">
+<td>
+<code>kl</code> / <code>kn</code>
+</td>
+<td>pagination: keep_lines / keep_next</td>
+<td>
+<code>kl</code>, <code>kn</code>
+</td>
+</tr>
+<tr class="odd">
+<td>
+<code>va_t</code> / <code>va_m</code> / <code>va_b</code>
+</td>
+<td>cell vertical alignment</td>
+<td>
+<code>va_t</code>, <code>va_m</code>, <code>va_b</code>
+</td>
+</tr>
+<tr class="even">
+<td>
+<code>to_h</code> / <code>to_90</code> / <code>to_270</code>
+</td>
+<td>cell text orientation</td>
+<td>
+<code>to_h</code>, <code>to_90</code>, <code>to_270</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>bg_&lt;colour&gt;</code></td>
+<td>cell background colour</td>
+<td>
+<code>bg_blue</code>, <code>bg_mint</code>,
+<code>bg_steel</code>
+</td>
+</tr>
+<tr class="even">
+<td>
+<code>row_h2</code> / <code>row_h4</code> / <code>row_h6</code>
+</td>
+<td>row height atoms</td>
+<td>separator rows</td>
+</tr>
+<tr class="odd">
+<td>
+<code>bt</code> / <code>bb</code> / <code>bl</code> /
+<code>br</code>
+</td>
+<td>border side 1 pt black</td>
+<td>top / bottom / left / right</td>
+</tr>
+<tr class="even">
+<td>
+<code>bt_th</code> / <code>bb_th</code>
+</td>
+<td>border side 0.5 pt black (thin)</td>
+<td>subtotal dividers</td>
+</tr>
+<tr class="odd">
+<td>
+<code>bc_gray</code> / <code>bc_white</code>
+</td>
+<td>border colour override</td>
+<td>gray / suppress</td>
+</tr>
+<tr class="even">
+<td>
+<code>grp_hdr</code> / <code>grp_hdr_i</code>
+</td>
+<td>group-header composites</td>
+<td>bold + space-above</td>
+</tr>
+</tbody>
+</table>
+<p>Long-form aliases are provided for readability:
+<code>font_bold</code>, <code>font_italic</code>,
+<code>font_underline</code>, <code>text_left</code>,
+<code>text_right</code>, <code>text_center</code>, <code>indent_1</code>
+… <code>indent_4</code>, <code>va_top</code>, <code>va_center</code>,
+<code>va_bottom</code>, <code>text_horizontal</code>,
+<code>text_vertical_90</code>, <code>text_vertical_270</code>,
+<code>fc_grey</code>, <code>hl_grey</code>, <code>bg_grey</code>,
+<code>bc_grey</code>.</p>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="font-decoration">Font decoration<a class="anchor" aria-label="anchor" href="#font-decoration"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Style</th>
+<th>Property</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>b</code> / <code>font_bold</code>
+</td>
+<td>bold</td>
+<td>Group headers, totals, primary endpoint values</td>
+</tr>
+<tr class="even">
+<td>
+<code>i</code> / <code>font_italic</code>
+</td>
+<td>italic</td>
+<td>Sub-parameter labels, notes</td>
+</tr>
+<tr class="odd">
+<td>
+<code>u</code> / <code>font_underline</code>
+</td>
+<td>underline</td>
+<td>Hyperlink-style emphasis</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="font-size">Font size<a class="anchor" aria-label="anchor" href="#font-size"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Size</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>fs_7</code></td>
+<td>7 pt</td>
+<td>Footnote markers in dense listings</td>
+</tr>
+<tr class="even">
+<td><code>fs_8</code></td>
+<td>8 pt</td>
+<td>Compact safety tables</td>
+</tr>
+<tr class="odd">
+<td><code>fs_9</code></td>
+<td>9 pt</td>
+<td>Standard clinical table body</td>
+</tr>
+<tr class="even">
+<td><code>fs_10</code></td>
+<td>10 pt</td>
+<td>Slightly larger body text</td>
+</tr>
+<tr class="odd">
+<td><code>fs_11</code></td>
+<td>11 pt</td>
+<td>Emphasis / primary endpoint result</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="font-colour">Font colour<a class="anchor" aria-label="anchor" href="#font-colour"></a>
+</h3>
+<p>Pure colours are for strong visual flags; muted/pastel colours suit
+secondary content and labels where you want differentiation without
+distraction.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Style</th>
+<th>Hex</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>fc_black</code></td>
+<td><code>#000000</code></td>
+<td>Reset to default black</td>
+</tr>
+<tr class="even">
+<td><code>fc_red</code></td>
+<td><code>#FF0000</code></td>
+<td>Out-of-range, critical alert</td>
+</tr>
+<tr class="odd">
+<td><code>fc_blue</code></td>
+<td><code>#0000FF</code></td>
+<td>Informational annotation</td>
+</tr>
+<tr class="even">
+<td><code>fc_green</code></td>
+<td><code>#008000</code></td>
+<td>Within-range, pass</td>
+</tr>
+<tr class="odd">
+<td>
+<code>fc_gray</code> / <code>fc_grey</code>
+</td>
+<td><code>#595959</code></td>
+<td>Secondary values, “(continued)”</td>
+</tr>
+<tr class="even">
+<td><code>fc_navy</code></td>
+<td><code>#1F3864</code></td>
+<td>Formal headers, dark emphasis</td>
+</tr>
+<tr class="odd">
+<td><code>fc_teal</code></td>
+<td><code>#2E75B6</code></td>
+<td>Softer informational blue</td>
+</tr>
+<tr class="even">
+<td><code>fc_olive</code></td>
+<td><code>#5C7A29</code></td>
+<td>Muted green — normal range</td>
+</tr>
+<tr class="odd">
+<td><code>fc_rust</code></td>
+<td><code>#C0392B</code></td>
+<td>Muted red — caution (less alarming than pure red)</td>
+</tr>
+<tr class="even">
+<td><code>fc_plum</code></td>
+<td><code>#7B2D8B</code></td>
+<td>Special category / protocol deviation</td>
+</tr>
+<tr class="odd">
+<td><code>fc_slate</code></td>
+<td><code>#44546A</code></td>
+<td>Subdued blue-gray label</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="text-highlight-cell-shading">Text highlight (cell shading)<a class="anchor" aria-label="anchor" href="#text-highlight-cell-shading"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Hex</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>hl_yellow</code></td>
+<td><code>#FFFF00</code></td>
+<td>Strong flag / attention</td>
+</tr>
+<tr class="even">
+<td><code>hl_red</code></td>
+<td><code>#FF0000</code></td>
+<td>Critical value / TEAE</td>
+</tr>
+<tr class="odd">
+<td><code>hl_green</code></td>
+<td><code>#90EE90</code></td>
+<td>Within normal range</td>
+</tr>
+<tr class="even">
+<td>
+<code>hl_gray</code> / <code>hl_grey</code>
+</td>
+<td><code>#EEEEEE</code></td>
+<td>Suppressed / N/A cell</td>
+</tr>
+<tr class="odd">
+<td><code>hl_peach</code></td>
+<td><code>#FADADD</code></td>
+<td>Soft red — mild alert</td>
+</tr>
+<tr class="even">
+<td><code>hl_mint</code></td>
+<td><code>#D5F5E3</code></td>
+<td>Soft green — normal range</td>
+</tr>
+<tr class="odd">
+<td><code>hl_sky</code></td>
+<td><code>#D6EAF8</code></td>
+<td>Soft blue — informational</td>
+</tr>
+<tr class="even">
+<td><code>hl_lemon</code></td>
+<td><code>#FEFBD8</code></td>
+<td>Soft yellow — caution</td>
+</tr>
+<tr class="odd">
+<td><code>hl_lilac</code></td>
+<td><code>#E8DAEF</code></td>
+<td>Soft purple — special category</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="paragraph-alignment">Paragraph alignment<a class="anchor" aria-label="anchor" href="#paragraph-alignment"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Alignment</th>
+<th>Alias</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>al</code></td>
+<td>left</td>
+<td><code>text_left</code></td>
+</tr>
+<tr class="even">
+<td><code>ar</code></td>
+<td>right</td>
+<td><code>text_right</code></td>
+</tr>
+<tr class="odd">
+<td><code>ac</code></td>
+<td>centre</td>
+<td><code>text_center</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="indentation">Indentation<a class="anchor" aria-label="anchor" href="#indentation"></a>
+</h3>
+<p>Each level adds 0.5 cm of left indent — used for stub / sub-group
+hierarchies.</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Style</th>
+<th>Left indent</th>
+<th>Alias</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>ind1</code></td>
+<td>0.5 cm</td>
+<td><code>indent_1</code></td>
+<td>Top-level category label, e.g. “Age (years)”</td>
+</tr>
+<tr class="even">
+<td><code>ind2</code></td>
+<td>1.0 cm</td>
+<td><code>indent_2</code></td>
+<td>First sub-group, e.g. “&lt; 18”</td>
+</tr>
+<tr class="odd">
+<td><code>ind3</code></td>
+<td>1.5 cm</td>
+<td><code>indent_3</code></td>
+<td>Second sub-group, e.g. “Missing”</td>
+</tr>
+<tr class="even">
+<td><code>ind4</code></td>
+<td>2.0 cm</td>
+<td><code>indent_4</code></td>
+<td>Third sub-group / detail level</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="paragraph-spacing">Paragraph spacing<a class="anchor" aria-label="anchor" href="#paragraph-spacing"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Before</th>
+<th>After</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>sp_0</code></td>
+<td>0 pt</td>
+<td>0 pt</td>
+<td>Dense safety listings, large tables</td>
+</tr>
+<tr class="even">
+<td><code>sp_2</code></td>
+<td>2 pt</td>
+<td>2 pt</td>
+<td>Sub-section breathing room</td>
+</tr>
+<tr class="odd">
+<td><code>sp_4</code></td>
+<td>4 pt</td>
+<td>4 pt</td>
+<td>Summary / efficacy tables</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="pagination-control">Pagination control<a class="anchor" aria-label="anchor" href="#pagination-control"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Style</th>
+<th>Property</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>kl</code></td>
+<td><code>keep_lines</code></td>
+<td>Keep all lines of a multi-line cell on the same page</td>
+</tr>
+<tr class="even">
+<td><code>kn</code></td>
+<td><code>keep_next</code></td>
+<td>Keep this row with the following row (prevents orphaned group
+headers)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="group-category-header-composites">Group / category header composites<a class="anchor" aria-label="anchor" href="#group-category-header-composites"></a>
+</h3>
+<p>These combine bold + 4 pt space-above + left-indent reset into a
+single atom. Equivalent to <code>f_combine("b", "sp_4")</code> with an
+explicit <code>ind</code> reset.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Style</th>
+<th>Properties</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>grp_hdr</code></td>
+<td>bold, 4 pt before, 0 pt after, no indent</td>
+<td>Category label rows: “Vital Signs”, “Age”</td>
+</tr>
+<tr class="even">
+<td><code>grp_hdr_i</code></td>
+<td>bold + italic, same spacing</td>
+<td>Sub-parameter labels within by-visit tables</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="cell-vertical-alignment">Cell vertical alignment<a class="anchor" aria-label="anchor" href="#cell-vertical-alignment"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Alignment</th>
+<th>Alias</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>va_t</code></td>
+<td>top</td>
+<td><code>va_top</code></td>
+</tr>
+<tr class="even">
+<td><code>va_m</code></td>
+<td>middle (centre)</td>
+<td><code>va_center</code></td>
+</tr>
+<tr class="odd">
+<td><code>va_b</code></td>
+<td>bottom</td>
+<td><code>va_bottom</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="cell-text-orientation">Cell text orientation<a class="anchor" aria-label="anchor" href="#cell-text-orientation"></a>
+</h3>
+<p>Rotate cell text for narrow column headers in dense visit/parameter
+grids.</p>
+<table class="table">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Style</th>
+<th>Rotation</th>
+<th>Reads</th>
+<th>Alias</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>to_h</code></td>
+<td>0° (default)</td>
+<td>left → right</td>
+<td><code>text_horizontal</code></td>
+</tr>
+<tr class="even">
+<td><code>to_90</code></td>
+<td>90° counter-clockwise</td>
+<td>bottom → top</td>
+<td><code>text_vertical_90</code></td>
+</tr>
+<tr class="odd">
+<td><code>to_270</code></td>
+<td>270° counter-clockwise</td>
+<td>top → bottom</td>
+<td><code>text_vertical_270</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>to_90</code> is the most common choice for column headers: text
+ascends from the bottom of the cell, which matches the reading direction
+of a rotated page. <code>to_270</code> is useful when you prefer text to
+descend from the top (e.g. matching a right-to-left column layout).</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Narrow visit-column header, rotated, centred, bold, bottom-aligned</span></span>
+<span><span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"visit"</span>, label <span class="op">=</span> <span class="st">"Visit"</span>,</span>
+<span>            labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"to_90"</span>, <span class="st">"va_b"</span>, <span class="st">"ac"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Parameter-grid header row — all header cells rotated</span></span>
+<span><span class="va">header_style</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"to_90"</span>, <span class="st">"va_b"</span>, <span class="st">"ac"</span>, <span class="st">"bg_steel"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"wk1"</span>, <span class="st">"wk2"</span>, <span class="st">"wk4"</span>, <span class="st">"wk8"</span><span class="op">)</span>,</span>
+<span>            label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Wk 1"</span>, <span class="st">"Wk 2"</span>, <span class="st">"Wk 4"</span>, <span class="st">"Wk 8"</span><span class="op">)</span>,</span>
+<span>            labelStyleRef <span class="op">=</span> <span class="va">header_style</span><span class="op">)</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="cell-background-colour">Cell background colour<a class="anchor" aria-label="anchor" href="#cell-background-colour"></a>
+</h3>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Hex</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>bg_blue</code></td>
+<td><code>#D9E1F2</code></td>
+<td>Emphasis rows, section headers</td>
+</tr>
+<tr class="even">
+<td>
+<code>bg_gray</code> / <code>bg_grey</code>
+</td>
+<td><code>#F2F2F2</code></td>
+<td>Alternating rows, sub-totals</td>
+</tr>
+<tr class="odd">
+<td><code>bg_peach</code></td>
+<td><code>#FADADD</code></td>
+<td>Soft red — mild alert row</td>
+</tr>
+<tr class="even">
+<td><code>bg_mint</code></td>
+<td><code>#D5F5E3</code></td>
+<td>Soft green — normal-range row</td>
+</tr>
+<tr class="odd">
+<td><code>bg_sky</code></td>
+<td><code>#D6EAF8</code></td>
+<td>Soft blue — informational row</td>
+</tr>
+<tr class="even">
+<td><code>bg_lemon</code></td>
+<td><code>#FEFBD8</code></td>
+<td>Soft yellow — caution row</td>
+</tr>
+<tr class="odd">
+<td><code>bg_lilac</code></td>
+<td><code>#E8DAEF</code></td>
+<td>Soft purple — special category row</td>
+</tr>
+<tr class="even">
+<td><code>bg_navy</code></td>
+<td><code>#1F3864</code></td>
+<td>Dark navy — strong header band</td>
+</tr>
+<tr class="odd">
+<td><code>bg_slate</code></td>
+<td><code>#44546A</code></td>
+<td>Blue-gray — header band</td>
+</tr>
+<tr class="even">
+<td><code>bg_steel</code></td>
+<td><code>#BDD7EE</code></td>
+<td>Medium blue — column-group header</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="row-height-atoms">Row height atoms<a class="anchor" aria-label="anchor" href="#row-height-atoms"></a>
+</h3>
+<p>Use with <code><a href="../reference/compute_cols.html">compute_cols()</a></code> and <code><a href="../reference/c_addrow.html">c_addrow()</a></code> to
+create visual separator rows. Combine with border atoms to control
+whether a line appears.</p>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Height</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>row_h2</code></td>
+<td>2 pt</td>
+<td>Near-invisible spacer</td>
+</tr>
+<tr class="even">
+<td><code>row_h4</code></td>
+<td>4 pt</td>
+<td>Small visual gap</td>
+</tr>
+<tr class="odd">
+<td><code>row_h6</code></td>
+<td>6 pt</td>
+<td>Visible gap between sections</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Invisible spacer above first occurrence of a grouping column (all borders suppressed)</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">treatment</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"row_h2"</span>, <span class="st">"bc_white"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Thin ruled separator above first occurrence</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">visit</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"row_h2"</span>, <span class="st">"bb_th"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Gray ruled separator</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">category</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"row_h2"</span>, <span class="st">"bb_th"</span>, <span class="st">"bc_gray"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="border-side-atoms">Border side atoms<a class="anchor" aria-label="anchor" href="#border-side-atoms"></a>
+</h3>
+<p>Each atom draws one side at 1 pt black. Combine multiple sides for a
+box border.</p>
+<table class="table">
+<thead><tr class="header">
+<th>Style</th>
+<th>Side</th>
+<th>Weight</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>bt</code></td>
+<td>top</td>
+<td>1 pt black</td>
+</tr>
+<tr class="even">
+<td><code>bb</code></td>
+<td>bottom</td>
+<td>1 pt black</td>
+</tr>
+<tr class="odd">
+<td><code>bl</code></td>
+<td>left</td>
+<td>1 pt black</td>
+</tr>
+<tr class="even">
+<td><code>br</code></td>
+<td>right</td>
+<td>1 pt black</td>
+</tr>
+<tr class="odd">
+<td><code>bt_th</code></td>
+<td>top</td>
+<td>0.5 pt black (thin)</td>
+</tr>
+<tr class="even">
+<td><code>bb_th</code></td>
+<td>bottom</td>
+<td>0.5 pt black (thin)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="border-colour-override-atoms">Border colour override atoms<a class="anchor" aria-label="anchor" href="#border-colour-override-atoms"></a>
+</h3>
+<p>Apply <strong>after</strong> a side atom to change its colour. Styles
+are merged left-to-right (last-win), so the colour override replaces the
+colour set by the preceding side atom.</p>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Style</th>
+<th>Colour</th>
+<th>Typical use</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>bc_gray</code> / <code>bc_grey</code>
+</td>
+<td><code>#AAAAAA</code></td>
+<td>Softer dividers in banded tables</td>
+</tr>
+<tr class="even">
+<td><code>bc_white</code></td>
+<td>
+<code>#FFFFFF</code> / none</td>
+<td>Suppress / hide all borders (separator rows)</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bt"</span>, <span class="st">"bc_gray"</span><span class="op">)</span>    <span class="co"># gray 1 pt top border</span></span>
+<span><span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bt"</span>, <span class="st">"bb"</span>, <span class="st">"bl"</span>, <span class="st">"br"</span><span class="op">)</span>          <span class="co"># full black box</span></span>
+<span><span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bt"</span>, <span class="st">"bb"</span>, <span class="st">"bl"</span>, <span class="st">"br"</span>, <span class="st">"bc_gray"</span><span class="op">)</span> <span class="co"># full gray box</span></span></code></pre></div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="composition-examples">Composition examples<a class="anchor" aria-label="anchor" href="#composition-examples"></a>
+</h3>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Sub-group value: indented, italic, muted text</span></span>
+<span><span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"subcat"</span>,</span>
+<span>  valueStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"ind2"</span>, <span class="st">"i"</span>, <span class="st">"fc_gray"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Group header: bold, centered, steel-blue background</span></span>
+<span><span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"category"</span>,</span>
+<span>  valueStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"grp_hdr"</span>, <span class="st">"ac"</span>, <span class="st">"bg_steel"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Out-of-range cell: rust text + peach highlight + bold</span></span>
+<span><span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">value</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_rust"</span>, <span class="st">"hl_peach"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Subtotal row (via compute_cols): thin top border + light gray background + bold</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">lastOf</span><span class="op">(</span><span class="va">category</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bt_th"</span>, <span class="st">"bg_gray"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Primary endpoint highlight: full box border + lemon background</span></span>
+<span><span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">value</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bt"</span>, <span class="st">"bb"</span>, <span class="st">"bl"</span>, <span class="st">"br"</span>, <span class="st">"bg_lemon"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Keep group header with first data row (no orphan at page bottom)</span></span>
+<span><span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"category"</span>, valueStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"grp_hdr"</span>, <span class="st">"kn"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<hr>
+</div>
+</div>
+<div class="section level2">
 <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
 <ul>
@@ -782,29 +1620,22 @@ working examples with styles</li>
 overview</li>
 </ul>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-
-      </div>
-
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Igor Aleschenkov.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Igor Aleschenkov, Vladimir Larchenko.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
-
 
 
 

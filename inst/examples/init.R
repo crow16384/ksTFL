@@ -41,6 +41,7 @@ tfl_set_options(
   add_header(c("Miracle Drug" , "CONFIDENTIAL", "KeyStat LLC.")),
   add_footer(c("Test Outputs", "Page {PAGE} of {NUMPAGES}")),
   add_footer(c("Program: TestProgram.R")),
-  output_directory = out_dir
+  output_directory = out_dir,
+  footnotePlace = 'last_page'
 )
 ###########################

@@ -4,7 +4,6 @@ author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
-    dev: ragg_png
     toc: true
     toc_depth: 3
 vignette: >
@@ -17,8 +16,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE,
-  dev = "ragg_png"
+  eval = FALSE
 )
 ```
 

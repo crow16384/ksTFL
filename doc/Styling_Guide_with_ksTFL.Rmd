@@ -445,8 +445,8 @@ Color parameters accept both **hex codes** (e.g., `"#FF0000"`) and **named color
 
 ### Text orientation
 - "horizontal" (default)
-- "vertical_90" (rotated 90 degrees clockwise)
-- "vertical_270" (rotated 270 degrees clockwise)
+- "vertical_90" (rotated 90° counter-clockwise)
+- "vertical_270" (rotated 270° counter-clockwise)
 
 ---
 
@@ -463,7 +463,7 @@ spec <- add_style(spec, id = "clinical_header",
   s_table_style(background_color = "#003366", row_height = "28pt", vertical_alignment = "center")
 )
 
-spec <- define_cols(spec, c(all columns), labelStyleRef = "clinical_header")
+spec <- define_cols(spec, c("col1", "col2", "col3"), labelStyleRef = "clinical_header")
 ```
 
 ### Pattern 2: Right-aligned numeric columns
@@ -547,11 +547,11 @@ spec <- create_table(mtcars)
 spec <- define_cols(spec, mpg, labelStyleRef = f_combine("bold", "red"))
 
 # WRONG: save directly without consolidation
-save_report(spec, ...)  # Combined styles may not be consolidated
+save_report(create_report(spec), docFileName = "out.docx")  # Combined styles may not be consolidated
 
 # CORRECT: consolidate first
 report <- create_report(spec)  # Merges "bold" + "red"
-save_report(report, ...)
+save_report(report, docFileName = "out.docx")
 ```
 
 ### Styles looking different in renderer than expected
@@ -761,13 +761,14 @@ right-to-left column layout).
 
 ```r
 # Narrow visit-column header, rotated, centred, bold, bottom-aligned
-add_column(spec, "Visit",
-           styleRef = f_combine("b", "to_90", "va_b", "ac"))
+define_cols(spec, "visit", label = "Visit",
+            labelStyleRef = f_combine("b", "to_90", "va_b", "ac"))
 
 # Parameter-grid header row — all header cells rotated
 header_style <- f_combine("b", "to_90", "va_b", "ac", "bg_steel")
-add_column(spec, c("Wk 1", "Wk 2", "Wk 4", "Wk 8"),
-           styleRef = header_style)
+define_cols(spec, c("wk1", "wk2", "wk4", "wk8"),
+            label = c("Wk 1", "Wk 2", "Wk 4", "Wk 8"),
+            labelStyleRef = header_style)
 ```
 
 ---
@@ -791,7 +792,7 @@ add_column(spec, c("Wk 1", "Wk 2", "Wk 4", "Wk 8"),
 
 ### Row height atoms
 
-Used with `add_row()` to create visual separator rows.
+Use with `compute_cols()` and `c_addrow()` to create visual separator rows.
 Combine with border atoms to control whether a line appears.
 
 | Style | Height | Typical use |
@@ -801,14 +802,14 @@ Combine with border atoms to control whether a line appears.
 | `row_h6` | 6 pt | Visible gap between sections |
 
 ```r
-# Invisible spacer (all borders suppressed)
-add_row(spec, "", styleRef = f_combine("row_h2", "bc_white"))
+# Invisible spacer above first occurrence of a grouping column (all borders suppressed)
+compute_cols(spec, firstOf(treatment), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bc_white")))
 
-# Thin ruled separator (top border only)
-add_row(spec, "", styleRef = f_combine("row_h2", "bb_th"))
+# Thin ruled separator above first occurrence
+compute_cols(spec, firstOf(visit), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bb_th")))
 
 # Gray ruled separator
-add_row(spec, "", styleRef = f_combine("row_h2", "bb_th", "bc_gray"))
+compute_cols(spec, firstOf(category), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bb_th", "bc_gray")))
 ```
 
 ---
@@ -860,8 +861,8 @@ define_cols(spec, "category",
 # Out-of-range cell: rust text + peach highlight + bold
 c_style(value, styleRef = f_combine("fc_rust", "hl_peach", "b"))
 
-# Subtotal row: thin top border + light gray background + bold
-add_row(spec, total_row, styleRef = f_combine("bt_th", "bg_gray", "b"))
+# Subtotal row (via compute_cols): thin top border + light gray background + bold
+compute_cols(spec, lastOf(category), c_addrow(pos = "below", styleRef = f_combine("bt_th", "bg_gray", "b")))
 
 # Primary endpoint highlight: full box border + lemon background
 c_style(value, styleRef = f_combine("bt", "bb", "bl", "br", "bg_lemon", "b"))

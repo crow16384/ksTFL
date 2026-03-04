@@ -30,12 +30,19 @@ To get started, see the vignettes:
 \item \code{vignette("ksTFL Documentation Index")} — Complete documentation index
 }
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://example.com}
+}
+
+}
 \author{
-\strong{Maintainer}: Igor Aleschenkov \email{igor.aleschenkov@keystatsolutions.com} [copyright holder]
+\strong{Maintainer}: Igor Aleschenkov \email{igor.aleschenkov@gmail.com} [copyright holder]
 
 Authors:
 \itemize{
-  \item Vladimir Larchenko \email{vladimir.larchenko@keystatsolutions.com} [copyright holder]
+  \item Vladimir Larchenko \email{crow16384@gmail.com} [copyright holder]
 }
 
 }

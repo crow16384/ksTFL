@@ -19,6 +19,7 @@ Description: Library provides framework for generation of clinical TFLs. The
     and pass this metadata together with data to the C++ rendering engine to
     generate final DOCX documents with styles and deterministic pagination.
 License: GPL (>= 3)
+URL: https://example.com
 Encoding: UTF-8
 Imports:
     cli,
