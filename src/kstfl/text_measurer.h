@@ -7,6 +7,7 @@
 
 #include "types.h"
 #include "font_cache.h"
+#include <string_view>
 
 struct hb_buffer_t;
 
@@ -43,7 +44,7 @@ public:
                                Length max_width) const;
 
     /// Measure the width of a single text run (no wrapping).
-    Length measure_run_width(const std::string& text,
+    Length measure_run_width(std::string_view text,
                             const FontProps& font,
                             const InlineRunStyle& run_style = {}) const;
 

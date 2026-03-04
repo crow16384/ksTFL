@@ -45,7 +45,7 @@ double TextMeasurer::effective_font_size(const FontProps& font,
 // Measure width of a single text run (no wrapping)
 // ---------------------------------------------------------------------------
 
-Length TextMeasurer::measure_run_width(const std::string& text,
+Length TextMeasurer::measure_run_width(std::string_view text,
                                        const FontProps& font,
                                        const InlineRunStyle& run_style) const {
     if (text.empty()) return Length{0};
@@ -60,7 +60,7 @@ Length TextMeasurer::measure_run_width(const std::string& text,
     if (!hb_font) return Length{0};
 
     hb_buffer_reset(hb_buf_);
-    hb_buffer_add_utf8(hb_buf_, text.c_str(), static_cast<int>(text.size()), 0,
+    hb_buffer_add_utf8(hb_buf_, text.data(), static_cast<int>(text.size()), 0,
                         static_cast<int>(text.size()));
     hb_buffer_set_direction(hb_buf_, HB_DIRECTION_LTR);
     hb_buffer_set_script(hb_buf_, HB_SCRIPT_LATIN);
@@ -108,18 +108,15 @@ Length TextMeasurer::line_height(const FontProps& font, double line_spacing_mult
 namespace {
 
 /// Split text into word tokens (preserving spaces as part of word).
-std::vector<std::string> split_words(const std::string& text) {
-    std::vector<std::string> words;
-    std::string current;
+/// Returns string_views into the original text — no heap allocations.
+std::vector<std::string_view> split_words(std::string_view text) {
+    std::vector<std::string_view> words;
+    size_t word_start = 0;
     for (size_t i = 0; i < text.size(); ++i) {
-        current += text[i];
         if (text[i] == ' ' || text[i] == '\t' || i == text.size() - 1) {
-            words.push_back(current);
-            current.clear();
+            words.push_back(text.substr(word_start, i - word_start + 1));
+            word_start = i + 1;
         }
-    }
-    if (!current.empty()) {
-        words.push_back(current);
     }
     return words;
 }

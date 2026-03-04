@@ -5,7 +5,7 @@
 - C++ Standard: C++20 (g++ 14.2.0)
 - 1027 R tests passing, 135 C++ assertions (3 suites)
 - 26 bugs fixed and documented in development/bugs_lessons
-- Only compiler warning: unused `get_dbl()` in json_parser.cpp (BUG-D, trivial)
+- Zero compiler warnings (BUG-D fixed in commit 25a4df7)
 
 ## Recent Changes (Mar 2026)
 - **BUG-A FIXED**: Zero page margin override — added `PageMarginsOverride` with `optional<Length>` (types.h, json_parser.cpp, style_resolver.cpp)

@@ -2,17 +2,12 @@
 
 ## Priority 1: Quick Wins (< 30 min each)
 
-### BUG-D: Remove unused `get_dbl()` [Trivial]
-- File: src/kstfl/json_parser.cpp
-- Action: Delete `get_dbl()` helper function definition and any forward declaration
-- Impact: Suppress compiler warning, reduce dead code
-- Risk: None — function is unreferenced
+### ~~BUG-D: Remove unused `get_dbl()`~~ ✅ DONE (commit 25a4df7)
+- Removed from json_parser.cpp. Zero compiler warnings now.
 
-### OPT-5: Cache parse_inline_markup for titles [Low effort, Low impact]
-- File: src/kstfl/docx_emitter.cpp
-- Problem: `emit_title_paragraph()` calls `parse_inline_markup()` for the same title text once for the main paragraph and once for the TOC `TC` field. If TC field is emitted, the title is parsed twice.
-- Fix: Store the parsed `InlineRun` vector and reuse it for both emissions.
-- Risk: Low — localized change
+### ~~OPT-5: Cache parse_inline_markup for titles~~ ✅ DONE (commit 25a4df7)
+- Pre-parse titles once before page loop, pass `vector<ParsedCell>` to `emit_page()`.
+- Eliminates redundant re-parsing on every page of multi-page tables.
 
 ## Priority 2: Medium Effort (1-2 hours each)
 
