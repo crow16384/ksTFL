@@ -227,136 +227,168 @@ static std::optional<T> merge_opt(const std::optional<T>& base, const std::optio
     return over.has_value() ? over : base;
 }
 
+/// Helper: in-place merge — overwrite target only if source has value.
+template <typename T>
+static void merge_opt_into(std::optional<T>& target, const std::optional<T>& source) {
+    if (source.has_value()) target = source;
+}
+
+// -- Border -----------------------------------------------------------------
+
+void Border::merge_from(const Border& other) {
+    merge_opt_into(color, other.color);
+    merge_opt_into(width, other.width);
+    merge_opt_into(line_style, other.line_style);
+}
+
 Border Border::merged_with(const Border& other) const {
-    Border result;
-    result.color = merge_opt(color, other.color);
-    result.width = merge_opt(width, other.width);
-    result.line_style = merge_opt(line_style, other.line_style);
+    Border result = *this;
+    result.merge_from(other);
     return result;
+}
+
+// -- Borders ----------------------------------------------------------------
+
+void Borders::merge_from(const Borders& other) {
+    if (other.top.has_value()) {
+        if (top.has_value()) top->merge_from(*other.top);
+        else top = other.top;
+    }
+    if (other.bottom.has_value()) {
+        if (bottom.has_value()) bottom->merge_from(*other.bottom);
+        else bottom = other.bottom;
+    }
+    if (other.left.has_value()) {
+        if (left.has_value()) left->merge_from(*other.left);
+        else left = other.left;
+    }
+    if (other.right.has_value()) {
+        if (right.has_value()) right->merge_from(*other.right);
+        else right = other.right;
+    }
 }
 
 Borders Borders::merged_with(const Borders& other) const {
-    Borders result;
-    if (other.top.has_value()) {
-        result.top = top.has_value() ? top->merged_with(*other.top) : other.top;
-    } else {
-        result.top = top;
-    }
-    if (other.bottom.has_value()) {
-        result.bottom = bottom.has_value() ? bottom->merged_with(*other.bottom) : other.bottom;
-    } else {
-        result.bottom = bottom;
-    }
-    if (other.left.has_value()) {
-        result.left = left.has_value() ? left->merged_with(*other.left) : other.left;
-    } else {
-        result.left = left;
-    }
-    if (other.right.has_value()) {
-        result.right = right.has_value() ? right->merged_with(*other.right) : other.right;
-    } else {
-        result.right = right;
-    }
+    Borders result = *this;
+    result.merge_from(other);
     return result;
+}
+
+// -- FontProps --------------------------------------------------------------
+
+void FontProps::merge_from(const FontProps& other) {
+    merge_opt_into(font_name, other.font_name);
+    merge_opt_into(font_size, other.font_size);
+    merge_opt_into(bold, other.bold);
+    merge_opt_into(italic, other.italic);
+    merge_opt_into(underline, other.underline);
+    merge_opt_into(color, other.color);
+    merge_opt_into(highlight, other.highlight);
 }
 
 FontProps FontProps::merged_with(const FontProps& other) const {
-    FontProps result;
-    result.font_name = merge_opt(font_name, other.font_name);
-    result.font_size = merge_opt(font_size, other.font_size);
-    result.bold      = merge_opt(bold, other.bold);
-    result.italic    = merge_opt(italic, other.italic);
-    result.underline = merge_opt(underline, other.underline);
-    result.color     = merge_opt(color, other.color);
-    result.highlight = merge_opt(highlight, other.highlight);
+    FontProps result = *this;
+    result.merge_from(other);
     return result;
+}
+
+// -- SpacingProps ------------------------------------------------------------
+
+void SpacingProps::merge_from(const SpacingProps& other) {
+    merge_opt_into(before, other.before);
+    merge_opt_into(after, other.after);
+    merge_opt_into(line_spacing_multiplier, other.line_spacing_multiplier);
+    merge_opt_into(exact_line_height, other.exact_line_height);
 }
 
 SpacingProps SpacingProps::merged_with(const SpacingProps& other) const {
-    SpacingProps result;
-    result.before = merge_opt(before, other.before);
-    result.after  = merge_opt(after, other.after);
-    result.line_spacing_multiplier = merge_opt(line_spacing_multiplier, other.line_spacing_multiplier);
-    result.exact_line_height = merge_opt(exact_line_height, other.exact_line_height);
+    SpacingProps result = *this;
+    result.merge_from(other);
     return result;
+}
+
+// -- IndentProps -------------------------------------------------------------
+
+void IndentProps::merge_from(const IndentProps& other) {
+    merge_opt_into(left, other.left);
+    merge_opt_into(right, other.right);
+    merge_opt_into(first_line, other.first_line);
+    merge_opt_into(hanging, other.hanging);
 }
 
 IndentProps IndentProps::merged_with(const IndentProps& other) const {
-    IndentProps result;
-    result.left       = merge_opt(left, other.left);
-    result.right      = merge_opt(right, other.right);
-    result.first_line = merge_opt(first_line, other.first_line);
-    result.hanging    = merge_opt(hanging, other.hanging);
+    IndentProps result = *this;
+    result.merge_from(other);
     return result;
+}
+
+// -- ParagraphProps ----------------------------------------------------------
+
+void ParagraphProps::merge_from(const ParagraphProps& other) {
+    merge_opt_into(alignment, other.alignment);
+    merge_opt_into(widow_control, other.widow_control);
+    merge_opt_into(keep_next, other.keep_next);
+    merge_opt_into(keep_lines, other.keep_lines);
+    if (other.spacing.has_value()) {
+        if (spacing.has_value()) spacing->merge_from(*other.spacing);
+        else spacing = other.spacing;
+    }
+    if (other.indents.has_value()) {
+        if (indents.has_value()) indents->merge_from(*other.indents);
+        else indents = other.indents;
+    }
 }
 
 ParagraphProps ParagraphProps::merged_with(const ParagraphProps& other) const {
-    ParagraphProps result;
-    result.alignment = merge_opt(alignment, other.alignment);
-    result.widow_control = merge_opt(widow_control, other.widow_control);
-    result.keep_next = merge_opt(keep_next, other.keep_next);
-    result.keep_lines = merge_opt(keep_lines, other.keep_lines);
-    if (other.spacing.has_value()) {
-        result.spacing = spacing.has_value()
-            ? spacing->merged_with(*other.spacing)
-            : other.spacing;
-    } else {
-        result.spacing = spacing;
-    }
-    if (other.indents.has_value()) {
-        result.indents = indents.has_value()
-            ? indents->merged_with(*other.indents)
-            : other.indents;
-    } else {
-        result.indents = indents;
-    }
+    ParagraphProps result = *this;
+    result.merge_from(other);
     return result;
+}
+
+// -- TableCellProps ----------------------------------------------------------
+
+void TableCellProps::merge_from(const TableCellProps& other) {
+    merge_opt_into(background_color, other.background_color);
+    merge_opt_into(vertical_alignment, other.vertical_alignment);
+    merge_opt_into(text_orientation, other.text_orientation);
+    merge_opt_into(row_height, other.row_height);
+    merge_opt_into(cell_margin_top, other.cell_margin_top);
+    merge_opt_into(cell_margin_bottom, other.cell_margin_bottom);
+    merge_opt_into(cell_margin_left, other.cell_margin_left);
+    merge_opt_into(cell_margin_right, other.cell_margin_right);
+    if (other.borders.has_value()) {
+        if (borders.has_value()) borders->merge_from(*other.borders);
+        else borders = other.borders;
+    }
 }
 
 TableCellProps TableCellProps::merged_with(const TableCellProps& other) const {
-    TableCellProps result;
-    result.background_color   = merge_opt(background_color, other.background_color);
-    result.vertical_alignment = merge_opt(vertical_alignment, other.vertical_alignment);
-    result.text_orientation   = merge_opt(text_orientation, other.text_orientation);
-    result.row_height         = merge_opt(row_height, other.row_height);
-    result.cell_margin_top    = merge_opt(cell_margin_top, other.cell_margin_top);
-    result.cell_margin_bottom = merge_opt(cell_margin_bottom, other.cell_margin_bottom);
-    result.cell_margin_left   = merge_opt(cell_margin_left, other.cell_margin_left);
-    result.cell_margin_right  = merge_opt(cell_margin_right, other.cell_margin_right);
-    if (other.borders.has_value()) {
-        result.borders = borders.has_value()
-            ? borders->merged_with(*other.borders)
-            : other.borders;
-    } else {
-        result.borders = borders;
-    }
+    TableCellProps result = *this;
+    result.merge_from(other);
     return result;
 }
 
-StyleDef StyleDef::merged_with(const StyleDef& other) const {
-    StyleDef result;
-    result.id = other.id.empty() ? id : other.id;
+// -- StyleDef ---------------------------------------------------------------
+
+void StyleDef::merge_from(const StyleDef& other) {
+    if (!other.id.empty()) id = other.id;
     if (other.font.has_value()) {
-        result.font = font.has_value()
-            ? font->merged_with(*other.font)
-            : other.font;
-    } else {
-        result.font = font;
+        if (font.has_value()) font->merge_from(*other.font);
+        else font = other.font;
     }
     if (other.paragraph.has_value()) {
-        result.paragraph = paragraph.has_value()
-            ? paragraph->merged_with(*other.paragraph)
-            : other.paragraph;
-    } else {
-        result.paragraph = paragraph;
+        if (paragraph.has_value()) paragraph->merge_from(*other.paragraph);
+        else paragraph = other.paragraph;
     }
     if (other.table_style.has_value()) {
-        result.table_style = table_style.has_value()
-            ? table_style->merged_with(*other.table_style)
-            : other.table_style;
-    } else {
-        result.table_style = table_style;
+        if (table_style.has_value()) table_style->merge_from(*other.table_style);
+        else table_style = other.table_style;
     }
+}
+
+StyleDef StyleDef::merged_with(const StyleDef& other) const {
+    StyleDef result = *this;
+    result.merge_from(other);
     return result;
 }
 

@@ -730,7 +730,7 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
         for (const auto& ref : group.style_refs) {
             const StyleDef* ref_style = resolver.find_style(ref);
             if (ref_style) {
-                style = style.merged_with(*ref_style);
+                style.merge_from(*ref_style);
             }
         }
 
@@ -814,7 +814,7 @@ void DocxEmitter::emit_text_groups_combined(XmlWriter& w,
         for (const auto& ref : group.style_refs) {
             const StyleDef* ref_style = resolver.find_style(ref);
             if (ref_style) {
-                style = style.merged_with(*ref_style);
+                style.merge_from(*ref_style);
             }
         }
         FontProps font = style.font.value_or(FontProps{});
@@ -1415,7 +1415,7 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
                 if (cell.style_ref.has_value()) {
                     const StyleDef* ref_style = resolver.find_style(*cell.style_ref);
                     if (ref_style) {
-                        cell_style = cell_style.merged_with(*ref_style);
+                        cell_style.merge_from(*ref_style);
                     }
                 }
 
@@ -1502,7 +1502,7 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
             if (cell.style_ref.has_value()) {
                 const StyleDef* override_style = resolver.find_style(cell.style_ref.value());
                 if (override_style) {
-                    cell_style = cell_style.merged_with(*override_style);
+                    cell_style.merge_from(*override_style);
                 }
             }
         }
@@ -1786,7 +1786,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
             for (const auto& ref : group.style_refs) {
                 const StyleDef* ref_style = resolver.find_style(ref);
                 if (ref_style) {
-                    style = style.merged_with(*ref_style);
+                    style.merge_from(*ref_style);
                 }
             }
 
@@ -1867,7 +1867,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
             StyleDef style = sub_style;
             for (const auto& ref : group.style_refs) {
                 const StyleDef* ref_style = resolver.find_style(ref);
-                if (ref_style) style = style.merged_with(*ref_style);
+                if (ref_style) style.merge_from(*ref_style);
             }
             stamp_exact_line_height(style);
 

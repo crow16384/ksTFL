@@ -132,7 +132,9 @@ const StyleDef* StyleResolver::find_style(const std::string& id) const {
 StyleDef StyleResolver::apply_style_ref(const StyleDef& base, const std::string& ref) const {
     const StyleDef* found = find_style(ref);
     if (found) {
-        return base.merged_with(*found);
+        StyleDef result = base;
+        result.merge_from(*found);
+        return result;
     }
     return base;
 }
@@ -147,16 +149,16 @@ StyleDef StyleResolver::resolve_header_cell_style(const ColumnSpec& col,
     StyleDef result = tmpl_.text_styles.default_style;
 
     // 2. Region style: tableHeader
-    result = result.merged_with(tmpl_.text_styles.table_header);
+    result.merge_from(tmpl_.text_styles.table_header);
 
     // 3. Template header row defaults
     if (tmpl_.table_style.header_row.has_value()) {
-        result = result.merged_with(*tmpl_.table_style.header_row);
+        result.merge_from(*tmpl_.table_style.header_row);
     }
 
     // 4. Structural: allHeaders (non-overridable in template, but here applied early)
     if (tmpl_.table_style.structural.all_headers.has_value()) {
-        result = result.merged_with(*tmpl_.table_style.structural.all_headers);
+        result.merge_from(*tmpl_.table_style.structural.all_headers);
     }
 
     // 5. Column labelStyleRef
@@ -187,16 +189,16 @@ StyleDef StyleResolver::resolve_body_cell_style(
     StyleDef result = tmpl_.text_styles.default_style;
 
     // 2. Region style: tableBody
-    result = result.merged_with(tmpl_.text_styles.table_body);
+    result.merge_from(tmpl_.text_styles.table_body);
 
     // 3. Template body row defaults
     if (tmpl_.table_style.body_row.has_value()) {
-        result = result.merged_with(*tmpl_.table_style.body_row);
+        result.merge_from(*tmpl_.table_style.body_row);
     }
 
     // 4. Structural: tableBody
     if (tmpl_.table_style.structural.table_body.has_value()) {
-        result = result.merged_with(*tmpl_.table_style.structural.table_body);
+        result.merge_from(*tmpl_.table_style.structural.table_body);
     }
 
     // 5. Column valueStyleRef — skip for synthetic (addrow) rows:
@@ -233,16 +235,16 @@ StyleDef StyleResolver::resolve_base_header_style() const {
     StyleDef result = tmpl_.text_styles.default_style;
 
     // 2. Region style: tableHeader
-    result = result.merged_with(tmpl_.text_styles.table_header);
+    result.merge_from(tmpl_.text_styles.table_header);
 
     // 3. Template header row defaults
     if (tmpl_.table_style.header_row.has_value()) {
-        result = result.merged_with(*tmpl_.table_style.header_row);
+        result.merge_from(*tmpl_.table_style.header_row);
     }
 
     // 4. Structural: allHeaders
     if (tmpl_.table_style.structural.all_headers.has_value()) {
-        result = result.merged_with(*tmpl_.table_style.structural.all_headers);
+        result.merge_from(*tmpl_.table_style.structural.all_headers);
     }
 
     return result;
@@ -254,7 +256,7 @@ StyleDef StyleResolver::resolve_base_header_style() const {
 
 StyleDef StyleResolver::resolve_title_style(const std::vector<std::string>& style_refs) const {
     StyleDef result = tmpl_.text_styles.default_style;
-    result = result.merged_with(tmpl_.text_styles.titles);
+    result.merge_from(tmpl_.text_styles.titles);
     for (const auto& ref : style_refs) {
         result = apply_style_ref(result, ref);
     }
@@ -263,7 +265,7 @@ StyleDef StyleResolver::resolve_title_style(const std::vector<std::string>& styl
 
 StyleDef StyleResolver::resolve_subtitle_style(const std::vector<std::string>& style_refs) const {
     StyleDef result = tmpl_.text_styles.default_style;
-    result = result.merged_with(tmpl_.text_styles.subtitles);
+    result.merge_from(tmpl_.text_styles.subtitles);
     for (const auto& ref : style_refs) {
         result = apply_style_ref(result, ref);
     }
@@ -272,7 +274,7 @@ StyleDef StyleResolver::resolve_subtitle_style(const std::vector<std::string>& s
 
 StyleDef StyleResolver::resolve_footnote_style(const std::vector<std::string>& style_refs) const {
     StyleDef result = tmpl_.text_styles.default_style;
-    result = result.merged_with(tmpl_.text_styles.footnotes);
+    result.merge_from(tmpl_.text_styles.footnotes);
     for (const auto& ref : style_refs) {
         result = apply_style_ref(result, ref);
     }
@@ -281,12 +283,14 @@ StyleDef StyleResolver::resolve_footnote_style(const std::vector<std::string>& s
 
 StyleDef StyleResolver::resolve_doc_header_style() const {
     StyleDef result = tmpl_.text_styles.default_style;
-    return result.merged_with(tmpl_.text_styles.doc_header);
+    result.merge_from(tmpl_.text_styles.doc_header);
+    return result;
 }
 
 StyleDef StyleResolver::resolve_doc_footer_style() const {
     StyleDef result = tmpl_.text_styles.default_style;
-    return result.merged_with(tmpl_.text_styles.doc_footer);
+    result.merge_from(tmpl_.text_styles.doc_footer);
+    return result;
 }
 
 StyleDef StyleResolver::resolve_body_text_style(const std::optional<std::string>& custom_ref) const {

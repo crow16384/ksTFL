@@ -132,6 +132,8 @@ struct Border {
 
     /// Merge: later overrides earlier, nullopt does not override.
     Border merged_with(const Border& other) const;
+    /// In-place merge: apply other's non-null fields onto this.
+    void merge_from(const Border& other);
 };
 
 /// Four-sided borders.
@@ -142,6 +144,7 @@ struct Borders {
     std::optional<Border> right;
 
     Borders merged_with(const Borders& other) const;
+    void merge_from(const Borders& other);
 };
 
 // ---------------------------------------------------------------------------
@@ -159,6 +162,7 @@ struct FontProps {
     std::optional<Color> highlight;
 
     FontProps merged_with(const FontProps& other) const;
+    void merge_from(const FontProps& other);
 };
 
 /// Text alignment values.
@@ -180,6 +184,7 @@ struct SpacingProps {
     std::optional<Length> exact_line_height;         // if set, emitter uses w:lineRule="exact"
 
     SpacingProps merged_with(const SpacingProps& other) const;
+    void merge_from(const SpacingProps& other);
 };
 
 /// Indent properties.
@@ -190,6 +195,7 @@ struct IndentProps {
     std::optional<Length> hanging;
 
     IndentProps merged_with(const IndentProps& other) const;
+    void merge_from(const IndentProps& other);
 };
 
 /// Paragraph properties (maps to <w:pPr> in OOXML).
@@ -202,6 +208,7 @@ struct ParagraphProps {
     std::optional<bool> keep_lines;
 
     ParagraphProps merged_with(const ParagraphProps& other) const;
+    void merge_from(const ParagraphProps& other);
 };
 
 /// Vertical alignment in table cells.
@@ -231,6 +238,7 @@ struct TableCellProps {
     std::optional<Length> row_height;
 
     TableCellProps merged_with(const TableCellProps& other) const;
+    void merge_from(const TableCellProps& other);
 };
 
 /// Composite style definition (font + paragraph + table cell).
@@ -241,6 +249,7 @@ struct StyleDef {
     std::optional<TableCellProps> table_style;
 
     StyleDef merged_with(const StyleDef& other) const;
+    void merge_from(const StyleDef& other);
 };
 
 /// Maps style IDs to style definitions.

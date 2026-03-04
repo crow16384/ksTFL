@@ -128,7 +128,7 @@ std::vector<Length> Paginator::compute_row_heights(
             if (cell.style_ref.has_value()) {
                 const StyleDef* override_style = resolver.find_style(cell.style_ref.value());
                 if (override_style) {
-                    cell_style = cell_style.merged_with(*override_style);
+                    cell_style.merge_from(*override_style);
                 }
             }
 
