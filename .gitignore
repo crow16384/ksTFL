@@ -19,7 +19,6 @@ src/*.a
 .deps/
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
