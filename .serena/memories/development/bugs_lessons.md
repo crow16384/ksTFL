@@ -134,6 +134,14 @@
 - isGrouping: dedup + dynamic subtitles; does NOT force page breaks
 - isPaging: forces page breaks on column value changes
 - detect_grouping_boundaries() must run BEFORE apply_dedupe()
+- Synthetic rows (e.g. c_addrow 'above') that are the first row of a group must receive force_page_break, is_group_boundary, and group_values from the following data row so pagination and #ByGroup resolution are correct
+
+### TOC and Horizontal Segments (isColBreak)
+- When isColBreak splits the table into segments, each segment has its own pages; "first page" per segment would duplicate TOC entries
+- Emit TC fields only when segment.segment_index == 0 (first segment) in addition to page.is_first_page
+
+### Body Row Merge Span and Segments
+- emit_table_row() must clamp merge_span and cell width to the current segment's columns (same as emit_table_header); otherwise gridSpan exceeds w:tblGrid and causes artefacts
 
 ### Text Measurement Rules
 - inner_width = cell_width - cell_margin_left - cell_margin_right - para_indent_left - para_indent_right
@@ -185,3 +193,23 @@
 - Set `knitr::opts_chunk$set(dev = "cairo_png")` in .Rprofile so callr subprocess gets headless-safe figures
 - Patch downlit `CRAN_urls()` in .Rprofile (replace inner `_f`, reset cache) to skip CRAN packages.rds fetch
 - Vignette setup chunks: add `dev = "cairo_png"`; explicit `png()` use `type = "cairo"`
+
+## Bug 23: Duplicate TOC Entries When isColBreak Splits Table (Mar 2026)
+**Symptom**: With `define_cols(..., isColBreak = TRUE)`, the table is split into horizontal segments; each segment's first page had `is_first_page = true`, so TC (TOC entry) fields were emitted once per segment — duplicate TOC entries for the same title/subtitle.
+**Fix**: In `emit_page()`, restrict TC emission to the first segment only: require `segment.segment_index == 0` in addition to `page.is_first_page` for both titles and subtitles (static and dynamic).
+**Files**: src/kstfl/docx_emitter.cpp
+**Lesson**: When isColBreak creates multiple segments, "first page" for TOC purposes must mean first page of the *spec*, not first page of each segment.
+
+## Bug 24: Group Subtitles Lost and Wrong Pagination with c_addrow + isGrouping (Mar 2026)
+**Symptom**: With `isGrouping` columns and `c_addrow('above')`, (1) #ByGroup placeholders stayed literal in subtitles, (2) subject 01002 started on the same page as 01001 instead of a new page.
+**Root Cause**: (1) `apply_style_rows()` inserted synthetic rows above data rows but did not copy `group_values` or `force_page_break` from the data row to the synthetic row. The paginator takes the first row of each page for #ByGroup resolution — that was the synthetic row with empty `group_values`. (2) Grouping-originated `force_page_break` was only on the data row; the synthetic row was emitted first, so the break happened after the synthetic row, and the data row (new subject) stayed on the same page.
+**Fix**: In `apply_style_rows()`, when emitting an "above" synthetic row, transfer `force_page_break`, `is_group_boundary`, and `group_values` from the following data row to the synthetic row (and clear from data row when transferred). In `paginator.cpp`, when the first row of a page has empty `group_values`, scan forward to the next row that has them and use those for `page.dynamic_subtitle_values`.
+**Files**: src/kstfl/logical_table.cpp, src/kstfl/paginator.cpp
+**Lesson**: Synthetic rows that act as the first row of a group must carry group identity and break flags so pagination and subtitle resolution see them correctly.
+
+## Bug 25: Table Grid Artefacts When isColBreak + Merged Body Rows (Mar 2026)
+**Symptom**: With `isColBreak` and `c_addrow('above')`, horizontal lines/borders extended beyond the right edge of the first segment (visual artefacts).
+**Root Cause**: Body rows with merge leaders (e.g. synthetic addrow rows) use `merge_span` = total visible columns. Each segment only defines a subset of columns in `w:tblGrid`. Emitting `gridSpan` equal to the full merge_span exceeded the segment's grid column count; Word rendered extra phantom columns.
+**Fix**: In `emit_table_row()`, clamp merge span and cell width to columns present in the current segment — count how many of the cell's spanned columns are in `segment.column_indices`, use that as `effective_span` and sum only those columns' widths (mirroring the existing header logic in `emit_table_header()`).
+**Files**: src/kstfl/docx_emitter.cpp
+**Lesson**: When emitting table body rows for a horizontal segment, merged cells must use segment-local span and width; header already did this, body must match.

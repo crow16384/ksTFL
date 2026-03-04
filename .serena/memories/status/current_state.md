@@ -1,5 +1,23 @@
 # Current Status (Mar 4, 2026)
 
+## isColBreak + isGrouping + c_addrow Fixes (Mar 4, 2026)
+
+- **Bug 23: Duplicate TOC entries when isColBreak**
+  - With `isColBreak = TRUE`, the table is split into horizontal segments; each segment’s first page was treated as “first page” for TOC, so the same title/subtitle appeared multiple times in the TOC.
+  - Fix: In `docx_emitter.cpp` `emit_page()`, emit TC fields only when `segment.segment_index == 0` in addition to `page.is_first_page` (for both titles and subtitles).
+
+- **Bug 24: Group subtitles lost and wrong pagination with c_addrow + isGrouping**
+  - With grouping columns and `c_addrow('above')`, #ByGroup placeholders were not resolved (subtitle showed literal `#ByGroup1`, etc.), and new subjects (e.g. 01002) did not start on a new page — they appeared at the bottom of the previous subject’s page.
+  - Root cause: Synthetic “above” rows did not inherit `force_page_break` or `group_values` from the data row below; paginator used the first row of each page for #ByGroup, so synthetic rows with empty `group_values` broke subtitle resolution; page break stayed on the data row so the break happened in the wrong place.
+  - Fix: In `logical_table.cpp` `apply_style_rows()`, when inserting an “above” synthetic row, transfer `force_page_break`, `is_group_boundary`, and `group_values` from the data row to the synthetic row. In `paginator.cpp`, when the first row of a page has empty `group_values`, scan forward to the next row that has them for `dynamic_subtitle_values`.
+
+- **Bug 25: Table grid artefacts when isColBreak + merged body rows**
+  - With `isColBreak` and `c_addrow('above')`, horizontal lines extended beyond the right edge of the first segment (extra cells/columns).
+  - Root cause: Body merge leaders used full `merge_span` (all visible columns); each segment only has a subset of columns in `w:tblGrid`; emitting that span produced gridSpan larger than the segment grid.
+  - Fix: In `docx_emitter.cpp` `emit_table_row()`, clamp merge span and cell width to columns in the current segment (count segment columns in the span, sum only their widths), mirroring the header logic.
+
+- **Docs**: `define_cols.md` — corrected `isColBreak` description (horizontal segment boundary, not page break). `add_subtitle.md` — noted that TOC entries are limited to the first segment when isColBreak is used. `.serena/memories/development/bugs_lessons.md` — added Bug 23, 24, 25 and lessons.
+
 ## pkgdown Build Fixes (Mar 4, 2026)
 
 - **Issue: `pkgdown::build_site()` failed with X11 warning and CRAN timeout**
@@ -137,6 +155,7 @@ Manual unit tests: inst/examples/manul_unit_tests/TEST_03/ (test_03.R, 11 specs)
 - R is NOT installed on host — all R execution via docker exec
 
 ## Git History (recent)
+- fix: isColBreak + isGrouping + c_addrow — TOC duplicates, lost group subtitles, wrong pagination, table artefacts (Mar 4 2026)
 - fix: pkgdown build without X11 and without CRAN fetch (Mar 4 2026) — .Rprofile (cairo_png + downlit CRAN_urls patch), vignettes dev = "cairo_png", README
 - fix: rotated header text wrapping in table cells (Mar 3 2026) — docx_emitter w:noWrap for vertical text; text_measurer indents + paragraph spacing for rotated height
 - fix: doc_footer pagination — account for footer overflow in compute_available_height (Mar 3 2026)

@@ -56,9 +56,11 @@ add_subtitle(
   entry. The resolved (substituted) text is used as the TOC entry text.
 
   In both cases, multi-line subtitles are concatenated with a space and
-  inline styling tags are stripped for the TOC entry text. Use together
-  with `add_title(toclevel = )` and `tfl_set_options(insertTOC = TRUE)`
-  or `save_report(insertTOC = TRUE)`.
+  inline styling tags are stripped for the TOC entry text. When the table
+  is split into horizontal segments (e.g. `define_cols(..., isColBreak =
+  TRUE)`), TOC entries are emitted only from the first segment to avoid
+  duplicates. Use together with `add_title(toclevel = )` and
+  `tfl_set_options(insertTOC = TRUE)` or `save_report(insertTOC = TRUE)`.
 
 ## Value
 

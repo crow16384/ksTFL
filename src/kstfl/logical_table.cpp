@@ -460,13 +460,16 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
         }
 
         // --- page_break ---
-        // Set force_page_break before emitting any "above" synthetic rows so
-        // the flag lands on the first row of this group (the synthetic row if
-        // present, otherwise the data row itself).  This ensures the new page
-        // starts from the row that owns the c_pageBreak() action.
-        bool has_page_break = !actions->page_breaks.empty();
+        // Collect all page-break sources: explicit c_pageBreak() actions and
+        // grouping-boundary breaks set by detect_grouping_boundaries().
+        bool has_page_break = !actions->page_breaks.empty() || row.force_page_break;
+        bool has_group_boundary = row.is_group_boundary;
 
         // --- add_row "above" insertions ---
+        // When an "above" synthetic row is inserted, it becomes the first row
+        // of the group.  Transfer force_page_break, is_group_boundary, and
+        // group_values to the synthetic row so the paginator sees them at the
+        // correct position for page-break decisions and #ByGroup resolution.
         for (const auto& ar : actions->add_rows) {
             if (ar.pos == AddRowAction::Position::Above) {
                 LogicalRow synthetic = build_addrow_synthetic(src_idx, ar);
@@ -474,12 +477,24 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
                     synthetic.force_page_break = true;
                     has_page_break = false;
                 }
+                if (has_group_boundary) {
+                    synthetic.is_group_boundary = true;
+                    synthetic.group_values = row.group_values;
+                    has_group_boundary = false;
+                }
                 result.push_back(std::move(synthetic));
             }
         }
 
         if (has_page_break) {
             row.force_page_break = true;
+        } else {
+            row.force_page_break = false;
+        }
+        if (has_group_boundary) {
+            // No "above" row consumed the boundary — keep it on the data row.
+        } else {
+            row.is_group_boundary = false;
         }
 
         // --- clear actions (before merge so cleared leader still participates) ---

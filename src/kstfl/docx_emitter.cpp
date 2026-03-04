@@ -1478,6 +1478,10 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
     }
     w.end_element();
 
+    // Build fast lookup for segment columns
+    std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
+                                         segment.column_indices.end());
+
     // Emit cells for this segment
     for (size_t col_idx : segment.column_indices) {
         if (col_idx >= row.cells.size()) continue;
@@ -1507,22 +1511,32 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
             }
         }
 
-        // Cell properties — use per-column scaled width
-        Length cell_width{0};
-        if (cell.is_merge_leader) {
-            // Sum scaled widths of all merged columns
-            for (int mi = 0; mi < cell.merge_span; ++mi) {
-                auto it = col_widths.find(col_idx + mi);
-                if (it != col_widths.end()) {
-                    cell_width = cell_width + Length{it->second};
+        // Cell properties — clamp merge span to columns present in this
+        // segment, mirroring the header logic.  Without this, synthetic
+        // rows (c_addrow) that merge ALL visible columns would emit a
+        // gridSpan exceeding the segment's grid, creating artifacts.
+        int effective_span = 0;
+        int64_t width_emu = 0;
+        if (cell.is_merge_leader && cell.merge_span > 1) {
+            size_t span_end = col_idx + static_cast<size_t>(cell.merge_span);
+            for (size_t ci = col_idx; ci < span_end; ++ci) {
+                if (seg_cols.count(ci)) {
+                    effective_span++;
+                    auto it = col_widths.find(ci);
+                    if (it != col_widths.end()) {
+                        width_emu += it->second;
+                    }
                 }
             }
+            if (effective_span == 0) effective_span = 1;
         } else {
+            effective_span = 1;
             auto it = col_widths.find(col_idx);
             if (it != col_widths.end()) {
-                cell_width = Length{it->second};
+                width_emu = it->second;
             }
         }
+        Length cell_width{width_emu};
 
         TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
 
@@ -1534,7 +1548,7 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
             tcp.borders->bottom = tmpl_.table_style.structural.table_bottom_border;
         }
 
-        emit_cell_props(w, tcp, cell_width, cell.merge_span);
+        emit_cell_props(w, tcp, cell_width, effective_span);
 
         // Cell content
         emit_paragraph(w, cell.text, cell_style);
@@ -1786,8 +1800,10 @@ void DocxEmitter::emit_page(XmlWriter& w,
                 combined += group.text[i];
             }
 
-            // When toclevel is set, emit TC field in same paragraph as title
-            if (page.is_first_page && group.toc_level > 0) {
+            // When toclevel is set, emit TC field in same paragraph as title.
+            // Only emit TC for the first horizontal segment to avoid duplicate
+            // TOC entries when isColBreak splits the table into multiple segments.
+            if (page.is_first_page && segment.segment_index == 0 && group.toc_level > 0) {
                 std::string toc_plain;
                 for (size_t i = 0; i < group.text.size(); ++i) {
                     if (i > 0) toc_plain += ' ';
@@ -1838,6 +1854,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
         //   - Static subtitles (no #ByGroupX in original): TC only on first page.
         //   - Dynamic subtitles (contain #ByGroupX in original): TC on every page
         //     so each distinct group value gets its own TOC entry.
+        // In both cases, TC is restricted to segment 0 to avoid duplicate TOC
+        // entries when isColBreak splits the table into multiple segments.
         for (size_t gi = 0; gi < resolved_subtitles.size(); ++gi) {
             const auto& group = resolved_subtitles[gi];
             StyleDef style = sub_style;
@@ -1863,7 +1881,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
                     }
                 }
 
-                bool emit_tc = is_dynamic || page.is_first_page;
+                bool emit_tc = (is_dynamic || page.is_first_page)
+                               && segment.segment_index == 0;
                 if (emit_tc) {
                     // Build plain-text TC entry from the resolved (substituted) lines.
                     std::string toc_plain;

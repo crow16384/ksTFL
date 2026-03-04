@@ -449,12 +449,25 @@ PaginationResult Paginator::paginate(
                 // Capture grouping values for dynamic subtitles (first row only).
                 // Iterate spec.columns in definition order to ensure deterministic
                 // mapping: #ByGroup1 = first grouping/paging column, etc.
-                if (row_idx == page.first_row && !rows[row_idx].group_values.empty()) {
-                    for (const auto& col : spec.columns) {
-                        if (col.is_grouping || col.is_paging) {
-                            auto it = rows[row_idx].group_values.find(col.id);
-                            if (it != rows[row_idx].group_values.end()) {
-                                page.dynamic_subtitle_values.push_back(it->second);
+                // If the first row is a synthetic row with empty group_values,
+                // scan forward to find the nearest row that carries them.
+                if (row_idx == page.first_row && page.dynamic_subtitle_values.empty()) {
+                    const auto* gv = &rows[row_idx].group_values;
+                    if (gv->empty()) {
+                        for (size_t scan = row_idx + 1; scan < rows.size(); ++scan) {
+                            if (!rows[scan].group_values.empty()) {
+                                gv = &rows[scan].group_values;
+                                break;
+                            }
+                        }
+                    }
+                    if (!gv->empty()) {
+                        for (const auto& col : spec.columns) {
+                            if (col.is_grouping || col.is_paging) {
+                                auto it = gv->find(col.id);
+                                if (it != gv->end()) {
+                                    page.dynamic_subtitle_values.push_back(it->second);
+                                }
                             }
                         }
                     }
