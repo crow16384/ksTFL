@@ -30,6 +30,7 @@ SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/logical_table.cpp \
     kstfl/paginator.cpp \
     kstfl/zip_writer.cpp \
+    kstfl/docx_metadata.cpp \
     kstfl/docx_emitter.cpp \
     kstfl/renderer.cpp
 
