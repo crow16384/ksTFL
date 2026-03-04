@@ -751,16 +751,21 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
                 if (i > 0) toc_plain += ' ';
                 toc_plain += get_plain_text(group.text[i]);
             }
+            ParsedCell parsed = parse_inline_markup(combined);
+            // First paragraph carries the TC field
             w.start_element("w:p");
             if (style.paragraph.has_value()) {
                 emit_para_props(w, style.paragraph.value());
             }
             emit_tc_field(w, toc_plain, group.toc_level);
-            ParsedCell parsed = parse_inline_markup(combined);
             if (!parsed.paragraphs.empty()) {
                 emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
             }
             w.end_element();  // w:p
+            // Remaining paragraphs (from <br> splits) emitted without TC field
+            for (size_t pi = 1; pi < parsed.paragraphs.size(); ++pi) {
+                emit_parsed_paragraph(w, parsed.paragraphs[pi], style);
+            }
         } else {
             emit_paragraph(w, combined, style);
         }
@@ -1758,16 +1763,21 @@ void DocxEmitter::emit_page(XmlWriter& w,
                     if (i > 0) toc_plain += ' ';
                     toc_plain += get_plain_text(group.text[i]);
                 }
+                ParsedCell parsed = parse_inline_markup(combined);
+                // First paragraph carries the TC field
                 w.start_element("w:p");
                 if (style.paragraph.has_value()) {
                     emit_para_props(w, style.paragraph.value());
                 }
                 emit_tc_field(w, toc_plain, group.toc_level);
-                ParsedCell parsed = parse_inline_markup(combined);
                 if (!parsed.paragraphs.empty()) {
                     emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
                 }
                 w.end_element();  // w:p
+                // Remaining paragraphs (from <br> splits) emitted without TC field
+                for (size_t pi = 1; pi < parsed.paragraphs.size(); ++pi) {
+                    emit_parsed_paragraph(w, parsed.paragraphs[pi], style);
+                }
             } else {
                 emit_paragraph(w, combined, style);
             }
@@ -1831,16 +1841,21 @@ void DocxEmitter::emit_page(XmlWriter& w,
                         if (li > 0) toc_plain += ' ';
                         toc_plain += get_plain_text(group.text[li]);
                     }
+                    ParsedCell parsed = parse_inline_markup(combined);
+                    // First paragraph carries the TC field
                     w.start_element("w:p");
                     if (style.paragraph.has_value()) {
                         emit_para_props(w, style.paragraph.value());
                     }
                     emit_tc_field(w, toc_plain, group.toc_level);
-                    ParsedCell parsed = parse_inline_markup(combined);
                     if (!parsed.paragraphs.empty()) {
                         emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
                     }
                     w.end_element();  // w:p
+                    // Remaining paragraphs (from <br> splits) emitted without TC field
+                    for (size_t pi = 1; pi < parsed.paragraphs.size(); ++pi) {
+                        emit_parsed_paragraph(w, parsed.paragraphs[pi], style);
+                    }
                 } else {
                     emit_paragraph(w, combined, style);
                 }
