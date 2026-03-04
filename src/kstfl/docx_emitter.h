@@ -50,6 +50,15 @@ public:
               TextMeasurer* measurer = nullptr);
 
 private:
+    struct SpecHdrFtrRefs {
+        std::string header_rid;
+        std::string footer_rid;
+    };
+
+    void build_hdr_ftr_parts(const TFLDocument& doc,
+                             std::vector<HdrFtrPartInfo>& all_hdr_ftr_parts,
+                             std::vector<SpecHdrFtrRefs>& spec_hdr_ftr_refs) const;
+
     // ---- Static package files ----
     std::string emit_content_types(const TFLDocument& doc,
                                     const std::vector<HdrFtrPartInfo>& hdr_ftr_parts) const;

@@ -1706,53 +1706,8 @@ void DocxEmitter::emit(
     // ======================================================================
 
     std::vector<HdrFtrPartInfo> all_hdr_ftr_parts;
-    // Per-spec header/footer rIds for section properties
-    struct SpecHdrFtrRefs {
-        std::string header_rid;
-        std::string footer_rid;
-    };
     std::vector<SpecHdrFtrRefs> spec_hdr_ftr_refs(doc.specs.size());
-
-    // Start relationship IDs after the base ones (rId1=styles, rId2=settings,
-    // rId3=fontTable, rId4+ for images). Count images first.
-    int next_rid = 4;
-    for (const auto& spec : doc.specs) {
-        if (spec.document.doc_type == DocType::Figure) next_rid++;
-    }
-
-    int hdr_ftr_idx = 1;
-    for (size_t spec_idx = 0; spec_idx < doc.specs.size(); ++spec_idx) {
-        const auto& spec = doc.specs[spec_idx];
-        StyleResolver resolver(tmpl_, spec.spec_styles);
-        PageConfig pc = resolver.resolve_page_config(spec);
-        Length usable_w = pc.usable_width();
-
-        if (!spec.headers.empty()) {
-            std::string rid = "rId" + std::to_string(next_rid++);
-            std::string part_path = "word/header" + std::to_string(hdr_ftr_idx) + ".xml";
-            StyleDef hdr_style = resolver.resolve_doc_header_style();
-            std::string xml = emit_hdr_ftr_xml_part(spec.headers, hdr_style,
-                                                     usable_w, "w:hdr");
-            all_hdr_ftr_parts.push_back({part_path, rid, xml, true});
-            spec_hdr_ftr_refs[spec_idx].header_rid = rid;
-            hdr_ftr_idx++;
-        }
-
-        if (!spec.footers.empty()) {
-            std::string rid = "rId" + std::to_string(next_rid++);
-            std::string part_path = "word/footer" + std::to_string(hdr_ftr_idx) + ".xml";
-            StyleDef ftr_style = resolver.resolve_doc_footer_style();
-            const std::vector<TextGroup>* fn_ptr =
-                (spec.document.footnote_place == FootnotePlace::DocFooter && !spec.footnotes.empty())
-                    ? &spec.footnotes : nullptr;
-            std::string xml = emit_hdr_ftr_xml_part(spec.footers, ftr_style,
-                                                     usable_w, "w:ftr",
-                                                     fn_ptr, &resolver);
-            all_hdr_ftr_parts.push_back({part_path, rid, xml, false});
-            spec_hdr_ftr_refs[spec_idx].footer_rid = rid;
-            hdr_ftr_idx++;
-        }
-    }
+    build_hdr_ftr_parts(doc, all_hdr_ftr_parts, spec_hdr_ftr_refs);
 
     // ======================================================================
     // Phase 2: Generate document.xml
