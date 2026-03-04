@@ -68,7 +68,12 @@ public:
     /// Resolve a style for body text (hasData=false).
     StyleDef resolve_body_text_style(const std::optional<std::string>& custom_ref = std::nullopt) const;
 
-    /// Lookup a style by ID (checks spec styles first, then template-derived).
+    /// Lookup a named style by ID from the spec's custom styles map.
+    /// Template styles (default, tableHeader, etc.) are struct fields accessed
+    /// directly by the resolve_*() methods, not via string lookup.
+    /// Returns nullptr if the style ID is not found (the R layer validates all
+    /// style references at create_report() time, so missing IDs should not
+    /// occur in practice).
     const StyleDef* find_style(const std::string& id) const;
 
 private:

@@ -123,7 +123,9 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
 // ---------------------------------------------------------------------------
 
 const StyleDef* StyleResolver::find_style(const std::string& id) const {
-    // Check spec styles first (spec overrides template)
+    // Spec styles are the only source of named/user-defined styles.
+    // Template styles (default, tableHeader, etc.) are accessed as struct
+    // fields by the resolve_*() methods, not via string lookup.
     auto it = spec_styles_.find(id);
     if (it != spec_styles_.end()) return &it->second;
     return nullptr;
