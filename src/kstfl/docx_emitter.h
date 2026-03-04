@@ -75,6 +75,12 @@ private:
                       const std::string& output_path,
                       const std::string& document_xml,
                       const std::vector<HdrFtrPartInfo>& all_hdr_ftr_parts) const;
+    std::string emit_document_xml(
+        const TFLDocument& doc,
+        const std::unordered_map<std::string, PaginationResult>& resolved_pages,
+        const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
+        const std::unordered_map<std::string, HeaderGrid>& resolved_headers,
+        const std::vector<SpecHdrFtrRefs>& spec_hdr_ftr_refs) const;
 
     // ---- Per-spec emission ----
     /// Emit document.xml content for a single spec's page.
@@ -174,6 +180,13 @@ private:
 
     /// Emit a page break paragraph.
     void emit_page_break(XmlWriter& w) const;
+
+    /// Emit an inline drawing paragraph for a figure image relationship.
+    void emit_figure_drawing(XmlWriter& w,
+                             const std::string& r_id,
+                             int64_t cx_emu,
+                             int64_t cy_emu,
+                             int img_id) const;
 
     /// Emit section properties.
     /// @param is_body_level  True for the body-level sectPr (last child of

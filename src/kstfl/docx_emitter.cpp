@@ -1592,8 +1592,11 @@ void DocxEmitter::emit_page(XmlWriter& w,
 // ---------------------------------------------------------------------------
 // Helper: emit an inline <w:drawing> for a Figure spec
 // ---------------------------------------------------------------------------
-static void emit_figure_drawing(XmlWriter& w, const std::string& r_id,
-                                 int64_t cx_emu, int64_t cy_emu, int img_id) {
+void DocxEmitter::emit_figure_drawing(XmlWriter& w,
+                                      const std::string& r_id,
+                                      int64_t cx_emu,
+                                      int64_t cy_emu,
+                                      int img_id) const {
     w.start_element("w:p");
     w.start_element("w:r");
     w.start_element("w:drawing");
@@ -1712,171 +1715,15 @@ void DocxEmitter::emit(
     // ======================================================================
     // Phase 2: Generate document.xml
     // ======================================================================
-
-    XmlWriter doc_w;
-    doc_w.write_declaration();
-    doc_w.start_element("w:document");
-    doc_w.namespace_decl("w", W_NS);
-    doc_w.namespace_decl("r", R_NS);
-    doc_w.namespace_decl("mc", MC_NS);
-
-    doc_w.start_element("w:body");
-
-    // Emit TOC page as the first section when requested.
-    // Uses the first spec's page config and header/footer refs so the TOC page
-    // inherits the same page size, margins, and running headers/footers.
-    if (doc.metadata.insert_toc && !doc.specs.empty()) {
-        StyleResolver first_resolver(tmpl_, doc.specs[0].spec_styles);
-        PageConfig toc_page = first_resolver.resolve_page_config(doc.specs[0]);
-        const auto& first_refs = spec_hdr_ftr_refs[0];
-        emit_toc_page(doc_w, doc.metadata.toc_title, toc_page,
-                      first_refs.header_rid, first_refs.footer_rid);
-    }
-
-    // Pre-compute rId assignments for Figure specs (rId4, rId5, ... in spec order)
-    std::unordered_map<std::string, std::string> figure_rids;
-    {
-        int fig_rid_num = 4;
-        for (const auto& spec : doc.specs) {
-            if (spec.document.doc_type == DocType::Figure) {
-                figure_rids[spec.key] = "rId" + std::to_string(fig_rid_num++);
-            }
-        }
-    }
-    int figure_img_counter = 0;  // unique drawing id for wp:docPr
-
-    for (size_t spec_idx = 0; spec_idx < doc.specs.size(); ++spec_idx) {
-        const auto& spec = doc.specs[spec_idx];
-
-        // Create style resolver for this spec
-        StyleResolver resolver(tmpl_, spec.spec_styles);
-
-        //const auto& refs = spec_hdr_ftr_refs[spec_idx];
-
-        // ----- Emit section break for previous spec (not before first) -----
-        if (spec_idx > 0) {
-            // Section break paragraph with previous spec's section properties
-            const auto& prev_spec = doc.specs[spec_idx - 1];
-            StyleResolver prev_resolver(tmpl_, prev_spec.spec_styles);
-            PageConfig prev_page = prev_resolver.resolve_page_config(prev_spec);
-            const auto& prev_refs = spec_hdr_ftr_refs[spec_idx - 1];
-
-            doc_w.start_element("w:p");
-            doc_w.start_element("w:pPr");
-            emit_section_props(doc_w, prev_page,
-                               prev_refs.header_rid, prev_refs.footer_rid);
-            doc_w.end_element();  // w:pPr
-            doc_w.end_element();  // w:p
-        }
-
-        // Get pagination result for this spec
-        auto pages_it = resolved_pages.find(spec.key);
-        auto rows_it = resolved_rows.find(spec.key);
-        auto headers_it = resolved_headers.find(spec.key);
-
-        if (spec.document.doc_type == DocType::Text || !spec.document.has_data) {
-            // Titles
-            if (!spec.titles.empty()) {
-                emit_text_groups(doc_w, spec.titles,
-                                  resolver.resolve_title_style(), resolver);
-            }
-
-            if (spec.document.doc_type == DocType::Figure &&
-                !spec.figure_path.empty()) {
-                // Figure: emit inline image drawing
-                auto rid_it = figure_rids.find(spec.key);
-                if (rid_it != figure_rids.end()) {
-                    ++figure_img_counter;
-                    int64_t cx = static_cast<int64_t>(
-                        spec.document.figure_width_in  * 914400.0);
-                    int64_t cy = static_cast<int64_t>(
-                        spec.document.figure_height_in * 914400.0);
-                    emit_figure_drawing(doc_w, rid_it->second,
-                                        cx, cy, figure_img_counter);
-                }
-            } else {
-                // Text (or Figure with no resolved path): emit bodyText
-                StyleDef body_style = resolver.resolve_body_text_style();
-                emit_text_groups(doc_w, spec.body_text, body_style, resolver);
-            }
-
-            // Footnotes
-            if (!spec.footnotes.empty()) {
-                emit_text_groups(doc_w, spec.footnotes,
-                                  resolver.resolve_footnote_style(), resolver);
-            }
-
-            continue;
-        }
-
-        // Table/Figure spec: paginated rendering
-        if (pages_it == resolved_pages.end() ||
-            rows_it == resolved_rows.end() ||
-            headers_it == resolved_headers.end()) {
-            continue;  // Skip if no pagination data
-        }
-
-        const auto& pagination = pages_it->second;
-        const auto& rows = rows_it->second;
-        const auto& header_grid = headers_it->second;
-
-        // Emit pages interleaved across horizontal segments so that all
-        // segments for the same row range are adjacent in the document.
-        // Order: seg1-pg1, seg2-pg1, seg1-pg2, seg2-pg2, ...
-        size_t max_pages = 0;
-        for (const auto& seg : pagination.segments) {
-            max_pages = std::max(max_pages, seg.pages.size());
-        }
-        // Pre-parse title inline markup once — titles are the same on every
-        // page, so we avoid re-parsing on each emit_page() call.
-        std::vector<ParsedCell> parsed_titles;
-        parsed_titles.reserve(spec.titles.size());
-        for (const auto& group : spec.titles) {
-            std::string combined;
-            for (size_t i = 0; i < group.text.size(); ++i) {
-                if (i > 0) combined += "<br>";
-                combined += group.text[i];
-            }
-            parsed_titles.push_back(parse_inline_markup(combined));
-        }
-
-        bool first_physical_page = true;
-        for (size_t pi = 0; pi < max_pages; ++pi) {
-            for (const auto& segment : pagination.segments) {
-                if (pi >= segment.pages.size()) continue;
-                const auto& page = segment.pages[pi];
-
-                if (!first_physical_page) {
-                    emit_page_break(doc_w);
-                }
-                first_physical_page = false;
-
-                emit_page(doc_w, spec, page, segment, rows, header_grid,
-                          resolver, parsed_titles);
-            }
-        }
-
-        // doc_footer footnotes are now emitted inside the Word footer XML part
-        // (w:ftr) rather than in the body, so they appear below the footer rows.
-    }
-
-    // Final section properties (for the last section — direct child of w:body)
-    if (!doc.specs.empty()) {
-        size_t last_idx = doc.specs.size() - 1;
-        const auto& last_spec = doc.specs[last_idx];
-        StyleResolver last_resolver(tmpl_, last_spec.spec_styles);
-        PageConfig last_page = last_resolver.resolve_page_config(last_spec);
-        const auto& last_refs = spec_hdr_ftr_refs[last_idx];
-        emit_section_props(doc_w, last_page,
-                           last_refs.header_rid, last_refs.footer_rid,
-                           /*continuous=*/false, /*is_body_level=*/true);
-    }
-
-    doc_w.end_element();  // w:body
-    doc_w.end_element();  // w:document
+    std::string document_xml = emit_document_xml(
+        doc,
+        resolved_pages,
+        resolved_rows,
+        resolved_headers,
+        spec_hdr_ftr_refs);
 
     // Package all emitted XML parts and media into final DOCX archive.
-    emit_package(doc, output_path, doc_w.str(), all_hdr_ftr_parts);
+    emit_package(doc, output_path, document_xml, all_hdr_ftr_parts);
     measurer_ = nullptr;  // clear after emit
 }
 
