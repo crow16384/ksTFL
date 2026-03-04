@@ -1,9 +1,8 @@
-# Init libraries and paths ####
-source(file.path(getwd(),"inst","examples","init.R"))
+# ksTFL examples index runner (curated set)
+#
+# Usage:
+#   source("inst/examples/index.R")
+#
+# This executes the full curated showcase pipeline.
 
-# sourcing dummy data definitions ####
-source(file.path(getwd(), './inst/examples/manual_unit_tests/dummy_data.R'))
-
-source(file.path(getwd(),"inst","examples","manual_unit_tests","test_01.R"))
-source(file.path(getwd(),"inst","examples","manual_unit_tests","test_02.R"))
-source(file.path(getwd(),"inst","examples","manual_unit_tests","test_03.R"))
+source(file.path(getwd(), "inst", "examples", "showcase", "run_all_showcase.R"))

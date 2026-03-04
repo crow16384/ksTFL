@@ -36,6 +36,9 @@ tmp
 ._*
 doc
 
+
+
+
 # Environment / secrets
 .env
 .env.*

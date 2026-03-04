@@ -1,48 +1,42 @@
 # ksTFL Examples
 
-This folder contains runnable example scripts demonstrating the full ksTFL pipeline.
+This folder contains the **curated, package-ready** runnable examples.
 
-## `full_cycle_render.R` — 13 full-cycle examples (recommended)
+## Folder structure
 
-The main example script covering all document types and features:
+- `full_cycle_render.R` — comprehensive end-to-end script (broad feature coverage)
+- `init.R` — legacy-compatible global setup used by `full_cycle_render.R`
+- `index.R` — entrypoint runner (delegates to curated showcase)
+- `showcase/` — modular examples, including premium submission workflows
 
-| Example | Description |
-|---------|-------------|
-| ex01 | Minimal table |
-| ex02 | Styled table with column definitions, spanning headers |
-| ex03 | Multi-spec report: Table + Text + Table |
-| ex04 | Wide table with horizontal pagination |
-| ex05 | Conditional row styling (`compute_cols`) |
-| ex06 | Mixed Figure + Table report (file path input) |
-| ex07 | Multi-page table with stub columns |
-| ex08 | Full clinical demographics table |
-| ex09 | Text-only narrative document |
-| ex10 | Inline markup (`<b>`, `<i>`, `<sup>`, `<sub>`, etc.) |
-| **ex11** | **ggplot2 figure — minimal scatter plot** |
-| **ex12** | **ggplot2 figure (PNG) + companion summary table** |
-| **ex13** | **Multiple ggplot2 figures: PNG, JPEG, and SVG** |
+## Naming convention
 
-### Prerequisites
+- Full-cycle outputs: `full_cycle_XX_*`
+- Showcase outputs: `showcase_XX_*`
+- Premium outputs: `premium_XX_*`
+- Transfer/index package: `premium_08_*`
 
-- ksTFL installed with C++ renderer compiled (HarfBuzz / FreeType / minizip)
-- Examples 11–13 require `ggplot2` (`install.packages("ggplot2")`)
-- Docker image `rocker/verse` has all dependencies pre-installed
+This keeps output names deterministic and easy to inventory.
 
-### How to run
+## Curated showcase scripts
+
+| Script | Description |
+|--------|-------------|
+| `showcase/01_clinical_table_showcase.R` | Clinical table with hidden helper cols, row actions (`c_addrow`, `c_merge`, `c_glue`, `c_pageBreak`) |
+| `showcase/02_listing_paging_colbreak.R` | Large listing with grouping/paging and horizontal column break |
+| `showcase/03_narrative_figure_table.R` | Mixed report: narrative text + figure + summary table |
+| `showcase/04_meta_replay_clean.R` | Metadata workflow (`save_report`, `list_reports`, `replay_report`, `clean_reports`) |
+| `showcase/05_premium_csr_bundle.R` | Premium CSR-style multi-section bundle |
+| `showcase/06_premium_qc_repro.R` | Premium QC reproducibility pipeline (dual-run, replay, cleanup preview) |
+| `showcase/07_premium_submission_multilang_templates.R` | Premium EN/RU submission variants with switchable templates |
+| `showcase/08_premium_submission_index_bundle.R` | Builds transfer bundle (`docs`, manifest, checksums) and DOCX index |
+| `showcase/run_all_showcase.R` | Runs all curated scripts end-to-end |
+
+## How to run
 
 ```r
-# From package root (development)
 devtools::load_all()
-source("inst/examples/full_cycle_render.R")
-
-# Or installed package
-source(system.file("examples", "full_cycle_render.R", package = "ksTFL"))
+source("inst/examples/index.R")
 ```
 
-Output goes to `tmp/output/*.docx`. Metadata JSON files land in `tmp/output/meta/`.
-
----
-
-## `ksTFL_example.R` / `ksTFL_example_extended.R` — legacy examples
-
-Earlier spec-only examples (no rendering). Kept for reference. Use `full_cycle_render.R` for new work.
+Primary output directory: `tmp/showcase_output/`.

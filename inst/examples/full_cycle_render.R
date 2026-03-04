@@ -25,7 +25,7 @@ spec1 <- spec1 |>
   add_footnote("Source: 1974 Motor Trend US magazine.")
 
 report1 <- create_report(spec1)
-write_doc(report1, "ex01_minimal_table", toc = T)
+write_doc(report1, "full_cycle_01_minimal_table", toc = T)
 
 
 ## EXAMPLE 2: Styled Table with Custom Columns #####
@@ -115,7 +115,7 @@ spec2 <- spec2 |>
   )
 
 report2 <- create_report(spec2)
-write_doc(report2, "ex02_styled_demographics", toc = T)
+write_doc(report2, "full_cycle_02_styled_demographics", toc = T)
 
 
 ## EXAMPLE 3: Multi-Spec Report (Table + Text + Table) ####
@@ -207,7 +207,7 @@ spec3c <- spec3c |>
 
 # --- Combine into one report ---
 report3 <- create_report(spec3a, spec3b, spec3c)
-write_doc(report3, "ex03_multi_spec_report", toc = T)
+write_doc(report3, "full_cycle_03_multi_spec_report", toc = T)
 
 
 ## EXAMPLE 4: Global Options & Page Layout (Landscape A4) ####
@@ -317,7 +317,7 @@ spec4 <- spec4 |>
   )
 
 report4 <- create_report(spec4)
-write_doc(report4, "ex04_landscape_liver_function")
+write_doc(report4, "full_cycle_04_landscape_liver_function")
 
 # Reset global options
 tfl_reset_options()
@@ -384,7 +384,7 @@ spec5 <- spec5 |>
   )
 
 report5 <- create_report(spec5)
-write_doc(report5, "ex05_ae_listing_colbreak", toc = T)
+write_doc(report5, "full_cycle_05_ae_listing_colbreak", toc = T)
 
 
 ## EXAMPLE 6: Row Actions — Merge, AddRow, PageBreak ####
@@ -487,7 +487,7 @@ spec6 <- spec6 |>
   )
 
 report6 <- create_report(spec6)
-write_doc(report6, "ex06_efficacy_row_actions", toc = T)
+write_doc(report6, "full_cycle_06_efficacy_row_actions", toc = T)
 
 
 ## EXAMPLE 7: Text-Only Document ####
@@ -527,7 +527,7 @@ spec7 <- spec7 |>
   add_footnote("This summary is for illustrative purposes only.")
 
 report7 <- create_report(spec7)
-write_doc(report7, "ex07_text_only", toc = T)
+write_doc(report7, "full_cycle_07_text_only", toc = T)
 
 
 ## EXAMPLE 8: Combined Report — Table + Text + Listing (Full Clinical Package) ####
@@ -663,7 +663,7 @@ lst_subj <- lst_subj |>
 
 # --- Combine everything ---
 full_report <- create_report(tbl_demo, txt_methods, lst_subj)
-write_doc(full_report, "ex08_full_clinical_package")
+write_doc(full_report, "full_cycle_08_full_clinical_package")
 
 # Reset options
 tfl_reset_options()
@@ -725,7 +725,7 @@ spec9 <- spec9 |>
   )
 
 report9 <- create_report(spec9)
-write_doc(report9, "ex09_long_paging_table", toc = T)
+write_doc(report9, "full_cycle_09_long_paging_table", toc = T)
 
 
 ## EXAMPLE 10: Rich Inline Markup ####
@@ -760,7 +760,7 @@ spec10 <- spec10 |>
   add_footnote("Inline tags supported: <b>, <i>, <u>, <sup>, <sub>, <br>, <p>.")
 
 report10 <- create_report(spec10)
-write_doc(report10, "ex10_inline_markup", toc = T)
+write_doc(report10, "full_cycle_10_inline_markup", toc = T)
 
 
 ## EXAMPLE 11: Minimal ggplot2 Figure ####
@@ -791,7 +791,7 @@ spec11 <- create_figure(p11, width = 6, height = 4, dpi = 300) |>
   add_footnote("Source: 1974 Motor Trend US magazine (n = 32 vehicles).")
 
 report11 <- create_report(spec11)
-write_doc(report11, "ex11_ggplot2_minimal_figure", toc = T)
+write_doc(report11, "full_cycle_11_ggplot2_minimal_figure", toc = T)
 
 
 ## EXAMPLE 12: ggplot2 Figure + Table Combined Report ####
@@ -883,7 +883,7 @@ spec12b <- create_table(pk_summary) |>
   ))
 
 report12 <- create_report(spec12a, spec12b)
-write_doc(report12, "ex12_ggplot2_figure_with_table")
+write_doc(report12, "full_cycle_12_ggplot2_figure_with_table")
 
 
 ## EXAMPLE 13: Multiple ggplot2 Figures (PNG, JPEG, SVG) ####
@@ -977,7 +977,7 @@ spec13c <- create_figure(p13c, width = 7, height = 4, device = "svg") |>
   ))
 
 report13 <- create_report(spec13a, spec13b, spec13c)
-write_doc(report13, "ex13_ggplot2_multi_figure", toc = T)
+write_doc(report13, "full_cycle_13_ggplot2_multi_figure", toc = T)
 
 } # end ggplot2 block
 
