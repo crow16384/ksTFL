@@ -62,6 +62,10 @@ private:
     std::string emit_styles(std::optional<int> toc_tab_pos_twips = std::nullopt) const;
     std::string emit_settings() const;
     std::string emit_font_table() const;
+    void emit_package(const TFLDocument& doc,
+                      const std::string& output_path,
+                      const std::string& document_xml,
+                      const std::vector<HdrFtrPartInfo>& all_hdr_ftr_parts) const;
 
     // ---- Per-spec emission ----
     /// Emit document.xml content for a single spec's page.

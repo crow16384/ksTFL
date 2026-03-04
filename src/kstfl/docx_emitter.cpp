@@ -1920,49 +1920,8 @@ void DocxEmitter::emit(
     doc_w.end_element();  // w:body
     doc_w.end_element();  // w:document
 
-    // ======================================================================
-    // Phase 3: Assemble the DOCX ZIP package
-    // ======================================================================
-
-    // TOC 1–9 tab position: use first section's content width so TOC spans full width
-    // for whatever page size and orientation the document uses.
-    std::optional<int> toc_tab_twips;
-    if (!doc.specs.empty()) {
-        StyleResolver first_resolver(tmpl_, doc.specs[0].spec_styles);
-        PageConfig first_page = first_resolver.resolve_page_config(doc.specs[0]);
-        toc_tab_twips = static_cast<int>(first_page.usable_width().to_twips());
-    }
-
-    ZipWriter zip(output_path);
-
-    zip.add_entry("[Content_Types].xml", emit_content_types(doc, all_hdr_ftr_parts));
-    zip.add_entry("_rels/.rels", emit_rels());
-    zip.add_entry("word/_rels/document.xml.rels",
-                  emit_document_rels(doc, all_hdr_ftr_parts));
-    zip.add_entry("word/document.xml", doc_w.str());
-    zip.add_entry("word/styles.xml", emit_styles(toc_tab_twips));
-    zip.add_entry("word/settings.xml", emit_settings());
-    zip.add_entry("word/fontTable.xml", emit_font_table());
-
-    // Add header/footer parts
-    for (const auto& part : all_hdr_ftr_parts) {
-        zip.add_entry(part.part_path, part.xml);
-    }
-
-    // Embed figures
-    int img_idx = 4;
-    for (const auto& spec : doc.specs) {
-        if (spec.document.doc_type == DocType::Figure && !spec.figure_path.empty()) {
-            std::string ext = "png";
-            size_t dot = spec.figure_path.rfind('.');
-            if (dot != std::string::npos) ext = spec.figure_path.substr(dot + 1);
-            zip.add_file("word/media/image" + std::to_string(img_idx) + "." + ext,
-                         spec.figure_path);
-            img_idx++;
-        }
-    }
-
-    zip.close();
+    // Package all emitted XML parts and media into final DOCX archive.
+    emit_package(doc, output_path, doc_w.str(), all_hdr_ftr_parts);
     measurer_ = nullptr;  // clear after emit
 }
 
