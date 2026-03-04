@@ -541,6 +541,51 @@ Rcpp::List cpp_test_inline_parser() {
         t.check_eq(cell.paragraphs[0].runs[0].text, std::string("value = 42"), "no tags: text intact");
     }
 
+    // --- BUG-B: Same-type nesting preserves outer tag ---
+    {
+        auto cell = parse_inline_markup("<b>outer <b>inner</b> still bold</b>");
+        t.check_eq(cell.paragraphs.size(), size_t(1), "same-type nesting: 1 paragraph");
+        // "still bold" must still have bold_override = true
+        bool found_still_bold = false;
+        for (const auto& run : cell.paragraphs[0].runs) {
+            if (run.text.find("still bold") != std::string::npos) {
+                found_still_bold = run.style.bold_override;
+            }
+        }
+        t.check(found_still_bold, "same-type nesting: 'still bold' has bold_override");
+    }
+
+    // --- BUG-B: Same-type nesting with italic ---
+    {
+        auto cell = parse_inline_markup("<i>a <i>b</i> c</i>");
+        bool c_italic = false;
+        for (const auto& run : cell.paragraphs[0].runs) {
+            if (run.text.find("c") != std::string::npos) {
+                c_italic = run.style.italic_override;
+            }
+        }
+        t.check(c_italic, "same-type nesting italic: 'c' has italic_override");
+    }
+
+    // --- BUG-B: Mixed nesting — bold wraps italic wraps bold ---
+    {
+        auto cell = parse_inline_markup("<b>A <i>B <b>C</b> D</i> E</b>");
+        // "D" should be bold+italic, "E" should be bold only
+        bool d_bold = false, d_italic = false, e_bold = false, e_no_italic = false;
+        for (const auto& run : cell.paragraphs[0].runs) {
+            if (run.text.find("D") != std::string::npos) {
+                d_bold = run.style.bold_override;
+                d_italic = run.style.italic_override;
+            }
+            if (run.text.find("E") != std::string::npos) {
+                e_bold = run.style.bold_override;
+                e_no_italic = !run.style.italic_override;
+            }
+        }
+        t.check(d_bold && d_italic, "mixed nesting: 'D' bold+italic");
+        t.check(e_bold && e_no_italic, "mixed nesting: 'E' bold only");
+    }
+
     return t.to_list();
 }
 

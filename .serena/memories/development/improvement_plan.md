@@ -1,69 +1,45 @@
-# Improvement Plan (Mar 2026)
+# Improvement Plan (Updated Mar 2026)
 
-## Priority 1: Quick Wins (< 30 min each)
+## Completed
 
-### ~~BUG-D: Remove unused `get_dbl()`~~ ✅ DONE (commit 25a4df7)
-- Removed from json_parser.cpp. Zero compiler warnings now.
+| Task | Commit | Summary |
+|------|--------|---------|
+| BUG-A | 760a052 | Zero margin override — `optional<Length>` in PageMarginsOverride |
+| OPT-1 | 760a052 | Hoisted seg_cols set to per-segment |
+| OPT-2 | 760a052 | In-place XML escaping (escape_text_into/escape_attr_into) |
+| BUG-D | 25a4df7 | Removed unused get_dbl() — zero warnings |
+| OPT-5 | 25a4df7 | Cached parse_inline_markup for titles across pages |
+| OPT-3 | 22252c7 | string_view in split_words + measure_run_width |
+| OPT-4 | 85ff257 | In-place merge_from() for all 8 style structs, 22 call sites |
+| BUG-C | 016ad0d | Resolved as correct by design — documentation fix only |
 
-### ~~OPT-5: Cache parse_inline_markup for titles~~ ✅ DONE (commit 25a4df7)
-- Pre-parse titles once before page loop, pass `vector<ParsedCell>` to `emit_page()`.
-- Eliminates redundant re-parsing on every page of multi-page tables.
+## Remaining Work
 
-## Priority 2: Medium Effort (1-2 hours each)
-
-### OPT-3: string_view in split_words() [Medium effort, Medium impact]
-- File: src/kstfl/text_measurer.cpp
-- Problem: `split_words()` returns `vector<string>`, each element is a heap-allocated copy of a substring
-- Fix: Return `vector<string_view>` pointing into the original string. Must ensure lifetime of source string outlives the views.
-- Risk: Moderate — need to audit all callers to ensure source string lifetime is sufficient
-- Prerequisite: Verify that the source string lives long enough in all call sites
-
-### OPT-4: In-place merge_from() for StyleDef [Medium effort, Medium impact]
-- File: src/kstfl/units.cpp (or new style_types.cpp)
-- Problem: `merged_with()` creates a new StyleDef copy each time; chained calls (template → spec → row) create intermediates
-- Fix: Add `void merge_from(const StyleDef& other)` that modifies `this` in-place. Keep `merged_with()` for API compatibility but implement via `merge_from()`.
-- Risk: Low — additive change, existing API unchanged
-
-### BUG-C: Verify find_style() scope [Investigation needed]
-- File: src/kstfl/style_resolver.cpp
-- Problem: `find_style()` only searches `spec_styles`, not template styles. If a row references a style name defined only in the template, it's silently skipped.
-- Action: First determine if this is intentional design (spec overrides template entirely) or a bug
-- If bug: Add template style fallback in `find_style()` after spec lookup fails
-- Risk: Must understand intended style cascade before changing
-
-## Priority 3: Larger Refactoring (0.5-1 day each)
-
-### BUG-B: Nested inline tags state machine [Complex]
+### BUG-B: Nested inline tags state machine [Complex, ~2-4 hours]
 - File: src/kstfl/inline_parser.cpp
 - Problem: `parse_inline_markup()` uses boolean flags (is_bold, is_italic, etc.) instead of a stack. Nested same-type tags (e.g., `**bold **nested** bold**`) don't restore state correctly — inner close clears the outer state.
-- Fix: Replace boolean flags with a stack-based parser state. Each opening tag pushes state, each closing tag pops. The current state is the top of the stack merged downward.
+- Fix: Replace boolean flags with a stack-based parser state.
 - Impact: Correctness for edge-case nested formatting
 - Risk: Moderate — core parser change, needs thorough testing
 - Rarely triggered in clinical TFL practice
 
-### SOLID: Split docx_emitter.cpp [Major refactoring]
-- File: src/kstfl/docx_emitter.cpp (2294 lines)
-- Problem: Single class handles content parts XML, metadata XML (core.xml, app.xml, content_types.xml), styles.xml, TOC emission, figure embedding, ZIP packaging
+### SOLID: Split docx_emitter.cpp [Major refactoring, 1+ day]
+- File: src/kstfl/docx_emitter.cpp (~2300 lines)
+- Problem: Single class handles content emission, metadata XML, styles.xml, TOC, figures, ZIP packaging
 - Proposed split:
-  - `docx_emitter.cpp` — orchestration + content emission (tables, text, figures)
+  - `docx_emitter.cpp` — orchestration + content emission
   - `docx_metadata.cpp` — core.xml, app.xml, content_types.xml, rels
-  - `docx_styles.cpp` — styles.xml generation from resolved styles
-  - `docx_packager.cpp` — ZIP assembly and file writing
-- Risk: High — many internal dependencies, needs careful interface design
-- Testing: Existing 1027 tests provide good regression coverage
+  - `docx_styles.cpp` — styles.xml generation
+  - `docx_packager.cpp` — ZIP assembly
+- Risk: High — many internal dependencies
 
-### SOLID: Relocate units.cpp methods [Medium refactoring]
+### SOLID: Relocate units.cpp methods [Medium refactoring, 2-4 hours]
 - File: src/kstfl/units.cpp
-- Problem: Contains `StyleDef::merged_with()`, alignment/border converters alongside unit conversion. Violates SRP.
-- Fix: Move style-related methods to style_types.cpp (or similar), keep only unit conversion in units.cpp
-- Risk: Low — file reorganization, no logic changes
-- Prerequisite: OPT-4 (merge_from) ideally done first
+- Problem: Contains style merge methods + alignment/border converters alongside unit conversion
+- Fix: Move style-related methods to style_types.cpp, keep only unit conversion in units.cpp
+- Risk: Low — file reorganization only
 
 ## Recommended Execution Order
-1. BUG-D (trivial, 5 min)
-2. OPT-5 (low effort, 15 min)
-3. OPT-4 (in-place merge, 1-2 hours)
-4. OPT-3 (string_view, 1-2 hours)
-5. BUG-C (investigation + possible fix, 1 hour)
-6. BUG-B (parser rewrite, 2-4 hours)
-7. SOLID refactoring (when time allows, multi-day)
+1. BUG-B (parser rewrite, 2-4 hours)
+2. SOLID: units.cpp split (2-4 hours)
+3. SOLID: docx_emitter.cpp split (1+ day)

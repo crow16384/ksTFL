@@ -56,6 +56,9 @@ bool has_inline_markup(const std::string& text) {
 // ---------------------------------------------------------------------------
 
 /// State machine for parsing inline markup.
+/// State is derived from the tag stack — each active tag contributes its
+/// formatting flag.  This correctly handles nested same-type tags:
+/// e.g. <b>outer <b>inner</b> still bold</b>.
 struct ParserState {
     bool bold = false;
     bool italic = false;
@@ -71,6 +74,43 @@ struct ParserState {
         rs.superscript = superscript;
         rs.subscript = subscript;
         return rs;
+    }
+
+    /// Rebuild state from the tag stack.  Called after every push/pop.
+    static ParserState from_stack(const std::stack<TagType>& stk) {
+        ParserState s;
+        // Walk the stack contents via a copy (stack has no iterator).
+        std::stack<TagType> tmp = stk;
+        while (!tmp.empty()) {
+            switch (tmp.top()) {
+                case TagType::Bold:      s.bold        = true; break;
+                case TagType::Italic:    s.italic      = true; break;
+                case TagType::Underline: s.underline   = true; break;
+                case TagType::Sup:       s.superscript = true; break;
+                case TagType::Sub:       s.subscript   = true; break;
+                default: break;
+            }
+            tmp.pop();
+        }
+        // Sub clears super (mutual exclusion) — if both are on the stack,
+        // the most-recently-pushed one wins.  Re-walk to enforce.
+        if (s.superscript && s.subscript) {
+            // Find which was pushed later by walking the original stack
+            // (top = most recent).
+            std::stack<TagType> tmp2 = stk;
+            while (!tmp2.empty()) {
+                if (tmp2.top() == TagType::Sub) {
+                    s.superscript = false;
+                    break;
+                }
+                if (tmp2.top() == TagType::Sup) {
+                    s.subscript = false;
+                    break;
+                }
+                tmp2.pop();
+            }
+        }
+        return s;
     }
 };
 
@@ -217,30 +257,30 @@ ParsedCell parse_inline_markup(const std::string& text) {
 
             // Formatting tags
             if (is_closing) {
-                // Pop formatting state
-                if (!tag_stack.empty() && tag_stack.top() == type) {
+                // Pop the matching tag from the stack (search from top).
+                // We use a temp stack to find and remove the first match.
+                std::stack<TagType> tmp;
+                bool found = false;
+                while (!tag_stack.empty()) {
+                    if (!found && tag_stack.top() == type) {
+                        tag_stack.pop();
+                        found = true;
+                        break;
+                    }
+                    tmp.push(tag_stack.top());
                     tag_stack.pop();
                 }
-                switch (type) {
-                    case TagType::Bold:      state.bold = false;        break;
-                    case TagType::Italic:    state.italic = false;      break;
-                    case TagType::Underline: state.underline = false;   break;
-                    case TagType::Sup:       state.superscript = false; break;
-                    case TagType::Sub:       state.subscript = false;   break;
-                    default: break;
+                // Restore popped-off non-matching tags
+                while (!tmp.empty()) {
+                    tag_stack.push(tmp.top());
+                    tmp.pop();
                 }
             } else {
                 // Push formatting state
                 tag_stack.push(type);
-                switch (type) {
-                    case TagType::Bold:      state.bold = true;        break;
-                    case TagType::Italic:    state.italic = true;      break;
-                    case TagType::Underline: state.underline = true;   break;
-                    case TagType::Sup:       state.superscript = true; break;
-                    case TagType::Sub:       state.subscript = true; state.superscript = false; break;
-                    default: break;
-                }
             }
+            // Rebuild state from the stack — handles same-type nesting correctly
+            state = ParserState::from_stack(tag_stack);
         } else {
             buffer += text[pos++];
         }

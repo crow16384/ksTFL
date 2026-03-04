@@ -4,7 +4,7 @@
 - Package: ksTFL v0.2.3
 - C++ Standard: C++20 (g++ 14.2.0)
 - 1027 R tests passing, 135 C++ assertions (3 suites)
-- 26 bugs fixed and documented in development/bugs_lessons
+- 26 bugs fixed (BUG-C resolved as not-a-bug) and documented in development/bugs_lessons
 - Zero compiler warnings (BUG-D fixed in commit 25a4df7)
 
 ## Recent Changes (Mar 2026)
