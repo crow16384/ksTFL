@@ -36,6 +36,7 @@ SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/docx_document.cpp \
     kstfl/docx_toc.cpp \
     kstfl/docx_layout.cpp \
+    kstfl/docx_drawing.cpp \
     kstfl/docx_packager.cpp \
     kstfl/docx_emitter.cpp \
     kstfl/renderer.cpp
