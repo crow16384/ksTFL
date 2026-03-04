@@ -1,7 +1,7 @@
 
-curr_path <- file.path(getwd(),"tmp", "prezi");
+#curr_path <- file.path(getwd(),"tmp", "prezi");
 
-source(file.path(curr_path, 'init.r'))
+#source(file.path(curr_path, 'init.r'))
 
 source(file.path(data.path, 'ae_tbl_01.r')) 
 

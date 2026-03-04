@@ -521,11 +521,14 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
         for (const auto& ma : actions->merges) {
             if (ma.cols.empty()) continue;
 
-            // Find the visible column indices for this merge
+            // Find the visible column indices for this merge.
+            // Hidden (is_visible=false) columns are excluded from the merge
+            // set — their values are transferred to the first visible column
+            // below, but they don't participate in gridSpan computation.
             std::vector<size_t> merge_indices;
             for (const auto& col_id : ma.cols) {
                 auto it = col_to_idx.find(col_id);
-                if (it != col_to_idx.end()) {
+                if (it != col_to_idx.end() && columns[it->second].is_visible) {
                     merge_indices.push_back(it->second);
                 }
             }
@@ -539,10 +542,16 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
             std::sort(merge_indices.begin(), merge_indices.end());
 
             // Check if the first column in the merge list is invisible
-            // (i.e., not present in col_to_idx). If so, bring its value
-            // to the first visible column in the merge.
+            // (not visible). If so, bring its value to the first visible
+            // column in the merge.
             const std::string& first_merge_col = ma.cols[0];
-            bool first_is_invisible = (col_to_idx.find(first_merge_col) == col_to_idx.end());
+            bool first_is_invisible = false;
+            {
+                auto it = col_to_idx.find(first_merge_col);
+                if (it == col_to_idx.end() || !columns[it->second].is_visible) {
+                    first_is_invisible = true;
+                }
+            }
             if (first_is_invisible) {
                 // Get value from the invisible column via DataTable
                 std::string invisible_val = get_data_value(first_merge_col, src_idx);

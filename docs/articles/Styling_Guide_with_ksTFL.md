@@ -412,12 +412,12 @@ spec <- define_cols(spec, mpg, label = "MPG",
 
 ### When to use `f_combine()` vs named styles
 
-| Use Case                                     | Approach                                                                                |
-|----------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Reusable style** (used in 3+ places)       | Define a named style with [`add_style()`](https://example.com/reference/add_style.md)   |
-| **One-off combination** (used once or twice) | Use [`f_combine()`](https://example.com/reference/f_combine.md) inline                  |
-| **Complex style** (many properties)          | Define named style, then optionally combine with others                                 |
-| **Per-column variations**                    | Use [`f_combine()`](https://example.com/reference/f_combine.md) with per-column vectors |
+| Use Case | Approach |
+|----|----|
+| **Reusable style** (used in 3+ places) | Define a named style with [`add_style()`](https://example.com/reference/add_style.md) |
+| **One-off combination** (used once or twice) | Use [`f_combine()`](https://example.com/reference/f_combine.md) inline |
+| **Complex style** (many properties) | Define named style, then optionally combine with others |
+| **Per-column variations** | Use [`f_combine()`](https://example.com/reference/f_combine.md) with per-column vectors |
 
 ### Combining with per-column mapping
 
@@ -654,63 +654,63 @@ compose them freely with
 
 ### Complete atom reference
 
-| Atom                                                               | Effect                                                                    |
-|--------------------------------------------------------------------|---------------------------------------------------------------------------|
-| **Font — decoration**                                              |                                                                           |
-| `b` / `font_bold`                                                  | Bold                                                                      |
-| `i` / `font_italic`                                                | Italic                                                                    |
-| `u` / `font_underline`                                             | Underline                                                                 |
-| **Font — size**                                                    |                                                                           |
-| `fs_7` … `fs_11`                                                   | Font size 7 pt … 11 pt                                                    |
-| **Font — colour**                                                  |                                                                           |
-| `fc_black`, `fc_red`, `fc_blue`, `fc_green`                        | Pure text colours                                                         |
-| `fc_gray` / `fc_grey`                                              | Secondary / reference text (#595959)                                      |
-| `fc_navy`, `fc_teal`, `fc_olive`, `fc_rust`, `fc_plum`, `fc_slate` | Muted clinical palette                                                    |
-| **Text highlight (cell shading)**                                  |                                                                           |
-| `hl_yellow`, `hl_red`, `hl_green`, `hl_gray` / `hl_grey`           | Strong highlight colours                                                  |
-| `hl_peach`, `hl_mint`, `hl_sky`, `hl_lemon`, `hl_lilac`            | Pastel highlight palette                                                  |
-| **Paragraph — alignment**                                          |                                                                           |
-| `al` / `text_left`                                                 | Left-align                                                                |
-| `ar` / `text_right`                                                | Right-align                                                               |
-| `ac` / `text_center`                                               | Center-align                                                              |
-| **Paragraph — left indentation**                                   |                                                                           |
-| `ind1` / `indent_1`                                                | 0.5 cm left indent (top-level category)                                   |
-| `ind2` / `indent_2`                                                | 1.0 cm left indent (first sub-group)                                      |
-| `ind3` / `indent_3`                                                | 1.5 cm left indent (second sub-group)                                     |
-| `ind4` / `indent_4`                                                | 2.0 cm left indent (detail)                                               |
-| **Paragraph — table-width shrink**                                 |                                                                           |
-| `tw_95` … `tw_50`                                                  | Symmetric left+right indent to match table at 95 %…50 % width (5 % steps) |
-| **Paragraph — spacing**                                            |                                                                           |
-| `sp_0`                                                             | No space before/after paragraph                                           |
-| `sp_2`                                                             | 2 pt space before and after                                               |
-| `sp_4`                                                             | 4 pt space before and after                                               |
-| **Paragraph — pagination**                                         |                                                                           |
-| `kl`                                                               | Keep all lines of a cell on the same page                                 |
-| `kn`                                                               | Keep this row on the same page as the next row                            |
-| **Group / category header composites**                             |                                                                           |
-| `grp_hdr`                                                          | Bold + 4 pt space above + left indent reset (category header)             |
-| `grp_hdr_i`                                                        | Bold + italic + 4 pt space above + left indent reset                      |
-| **Cell — vertical alignment**                                      |                                                                           |
-| `va_t` / `va_top`                                                  | Top                                                                       |
-| `va_m` / `va_center`                                               | Middle                                                                    |
-| `va_b` / `va_bottom`                                               | Bottom                                                                    |
-| **Cell — text orientation**                                        |                                                                           |
-| `to_h` / `text_horizontal`                                         | Horizontal (default)                                                      |
-| `to_90` / `text_vertical_90`                                       | Rotated 90° (bottom-to-top)                                               |
-| `to_270` / `text_vertical_270`                                     | Rotated 270° (top-to-bottom)                                              |
-| **Cell — background colour**                                       |                                                                           |
-| `bg_blue`, `bg_gray` / `bg_grey`                                   | Standard backgrounds                                                      |
-| `bg_peach`, `bg_mint`, `bg_sky`, `bg_lemon`, `bg_lilac`            | Pastel backgrounds                                                        |
-| `bg_navy`, `bg_slate`, `bg_steel`                                  | Dark/medium header backgrounds                                            |
-| **Row height**                                                     |                                                                           |
-| `row_h2`, `row_h4`, `row_h6`                                       | Row height 2 / 4 / 6 pt (separator rows)                                  |
-| **Border — sides (1 pt black)**                                    |                                                                           |
-| `bt`, `bb`, `bl`, `br`                                             | Top / bottom / left / right border                                        |
-| **Border — thin sides (0.5 pt black)**                             |                                                                           |
-| `bt_th`, `bb_th`                                                   | Thin top / bottom border                                                  |
-| **Border — colour override**                                       |                                                                           |
-| `bc_gray` / `bc_grey`                                              | All sides → medium gray (#AAAAAA)                                         |
-| `bc_white`                                                         | All sides → white / none (suppress borders)                               |
+| Atom | Effect |
+|----|----|
+| **Font — decoration** |  |
+| `b` / `font_bold` | Bold |
+| `i` / `font_italic` | Italic |
+| `u` / `font_underline` | Underline |
+| **Font — size** |  |
+| `fs_7` … `fs_11` | Font size 7 pt … 11 pt |
+| **Font — colour** |  |
+| `fc_black`, `fc_red`, `fc_blue`, `fc_green` | Pure text colours |
+| `fc_gray` / `fc_grey` | Secondary / reference text (#595959) |
+| `fc_navy`, `fc_teal`, `fc_olive`, `fc_rust`, `fc_plum`, `fc_slate` | Muted clinical palette |
+| **Text highlight (cell shading)** |  |
+| `hl_yellow`, `hl_red`, `hl_green`, `hl_gray` / `hl_grey` | Strong highlight colours |
+| `hl_peach`, `hl_mint`, `hl_sky`, `hl_lemon`, `hl_lilac` | Pastel highlight palette |
+| **Paragraph — alignment** |  |
+| `al` / `text_left` | Left-align |
+| `ar` / `text_right` | Right-align |
+| `ac` / `text_center` | Center-align |
+| **Paragraph — left indentation** |  |
+| `ind1` / `indent_1` | 0.5 cm left indent (top-level category) |
+| `ind2` / `indent_2` | 1.0 cm left indent (first sub-group) |
+| `ind3` / `indent_3` | 1.5 cm left indent (second sub-group) |
+| `ind4` / `indent_4` | 2.0 cm left indent (detail) |
+| **Paragraph — table-width shrink** |  |
+| `tw_95` … `tw_50` | Symmetric left+right indent to match table at 95 %…50 % width (5 % steps) |
+| **Paragraph — spacing** |  |
+| `sp_0` | No space before/after paragraph |
+| `sp_2` | 2 pt space before and after |
+| `sp_4` | 4 pt space before and after |
+| **Paragraph — pagination** |  |
+| `kl` | Keep all lines of a cell on the same page |
+| `kn` | Keep this row on the same page as the next row |
+| **Group / category header composites** |  |
+| `grp_hdr` | Bold + 4 pt space above + left indent reset (category header) |
+| `grp_hdr_i` | Bold + italic + 4 pt space above + left indent reset |
+| **Cell — vertical alignment** |  |
+| `va_t` / `va_top` | Top |
+| `va_m` / `va_center` | Middle |
+| `va_b` / `va_bottom` | Bottom |
+| **Cell — text orientation** |  |
+| `to_h` / `text_horizontal` | Horizontal (default) |
+| `to_90` / `text_vertical_90` | Rotated 90° (bottom-to-top) |
+| `to_270` / `text_vertical_270` | Rotated 270° (top-to-bottom) |
+| **Cell — background colour** |  |
+| `bg_blue`, `bg_gray` / `bg_grey` | Standard backgrounds |
+| `bg_peach`, `bg_mint`, `bg_sky`, `bg_lemon`, `bg_lilac` | Pastel backgrounds |
+| `bg_navy`, `bg_slate`, `bg_steel` | Dark/medium header backgrounds |
+| **Row height** |  |
+| `row_h2`, `row_h4`, `row_h6` | Row height 2 / 4 / 6 pt (separator rows) |
+| **Border — sides (1 pt black)** |  |
+| `bt`, `bb`, `bl`, `br` | Top / bottom / left / right border |
+| **Border — thin sides (0.5 pt black)** |  |
+| `bt_th`, `bb_th` | Thin top / bottom border |
+| **Border — colour override** |  |
+| `bc_gray` / `bc_grey` | All sides → medium gray (#AAAAAA) |
+| `bc_white` | All sides → white / none (suppress borders) |
 
 **Usage:**
 

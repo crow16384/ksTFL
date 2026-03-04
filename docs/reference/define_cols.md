@@ -88,12 +88,8 @@ define_cols(
 
 - isColBreak:
 
-  Whether column marks a horizontal segment boundary (length 1 or length
-  of cols; `NA` skips that position). When `TRUE`, the table is split
-  into segments at this column: each segment is rendered with its own
-  subset of columns (ID columns repeated), and segments are emitted
-  interleaved by page. Does not trigger a page break; use `isPaging` or
-  `c_pageBreak()` for that.
+  Whether column triggers page break (length 1 or length of cols; `NA`
+  skips that position)
 
 - dedupe:
 

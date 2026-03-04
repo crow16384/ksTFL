@@ -1,0 +1,67 @@
+[
+  {
+    "spec_file": "257265c83ddc3317.json",
+    "doc_file": "table_dm_ae_navy.docx",
+    "datetime": "2026-03-04T21:11:35",
+    "n_specs": 2,
+    "data_refs": [
+      "0001_ad2448beb32995f2",
+      "0002_37b23c3eac5de124"
+    ]
+  },
+  {
+    "spec_file": "3dcbb80af0689f31.json",
+    "doc_file": "table_1_1_rep.docx",
+    "datetime": "2026-03-04T21:16:23",
+    "n_specs": 1,
+    "data_refs": [
+      "0001_37b23c3eac5de124"
+    ]
+  },
+  {
+    "spec_file": "02936f421c661012.json",
+    "doc_file": "table_1_1_docfoot.docx",
+    "datetime": "2026-03-04T21:16:23",
+    "n_specs": 1,
+    "data_refs": [
+      "0001_37b23c3eac5de124"
+    ]
+  },
+  {
+    "spec_file": "0bd292044c875c84.json",
+    "doc_file": "table_1_1_lp.docx",
+    "datetime": "2026-03-04T21:16:24",
+    "n_specs": 1,
+    "data_refs": [
+      "0001_37b23c3eac5de124"
+    ]
+  },
+  {
+    "spec_file": "910ccbbaf69f5d84.json",
+    "doc_file": "table_dm_ae_navy.docx",
+    "datetime": "2026-03-04T21:16:25",
+    "n_specs": 2,
+    "data_refs": [
+      "0001_ad2448beb32995f2",
+      "0002_37b23c3eac5de124"
+    ]
+  },
+  {
+    "spec_file": "639808e356f97de6.json",
+    "doc_file": "table_1_1_rep.docx",
+    "datetime": "2026-03-04T21:22:25",
+    "n_specs": 1,
+    "data_refs": [
+      "0001_37b23c3eac5de124"
+    ]
+  },
+  {
+    "spec_file": "3e284a3d4fec0406.json",
+    "doc_file": "table_1_1_docfoot.docx",
+    "datetime": "2026-03-04T21:22:26",
+    "n_specs": 1,
+    "data_refs": [
+      "0001_37b23c3eac5de124"
+    ]
+  }
+]

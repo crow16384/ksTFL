@@ -1,5 +1,4 @@
-#curr_path <- file.path('/home/i_aleschenkov/develop/ksTFL_prezi');
-curr_path <- file.path(getwd(),"tmp", "prezi");
+curr_path <- file.path(getwd(),"inst", "examples", "prezi");
 
 source(file.path(curr_path, 'init.r'))
 source(file.path(curr_path, 'ae_tbl_01.r'))
