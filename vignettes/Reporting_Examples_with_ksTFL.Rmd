@@ -1,16 +1,16 @@
 ---
-title: "Reporting Examples — ksTFL (v3)"
+title: "Reporting Examples — ksTFL"
 author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
 vignette: >
-  %\VignetteIndexEntry{Reporting Examples — ksTFL (v3)}
+  %\VignetteIndexEntry{Reporting Examples — ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
+knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE, dev = "cairo_png")
 options(pkgdown.internet = FALSE)
 ```
 
@@ -66,8 +66,9 @@ labs_tbl <- data.frame(
 )
 
 # Example plot file (created locally when running the vignette)
+# type = "cairo" avoids needing an X11 display (headless-safe for pkgdown/CI)
 plot_file <- file.path(tempdir(), "example_plot.png")
-png(plot_file, width = 600, height = 400)
+png(plot_file, width = 600, height = 400, type = "cairo")
 plot(demog_tbl$age, vitals_tbl$sbp[1:24], xlab = "Age", ylab = "SBP", main = "Age vs SBP")
 dev.off()
 ```

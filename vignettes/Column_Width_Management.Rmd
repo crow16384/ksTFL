@@ -16,7 +16,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE
+  eval = FALSE,
+  dev = "cairo_png"
 )
 options(pkgdown.internet = FALSE)
 ```
