@@ -1,7 +1,7 @@
-// kstfl/docx_emitter.cpp — OOXML emission for DOCX documents
+// kstfl/docx_emitter.cpp — orchestration entry point for DOCX emission
 //
-// Implements spec §19: streaming OOXML emission, fixed-layout tables,
-// header repetition, page/section breaks, field codes.
+// High-level flow: build header/footer parts, emit document.xml,
+// then assemble all package parts into final .docx.
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
@@ -56,6 +56,8 @@ void DocxEmitter::emit(
     const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
     const std::unordered_map<std::string, HeaderGrid>& resolved_headers,
     TextMeasurer* measurer) {
+
+    (void)data_tables;  // reserved for API compatibility; not needed at emit stage
 
     measurer_ = measurer;  // store for use in emit_page / emit_text_groups
     toc_bookmark_counter_ = 0;  // reset per document so IDs are deterministic
