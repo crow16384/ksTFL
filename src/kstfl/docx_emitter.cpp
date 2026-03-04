@@ -1384,11 +1384,12 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
         w.end_element();
 
         // Emit only cells whose columns belong to this segment.
-        // Track running column index to map cells → column ranges.
-        size_t running_col = 0;
+        // Each cell carries source_col_index (its position in spec.columns)
+        // to correctly map to segment column indices when invisible columns
+        // create gaps in the index space.
         for (const auto& cell : header_row) {
-            size_t col_start = running_col;
-            size_t col_end = running_col + static_cast<size_t>(cell.col_span);
+            size_t col_start = cell.source_col_index;
+            size_t col_end = col_start + static_cast<size_t>(cell.col_span);
 
             // Count how many of this cell's columns are in the segment
             int visible_span = 0;
@@ -1425,14 +1426,12 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
                 TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
 
                 // Override with structural borders (highest priority)
-                // First header row: apply header_top_border
                 if (is_first_header_row && tmpl_.table_style.structural.header_top_border.has_value()) {
                     if (!tcp.borders.has_value()) {
                         tcp.borders = Borders{};
                     }
                     tcp.borders->top = tmpl_.table_style.structural.header_top_border;
                 }
-                // Last header row: apply header_bottom_border
                 if (is_last_header_row && tmpl_.table_style.structural.header_bottom_border.has_value()) {
                     if (!tcp.borders.has_value()) {
                         tcp.borders = Borders{};
@@ -1447,8 +1446,6 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
 
                 w.end_element();  // w:tc
             }
-
-            running_col = col_end;
         }
 
         w.end_element();  // w:tr
@@ -1575,11 +1572,14 @@ void DocxEmitter::emit_table(XmlWriter& w,
     // segment fills the full table width, while ID columns keep their
     // original width so they align across interleaved segments.
     Length full_table_width{0};
+    size_t visible_col_count = 0;
     for (const auto& col : spec.columns) {
+        if (!col.is_visible) continue;
         full_table_width = full_table_width + col.resolved_width;
+        visible_col_count++;
     }
 
-    bool is_subset = (segment.column_indices.size() < spec.columns.size());
+    bool is_subset = (segment.column_indices.size() < visible_col_count);
 
     // Build per-column scaled width map
     std::unordered_map<size_t, int64_t> col_widths;

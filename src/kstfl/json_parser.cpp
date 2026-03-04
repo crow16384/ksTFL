@@ -463,9 +463,10 @@ static std::vector<ColumnSpec> parse_columns(const json& j) {
     // Sort by colOrder
     std::sort(cols.begin(), cols.end(),
               [](const ColumnSpec& a, const ColumnSpec& b) { return a.col_order < b.col_order; });
-    // Filter out invisible columns
-    cols.erase(std::remove_if(cols.begin(), cols.end(),
-               [](const ColumnSpec& c) { return !c.is_visible; }), cols.end());
+    // Invisible columns are kept in the vector so that grouping/paging
+    // columns (isGrouping, isPaging) still participate in #ByGroupX
+    // resolution and group-boundary detection even when hidden.
+    // Rendering code checks is_visible to skip them in visual output.
     return cols;
 }
 

@@ -167,9 +167,14 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                 return min_a < min_b;
             });
 
-            // Fill the row: iterate columns left to right
+            // Fill the row: iterate visible columns left to right
             size_t col_idx = 0;
             while (col_idx < spec.columns.size()) {
+                if (!spec.columns[col_idx].is_visible) {
+                    col_idx++;
+                    continue;
+                }
+
                 // Check if this column is the start of a stub span
                 const StubColumn* matching_stub = nullptr;
                 for (const auto* stub : level_stubs) {
@@ -183,49 +188,52 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                 }
 
                 if (matching_stub) {
-                    // Compute span
-                    int span = 0;
+                    // Compute span across original indices; track min/max for range.
                     Length total_width{0};
+                    size_t min_idx = spec.columns.size(), max_idx = 0;
                     for (const auto& c : matching_stub->cols) {
                         auto it = col_id_to_idx.find(c);
-                        if (it != col_id_to_idx.end()) {
+                        if (it != col_id_to_idx.end() && spec.columns[it->second].is_visible) {
                             covered[it->second] = true;
-                            // Mark columns as covered by a horizontal span
-                            // (so lower levels know they can't vMerge with them)
                             covered_by_span[it->second] = true;
-                            // If this column previously had vMerge, the span overrides it
                             has_vmerge_restart[it->second] = false;
                             total_width = total_width + spec.columns[it->second].resolved_width;
-                            span++;
+                            min_idx = std::min(min_idx, it->second);
+                            max_idx = std::max(max_idx, it->second);
                         }
                     }
+                    // col_span in original index space so emitter can iterate the range
+                    int span_orig = (min_idx <= max_idx) ? static_cast<int>(max_idx - min_idx + 1) : 1;
 
                     HeaderGridCell cell;
                     cell.label = matching_stub->label;
-                    cell.col_span = span;
+                    cell.col_span = span_orig;
                     cell.row_span = 1;
                     cell.width = total_width;
                     cell.style_ref = matching_stub->label_style_ref;
+                    cell.source_col_index = min_idx;
                     row.push_back(cell);
 
-                    // Advance past spanned columns
-                    col_idx += static_cast<size_t>(span);
+                    // Advance col_idx past the spanned range
+                    col_idx = max_idx + 1;
+                    // Skip any trailing invisible columns
+                    while (col_idx < spec.columns.size() && !spec.columns[col_idx].is_visible) {
+                        col_idx++;
+                    }
                 } else {
                     // Column not covered by any stub at this level.
                     HeaderGridCell cell;
                     cell.col_span = 1;
                     cell.row_span = 1;
                     cell.width = spec.columns[col_idx].resolved_width;
+                    cell.source_col_index = col_idx;
 
                     if (has_vmerge_restart[col_idx]) {
-                        // Already has vMerge from a higher row → continue
                         cell.label = "";
                         cell.v_merge = VMergeState::Continue;
                     } else if (covered_by_span[col_idx]) {
-                        // Part of a horizontal span above → empty filler cell
                         cell.label = "";
                     } else {
-                        // First time seeing this column uncovered → start vMerge
                         cell.label = spec.columns[col_idx].label;
                         cell.style_ref = spec.columns[col_idx].label_style_ref;
                         cell.v_merge = VMergeState::Restart;
@@ -240,17 +248,19 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
         }
     }
 
-    // Bottom row: individual column labels
+    // Bottom row: individual column labels (visible columns only).
     // If a column is vertically merged from a stub row above (vMerge::Restart),
     // mark its label-row cell as vMerge::Continue (empty continuation cell).
     std::vector<HeaderGridCell> label_row;
     for (size_t ci = 0; ci < spec.columns.size(); ++ci) {
+        if (!spec.columns[ci].is_visible) continue;
+
         HeaderGridCell cell;
         cell.col_span = 1;
         cell.row_span = 1;
         cell.width = spec.columns[ci].resolved_width;
+        cell.source_col_index = ci;
 
-        // Check if this column has vMerge::Restart in ANY stub row above
         if (has_vmerge_restart[ci]) {
             cell.label = "";
             cell.v_merge = VMergeState::Continue;
@@ -383,37 +393,43 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
     };
 
     // Helper: build a full-width merged synthetic row.
-    // All columns are merged into one cell with the text from value_from column.
+    // The first visible column becomes the merge leader spanning all visible columns.
     auto build_addrow_synthetic = [&](size_t src_idx, const AddRowAction& ar) -> LogicalRow {
         LogicalRow synthetic;
         synthetic.type = LogicalRowType::SyntheticRow;
         synthetic.source_index = src_idx;
         synthetic.row_style_ref = ar.style_ref;
 
-        // Get the value: try DataTable first (handles invisible columns),
-        // then fall back to visible column cells
         std::string value_text = get_data_value(ar.value_from, src_idx);
 
-        // Build cells: first cell is the merge leader spanning all visible columns
+        // Sum width and count of visible columns only
         Length total_width{0};
+        int visible_count = 0;
         for (const auto& col : columns) {
-            total_width = total_width + col.resolved_width;
+            if (col.is_visible) {
+                total_width = total_width + col.resolved_width;
+                visible_count++;
+            }
         }
 
+        bool leader_placed = false;
         for (size_t ci = 0; ci < columns.size(); ++ci) {
             LogicalCell cell;
             cell.col_id = columns[ci].id;
-            if (ci == 0) {
-                // Leader cell: carries the value and spans all columns
+            if (!columns[ci].is_visible) {
+                // Invisible column — empty filler cell
+                cell.is_merged = true;
+            } else if (!leader_placed) {
+                // First visible column is the merge leader
                 cell.text = value_text;
                 cell.is_merge_leader = true;
-                cell.merge_span = static_cast<int>(columns.size());
+                cell.merge_span = visible_count;
                 cell.merged_width = total_width;
                 if (ar.style_ref.has_value()) {
                     cell.style_ref = ar.style_ref;
                 }
+                leader_placed = true;
             } else {
-                // Merged (suppressed) cells
                 cell.is_merged = true;
             }
             synthetic.cells.push_back(std::move(cell));

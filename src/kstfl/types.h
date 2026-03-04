@@ -650,6 +650,10 @@ struct HeaderGridCell {
     // Carries the column's text_orientation so the measurer can swap
     // width/height when the label is rendered rotated.
     std::optional<TextOrientation> text_orientation;
+    // Index of the first column in spec.columns that this cell covers.
+    // Used by the emitter to map header cells to segment column indices
+    // when invisible columns create gaps in the index space.
+    size_t source_col_index = 0;
 };
 
 /// The complete header grid (one or more rows).

@@ -29,6 +29,7 @@ std::vector<HorizontalSegment> Paginator::build_segments(
     std::vector<size_t> break_after;
 
     for (size_t i = 0; i < columns.size(); ++i) {
+        if (!columns[i].is_visible) continue;
         if (columns[i].is_id) {
             id_indices.push_back(i);
         }
@@ -39,11 +40,11 @@ std::vector<HorizontalSegment> Paginator::build_segments(
     }
 
     if (break_after.empty()) {
-        // Single segment: all columns
+        // Single segment: all visible columns
         HorizontalSegment seg;
         seg.segment_index = 0;
         for (size_t i = 0; i < columns.size(); ++i) {
-            seg.column_indices.push_back(i);
+            if (columns[i].is_visible) seg.column_indices.push_back(i);
         }
         segments.push_back(std::move(seg));
         return segments;
@@ -61,15 +62,14 @@ std::vector<HorizontalSegment> Paginator::build_segments(
         std::unordered_set<size_t> included;
         for (size_t id_idx : id_indices) {
             if (id_idx < seg_start || id_idx >= seg_end) {
-                // ID column outside this segment range — repeat it
                 seg.column_indices.push_back(id_idx);
                 included.insert(id_idx);
             }
         }
 
-        // Add columns in this segment range
+        // Add visible columns in this segment range
         for (size_t i = seg_start; i < seg_end; ++i) {
-            if (included.find(i) == included.end()) {
+            if (columns[i].is_visible && included.find(i) == included.end()) {
                 seg.column_indices.push_back(i);
             }
         }
@@ -105,6 +105,7 @@ std::vector<Length> Paginator::compute_row_heights(
         Length max_height{0};
 
         for (size_t ci = 0; ci < row.cells.size() && ci < columns.size(); ++ci) {
+            if (!columns[ci].is_visible) continue;
             const auto& cell = row.cells[ci];
             if (cell.is_merged && !cell.is_merge_leader) continue;
 

@@ -57,10 +57,18 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
                                            Length table_width) const {
     if (columns.empty()) return;
 
+    // Invisible columns get zero width; skip them in distribution.
+    for (auto& col : columns) {
+        if (!col.is_visible) {
+            col.resolved_width = Length{0};
+        }
+    }
+
     // Pass 1: resolve fixed-unit columns (cm, in, mm, pt) first so we know
     // how much space they consume before applying percentage columns.
     int64_t fixed_total = 0;
     for (auto& col : columns) {
+        if (!col.is_visible) continue;
         if (!col.format.col_width_raw.has_value()) continue;
         const std::string& raw = *col.format.col_width_raw;
         // Detect percentage strings: they end with '%'
@@ -80,6 +88,7 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
     int64_t pct_total = 0;
     size_t unspecified_count = 0;
     for (auto& col : columns) {
+        if (!col.is_visible) continue;
         if (!col.format.col_width_raw.has_value()) {
             unspecified_count++;
             continue;
@@ -92,7 +101,7 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
         }
     }
 
-    // Distribute any remaining width among columns with no explicit width.
+    // Distribute any remaining width among visible columns with no explicit width.
     int64_t remaining = table_width.emu - fixed_total - pct_total;
     if (remaining < 0) remaining = 0;
 
@@ -101,6 +110,7 @@ void StyleResolver::resolve_column_widths(std::vector<ColumnSpec>& columns,
         int64_t leftover = remaining - per_col * static_cast<int64_t>(unspecified_count);
         bool first = true;
         for (auto& col : columns) {
+            if (!col.is_visible) continue;
             if (!col.format.col_width_raw.has_value()) {
                 col.resolved_width = Length{per_col + (first ? leftover : 0)};
                 first = false;
