@@ -20,6 +20,7 @@ PKG_LIBS = -L$(HARFBUZZ_DIR)/lib -lharfbuzz \
 
 SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/units.cpp \
+    kstfl/style_types.cpp \
     kstfl/xml_writer.cpp \
     kstfl/json_parser.cpp \
     kstfl/style_resolver.cpp \
