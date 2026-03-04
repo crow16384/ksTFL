@@ -34,6 +34,7 @@ SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/docx_styles.cpp \
     kstfl/docx_sections.cpp \
     kstfl/docx_document.cpp \
+    kstfl/docx_toc.cpp \
     kstfl/docx_packager.cpp \
     kstfl/docx_emitter.cpp \
     kstfl/renderer.cpp
