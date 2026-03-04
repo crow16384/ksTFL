@@ -1,4 +1,23 @@
-# Current Status (Mar 3, 2026)
+# Current Status (Mar 4, 2026)
+
+## pkgdown Build Fixes (Mar 4, 2026)
+
+- **Issue: `pkgdown::build_site()` failed with X11 warning and CRAN timeout**
+  - Warning 1: `png(..., res = dpi, units = "in"): unable to open connection to X11 display ''` — knitr’s default figure device needed a display.
+  - Error: `readRDS(con)` timeout on `https://cran.rstudio.com/web/packages/packages.rds` in callr subprocess (downlit calls `tools::CRAN_package_db()` for autolinking).
+  - Fixes:
+    - **.Rprofile**: Set `knitr::opts_chunk$set(dev = "cairo_png")` so figures use Cairo (headless-safe). Patch downlit’s memoised `CRAN_urls()` via `utils::getFromNamespace("CRAN_urls", "downlit")` and replace its inner `_f` with a function returning `data.frame(Package = character(0), URL = character(0))` so the CRAN fetch is skipped when building articles.
+    - **Vignettes**: Added `dev = "cairo_png"` to each setup chunk; in Reporting_Examples also `png(..., type = "cairo")` for the example plot.
+    - **README**: Documented building the pkgdown site (timeout, downlit, optional pkgdown.offline for offline).
+  - Result: `pkgdown::build_site(pkg = ".", install = FALSE, preview = FALSE)` completes without X11 and without network to CRAN.
+
+## Rotated Header Text Wrapping (Mar 3, 2026)
+
+- **Bug: Vertically rotated column headers (e.g. `labelStyleRef = "to_90"`) wrapped text inside cells**
+  - Symptom: Labels like "RPH-104 (N=16)" broke into multiple lines within the rotated header cell.
+  - Causes: (1) docx_emitter did not emit `w:noWrap` in `w:tcPr` for rotated cells (Word could wrap). (2) text_measurer for rotated cells did not include paragraph indents or paragraph spacing in the required row height, so the reserved height was too small when the template had non-zero indents/spacing.
+  - Fixes: **docx_emitter.cpp**: For `text_orientation` vertical (btLr/tbRl), emit `<w:noWrap/>` in `w:tcPr`. **text_measurer.cpp**: For rotated path, add `indent_left + indent_right` and total paragraph spacing (`(before + after) * n_paras`) to `required_height`.
+  - Result: Header row height accounts for indents/spacing; rotated labels render as intended (single line per segment where applicable).
 
 ## doc_footer Pagination Fix (Mar 3, 2026)
 
@@ -118,6 +137,8 @@ Manual unit tests: inst/examples/manul_unit_tests/TEST_03/ (test_03.R, 11 specs)
 - R is NOT installed on host — all R execution via docker exec
 
 ## Git History (recent)
+- fix: pkgdown build without X11 and without CRAN fetch (Mar 4 2026) — .Rprofile (cairo_png + downlit CRAN_urls patch), vignettes dev = "cairo_png", README
+- fix: rotated header text wrapping in table cells (Mar 3 2026) — docx_emitter w:noWrap for vertical text; text_measurer indents + paragraph spacing for rotated height
 - fix: doc_footer pagination — account for footer overflow in compute_available_height (Mar 3 2026)
 - feat: doc template handling and defaults — `tfl_set_options()`, `set_page_style()`, `set_document()` (Mar 2 2026)
   - Added `docTemplate` parameter to `tfl_set_options()` to set the session default document template (bundled name or external JSON file path).

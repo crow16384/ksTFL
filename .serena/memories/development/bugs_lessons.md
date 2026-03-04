@@ -103,6 +103,26 @@
 **Fix**: Added post-parse validation in `parse_data_internal()` that emits `std::cerr` warning when any column length differs from `dt.n_rows`.
 **File**: src/kstfl/json_parser.cpp
 
+## Bug 21: doc_footer Pagination — Table Broken Across Too Many Pages (Mar 2026)
+**Symptom**: With `set_document(footnotePlace = "doc_footer")`, tables broke prematurely; some pages had only 1–2 rows; footnotes repeated on every page.
+**Root Cause**: `compute_available_height()` ignored `footer_section_height`. When footnotes go into Word footer part (`w:ftr`), footer content = footer rows + footnotes. If that exceeds (bottom_margin - footer_distance), Word pushes the body up; the paginator did not reserve that space.
+**Fix**: In `compute_available_height()`, when `footer_section_height > (bottom_margin - footer_distance)`, subtract the overflow from available body height. Same for header overflow.
+**File**: src/kstfl/paginator.cpp
+**Lesson**: Header/footer content that overflows the margin area steals body space. Paginator must subtract overflow from available height.
+
+## Bug 22: Rotated Header Text Wrapping in Cells (Mar 2026)
+**Symptom**: Vertically rotated column headers (e.g. `labelStyleRef = "to_90"`) wrapped text inside the cell (e.g. "RPH-104 (N=16)" split across lines).
+**Root Causes**: (1) docx_emitter did not emit `w:noWrap` in `w:tcPr` for rotated cells, so Word could wrap. (2) text_measurer for rotated cells did not include paragraph indents or paragraph spacing in required row height — row was too short when template had non-zero indents/spacing.
+**Fix**: docx_emitter.cpp: for vertical text_orientation emit `<w:noWrap/>` in `w:tcPr`. text_measurer.cpp: for rotated path add `indent_left + indent_right` and `(spacing_before + spacing_after) * n_paras` to `required_height`.
+**Files**: src/kstfl/docx_emitter.cpp, src/kstfl/text_measurer.cpp
+**Lesson**: Rotated cell “height” is the text-flow width; Word subtracts paragraph indents and adds paragraph spacing. Measurement must include both so row height is sufficient.
+
+## Build: pkgdown Without X11 and Without CRAN (Mar 2026)
+**Symptom**: `pkgdown::build_site()` failed with (1) `png(...): unable to open connection to X11 display ''`, (2) `readRDS(con)` timeout on `cran.rstudio.com/.../packages.rds` in callr subprocess.
+**Root Causes**: (1) knitr’s default figure device required X11. (2) downlit (used when building articles) calls `tools::CRAN_package_db()` → fetches packages.rds; in callr subprocess this times out when offline/firewalled.
+**Fix**: .Rprofile: (1) `knitr::opts_chunk$set(dev = "cairo_png")` for headless figures. (2) Patch downlit’s memoised `CRAN_urls()`: get it via `utils::getFromNamespace("CRAN_urls", "downlit")`, replace environment’s `_f` with a function returning `data.frame(Package = character(0), URL = character(0))`, reset cache. Vignettes: add `dev = "cairo_png"` in setup; Reporting_Examples use `png(..., type = "cairo")`. README: document build and optional pkgdown.offline.
+**Lesson**: For headless/CI pkgdown: use cairo device globally; to avoid CRAN fetch in subprocess, patch downlit in .Rprofile so the subprocess inherits the patch.
+
 ## General Lessons
 
 ### XmlWriter API Contract
@@ -155,3 +175,13 @@
 - No inline if/else in glue strings
 - Pre-compute conditional values before passing to cli_* functions
 - Use {.path}, {.val}, {.file}, {.fn}, {.field} for styled output
+
+### Rotated (Vertical) Text in Table Cells
+- Row height for rotated cell = natural text width + indent_left + indent_right + (spacing_before + spacing_after) * n_paras + cell_margin_top + cell_margin_bottom
+- Emit `w:noWrap` in `w:tcPr` when text_orientation is vertical so Word does not wrap
+- Measurement uses max paragraph width across `<br>`-separated paragraphs; spacing/indents must be included
+
+### pkgdown Build (Headless / Offline)
+- Set `knitr::opts_chunk$set(dev = "cairo_png")` in .Rprofile so callr subprocess gets headless-safe figures
+- Patch downlit `CRAN_urls()` in .Rprofile (replace inner `_f`, reset cache) to skip CRAN packages.rds fetch
+- Vignette setup chunks: add `dev = "cairo_png"`; explicit `png()` use `type = "cairo"`
