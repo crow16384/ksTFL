@@ -635,15 +635,11 @@ void LogicalTableBuilder::detect_grouping_boundaries(
     std::vector<LogicalRow>& rows,
     const std::vector<ColumnSpec>& columns) {
 
-    // Find grouping columns (isGrouping=true) and paging columns (isPaging=true)
+    // Find grouping/paging columns — both trigger page breaks on value change.
     std::vector<size_t> grouping_indices;
-    std::vector<size_t> paging_indices;
     for (size_t i = 0; i < columns.size(); ++i) {
         if (columns[i].is_grouping || columns[i].is_paging) {
             grouping_indices.push_back(i);
-        }
-        if (columns[i].is_paging) {
-            paging_indices.push_back(i);
         }
     }
 
@@ -675,20 +671,9 @@ void LogicalTableBuilder::detect_grouping_boundaries(
             }
             if (changed) {
                 row.is_group_boundary = true;
-
-                // Check if change is in a paging column — force page break
-                for (size_t pi : paging_indices) {
-                    if (pi < row.cells.size()) {
-                        const auto& col_id = columns[pi].id;
-                        auto it_cur = current_values.find(col_id);
-                        auto it_prev = prev_group_values.find(col_id);
-                        if (it_cur != current_values.end() &&
-                            (it_prev == prev_group_values.end() || it_prev->second != it_cur->second)) {
-                            row.force_page_break = true;
-                            break;
-                        }
-                    }
-                }
+                // Any grouping or paging column change forces a page break
+                // so each group starts on a fresh page.
+                row.force_page_break = true;
             }
         }
 
