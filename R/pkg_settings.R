@@ -15,8 +15,6 @@
     page                = .const_options_page, #structure to keep page settings (class TFL_options)
     
     # Document Renderer Defaults
-    bodyTitles          = TRUE,
-    bodySubtitles       = TRUE,
     footnotePlace       = "repeated",
     isContinues         = FALSE,
     contentWidth        = "100%",

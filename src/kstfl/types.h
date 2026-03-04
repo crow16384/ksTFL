@@ -511,8 +511,6 @@ struct DocumentInfo {
     int doc_order = 0;
     bool is_continues = false;               // if true, titles don't repeat on subsequent pages
     std::optional<double> content_width;     // percent of usable width (0.0–1.0 or 0–100)
-    bool body_titles = false;
-    bool body_subtitles = false;
     FootnotePlace footnote_place = FootnotePlace::Repeated;
     double figure_width_in = 6.0;            // figure width in inches (for Figure docType)
     double figure_height_in = 4.0;           // figure height in inches (for Figure docType)

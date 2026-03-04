@@ -29,8 +29,6 @@
 .fill_spec_defaults <- function(spec) {
   settings <- tfl_get_options()
   
-  spec$document$bodyTitles <- unclass(settings$bodyTitles)
-  spec$document$bodySubtitles <- unclass(settings$bodySubtitles)
   spec$document$footnotePlace <- unclass(settings$footnotePlace)
   spec$document$contentWidth <- unclass(settings$contentWidth)
   
@@ -268,12 +266,6 @@
   }
   
   # Populate document properties from settings (only schema-defined fields)
-  if (is.null(spec$document$bodyTitles)) {
-    spec$document$bodyTitles <- unclass(settings$bodyTitles)
-  }
-  if (is.null(spec$document$bodySubtitles)) {
-    spec$document$bodySubtitles <- unclass(settings$bodySubtitles)
-  }
   if (is.null(spec$document$footnotePlace)) {
     spec$document$footnotePlace <- settings$footnotePlace
     spec$document$footnotePlace <- unclass(spec$document$footnotePlace)

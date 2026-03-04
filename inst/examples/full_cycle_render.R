@@ -111,7 +111,6 @@ spec2 <- spec2 |>
 spec2 <- spec2 |>
   set_document(
     glueNumType   = TRUE,
-    bodyTitles    = TRUE,
     footnotePlace = "repeated",
     hasData       = TRUE
   )
@@ -305,7 +304,6 @@ spec4 <- spec4 |>
   )) |>
   set_document(
     glueNumType   = TRUE,
-    bodyTitles    = TRUE,
     footnotePlace = "repeated",
     hasData       = TRUE
   )
@@ -464,7 +462,6 @@ spec6 <- spec6 |>
   )) |>
   set_document(
     glueNumType   = TRUE,
-    bodyTitles    = TRUE,
     footnotePlace = "repeated",
     hasData       = TRUE,
     #isContinues   = TRUE
@@ -593,7 +590,6 @@ tbl_demo <- tbl_demo |>
   add_footnote("Percentages based on number of subjects in each treatment group.") |>
   set_document(
     glueNumType   = TRUE,
-    bodyTitles    = TRUE,
     footnotePlace = "repeated",
     hasData       = TRUE
   )
@@ -656,7 +652,6 @@ lst_subj <- lst_subj |>
   add_footnote("Subjects who did not complete are highlighted.") |>
   set_document(
     glueNumType   = TRUE,
-    bodyTitles    = TRUE,
     footnotePlace = "repeated",
     hasData       = TRUE
   )
@@ -731,7 +726,6 @@ spec9 <- spec9 |>
   add_footnote("Values shown as observed. No imputation applied.") |>
   set_document(
     glueNumType   = TRUE,
-    bodyTitles    = TRUE,
     footnotePlace = "repeated",
     hasData       = TRUE
   )
