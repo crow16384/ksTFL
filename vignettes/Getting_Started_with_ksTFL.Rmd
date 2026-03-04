@@ -1,7 +1,8 @@
 ---
 title: "Getting Started with ksTFL"
 author: "ksTFL Team"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{Getting Started with ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,6 +11,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
+options(pkgdown.internet = FALSE)
 ```
 
 ## Introduction
@@ -44,15 +46,17 @@ Data Frame / Image File
        ↓
 create_table() / create_figure() / create_text()
        ↓
-TFL_spec (customize with define_cols(), add_style(), add_title())
+TFL_spec (customize with define_cols(), add_style(), add_title(), compute_cols())
        ↓
 create_report() (assemble specs, consolidate styles)
        ↓
 TFL_report
        ↓
-save_report() (validate, serialize, write JSON + data files)
+write_doc()  ← recommended: one-step save + render
+  or
+save_report() → render_docx()  ← two-step: inspect JSON before rendering
        ↓
-render_docx() (C++ engine → deterministic pagination → styled .docx)
+Styled .docx (C++ engine, deterministic HarfBuzz pagination)
 ```
 
 ### Anatomy of a TFL spec
@@ -102,9 +106,9 @@ spec <- add_footnote(spec, "Data from mtcars (1974).")
 # 5. Inspect the spec
 print(spec)
 
-# 6. Save for rendering
+# 6. Render to DOCX
 report <- create_report(spec)
-save_report(report, docFileName = "my_table.docx", outDir = "./output", metaPath = tempdir())
+write_doc(report, name = "my_table", outDir = "./output", metaPath = tempdir())
 ```
 
 ---
@@ -132,7 +136,7 @@ spec_tbl <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
 ### Figure spec (from image file)
 
 ```{r create_figure_spec, eval = FALSE}
-# From a file path (PNG, JPEG, SVG — any tool: R base, Python, Inkscape, etc.)
+# From a file path — any image format your renderer supports (PNG, JPEG, etc.)
 spec_fig <- create_figure("path/to/plot.png")
 
 # From a ggplot2 object — rendered automatically to a temporary PNG
@@ -144,9 +148,10 @@ spec_fig <- create_figure(p, device = "jpeg")        # JPEG output
 ```
 
 **What happens**:
-- If a **file path** is given: it is validated (must exist and be readable)
-- If a **ggplot2 object** is given: rendered via `ggplot2::ggsave()` to `tempdir()`; the resulting path is stored in the spec
-- Minimal metadata is created; the file is copied to the output directory when saved
+- If a **file path** is given: it is validated (must exist and be readable); the file is used as-is
+- If a **ggplot2 object** is given: rendered via `ggplot2::ggsave()` to `tempdir()` using the specified `device` (default `"png"`); the resulting path is stored in the spec
+- The `width`, `height`, and `dpi` parameters only apply when a ggplot2 object is passed; they are ignored for file paths
+- The image file is copied to `metaPath` when the report is saved
 
 ### Text spec (narrative content)
 
@@ -204,7 +209,7 @@ spec <- define_cols(spec, c(mpg, cyl, hp),
 - `colWidth`: Column width (e.g., "20%", "2cm")
   - When set, column is locked to that width
   - Other unlocked columns auto-recalculate to sum to 100%
-  - Disable with `tfl_set_options(autoColWidth = FALSE)`
+  - Disable auto-recalculation with `tfl_set_options(autoColWidth = FALSE)`
 - `isVisible`: TRUE (default) or FALSE
   - Set to FALSE to hide column from output
   - Invisible columns show width "0.0cm" 
@@ -226,7 +231,7 @@ See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed column 
 
 ---
 
-## Step 4: Define styles (add_style)
+## Step 3: Define styles (add_style)
 
 Create reusable named styles with `add_style()`:
 
@@ -255,7 +260,7 @@ For comprehensive styling details see [Styling Guide](Styling_Guide_with_ksTFL.R
 
 ---
 
-## Step 5: Add spanning headers (span headers)
+## Step 4: Add spanning headers (span headers)
 
 Create multi-level headers with `add_span_header()` using tidyselect expressions:
 
@@ -307,7 +312,7 @@ See [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for styling stubs.
 
 ---
 
-## Step 6: Add titles, footnotes, headers, footers
+## Step 5: Add titles, footnotes, headers, footers
 
 Add document content layers:
 
@@ -321,25 +326,26 @@ spec <- add_subtitle(spec, "Motor Vehicle Analysis")
 # Footnotes (document-level notes)
 spec <- add_footnote(spec, "Values are from 1974 Motor Trend magazine.")
 
-# Page headers (left/center/right)
-spec <- add_header(c("Study ABC", "CONFIDENTIAL", "Page {page}"))
+# Page headers (left/center/right) — three separate string arguments
+spec <- add_header(spec, "Study ABC", "CONFIDENTIAL", "Page {page}")
 
-# Page footers (left/center/right)
-spec <- add_footer(c("Company", "Locked DB", "2025"))
+# Page footers (left/center/right) — three separate string arguments
+spec <- add_footer(spec, "Company", "Locked DB", "2025")
 
 # Body text (narrative)
 spec <- add_body_text(spec, "This analysis includes all subjects in the safety population.")
 ```
 
 **Notes**:
-- `add_header()` and `add_footer()` take 3 arguments: left-aligned, center-aligned, right-aligned
-- Placeholders like `{page}` are filled in by the renderer
-- Each call **replaces** previous headers/footers (does not append)
-- Multiple `add_footnote()` calls stack
+- `add_header()` and `add_footer()` take up to 3 separate string arguments: left, center, right
+- Placeholders like `{page}` and `{numpages}` are filled in by the renderer
+- Multiple `add_header()` calls append additional header rows; use the `level` parameter to replace a specific row
+- Multiple `add_footnote()` calls stack in order
+- `add_title()` and `add_subtitle()` accept an optional `toclevel` parameter (integer, e.g. `1` or `2`). When set, the title is included in the Table of Contents generated by `write_doc(toc = TRUE)`. See `?add_title` for details.
 
 ---
 
-## Step 7: Combine specs into a report
+## Step 6: Combine specs into a report
 
 Assemble multiple specs with `create_report()`:
 
@@ -372,7 +378,7 @@ print(report)
 
 ---
 
-## Step 8: Apply conditional row actions (compute_cols)
+## Step 7: Apply conditional row actions (compute_cols)
 
 Beyond global column styling, apply **conditional actions** to specific rows that match a condition:
 
@@ -404,6 +410,7 @@ spec <- compute_cols(spec, firstOf(cyl),
 | `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
 | `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
 | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
+| `c_pageBreak()` | Insert a page break at the matching row (no args) | `c_pageBreak()` |
 
 **Condition syntax**:
 
@@ -431,40 +438,134 @@ For detailed examples see [Reporting Examples: Conditional Row Actions](Reportin
 
 ---
 
-## Step 9: Save for Rendering
+## Step 8: Save and Render
 
-Export to JSON metadata + data files:
+### Option A: One step with `write_doc()` (recommended)
+
+`write_doc()` combines `save_report()` + `render_docx()` into a single call:
+
+```{r write_doc, eval = FALSE}
+report <- create_report(spec_table, spec_text)
+
+# Returns the full path to the generated .docx (invisibly)
+doc_path <- write_doc(report,
+  name     = "demographics",          # Output file name (no extension)
+  outDir   = "./output",              # Where the final .docx is written
+  metaPath = tempdir())               # Where JSON metadata is written (temp is fine)
+```
+
+**Additional parameters**:
+- `toc`: If `TRUE`, prepends a Table of Contents page (requires `toclevel` on titles — see `?add_title`)
+- `tocTitle`: Heading above the TOC field (default `"Table of Contents"`)
+- `prettify`: If `TRUE`, writes human-readable JSON (useful for debugging)
+- `verbose`: If `TRUE`, prints renderer progress messages
+
+This is the recommended approach for production use. Set session defaults once:
+
+```{r write_doc_with_options, eval = FALSE}
+tfl_set_options(
+  output_directory = "./output",
+  meta_directory   = "./meta"
+)
+
+# Then write_doc() uses those defaults automatically
+write_doc(report, name = "demographics")
+```
+
+### Option B: Two steps with `save_report()` + `render_docx()`
+
+Use this when you need to inspect or version-control the JSON metadata separately:
 
 ```{r save_report, eval = FALSE}
 report <- create_report(spec_table, spec_text)
 
-# Save with validation and serialization
+# Step 1: Serialize to JSON + data files
 result <- save_report(report,
   docFileName = "my_report.docx",
-  outDir = "./output",
-  metaPath = tempdir(),
-  prettify = TRUE)
+  outDir      = "./output",
+  metaPath    = tempdir(),
+  prettify    = TRUE)              # prettify = TRUE for readable JSON (debugging)
 
-# Inspect output
-str(result)
+# Step 2: Render the DOCX from the JSON spec
+render_docx(
+  spec_json   = result$spec_file,
+  output_path = file.path("./output", "my_report.docx"))
 ```
 
-**Parameters**:
-- `report`: A `TFL_report` object
-- `docFileName`: Output file name (e.g., "report.docx")
-- `outDir`: Directory for final DOCX (where renderer writes output)
-- `metaPath`: Directory for JSON metadata + data files (consumed by renderer)
-- `prettify`: If TRUE, formats JSON nicely (useful for debugging)
-
-**Output files**:
+**`save_report()` output files**:
 - `{metaPath}/{spec_hash}.json` — Main specification (consumed by renderer)
 - `{metaPath}/{dataRef}.json` — Table data files (one per table spec)
 - Figure files copied to `metaPath` as-is
 
-**Return value**: List with:
-- `spec_file`: Path to generated spec JSON
-- `data_files`: Named list of data file paths
-- `metadata`: Report metadata (timestamps, etc.)
+---
+
+## Step 9: JSON metadata — what it is and why you might need it
+
+### What is the metadata folder?
+
+Every time `write_doc()` (or `save_report()`) runs, it writes intermediate files to `metaPath`:
+
+- **`{hash}.json`** — The main spec file: document structure, column definitions, styles, titles, footnotes, headers/footers. This is what the C++ renderer reads.
+- **`{dataRef}.json`** — One data file per table spec, containing the actual row data.
+- **Figure files** — Copied from their original paths into `metaPath`.
+- **`_index.json`** — An index of all spec files written to this folder (auto-maintained).
+
+For most workflows, `metaPath = tempdir()` is fine — you only care about the final `.docx`. But there are real reasons to use a persistent `metaPath`.
+
+### Why use a persistent metaPath?
+
+**Reproducibility / audit trail**: In regulated environments (FDA, EMA submissions), you may need to prove that a specific DOCX was generated from a specific dataset at a specific time. The spec JSON + data JSON together form a complete, reproducible snapshot.
+
+**Re-rendering without R**: Once the JSON files exist, you can re-render the DOCX without any R objects or data frames — just the JSON files. This is useful for:
+- Regenerating a document after a template change
+- Rendering on a different machine or in a CI/CD pipeline
+- Reproducing an output months later
+
+**Version management**: Each `write_doc()` call writes a new hash-named spec file. You can keep multiple versions and compare them.
+
+### Managing metadata files
+
+```{r metadata_management, eval = FALSE}
+meta_dir <- "./meta"
+
+# List all spec JSONs in the meta folder
+df <- list_reports(meta_dir)
+print(df[df$is_latest, c("doc_file", "datetime", "spec_file")])
+
+# Re-render a DOCX from stored JSON (no R objects needed)
+replay_report("demographics.docx", meta_dir = meta_dir)
+
+# Or replay a specific version by spec hash
+replay_report("abc123def456.json", meta_dir = meta_dir,
+              output_path = "./output/demographics_v2.docx")
+
+# Clean up obsolete spec files (keeps latest version per document)
+clean_reports(meta_dir, dry_run = TRUE)   # Preview what would be deleted
+clean_reports(meta_dir, dry_run = FALSE)  # Actually delete
+```
+
+**`list_reports()`** returns a data frame with columns: `doc_file`, `datetime`, `is_latest`, `n_specs`, `spec_file`, `data_refs`.
+
+**`replay_report()`** re-renders from JSON — no R spec objects, no data frames required. Pass either the target `.docx` name (re-renders the latest version) or the exact spec hash filename.
+
+**`clean_reports()`** removes obsolete JSON files. By default keeps 1 version per document (`keep_versions = 1`). Always run with `dry_run = TRUE` first.
+
+### Recommended production setup
+
+```{r production_setup, eval = FALSE}
+# Set persistent meta directory once per session
+tfl_set_options(
+  output_directory = "./output",
+  meta_directory   = "./meta"   # Persistent — survives session restarts
+)
+
+# All write_doc() calls now use these directories automatically
+write_doc(report1, name = "tbl_demographics")
+write_doc(report2, name = "tbl_labs")
+
+# Later: re-render without R if needed
+replay_report("tbl_demographics.docx", meta_dir = "./meta")
+```
 
 ---
 
@@ -493,8 +594,8 @@ Each table spec gets a `dataRef` name for its data file:
 # Auto-generated: "0001_abc123def456" (docOrder + hash)
 report <- create_report(spec_table1, spec_table2)
 
-# Manual control not needed — handled automatically
-save_report(report, ...)
+# Manual control not needed — handled automatically by write_doc()
+write_doc(report, name = "my_report", outDir = "./output", metaPath = "./meta")
 ```
 
 ---
@@ -506,8 +607,8 @@ Set defaults once, inherited by all new specs:
 ```{r session_options, eval = FALSE}
 # Set session defaults
 tfl_set_options(
-  add_header(c("Study ABC", "Locked Database", "CONFIDENTIAL")),
-  add_footer(c("Company Name", "Page {page}", "2025")),
+  add_header("Study ABC", "Locked Database", "CONFIDENTIAL"),
+  add_footer("Company Name", "Page {page}", "2025"),
   add_body_text("Analysis performed in R with ksTFL."))
 
 # All new specs created afterward inherit these settings
@@ -555,10 +656,7 @@ spec <- add_footnote(spec, "Data are shown as observed.")
 
 # --- Export ---
 report <- create_report(spec)
-save_report(report, 
-  docFileName = "demographics.docx",
-  outDir = "./output",
-  metaPath = tempdir())
+write_doc(report, name = "demographics", outDir = "./output", metaPath = tempdir())
 
 # Done!
 ```
@@ -571,8 +669,8 @@ save_report(report,
 |--------|----------|
 | **Calling s_* helpers outside add_style()** | Always use s_* inside `add_style()` — they validate context |
 | **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
-| **Styles from f_combine() not consolidated** | Call `create_report()` before `save_report()` |
-| **Multiple add_header() calls stack** | Each call **replaces** previous headers (last-win) |
+| **Styles from f_combine() not consolidated** | Call `create_report()` before `write_doc()` |
+| **Multiple add_header() calls stack** | Each call **appends** a new header level; use `level =` to replace a specific level |
 | **Figure file not found** | Check path is absolute or relative to current working directory |
 | **create_text() with data argument** | `create_text()` requires `data = NULL` — no data for text specs |
 | **Overlapping stubs at same stubOrder** | Error; use different `stubOrder` or non-overlapping column sets |
@@ -586,7 +684,8 @@ You now understand ksTFL's core workflow. Next steps:
 1. **Run the quick example** above with your own data
 2. **Explore [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd)** for detailed patterns
 3. **Read [Styling Guide](Styling_Guide_with_ksTFL.Rmd)** for advanced styling
-4. **Check function docs**: `?create_table`, `?define_cols`, `?add_style`, `?create_report`
+4. **Read [Advanced StyleRows](Advanced_StyleRows.Rmd)** for conditional formatting
+5. **Check function docs**: `?create_table`, `?define_cols`, `?add_style`, `?write_doc`, `?list_reports`
 
 ---
 
@@ -614,7 +713,9 @@ You now understand ksTFL's core workflow. Next steps:
 | Add page headers/footers | `add_header()`, `add_footer()` | 3 parts: left/center/right |
 | Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |
 | Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
-| Export | `save_report(report, ...)` | Writes JSON + data files |
+| Save + render (one step) | `write_doc(report, name, ...)` | Recommended: saves JSON + renders DOCX |
+| Save only | `save_report(report, ...)` | Writes JSON + data files for manual rendering |
+| Render from JSON | `render_docx(spec_json, output_path)` | C++ renderer: JSON → styled DOCX |
 | Set session defaults | `tfl_set_options(...)` | Inherited by new specs in session |
 | Check options | `tfl_get_options()`, `tfl_get_option(name)` | View current session settings |
 | Reset options | `tfl_reset_options()` | Back to package defaults |

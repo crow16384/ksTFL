@@ -24,10 +24,11 @@ in one call.
 
 To get started, see the vignettes:
 \itemize{
-\item \code{vignette("Getting Started with ksTFL")} — Quick start guide
-\item \code{vignette("Comprehensive Styling Guide")} — Styling reference
-\item \code{vignette("Advanced Examples & Complex Workflows")} — Real-world examples
-\item \code{vignette("ksTFL Documentation Index")} — Complete documentation index
+\item \code{vignette("Getting_Started_with_ksTFL")} — Quick start and full workflow overview
+\item \code{vignette("Styling_Guide_with_ksTFL")} — Complete styling reference and built-in atoms
+\item \code{vignette("Reporting_Examples_with_ksTFL")} — Progressive real-world examples
+\item \code{vignette("Advanced_StyleRows")} — Conditional formatting with \code{compute_cols()}
+\item \code{vignette("Column_Width_Management")} — Column width locking and auto-calculation
 }
 }
 \seealso{

@@ -2,15 +2,29 @@
 % Please edit documentation in R/rowstyle_actions.R
 \name{c_pageBreak}
 \alias{c_pageBreak}
-\title{Insert a Page Break before the matching row}
+\title{Insert a page break at the matching row}
 \usage{
 c_pageBreak()
 }
 \value{
-Quosure-style marker (internal use within \code{compute_cols()})
+Action marker (internal use within \code{compute_cols()})
 }
 \description{
-Declares a page break action for the parent \code{compute_cols()} condition.
-This action takes no arguments; it signals the renderer to start a new page
-at the given row.
+Used inside \code{\link[=compute_cols]{compute_cols()}} to signal the renderer to start a new page
+at every row matching the condition. Takes no arguments.
+}
+\examples{
+\dontrun{
+data <- data.frame(
+  group = c("A", "A", "B", "B", "C"),
+  value = c(1, 2, 3, 4, 5)
+)
+
+# Force a new page at the start of each group
+spec <- create_table(data) |>
+  compute_cols(firstOf(group), c_pageBreak())
+}
+}
+\seealso{
+\code{\link[=compute_cols]{compute_cols()}}, \code{\link[=c_style]{c_style()}}, \code{\link[=c_addrow]{c_addrow()}}, \code{\link[=c_merge]{c_merge()}}
 }

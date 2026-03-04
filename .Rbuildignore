@@ -5,6 +5,7 @@
 ^\.github$
 ^\.serena$
 ^\.vscode$
+^\.doc$
 ^tmp$
 ^\.gitignore$
 ^\.cursorrules$

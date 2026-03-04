@@ -27,7 +27,7 @@ add_span_header(
 \item{label}{Spanning header label}
 
 \item{stubOrder}{Order of stub header (auto-generated if NULL). Used to create
-multi-level headers: lower numbers appear abbelowove higher numbers. Multiple stubs
+multi-level headers: lower numbers appear above higher numbers. Multiple stubs
 at the same order are allowed if their column sets do not overlap.}
 
 \item{id}{Stub column identifier (auto-generated if NULL)}

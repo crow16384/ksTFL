@@ -327,10 +327,30 @@ tfl_set_options <- function(..., docTemplate = NULL,
 }
 
 
-#' Reset options to their defaults
+#' Reset all session options to package defaults
 #'
-#' @return The defaults list, returned invisibly.
+#' Restores all ksTFL session options (headers, footers, body text, styles,
+#' page settings, column width behavior, etc.) to their original package
+#' defaults. Useful at the start of a new reporting session or after
+#' experimenting with `tfl_set_options()`.
+#'
+#' @return The default options list, returned invisibly.
+#' @seealso [tfl_set_options()], [tfl_get_options()], [tfl_get_option()]
 #' @export
+#' @examples
+#' \dontrun{
+#' # Set some session defaults
+#' tfl_set_options(
+#'   add_header("Study ABC", "Phase II", "CONFIDENTIAL"),
+#'   add_footer("Company", "Page {page}", "2025")
+#' )
+#'
+#' # ... build tables ...
+#'
+#' # Reset everything back to package defaults
+#' tfl_reset_options()
+#' tfl_get_options()  # Confirm reset
+#' }
 tfl_reset_options <- function() {
   .options_env$settings <- .options_env$defaults
   invisible(.options_env$settings)

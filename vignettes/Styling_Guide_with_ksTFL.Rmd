@@ -1,7 +1,10 @@
 ---
 title: "Styling Guide — ksTFL"
 author: "ksTFL Team"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    fig_width: 6
+    fig_height: 4
 vignette: >
   %\VignetteIndexEntry{Styling Guide — ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,6 +13,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
+options(pkgdown.internet = FALSE)
 ```
 
 ## Overview
@@ -546,12 +550,9 @@ s_font(bold = TRUE)
 spec <- create_table(mtcars)
 spec <- define_cols(spec, mpg, labelStyleRef = f_combine("bold", "red"))
 
-# WRONG: save directly without consolidation
-save_report(create_report(spec), docFileName = "out.docx")  # Combined styles may not be consolidated
-
-# CORRECT: consolidate first
-report <- create_report(spec)  # Merges "bold" + "red"
-save_report(report, docFileName = "out.docx")
+# CORRECT: create_report() consolidates combined styles before rendering
+report <- create_report(spec)  # Merges "bold" + "red" into a single resolved style
+write_doc(report, name = "out", outDir = "./output", metaPath = tempdir())
 ```
 
 ### Styles looking different in renderer than expected
@@ -579,297 +580,150 @@ You don't need to inspect or manipulate `spec$attribs$styles` — the consolidat
 
 Style references are resolved in this order:
 1. **Named styles** defined in the same spec with `add_style()`
-2. **Predefined clinical styles** (if enabled in options)
-3. **Error**: If reference not found, `create_report()` will error with informative message
+2. **Built-in style atoms** shipped with the package (e.g., `"b"`, `"tw_80"`, `"grp_hdr"`)
+3. **Error**: If reference not found, `create_report()` will error with an informative message
 
 ---
 
 ## Built-in style atoms
 
-ksTFL ships a library of small, single-purpose **style atoms** that are available in every
-spec without any `add_style()` call.  The design principle is **one property per atom**;
-combine atoms with `f_combine()` to build any composite style you need.
+ksTFL ships a library of single-property style atoms accessible via `f_combine()` or directly as `styleRef` values. Each atom sets exactly one visual property; compose them freely with `f_combine()`.
 
-### Naming convention
+### Complete atom reference
 
-| Prefix | Meaning | Examples |
-|---|---|---|
-| `b` / `i` / `u` | font bold / italic / underline | `b`, `i`, `u` |
-| `fs_N` | font size in pt | `fs_7`, `fs_9`, `fs_11` |
-| `fc_<colour>` | font (text) colour | `fc_red`, `fc_navy`, `fc_slate` |
-| `hl_<colour>` | text highlight / cell shading | `hl_yellow`, `hl_peach`, `hl_mint` |
-| `al` / `ar` / `ac` | paragraph alignment | `al` (left), `ar` (right), `ac` (centre) |
-| `ind1` … `ind4` | left-indent levels (0.5 cm steps) | `ind1`, `ind2`, `ind3`, `ind4` |
-| `sp_0` / `sp_2` / `sp_4` | spacing before+after in pt | `sp_0`, `sp_2`, `sp_4` |
-| `kl` / `kn` | pagination: keep_lines / keep_next | `kl`, `kn` |
-| `va_t` / `va_m` / `va_b` | cell vertical alignment | `va_t`, `va_m`, `va_b` |
-| `to_h` / `to_90` / `to_270` | cell text orientation | `to_h`, `to_90`, `to_270` |
-| `bg_<colour>` | cell background colour | `bg_blue`, `bg_mint`, `bg_steel` |
-| `row_h2` / `row_h4` / `row_h6` | row height atoms | separator rows |
-| `bt` / `bb` / `bl` / `br` | border side 1 pt black | top / bottom / left / right |
-| `bt_th` / `bb_th` | border side 0.5 pt black (thin) | subtotal dividers |
-| `bc_gray` / `bc_white` | border colour override | gray / suppress |
-| `grp_hdr` / `grp_hdr_i` | group-header composites | bold + space-above |
+| Atom | Effect |
+|------|--------|
+| **Font — decoration** | |
+| `b` / `font_bold` | Bold |
+| `i` / `font_italic` | Italic |
+| `u` / `font_underline` | Underline |
+| **Font — size** | |
+| `fs_7` … `fs_11` | Font size 7 pt … 11 pt |
+| **Font — colour** | |
+| `fc_black`, `fc_red`, `fc_blue`, `fc_green` | Pure text colours |
+| `fc_gray` / `fc_grey` | Secondary / reference text (#595959) |
+| `fc_navy`, `fc_teal`, `fc_olive`, `fc_rust`, `fc_plum`, `fc_slate` | Muted clinical palette |
+| **Text highlight (cell shading)** | |
+| `hl_yellow`, `hl_red`, `hl_green`, `hl_gray` / `hl_grey` | Strong highlight colours |
+| `hl_peach`, `hl_mint`, `hl_sky`, `hl_lemon`, `hl_lilac` | Pastel highlight palette |
+| **Paragraph — alignment** | |
+| `al` / `text_left` | Left-align |
+| `ar` / `text_right` | Right-align |
+| `ac` / `text_center` | Center-align |
+| **Paragraph — left indentation** | |
+| `ind1` / `indent_1` | 0.5 cm left indent (top-level category) |
+| `ind2` / `indent_2` | 1.0 cm left indent (first sub-group) |
+| `ind3` / `indent_3` | 1.5 cm left indent (second sub-group) |
+| `ind4` / `indent_4` | 2.0 cm left indent (detail) |
+| **Paragraph — table-width shrink** | |
+| `tw_95` … `tw_50` | Symmetric left+right indent to match table at 95 %…50 % width (5 % steps) |
+| **Paragraph — spacing** | |
+| `sp_0` | No space before/after paragraph |
+| `sp_2` | 2 pt space before and after |
+| `sp_4` | 4 pt space before and after |
+| **Paragraph — pagination** | |
+| `kl` | Keep all lines of a cell on the same page |
+| `kn` | Keep this row on the same page as the next row |
+| **Group / category header composites** | |
+| `grp_hdr` | Bold + 4 pt space above + left indent reset (category header) |
+| `grp_hdr_i` | Bold + italic + 4 pt space above + left indent reset |
+| **Cell — vertical alignment** | |
+| `va_t` / `va_top` | Top |
+| `va_m` / `va_center` | Middle |
+| `va_b` / `va_bottom` | Bottom |
+| **Cell — text orientation** | |
+| `to_h` / `text_horizontal` | Horizontal (default) |
+| `to_90` / `text_vertical_90` | Rotated 90° (bottom-to-top) |
+| `to_270` / `text_vertical_270` | Rotated 270° (top-to-bottom) |
+| **Cell — background colour** | |
+| `bg_blue`, `bg_gray` / `bg_grey` | Standard backgrounds |
+| `bg_peach`, `bg_mint`, `bg_sky`, `bg_lemon`, `bg_lilac` | Pastel backgrounds |
+| `bg_navy`, `bg_slate`, `bg_steel` | Dark/medium header backgrounds |
+| **Row height** | |
+| `row_h2`, `row_h4`, `row_h6` | Row height 2 / 4 / 6 pt (separator rows) |
+| **Border — sides (1 pt black)** | |
+| `bt`, `bb`, `bl`, `br` | Top / bottom / left / right border |
+| **Border — thin sides (0.5 pt black)** | |
+| `bt_th`, `bb_th` | Thin top / bottom border |
+| **Border — colour override** | |
+| `bc_gray` / `bc_grey` | All sides → medium gray (#AAAAAA) |
+| `bc_white` | All sides → white / none (suppress borders) |
 
-Long-form aliases are provided for readability:
-`font_bold`, `font_italic`, `font_underline`,
-`text_left`, `text_right`, `text_center`,
-`indent_1` … `indent_4`,
-`va_top`, `va_center`, `va_bottom`,
-`text_horizontal`, `text_vertical_90`, `text_vertical_270`,
-`fc_grey`, `hl_grey`, `bg_grey`, `bc_grey`.
+**Usage:**
 
----
+```{r atoms_usage, eval = FALSE}
+# Single atom as styleRef
+spec <- add_footnote(spec, "Source: database.", styleRef = "tw_80")
 
-### Font decoration
+# Combine atoms with f_combine()
+spec <- define_cols(spec, value, valueStyleRef = f_combine("ar", "fs_9"))
 
-| Style | Property | Typical use |
-|---|---|---|
-| `b` / `font_bold` | bold | Group headers, totals, primary endpoint values |
-| `i` / `font_italic` | italic | Sub-parameter labels, notes |
-| `u` / `font_underline` | underline | Hyperlink-style emphasis |
-
----
-
-### Font size
-
-| Style | Size | Typical use |
-|---|---|---|
-| `fs_7` | 7 pt | Footnote markers in dense listings |
-| `fs_8` | 8 pt | Compact safety tables |
-| `fs_9` | 9 pt | Standard clinical table body |
-| `fs_10` | 10 pt | Slightly larger body text |
-| `fs_11` | 11 pt | Emphasis / primary endpoint result |
-
----
-
-### Font colour
-
-Pure colours are for strong visual flags; muted/pastel colours suit secondary content
-and labels where you want differentiation without distraction.
-
-| Style | Hex | Typical use |
-|---|---|---|
-| `fc_black` | `#000000` | Reset to default black |
-| `fc_red` | `#FF0000` | Out-of-range, critical alert |
-| `fc_blue` | `#0000FF` | Informational annotation |
-| `fc_green` | `#008000` | Within-range, pass |
-| `fc_gray` / `fc_grey` | `#595959` | Secondary values, "(continued)" |
-| `fc_navy` | `#1F3864` | Formal headers, dark emphasis |
-| `fc_teal` | `#2E75B6` | Softer informational blue |
-| `fc_olive` | `#5C7A29` | Muted green — normal range |
-| `fc_rust` | `#C0392B` | Muted red — caution (less alarming than pure red) |
-| `fc_plum` | `#7B2D8B` | Special category / protocol deviation |
-| `fc_slate` | `#44546A` | Subdued blue-gray label |
-
----
-
-### Text highlight (cell shading)
-
-| Style | Hex | Typical use |
-|---|---|---|
-| `hl_yellow` | `#FFFF00` | Strong flag / attention |
-| `hl_red` | `#FF0000` | Critical value / TEAE |
-| `hl_green` | `#90EE90` | Within normal range |
-| `hl_gray` / `hl_grey` | `#EEEEEE` | Suppressed / N/A cell |
-| `hl_peach` | `#FADADD` | Soft red — mild alert |
-| `hl_mint` | `#D5F5E3` | Soft green — normal range |
-| `hl_sky` | `#D6EAF8` | Soft blue — informational |
-| `hl_lemon` | `#FEFBD8` | Soft yellow — caution |
-| `hl_lilac` | `#E8DAEF` | Soft purple — special category |
-
----
-
-### Paragraph alignment
-
-| Style | Alignment | Alias |
-|---|---|---|
-| `al` | left | `text_left` |
-| `ar` | right | `text_right` |
-| `ac` | centre | `text_center` |
-
----
-
-### Indentation
-
-Each level adds 0.5 cm of left indent — used for stub / sub-group hierarchies.
-
-| Style | Left indent | Alias | Typical use |
-|---|---|---|---|
-| `ind1` | 0.5 cm | `indent_1` | Top-level category label, e.g. "Age (years)" |
-| `ind2` | 1.0 cm | `indent_2` | First sub-group, e.g. "< 18" |
-| `ind3` | 1.5 cm | `indent_3` | Second sub-group, e.g. "Missing" |
-| `ind4` | 2.0 cm | `indent_4` | Third sub-group / detail level |
-
----
-
-### Paragraph spacing
-
-| Style | Before | After | Typical use |
-|---|---|---|---|
-| `sp_0` | 0 pt | 0 pt | Dense safety listings, large tables |
-| `sp_2` | 2 pt | 2 pt | Sub-section breathing room |
-| `sp_4` | 4 pt | 4 pt | Summary / efficacy tables |
-
----
-
-### Pagination control
-
-| Style | Property | Typical use |
-|---|---|---|
-| `kl` | `keep_lines` | Keep all lines of a multi-line cell on the same page |
-| `kn` | `keep_next` | Keep this row with the following row (prevents orphaned group headers) |
-
----
-
-### Group / category header composites
-
-These combine bold + 4 pt space-above + left-indent reset into a single atom.
-Equivalent to `f_combine("b", "sp_4")` with an explicit `ind` reset.
-
-| Style | Properties | Typical use |
-|---|---|---|
-| `grp_hdr` | bold, 4 pt before, 0 pt after, no indent | Category label rows: "Vital Signs", "Age" |
-| `grp_hdr_i` | bold + italic, same spacing | Sub-parameter labels within by-visit tables |
-
----
-
-### Cell vertical alignment
-
-| Style | Alignment | Alias |
-|---|---|---|
-| `va_t` | top | `va_top` |
-| `va_m` | middle (centre) | `va_center` |
-| `va_b` | bottom | `va_bottom` |
-
----
-
-### Cell text orientation
-
-Rotate cell text for narrow column headers in dense visit/parameter grids.
-
-| Style | Rotation | Reads | Alias |
-|---|---|---|---|
-| `to_h` | 0° (default) | left → right | `text_horizontal` |
-| `to_90` | 90° counter-clockwise | bottom → top | `text_vertical_90` |
-| `to_270` | 270° counter-clockwise | top → bottom | `text_vertical_270` |
-
-`to_90` is the most common choice for column headers: text ascends from the bottom of
-the cell, which matches the reading direction of a rotated page.
-`to_270` is useful when you prefer text to descend from the top (e.g. matching a
-right-to-left column layout).
-
-```r
-# Narrow visit-column header, rotated, centred, bold, bottom-aligned
-define_cols(spec, "visit", label = "Visit",
-            labelStyleRef = f_combine("b", "to_90", "va_b", "ac"))
-
-# Parameter-grid header row — all header cells rotated
-header_style <- f_combine("b", "to_90", "va_b", "ac", "bg_steel")
-define_cols(spec, c("wk1", "wk2", "wk4", "wk8"),
-            label = c("Wk 1", "Wk 2", "Wk 4", "Wk 8"),
-            labelStyleRef = header_style)
+# Combine atoms with named styles
+spec <- add_style(spec, id = "group_hdr",
+  s_font(bold = TRUE),
+  s_paragraph(spacing = s_spacing(before = "4pt")))
+spec <- compute_cols(spec, firstOf(group),
+  c_style(everything(), styleRef = f_combine("group_hdr", "bg_gray")))
 ```
 
----
+### Table-width shrink atoms (`tw_*`)
 
-### Cell background colour
+When a table is narrower than the full content width, titles, subtitles, footnotes, and body text will span the full page width by default — wider than the table itself. The `tw_*` atoms apply symmetric left and right paragraph indentation so that text blocks visually align with the table edges.
 
-| Style | Hex | Typical use |
-|---|---|---|
-| `bg_blue` | `#D9E1F2` | Emphasis rows, section headers |
-| `bg_gray` / `bg_grey` | `#F2F2F2` | Alternating rows, sub-totals |
-| `bg_peach` | `#FADADD` | Soft red — mild alert row |
-| `bg_mint` | `#D5F5E3` | Soft green — normal-range row |
-| `bg_sky` | `#D6EAF8` | Soft blue — informational row |
-| `bg_lemon` | `#FEFBD8` | Soft yellow — caution row |
-| `bg_lilac` | `#E8DAEF` | Soft purple — special category row |
-| `bg_navy` | `#1F3864` | Dark navy — strong header band |
-| `bg_slate` | `#44546A` | Blue-gray — header band |
-| `bg_steel` | `#BDD7EE` | Medium blue — column-group header |
+Indent values are calculated for **A4 landscape with 0.5 in left/right page margins** (content width ≈ 27.16 cm). Each 5 % step corresponds to 0.68 cm per side.
 
----
+| Atom | Table width | Indent each side |
+|------|-------------|-----------------|
+| `tw_95` | 95 % | 0.68 cm |
+| `tw_90` | 90 % | 1.36 cm |
+| `tw_85` | 85 % | 2.04 cm |
+| `tw_80` | 80 % | 2.72 cm |
+| `tw_75` | 75 % | 3.40 cm |
+| `tw_70` | 70 % | 4.07 cm |
+| `tw_65` | 65 % | 4.75 cm |
+| `tw_60` | 60 % | 5.43 cm |
+| `tw_55` | 55 % | 6.11 cm |
+| `tw_50` | 50 % | 6.79 cm |
 
-### Row height atoms
+**Usage — match footnotes and titles to a narrower table:**
 
-Use with `compute_cols()` and `c_addrow()` to create visual separator rows.
-Combine with border atoms to control whether a line appears.
-
-| Style | Height | Typical use |
-|---|---|---|
-| `row_h2` | 2 pt | Near-invisible spacer |
-| `row_h4` | 4 pt | Small visual gap |
-| `row_h6` | 6 pt | Visible gap between sections |
-
-```r
-# Invisible spacer above first occurrence of a grouping column (all borders suppressed)
-compute_cols(spec, firstOf(treatment), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bc_white")))
-
-# Thin ruled separator above first occurrence
-compute_cols(spec, firstOf(visit), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bb_th")))
-
-# Gray ruled separator
-compute_cols(spec, firstOf(category), c_addrow(pos = "above", styleRef = f_combine("row_h2", "bb_th", "bc_gray")))
+```{r tw_basic, eval = FALSE}
+spec <- create_table(data) |>
+  set_document(contentWidth = "80%") |>
+  add_title("Demographics Table",   styleRef = "tw_80") |>
+  add_subtitle("Safety Population", styleRef = "tw_80") |>
+  add_footnote("Source: study database.", styleRef = "tw_80")
 ```
 
----
+**Combine with other atoms** using `f_combine()`:
 
-### Border side atoms
+```{r tw_combine, eval = FALSE}
+# Bold title, indented to match a 75 % table
+spec <- add_title(spec, "Efficacy Summary",
+                  styleRef = f_combine("b", "tw_75"))
 
-Each atom draws one side at 1 pt black.  Combine multiple sides for a box border.
-
-| Style | Side | Weight |
-|---|---|---|
-| `bt` | top | 1 pt black |
-| `bb` | bottom | 1 pt black |
-| `bl` | left | 1 pt black |
-| `br` | right | 1 pt black |
-| `bt_th` | top | 0.5 pt black (thin) |
-| `bb_th` | bottom | 0.5 pt black (thin) |
-
----
-
-### Border colour override atoms
-
-Apply **after** a side atom to change its colour.  Styles are merged left-to-right
-(last-win), so the colour override replaces the colour set by the preceding side atom.
-
-| Style | Colour | Typical use |
-|---|---|---|
-| `bc_gray` / `bc_grey` | `#AAAAAA` | Softer dividers in banded tables |
-| `bc_white` | `#FFFFFF` / none | Suppress / hide all borders (separator rows) |
-
-```r
-f_combine("bt", "bc_gray")    # gray 1 pt top border
-f_combine("bt", "bb", "bl", "br")          # full black box
-f_combine("bt", "bb", "bl", "br", "bc_gray") # full gray box
+# Small italic footnote, indented to match a 70 % table
+spec <- add_footnote(spec, "Values are least-squares means.",
+                     styleRef = f_combine("i", "fs_8", "tw_70"))
 ```
 
----
+**Apply via a named style** for reuse across multiple specs:
 
-### Composition examples
+```{r tw_named, eval = FALSE}
+# Define the style on each spec (or use a helper function to apply it)
+add_footnote_80 <- function(spec, text) {
+  spec <- add_style(spec, id = "fn_80",
+    s_font(font_size = "8pt", italic = TRUE),
+    s_paragraph(alignment = "left",
+                indents = s_indents(left = "2.72cm", right = "2.72cm")))
+  add_footnote(spec, text, styleRef = "fn_80")
+}
 
-```r
-# Sub-group value: indented, italic, muted text
-define_cols(spec, "subcat",
-  valueStyleRef = f_combine("ind2", "i", "fc_gray"))
-
-# Group header: bold, centered, steel-blue background
-define_cols(spec, "category",
-  valueStyleRef = f_combine("grp_hdr", "ac", "bg_steel"))
-
-# Out-of-range cell: rust text + peach highlight + bold
-c_style(value, styleRef = f_combine("fc_rust", "hl_peach", "b"))
-
-# Subtotal row (via compute_cols): thin top border + light gray background + bold
-compute_cols(spec, lastOf(category), c_addrow(pos = "below", styleRef = f_combine("bt_th", "bg_gray", "b")))
-
-# Primary endpoint highlight: full box border + lemon background
-c_style(value, styleRef = f_combine("bt", "bb", "bl", "br", "bg_lemon", "b"))
-
-# Keep group header with first data row (no orphan at page bottom)
-define_cols(spec, "category", valueStyleRef = f_combine("grp_hdr", "kn"))
+spec1 <- add_footnote_80(spec1, "a. p < 0.05")
+spec2 <- add_footnote_80(spec2, "b. LOCF imputation")
 ```
+
+> **Note**: The indent values assume the default A4 landscape page with 0.5 in margins. If you use a different page size, orientation, or margins via `set_page_style()`, calculate your own indents with `s_indents(left = ..., right = ...)` inside `add_style()`.
 
 ---
 
@@ -878,4 +732,5 @@ define_cols(spec, "category", valueStyleRef = f_combine("grp_hdr", "kn"))
 - Function documentation: `?add_style`, `?s_font`, `?s_paragraph`, `?f_combine`
 - [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — working examples with styles
 - [Getting Started](Getting_Started_with_ksTFL.Rmd) — quick overview
+
 

@@ -1,14 +1,27 @@
 ---
 title: "Reporting Examples — ksTFL (v3)"
 author: "ksTFL Team"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{Reporting Examples — ksTFL (v3)}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE)
+options(pkgdown.internet = FALSE)
+```
+
 This vignette presents a realistic progression of reporting examples — from minimal tables/listings/figures/text to a full clinical-style table with multi-level headers, spanning stub columns, multi-line titles/footnotes, reusable styles, and session defaults. All examples use exported ksTFL helpers only; set `eval=TRUE` locally to run the R chunks.
+
+**Related vignettes:**
+- [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline overview and all core concepts
+- [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — complete style reference and built-in atoms
+- [Advanced StyleRows](Advanced_StyleRows.Rmd) — deep dive into `compute_cols()`, `c_glue()`, `c_clear()`
+- [Column Width Management](Column_Width_Management.Rmd) — width locking, auto-calculation, invisible columns
+
 ## Workflow overview
 
 This vignette follows a consistent end-to-end pattern for each example so you can reproduce the full reporting pipeline locally:
@@ -17,7 +30,7 @@ This vignette follows a consistent end-to-end pattern for each example so you ca
 - Build `TFL_spec` objects using `create_table()`, `create_figure()` or `create_text()`.
 - Tune columns and styles via `define_cols()` and `add_style()` (use `f_combine()` to reference combined styles).
 - Assemble specs into a `TFL_report` with `create_report()` (this consolidates style references and assigns `dataRef`).
-- Export artifacts for rendering with `save_report()` (writes JSON and data/figure files into `metaPath`).
+- Render to a DOCX with `write_doc()` (one-step: saves JSON metadata and produces the final document).
 
 Best practices:
 
@@ -73,10 +86,9 @@ print(spec_min_table)
 ```
 
 ```{r save_min_table, eval = FALSE}
-# End-to-end: wrap single spec into a report and save
+# End-to-end: wrap single spec into a report and render to DOCX
 rpt_min_table <- create_report(spec_min_table)
-res_min_table <- save_report(rpt_min_table, docFileName = "tbl_min.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-res_min_table
+write_doc(rpt_min_table, name = "tbl_min", outDir = "./out", metaPath = tempdir())
 ```
 
 Notes: `print()` on a `TFL_spec` provides a readable overview including docType, titles and defined columns.
@@ -95,10 +107,9 @@ print(spec_min_fig)
 ```
 
 ```{r save_min_fig, eval = FALSE}
-# End-to-end: save the single-figure report
+# End-to-end: render the single-figure report to DOCX
 rpt_min_fig <- create_report(spec_min_fig)
-res_min_fig <- save_report(rpt_min_fig, docFileName = "fig_min.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-res_min_fig
+write_doc(rpt_min_fig, name = "fig_min", outDir = "./out", metaPath = tempdir())
 ```
 
 ---
@@ -115,10 +126,9 @@ print(spec_min_text)
 ```
 
 ```{r save_min_text, eval = FALSE}
-# End-to-end: save the narrative as a report
+# End-to-end: render the narrative report to DOCX
 rpt_min_text <- create_report(spec_min_text)
-res_min_text <- save_report(rpt_min_text, docFileName = "txt_min.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-res_min_text
+write_doc(rpt_min_text, name = "txt_min", outDir = "./out", metaPath = tempdir())
 ```
 
 ---
@@ -161,11 +171,11 @@ Update multiple columns with the **same value** — the value is automatically r
 
 ```{r example_define_batch_single, eval = FALSE}
 # Apply single format to multiple columns
-spec_batch <- create_table(data = demog_tbl, cols = c(age, height, weight))
-spec_batch <- define_cols(spec_batch, c(age, height, weight),
-                          type = "numeric",      # Applied to all 3
-                          format = "%.1f",       # Applied to all 3
-                          valueStyleRef = "numeric_right")  # Applied to all 3
+spec_batch <- create_table(data = vitals_tbl, cols = c(sbp, dbp))
+spec_batch <- define_cols(spec_batch, c(sbp, dbp),
+                          type = "numeric",      # Applied to both
+                          format = "%.1f",       # Applied to both
+                          valueStyleRef = "numeric_right")  # Applied to both
 
 print(spec_batch)
 # close example chunk
@@ -276,9 +286,8 @@ print(report_simple)
 ```
 
 ```{r save_report_simple, eval = FALSE}
-# Save combined simple report
-res_report_simple <- save_report(report_simple, docFileName = "report_simple.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-res_report_simple
+# Render combined simple report to DOCX
+write_doc(report_simple, name = "report_simple", outDir = "./out", metaPath = tempdir())
 ```
 
 Notes: `create_report()` preserves input order and consolidates styles and ids.
@@ -424,9 +433,9 @@ Error: relative width 100.0% exceeds maximum allowed 75.0%
 
 ---
 
-## 8 — Table with multiple levels (headers/subheaders), titles and footnotes
+## 8 — Table with titles, subtitles and footnotes
 
-Goal: build a clinical-style table with multi-level column headers, subtitles and footnotes.
+Goal: build a clinical-style table with a title, subtitle, and footnote — the standard content layers for a clinical TFL.
 
 ```{r example_multilevel_table, eval = FALSE}
 spec_multi <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
@@ -445,10 +454,9 @@ print(spec_multi)
 ```
 
 ```{r save_multilevel, eval = FALSE}
-# Save the multilevel table as a report
+# Render the multilevel table to DOCX
 rpt_multi <- create_report(spec_multi)
-res_multi <- save_report(rpt_multi, docFileName = "tbl_multi.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-res_multi
+write_doc(rpt_multi, name = "tbl_multi", outDir = "./out", metaPath = tempdir())
 ```
 
 ---
@@ -568,9 +576,9 @@ print(spec_stubs_multi)
 ```
 
 **How `stubOrder` works**: 
-- Lower numbers appear closer to the top (e.g., `stubOrder = 1` above `stubOrder = 2`)
+- Lower numbers appear closer to the top (e.g., `stubOrder = 0` is the topmost row; `stubOrder = 1` is below it)
 - You can have multiple stubs at the same order level as long as their column sets don't overlap
-- If NULL, `stubOrder` is auto-generated starting from 1
+- If NULL, `stubOrder` is auto-generated in call order
 
 ### Example 3: Styled spanning headers
 
@@ -607,10 +615,9 @@ Notes:
 - Styles must be defined before referencing them in `add_span_header()`
 
 ```{r save_stub, eval = FALSE}
-# Save stubbed table report
+# Render stubbed table report to DOCX
 rpt_stub <- create_report(spec_stubs_style)
-res_stub <- save_report(rpt_stub, docFileName = "tbl_stub.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-res_stub
+write_doc(rpt_stub, name = "tbl_stub", outDir = "./out", metaPath = tempdir())
 ```
 
 ---
@@ -717,10 +724,9 @@ print(spec_batch_combined)
 **Key insight**: When using multiple columns with different style combinations, provide a vector matching the column count (one-to-one mapping).
 
 ```{r save_styles, eval = FALSE}
-# Save the styled table report
+# Render the styled table report to DOCX
 rpt_styles <- create_report(spec_batch_combined)
-res_styles <- save_report(rpt_styles, docFileName = "tbl_styles.docx", outDir = "./out", metaPath = tempdir(), prettify = TRUE)
-res_styles
+write_doc(rpt_styles, name = "tbl_styles", outDir = "./out", metaPath = tempdir())
 ```
 
 ---
@@ -748,8 +754,8 @@ data <- data.frame(
 
 # Create spec and define styles
 spec <- create_table(data) |>
-  add_style("group_header", s_font(bold = TRUE, color = "#0000FF")) |>
-  add_style("emphasize", s_table_style(background_color = "#FFFFCC"))
+  add_style(id = "group_header", s_font(bold = TRUE, color = "#0000FF")) |>
+  add_style(id = "emphasize",    s_table_style(background_color = "#FFFFCC"))
 
 # Apply conditional styling: bold+blue for first occurrence of each group
 spec <- spec |>
@@ -768,9 +774,9 @@ Apply multiple styles to a single column using `f_combine()`:
 
 ```{r compute_combined_style, eval = FALSE}
 spec <- create_table(data) |>
-  add_style("bold", s_font(bold = TRUE)) |>
-  add_style("large", s_font(font_size = "14pt")) |>
-  add_style("highlight", s_table_style(background_color = "#FFFF00"))
+  add_style(id = "bold",      s_font(bold = TRUE)) |>
+  add_style(id = "large",     s_font(font_size = "14pt")) |>
+  add_style(id = "highlight", s_table_style(background_color = "#FFFF00"))
 
 # Apply combined styles to first group occurrence
 spec <- spec |>
@@ -785,7 +791,7 @@ Merge adjacent columns for rows matching a condition:
 
 ```{r compute_merge, eval = FALSE}
 spec <- create_table(data) |>
-  add_style("group_label", s_table_style(background_color = "#D9D9D9"))
+  add_style(id = "group_label", s_table_style(background_color = "#D9D9D9"))
 
 # Merge metric and count columns for first occurrence (group header style)
 spec <- spec |>
@@ -800,7 +806,7 @@ Insert empty rows (separators) or rows with content from another column:
 
 ```{r compute_addrow, eval = FALSE}
 spec <- create_table(data) |>
-  add_style("separator", s_table_style(background_color = "#E8E8E8"))
+  add_style(id = "separator", s_table_style(background_color = "#E8E8E8"))
 
 # Insert empty separator above first group occurrence
 spec <- spec |>
@@ -815,14 +821,25 @@ spec <- spec |>
   )
 ```
 
+### Example 4b: Page break insertion
+
+Force a page break when a group ends (useful for long groups):
+
+```{r compute_pagebreak, eval = FALSE}
+spec <- spec |>
+  compute_cols(lastOf(group),
+    c_pageBreak()
+  )
+```
+
 ### Example 5: Multiple actions on same rows
 
 Combine styling, merging, and row insertion in a single `compute_cols()` call:
 
 ```{r compute_multi_action, eval = FALSE}
 spec <- create_table(data) |>
-  add_style("header", s_font(bold = TRUE)) |>
-  add_style("separator", s_table_style(background_color = "#E8E8E8"))
+  add_style(id = "header",    s_font(bold = TRUE)) |>
+  add_style(id = "separator", s_table_style(background_color = "#E8E8E8"))
 
 # For first group occurrence: add separator, style, and merge
 spec <- spec |>
@@ -843,59 +860,45 @@ spec <- spec |>
 
 ---
 
-## 12 — Save report (end-to-end export)
+## 12 — Render to DOCX with `write_doc()`
 
-Goal: show `save_report()` usage — it validates and serializes specs and writes metadata/data/figure files to `metaPath`.
+Goal: show the standard end-to-end export — assembling specs into a report and producing a DOCX file in one call.
 
-### What `save_report()` does
+### What `write_doc()` does
 
-`save_report()` is the final step in the reporting pipeline. It:
-1. **Assembles** multiple specs into a single report (if not already done via `create_report()`)
-2. **Validates** the complete report against JSON Schema
-3. **Serializes** to JSON, replacing internal references with file paths
-4. **Writes files** to `metaPath`:
-   - `{spec_hash}.json` — the main metadata spec file (consumed by the renderer)
-   - `{dataRef}.json` — table data files (one per table spec)
-   - Figure files — copied from input paths to `metaPath`
-5. **Returns metadata** with generation timestamps and file locations
+`write_doc()` is the primary output function. It combines two lower-level steps into one:
 
-### Example: Assemble and save a multi-spec report
+1. **Validates and serializes** the report to JSON, writing metadata and data files to `metaPath`
+2. **Renders** the JSON to a DOCX file in `outDir`
 
-```{r example_save_report, eval = FALSE}
+```
+create_report() → write_doc()  →  output.docx
+```
+
+### Example: Assemble and render a multi-spec report
+
+```{r example_write_doc, eval = FALSE}
 # Create multiple specs
 table_spec <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 table_spec <- add_title(table_spec, "Laboratory Results")
 
 text_spec <- create_text()
-text_spec <- add_body_text("All values are from the locked database.")
+text_spec <- add_body_text(text_spec, "All values are from the locked database.")
 
 # Assemble into report
 report_full <- create_report(table_spec, text_spec)
 
-# Save — internally validates and writes JSON + data files to metaPath
-res <- save_report(report_full, 
-                   docFileName = "example_report.docx", 
-                   outDir = "./out", 
-                   metaPath = tempdir(), 
-                   prettify = TRUE)
-
-# Inspect metadata
-str(res)
+# Render — validates, writes JSON metadata, and produces the DOCX
+write_doc(report_full, name = "example_report", outDir = "./out", metaPath = tempdir())
 ```
 
-**Parameters**:
+**Key parameters**:
 - `report`: A `TFL_report` object (created via `create_report()`)
-- `docFileName`: Output DOCX filename (passed to renderer)
-- `outDir`: Directory where output DOCX will be written
-- `metaPath`: Directory where metadata and data files are written (renderer consumes these)
-- `prettify`: If TRUE, formats JSON output nicely (useful for debugging)
+- `name`: Base name for the output DOCX (e.g. `"example_report"` → `example_report.docx`)
+- `outDir`: Directory where the output DOCX is written
+- `metaPath`: Directory where intermediate JSON and data files are written
 
-**Return value**: A list with:
-- `spec_file`: Full path to generated spec JSON
-- `data_files`: Named list of generated data file paths
-- `metadata`: Report-level metadata (timestamps, paths)
-
-Notes: `save_report()` is the public entrypoint to persist specs/data/figures for downstream rendering. In a real workflow, `render_docx()` consumes the spec JSON to produce the final .docx file.
+**Advanced**: If you need to inspect the JSON before rendering (e.g. for debugging or CI pipelines), you can split the call into `save_report()` + `render_docx()`. See `?write_doc` for details.
 
 ---
 
@@ -917,8 +920,8 @@ Instead of adding these to every spec, use `tfl_set_options()` to set session de
 ```{r example_session_options_basic, eval = FALSE}
 # Set session defaults (applies to all NEW specs created after this call)
 tfl_set_options(
-  add_header(c("Study ABC", "Phase II Safety Study", "CONFIDENTIAL")),
-  add_footer(c("Company Confidential", "Page {page} of {numpages}"))
+  add_header("Study ABC", "Phase II Safety Study", "CONFIDENTIAL"),
+  add_footer("Company Confidential", "Page {page} of {numpages}")
 )
 
 # Create spec — automatically inherits headers/footers from options
@@ -944,7 +947,7 @@ spec_default <- add_title(spec_default, "Lab Results (using session defaults)")
 
 # Create another spec but override the header
 spec_override <- create_table(data = demog_tbl, cols = c(subject_id, age))
-spec_override <- add_header(c("Study XYZ", "Different Study", "CONFIDENTIAL"))  # Overrides session default
+spec_override <- add_header(spec_override, "Study XYZ", "Different Study", "CONFIDENTIAL")  # Overrides session default
 spec_override <- add_title(spec_override, "Demographics (custom header)")
 
 print(spec_default)   # Uses session header from tfl_set_options
@@ -990,7 +993,7 @@ This comprehensive vignette demonstrates the complete ksTFL reporting pipeline u
 5. Combining multiple specs into a report
 6. Spanning headers (stub columns) with styling
 7. Named styles and combining with `f_combine()` (expanded)
-8. End-to-end export with `save_report()`
+8. End-to-end render with `write_doc()`
 9. Session defaults with `tfl_set_options()`
 
 **Key patterns to remember**:
@@ -1002,5 +1005,5 @@ This comprehensive vignette demonstrates the complete ksTFL reporting pipeline u
 
 **Running examples locally**: Set the top chunk `eval=TRUE` to generate sample data, then execute examples in order. All code uses exported functions only — no internal API manipulation needed.
 
-For more details on function parameters, see the roxygen documentation: `?create_table`, `?define_cols`, `?add_style`, `?save_report`, etc.
+For more details on function parameters, see the roxygen documentation: `?create_table`, `?define_cols`, `?add_style`, `?write_doc`, etc.
 

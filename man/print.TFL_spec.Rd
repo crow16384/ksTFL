@@ -69,7 +69,7 @@ data <- data.frame(id = 1:10, age = rnorm(10, 45, 10), group = rep(c("A", "B"), 
 spec <- create_table(data) |>
   add_title("Motor Trend Study") |>
   add_subtitle("Vehicle Performance Analysis") |>
-  add_header(c("ABC Research", "Confidential", "2024")) |>
+  add_header("ABC Research", "Confidential", "2024") |>
   add_footnote("Source: mtcars dataset")
 
 # Print with full details (calls print.TFL_spec)

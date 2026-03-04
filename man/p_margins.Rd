@@ -35,8 +35,8 @@ This function can only be used inside \code{\link{p_page}}.
 \examples{
 \dontrun{
 spec <- create_text() |>
-  add_style("page_style",
-    p_page(
+  set_page_style(
+    page = p_page(
       size = "A4",
       orientation = "landscape",
       margins = p_margins(

@@ -345,14 +345,25 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
 }
 
 
-#' Insert a Page Break before the matching row
+#' Insert a page break at the matching row
 #'
-#' Declares a page break action for the parent `compute_cols()` condition.
-#' This action takes no arguments; it signals the renderer to start a new page
-#' at the given row.
+#' Used inside [compute_cols()] to signal the renderer to start a new page
+#' at every row matching the condition. Takes no arguments.
 #'
-#' @return Quosure-style marker (internal use within `compute_cols()`)
+#' @return Action marker (internal use within `compute_cols()`)
+#' @seealso [compute_cols()], [c_style()], [c_addrow()], [c_merge()]
 #' @export
+#' @examples
+#' \dontrun{
+#' data <- data.frame(
+#'   group = c("A", "A", "B", "B", "C"),
+#'   value = c(1, 2, 3, 4, 5)
+#' )
+#'
+#' # Force a new page at the start of each group
+#' spec <- create_table(data) |>
+#'   compute_cols(firstOf(group), c_pageBreak())
+#' }
 c_pageBreak <- function() {
   .assert_context("compute_cols", "c_pageBreak")
 

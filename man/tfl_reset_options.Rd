@@ -2,13 +2,34 @@
 % Please edit documentation in R/pkg_settings.R
 \name{tfl_reset_options}
 \alias{tfl_reset_options}
-\title{Reset options to their defaults}
+\title{Reset all session options to package defaults}
 \usage{
 tfl_reset_options()
 }
 \value{
-The defaults list, returned invisibly.
+The default options list, returned invisibly.
 }
 \description{
-Reset options to their defaults
+Restores all ksTFL session options (headers, footers, body text, styles,
+page settings, column width behavior, etc.) to their original package
+defaults. Useful at the start of a new reporting session or after
+experimenting with \code{tfl_set_options()}.
+}
+\examples{
+\dontrun{
+# Set some session defaults
+tfl_set_options(
+  add_header("Study ABC", "Phase II", "CONFIDENTIAL"),
+  add_footer("Company", "Page {page}", "2025")
+)
+
+# ... build tables ...
+
+# Reset everything back to package defaults
+tfl_reset_options()
+tfl_get_options()  # Confirm reset
+}
+}
+\seealso{
+\code{\link[=tfl_set_options]{tfl_set_options()}}, \code{\link[=tfl_get_options]{tfl_get_options()}}, \code{\link[=tfl_get_option]{tfl_get_option()}}
 }

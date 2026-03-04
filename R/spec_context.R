@@ -1099,8 +1099,8 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
 #' @examples
 #' \dontrun{
 #' spec <- create_text() |>
-#'   add_style("page_style",
-#'     p_page(
+#'   set_page_style(
+#'     page = p_page(
 #'       size = "A4",
 #'       orientation = "landscape",
 #'       margins = p_margins(
@@ -1283,13 +1283,13 @@ p_page <- function(size = .const_default_page_size,
 #' @examples
 #' \dontrun{
 #' spec <- create_text() |>
-#'   add_style("header",
+#'   add_style(id = "header",
 #'     s_font(font_name = "Arial", font_size = "14pt", bold = TRUE),
 #'     s_paragraph(alignment = "center"),
 #'     s_table_style(background_color = "#D9D9D9")
 #'   ) |>
 #'   # Multiple calls merge with last-win
-#'   add_style("header",
+#'   add_style(id = "header",
 #'     s_font(color = "#FF0000")  # Adds color, keeps other font properties
 #'   )
 #' }
@@ -2161,9 +2161,8 @@ add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, 
 #' @return Updated spec object
 #' @export
 add_body_text.TFL_spec <- function(spec, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
-  assert_class(spec, "TFL_spec")  
-  # Auto-remove default body text entries when user adds custom content
   assert_class(spec, "TFL_spec")
+  # Auto-remove default body text entries when user adds custom content
   spec <- .add_text_group_impl(spec = spec, target = "bodyText", text = text, id = id,
                                styleRef = styleRef, order = order,
                                id_prefix = "body_", fn_name = "add_body_text",
@@ -2434,7 +2433,7 @@ add_footer.default <- function(spec, ...) {
 #'   }
 #' @param label Spanning header label
 #' @param stubOrder Order of stub header (auto-generated if NULL). Used to create
-#'   multi-level headers: lower numbers appear abbelowove higher numbers. Multiple stubs
+#'   multi-level headers: lower numbers appear above higher numbers. Multiple stubs
 #'   at the same order are allowed if their column sets do not overlap.
 #' @param id Stub column identifier (auto-generated if NULL)
 #' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report

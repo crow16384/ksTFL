@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
   comment = "#>",
   eval = FALSE
 )
+options(pkgdown.internet = FALSE)
 ```
 
 ## Overview
@@ -28,9 +29,9 @@ and strategies for fine-tuning table layouts.
 
 ## Core Concepts
 
-### The Three Column States
+### Column States
 
-ksTFL partitions table columns into three categories that determine how widths are calculated:
+ksTFL partitions table columns into four categories that determine how widths are calculated:
 
 1. **VISIBLE Columns** (`isVisible != FALSE`)
    - Displayed in the report output
@@ -400,27 +401,14 @@ and applied to the largest column. The rendered output will be correct.
 
 ## Advanced: Width Metadata
 
-ksTFL stores width metadata in `spec$.metadata$colWidths`:
+> **Note**: `spec$.metadata` is an internal field. Its structure may change between package versions. Use `print(spec)` and `define_cols()` for all user-facing width inspection and control.
 
-```{r width-metadata}
-spec <- create_table(data) |>
-  define_cols(id, colWidth = "15%")
+ksTFL stores width metadata internally in `spec$.metadata$colWidths`. This is used by the package itself to:
+- Recalculate widths without re-parsing width strings
+- Track which columns are locked vs. unlocked
+- Preserve initial proportions for normalization
 
-# Inspect metadata
-str(spec$.metadata$colWidths)
-
-# Structure for each column:
-# $id
-#   $unit: "%" or "cm" or "in" etc.
-#   $value: numeric value
-#   $locked: TRUE/FALSE
-#   $auto_weight: initial proportion for recalculation
-```
-
-This metadata enables:
-- Recalculation without re-parsing width strings
-- Tracking which columns are locked vs. unlocked
-- Preserving initial proportions for normalization
+You do not need to read or write this field directly. Use `print(spec)` to inspect current widths and `define_cols(spec, col, colWidth = ...)` to modify them.
 
 ## Best Practices
 
@@ -433,10 +421,14 @@ This metadata enables:
 
 ## Summary
 
-- **Three states**: VISIBLE/LOCKED/UNLOCKED determine width behavior
+- **Four states**: VISIBLE/LOCKED/UNLOCKED/INVISIBLE determine width behavior
 - **Auto-recalculation**: Triggered when you lock widths (if enabled)
 - **Validation**: Minimum thresholds and space constraints prevent errors
 - **Flexibility**: Mix relative (%) and absolute (cm, in) units
 - **Control**: Disable auto-recalculation for manual width management
 
-For more examples, see `vignette("Reporting_Examples_with_ksTFL")`.
+For more examples, see:
+
+- [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — complete end-to-end workflows including column width patterns
+- [Getting Started](Getting_Started_with_ksTFL.Rmd) — overview of the full pipeline
+- [Advanced StyleRows](Advanced_StyleRows.Rmd) — using invisible columns with `compute_cols()` for conditional logic

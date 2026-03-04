@@ -386,6 +386,8 @@ NULL
 #                        aliases: text_left / text_right / text_center
 #  ind1 … ind4          left-indent levels (0.5 cm steps)
 #                        aliases: indent_1 … indent_4
+#  tw_95 … tw_50        symmetric left+right indent to match table at 95/90/85/…/50 %
+#                        of content width, 5 % steps (A4 landscape, 0.5 in margins)
 #  sp_0 / sp_2 / sp_4   paragraph spacing before+after: 0 / 2 / 4 pt
 #  kl / kn              pagination: keep_lines / keep_next
 #  va_t / va_m / va_b   cell vertical alignment: top / middle / bottom
@@ -484,6 +486,46 @@ NULL
     indent_2 = list(paragraph = list(indents = list(left = "1.0cm"))),
     indent_3 = list(paragraph = list(indents = list(left = "1.5cm"))),
     indent_4 = list(paragraph = list(indents = list(left = "2.0cm"))),
+
+    # -------------------------------------------------------------------------
+    # Paragraph — table-width shrink atoms  (left + right symmetric indent)
+    #
+    # Use on footnotes / titles / subtitles / body-text to keep them visually
+    # aligned with a narrower table.  Calculated for A4 landscape with 0.5 in
+    # left/right page margins (content width ≈ 27.16 cm).
+    # Each 5 % step = 0.68 cm per side.
+    #
+    #   tw_%% : table at %% % of content width
+    #           → indent each side = (1 - %% / 100) * 27.16 / 2  cm
+    #
+    #   tw_95 : 95 % → 0.68 cm each side
+    #   tw_90 : 90 % → 1.36 cm each side
+    #   tw_85 : 85 % → 2.04 cm each side
+    #   tw_80 : 80 % → 2.72 cm each side
+    #   tw_75 : 75 % → 3.40 cm each side
+    #   tw_70 : 70 % → 4.07 cm each side
+    #   tw_65 : 65 % → 4.75 cm each side
+    #   tw_60 : 60 % → 5.43 cm each side
+    #   tw_55 : 55 % → 6.11 cm each side
+    #   tw_50 : 50 % → 6.79 cm each side
+    #
+    # Example:
+    #   spec <- add_footnote(spec, "Source: study database.",
+    #                        styleRef = "tw_80")
+    #   # combine with other atoms:
+    #   spec <- add_title(spec, "Demographics",
+    #                     styleRef = f_combine("b", "tw_75"))
+    # -------------------------------------------------------------------------
+    tw_95 = list(paragraph = list(indents = list(left = "0.68cm", right = "0.68cm"))),
+    tw_90 = list(paragraph = list(indents = list(left = "1.36cm", right = "1.36cm"))),
+    tw_85 = list(paragraph = list(indents = list(left = "2.04cm", right = "2.04cm"))),
+    tw_80 = list(paragraph = list(indents = list(left = "2.72cm", right = "2.72cm"))),
+    tw_75 = list(paragraph = list(indents = list(left = "3.40cm", right = "3.40cm"))),
+    tw_70 = list(paragraph = list(indents = list(left = "4.07cm", right = "4.07cm"))),
+    tw_65 = list(paragraph = list(indents = list(left = "4.75cm", right = "4.75cm"))),
+    tw_60 = list(paragraph = list(indents = list(left = "5.43cm", right = "5.43cm"))),
+    tw_55 = list(paragraph = list(indents = list(left = "6.11cm", right = "6.11cm"))),
+    tw_50 = list(paragraph = list(indents = list(left = "6.79cm", right = "6.79cm"))),
 
     # -------------------------------------------------------------------------
     # Paragraph — vertical spacing  (before + after, same value each side)

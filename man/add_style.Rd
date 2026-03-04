@@ -39,13 +39,13 @@ Available modifiers inside this function:
 \examples{
 \dontrun{
 spec <- create_text() |>
-  add_style("header",
+  add_style(id = "header",
     s_font(font_name = "Arial", font_size = "14pt", bold = TRUE),
     s_paragraph(alignment = "center"),
     s_table_style(background_color = "#D9D9D9")
   ) |>
   # Multiple calls merge with last-win
-  add_style("header",
+  add_style(id = "header",
     s_font(color = "#FF0000")  # Adds color, keeps other font properties
   )
 }
