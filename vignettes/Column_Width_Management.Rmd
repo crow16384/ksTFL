@@ -6,6 +6,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 3
+    dev: pdf
 vignette: >
   %\VignetteIndexEntry{Column Width Management in ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,7 +18,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   eval = FALSE,
-  dev = "cairo_png"
+  dev = if (capabilities("cairo")) "cairo_png" else "pdf"
 )
 options(pkgdown.internet = FALSE)
 ```

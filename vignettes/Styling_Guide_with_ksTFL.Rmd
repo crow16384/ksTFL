@@ -5,6 +5,7 @@ output:
   rmarkdown::html_vignette:
     fig_width: 6
     fig_height: 4
+    dev: pdf
 vignette: >
   %\VignetteIndexEntry{Styling Guide — ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
@@ -12,7 +13,10 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE, dev = "cairo_png")
+knitr::opts_chunk$set(
+  comment = "", collapse = TRUE, eval = FALSE,
+  dev = if (capabilities("cairo")) "cairo_png" else "pdf"
+)
 options(pkgdown.internet = FALSE)
 ```
 

@@ -3,6 +3,7 @@ title: "Reporting Examples — ksTFL"
 author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
+    dev: pdf
 vignette: >
   %\VignetteIndexEntry{Reporting Examples — ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,7 +11,10 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(comment = "", collapse = TRUE, eval = FALSE, dev = "cairo_png")
+knitr::opts_chunk$set(
+  comment = "", collapse = TRUE, eval = FALSE,
+  dev = if (capabilities("cairo")) "cairo_png" else "pdf"
+)
 options(pkgdown.internet = FALSE)
 ```
 
