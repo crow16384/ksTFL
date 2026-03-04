@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "C++: Generate compile_commands.json",
+      "type": "shell",
+      "command": "${workspaceFolder}/tools/gen_compile_commands.sh",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "C++: Clean compile_commands artifacts",
+      "type": "shell",
+      "command": "rm -f \"${workspaceFolder}/compile_commands.json\" \"${workspaceFolder}/tmp/compile_commands.log\"",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "C++: Regenerate compile_commands (verbose)",
+      "type": "shell",
+      "command": "mkdir -p \"${workspaceFolder}/tmp\" && \"${workspaceFolder}/tools/gen_compile_commands.sh\" 2>&1 | tee \"${workspaceFolder}/tmp/compile_commands.log\"",
+      "dependsOn": [
+        "C++: Clean compile_commands artifacts"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

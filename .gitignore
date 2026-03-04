@@ -9,6 +9,7 @@ src/symbols.rds
 # Build outputs
 *.tar.gz
 *.zip
+compile_commands.json
 *.dll
 *.so
 *.dylib
