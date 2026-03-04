@@ -32,6 +32,7 @@ SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/docx_drawing.cpp \
     kstfl/docx_table.cpp \
     kstfl/docx_page.cpp \
+    kstfl/docx_content.cpp \
     kstfl/docx_packager.cpp \
     kstfl/docx_emitter.cpp \
     kstfl/renderer.cpp
@@ -57,6 +58,7 @@ OBJECTS = init.o rcpp_bindings.o RcppExports.o cpp_tests.o \
     kstfl/docx_drawing.o \
     kstfl/docx_table.o \
     kstfl/docx_page.o \
+    kstfl/docx_content.o \
     kstfl/docx_packager.o \
     kstfl/docx_emitter.o \
     kstfl/renderer.o
