@@ -1747,7 +1747,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
                              const HorizontalSegment& segment,
                              const std::vector<LogicalRow>& rows,
                              const HeaderGrid& header_grid,
-                             const StyleResolver& resolver) const {
+                             const StyleResolver& resolver,
+                             const std::vector<ParsedCell>& parsed_titles) const {
 
     // NOTE: Document headers/footers are no longer emitted in the page body.
     // They are placed in separate word/headerN.xml and word/footerN.xml parts
@@ -1792,12 +1793,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
             // Stamp exact line height so Word uses same height as paginator
             stamp_exact_line_height(style);
 
-            // Concatenate text lines with soft break (within one paragraph)
-            std::string combined;
-            for (size_t i = 0; i < group.text.size(); ++i) {
-                if (i > 0) combined += "<br>";
-                combined += group.text[i];
-            }
+            // Use precomputed parsed titles to avoid re-parsing on every page.
+            const ParsedCell& parsed = parsed_titles[gi];
 
             // When toclevel is set, emit TC field in same paragraph as title.
             // Only emit TC for the first horizontal segment to avoid duplicate
@@ -1808,7 +1805,6 @@ void DocxEmitter::emit_page(XmlWriter& w,
                     if (i > 0) toc_plain += ' ';
                     toc_plain += get_plain_text(group.text[i]);
                 }
-                ParsedCell parsed = parse_inline_markup(combined);
                 // First paragraph carries the TC field
                 w.start_element("w:p");
                 if (style.paragraph.has_value()) {
@@ -1824,7 +1820,18 @@ void DocxEmitter::emit_page(XmlWriter& w,
                     emit_parsed_paragraph(w, parsed.paragraphs[pi], style);
                 }
             } else {
-                emit_paragraph(w, combined, style);
+                // Emit parsed paragraphs directly (no TC field)
+                if (parsed.paragraphs.empty()) {
+                    w.start_element("w:p");
+                    if (style.paragraph.has_value()) {
+                        emit_para_props(w, style.paragraph.value());
+                    }
+                    w.end_element();
+                } else {
+                    for (const auto& para : parsed.paragraphs) {
+                        emit_parsed_paragraph(w, para, style);
+                    }
+                }
             }
         }
     }
@@ -2208,6 +2215,19 @@ void DocxEmitter::emit(
         for (const auto& seg : pagination.segments) {
             max_pages = std::max(max_pages, seg.pages.size());
         }
+        // Pre-parse title inline markup once — titles are the same on every
+        // page, so we avoid re-parsing on each emit_page() call.
+        std::vector<ParsedCell> parsed_titles;
+        parsed_titles.reserve(spec.titles.size());
+        for (const auto& group : spec.titles) {
+            std::string combined;
+            for (size_t i = 0; i < group.text.size(); ++i) {
+                if (i > 0) combined += "<br>";
+                combined += group.text[i];
+            }
+            parsed_titles.push_back(parse_inline_markup(combined));
+        }
+
         bool first_physical_page = true;
         for (size_t pi = 0; pi < max_pages; ++pi) {
             for (const auto& segment : pagination.segments) {
@@ -2220,7 +2240,7 @@ void DocxEmitter::emit(
                 first_physical_page = false;
 
                 emit_page(doc_w, spec, page, segment, rows, header_grid,
-                          resolver);
+                          resolver, parsed_titles);
             }
         }
 

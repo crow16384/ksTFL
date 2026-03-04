@@ -71,7 +71,8 @@ private:
                    const HorizontalSegment& segment,
                    const std::vector<LogicalRow>& rows,
                    const HeaderGrid& header_grid,
-                   const StyleResolver& resolver) const;
+                   const StyleResolver& resolver,
+                   const std::vector<ParsedCell>& parsed_titles) const;
 
     /// Emit a table element.
     void emit_table(XmlWriter& w,

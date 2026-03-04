@@ -36,12 +36,6 @@ static int get_int(const json& j, const std::string& key, int def = 0) {
     return def;
 }
 
-/// Get double with default.
-static double get_dbl(const json& j, const std::string& key, double def = 0.0) {
-    if (j.contains(key) && j[key].is_number()) return j[key].get<double>();
-    return def;
-}
-
 /// Get optional string (nullopt if missing or null).
 static std::optional<std::string> get_opt_str(const json& j, const std::string& key) {
     if (j.contains(key) && j[key].is_string()) return j[key].get<std::string>();
