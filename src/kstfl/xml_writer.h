@@ -93,11 +93,11 @@ private:
     /// Close the pending start tag if needed (write '>').
     void close_start_tag();
 
-    /// Escape text for XML content.
-    static std::string escape_text(const std::string& s);
+    /// Append XML-escaped text content directly to destination buffer.
+    static void escape_text_into(std::string& dest, const std::string& s);
 
-    /// Escape text for XML attribute values.
-    static std::string escape_attr(const std::string& s);
+    /// Append XML-escaped attribute value directly to destination buffer.
+    static void escape_attr_into(std::string& dest, const std::string& s);
 
     std::string buffer_;
     std::vector<std::string> tag_stack_;

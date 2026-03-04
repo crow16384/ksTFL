@@ -275,6 +275,16 @@ struct PageMargins {
     Length footer_distance;   // distance from page edge to footer content
 };
 
+/// Page margins override — optional fields distinguish "not set" from "set to 0".
+struct PageMarginsOverride {
+    std::optional<Length> top;
+    std::optional<Length> bottom;
+    std::optional<Length> left;
+    std::optional<Length> right;
+    std::optional<Length> header_distance;
+    std::optional<Length> footer_distance;
+};
+
 /// Full page configuration.
 struct PageConfig {
     PageSize size = PageSize::A4;
@@ -528,6 +538,7 @@ struct TFLSpec {
     // Attributes
     PageConfig page_override;                // overrides from attribs.documentStyle.page
     bool has_page_override = false;
+    PageMarginsOverride margin_overrides;    // explicit margin overrides (optional per field)
     StyleMap spec_styles;                    // per-spec style definitions
 
     // Content sections

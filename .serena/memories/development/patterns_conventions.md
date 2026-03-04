@@ -98,7 +98,7 @@ for (msg  in result$failed) {
 - Use [[ not [ for extracting atomic vectors
 - Always check is.atomic() before as.character() on unknown types
 - After editing functions, R may cache old definitions (devtools::reload_all)
-- R is NOT installed on dev machine — don't try to run R code directly
+- R IS installed on dev machine — run R/Rscript directly, do NOT use Docker
 - Don't commit to git without user request
 - Use Russian CRAN mirrors for package installation
 - text_width("") returns empty vector — must check length before max()

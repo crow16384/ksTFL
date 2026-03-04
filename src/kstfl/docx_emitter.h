@@ -16,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace kstfl {
 
@@ -83,21 +84,25 @@ private:
 
     /// Emit table header rows.
     /// @param col_widths  Per-column scaled widths (column index -> EMU).
+    /// @param seg_cols    Pre-built set of column indices in this segment.
     void emit_table_header(XmlWriter& w,
                            const HeaderGrid& header_grid,
                            const HorizontalSegment& segment,
                            const StyleResolver& resolver,
-                           const std::unordered_map<size_t, int64_t>& col_widths) const;
+                           const std::unordered_map<size_t, int64_t>& col_widths,
+                           const std::unordered_set<size_t>& seg_cols) const;
 
     /// Emit a single table body row.
     /// @param col_widths  Per-column scaled widths (column index -> EMU).
+    /// @param seg_cols    Pre-built set of column indices in this segment.
     void emit_table_row(XmlWriter& w,
                         const LogicalRow& row,
                         const HorizontalSegment& segment,
                         const TFLSpec& spec,
                         const StyleResolver& resolver,
                         bool is_last_row,
-                        const std::unordered_map<size_t, int64_t>& col_widths) const;
+                        const std::unordered_map<size_t, int64_t>& col_widths,
+                        const std::unordered_set<size_t>& seg_cols) const;
 
     /// Emit a paragraph with styled content.
     void emit_paragraph(XmlWriter& w,

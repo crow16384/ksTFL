@@ -213,3 +213,20 @@
 **Fix**: In `emit_table_row()`, clamp merge span and cell width to columns present in the current segment — count how many of the cell's spanned columns are in `segment.column_indices`, use that as `effective_span` and sum only those columns' widths (mirroring the existing header logic in `emit_table_header()`).
 **Files**: src/kstfl/docx_emitter.cpp
 **Lesson**: When emitting table body rows for a horizontal segment, merged cells must use segment-local span and width; header already did this, body must match.
+
+## Bug 26: Zero Page Margin Override Ignored (Mar 2026)
+**Symptom**: Setting `set_page_style(margins = p_margins(top = "0cm"))` in a spec did not override a non-zero template default — the template margin was kept.
+**Root Cause**: `resolve_page_config()` in style_resolver.cpp checked `if (ovr.margins.top.emu != 0)` before applying the override. Since zero is a valid margin value, the condition excluded it.
+**Fix**: Added `PageMarginsOverride` struct with `optional<Length>` fields (in types.h). JSON parser populates it via `parse_margins_override()`. Resolver now checks `.has_value()` instead of `!= 0`.
+**Files**: src/kstfl/types.h, src/kstfl/json_parser.cpp, src/kstfl/style_resolver.cpp
+**Lesson**: When a zero value is semantically valid, use `optional<T>` to distinguish "not set" from "set to zero". Never use sentinel values (like 0) to mean "absent".
+
+## Applied Optimization: OPT-1 — Hoist segment column set (Mar 2026)
+**Problem**: `emit_table_header()` and `emit_table_row()` each constructed `unordered_set<size_t> seg_cols` from `segment.column_indices`. For tables with hundreds of rows, this caused per-row heap allocations.
+**Fix**: Create `seg_cols` once in `emit_table()` and pass by const reference to both `emit_table_header()` and `emit_table_row()`.
+**Files**: src/kstfl/docx_emitter.h, src/kstfl/docx_emitter.cpp
+
+## Applied Optimization: OPT-2 — In-place XML escaping (Mar 2026)
+**Problem**: `XmlWriter::escape_text()` and `escape_attr()` allocated temporary `std::string` objects on every call, then appended to `buffer_`. For DOCX with thousands of cells, this caused significant temporary allocations.
+**Fix**: Replaced with `escape_text_into(std::string& dest, ...)` and `escape_attr_into(std::string& dest, ...)` that write directly into the destination buffer. Updated all callers: `text()`, `attribute()`, `element_with_attr()`.
+**Files**: src/kstfl/xml_writer.h, src/kstfl/xml_writer.cpp

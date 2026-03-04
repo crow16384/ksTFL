@@ -19,15 +19,14 @@ PageConfig StyleResolver::resolve_page_config(const TFLSpec& spec) const {
         const auto& ovr = spec.page_override;
         result.size = ovr.size;
         result.orientation = ovr.orientation;
-        // Merge margins — override only if non-zero
-        if (ovr.margins.top.emu != 0)    result.margins.top = ovr.margins.top;
-        if (ovr.margins.bottom.emu != 0) result.margins.bottom = ovr.margins.bottom;
-        if (ovr.margins.left.emu != 0)   result.margins.left = ovr.margins.left;
-        if (ovr.margins.right.emu != 0)  result.margins.right = ovr.margins.right;
-        if (ovr.margins.header_distance.emu != 0)
-            result.margins.header_distance = ovr.margins.header_distance;
-        if (ovr.margins.footer_distance.emu != 0)
-            result.margins.footer_distance = ovr.margins.footer_distance;
+        // Merge margins — apply only explicitly specified fields (including zero)
+        const auto& mo = spec.margin_overrides;
+        if (mo.top.has_value())              result.margins.top = *mo.top;
+        if (mo.bottom.has_value())           result.margins.bottom = *mo.bottom;
+        if (mo.left.has_value())             result.margins.left = *mo.left;
+        if (mo.right.has_value())            result.margins.right = *mo.right;
+        if (mo.header_distance.has_value())  result.margins.header_distance = *mo.header_distance;
+        if (mo.footer_distance.has_value())  result.margins.footer_distance = *mo.footer_distance;
     }
     return result;
 }

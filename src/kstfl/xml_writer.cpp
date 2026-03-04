@@ -54,7 +54,7 @@ void XmlWriter::attribute(const std::string& name, const std::string& value) {
     buffer_ += ' ';
     buffer_ += name;
     buffer_ += "=\"";
-    buffer_ += escape_attr(value);
+    escape_attr_into(buffer_, value);
     buffer_ += '"';
 }
 
@@ -64,7 +64,7 @@ void XmlWriter::attribute(const std::string& name, int64_t value) {
 
 void XmlWriter::text(const std::string& content) {
     close_start_tag();
-    buffer_ += escape_text(content);
+    escape_text_into(buffer_, content);
 }
 
 void XmlWriter::raw(const std::string& xml) {
@@ -111,7 +111,7 @@ void XmlWriter::element_with_attr(const std::string& name,
     buffer_ += ' ';
     buffer_ += attr_name;
     buffer_ += "=\"";
-    buffer_ += escape_attr(attr_value);
+    escape_attr_into(buffer_, attr_value);
     buffer_ += "\"/>";
 }
 
@@ -148,34 +148,30 @@ void XmlWriter::close_start_tag() {
     }
 }
 
-std::string XmlWriter::escape_text(const std::string& s) {
-    std::string result;
-    result.reserve(s.size() + s.size() / 8);
+void XmlWriter::escape_text_into(std::string& dest, const std::string& s) {
+    dest.reserve(dest.size() + s.size() + s.size() / 8);
     for (char c : s) {
         switch (c) {
-            case '&':  result += "&amp;";  break;
-            case '<':  result += "&lt;";   break;
-            case '>':  result += "&gt;";   break;
-            default:   result += c;        break;
+            case '&':  dest += "&amp;";  break;
+            case '<':  dest += "&lt;";   break;
+            case '>':  dest += "&gt;";   break;
+            default:   dest += c;        break;
         }
     }
-    return result;
 }
 
-std::string XmlWriter::escape_attr(const std::string& s) {
-    std::string result;
-    result.reserve(s.size() + s.size() / 8);
+void XmlWriter::escape_attr_into(std::string& dest, const std::string& s) {
+    dest.reserve(dest.size() + s.size() + s.size() / 8);
     for (char c : s) {
         switch (c) {
-            case '&':  result += "&amp;";  break;
-            case '<':  result += "&lt;";   break;
-            case '>':  result += "&gt;";   break;
-            case '"':  result += "&quot;"; break;
-            case '\'': result += "&apos;"; break;
-            default:   result += c;        break;
+            case '&':  dest += "&amp;";  break;
+            case '<':  dest += "&lt;";   break;
+            case '>':  dest += "&gt;";   break;
+            case '"':  dest += "&quot;"; break;
+            case '\'': dest += "&apos;"; break;
+            default:   dest += c;        break;
         }
     }
-    return result;
 }
 
 }  // namespace kstfl

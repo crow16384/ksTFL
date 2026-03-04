@@ -1351,13 +1351,10 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
                                      const HeaderGrid& header_grid,
                                      const HorizontalSegment& segment,
                                      const StyleResolver& resolver,
-                                     const std::unordered_map<size_t, int64_t>& col_widths) const {
+                                     const std::unordered_map<size_t, int64_t>& col_widths,
+                                     const std::unordered_set<size_t>& seg_cols) const {
     // Base header style: template cascade without column/stub refs
     StyleDef base_hdr = resolver.resolve_base_header_style();
-
-    // Build set of segment column indices for fast lookup
-    std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
-                                         segment.column_indices.end());
 
     size_t total_header_rows = header_grid.rows.size();
 
@@ -1462,7 +1459,8 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
                                   const TFLSpec& spec,
                                   const StyleResolver& resolver,
                                   bool is_last_row,
-                                  const std::unordered_map<size_t, int64_t>& col_widths) const {
+                                  const std::unordered_map<size_t, int64_t>& col_widths,
+                                  const std::unordered_set<size_t>& seg_cols) const {
     w.start_element("w:tr");
 
     // Row properties
@@ -1478,9 +1476,7 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
     }
     w.end_element();
 
-    // Build fast lookup for segment columns
-    std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
-                                         segment.column_indices.end());
+    // Build fast lookup for segment columns (once per table, not per row)
 
     // Emit cells for this segment
     for (size_t col_idx : segment.column_indices) {
@@ -1718,7 +1714,10 @@ void DocxEmitter::emit_table(XmlWriter& w,
     w.end_element();
 
     // Header rows
-    emit_table_header(w, header_grid, segment, resolver, col_widths);
+    // Build segment column set once, shared by header and all body rows
+    std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
+                                         segment.column_indices.end());
+    emit_table_header(w, header_grid, segment, resolver, col_widths, seg_cols);
 
     // Body rows for this page slice
     // Find effective last data row (skip trailing GroupBreak rows)
@@ -1732,7 +1731,7 @@ void DocxEmitter::emit_table(XmlWriter& w,
     for (size_t ri = page.first_row; ri <= page.last_row && ri < rows.size(); ++ri) {
         if (rows[ri].type == LogicalRowType::GroupBreak) continue;
         bool is_last = (ri == effective_last_row);
-        emit_table_row(w, rows[ri], segment, spec, resolver, is_last, col_widths);
+        emit_table_row(w, rows[ri], segment, spec, resolver, is_last, col_widths, seg_cols);
     }
 
     w.end_element();  // w:tbl

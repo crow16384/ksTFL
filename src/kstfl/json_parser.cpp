@@ -320,6 +320,23 @@ static PageMargins parse_margins(const json& j) {
     return m;
 }
 
+static PageMarginsOverride parse_margins_override(const json& j) {
+    PageMarginsOverride m;
+    auto top = get_opt_str(j, "top");
+    if (top.has_value()) m.top = Length::parse(*top);
+    auto bot = get_opt_str(j, "bottom");
+    if (bot.has_value()) m.bottom = Length::parse(*bot);
+    auto left = get_opt_str(j, "left");
+    if (left.has_value()) m.left = Length::parse(*left);
+    auto right = get_opt_str(j, "right");
+    if (right.has_value()) m.right = Length::parse(*right);
+    auto hdr = get_opt_str(j, "header");
+    if (hdr.has_value()) m.header_distance = Length::parse(*hdr);
+    auto ftr = get_opt_str(j, "footer");
+    if (ftr.has_value()) m.footer_distance = Length::parse(*ftr);
+    return m;
+}
+
 static PageConfig parse_page_config(const json& j) {
     PageConfig pc;
     auto sz = get_opt_str(j, "size");
@@ -632,6 +649,9 @@ static TFLSpec parse_single_spec(const std::string& key, const json& j) {
             if (ds.contains("page") && ds["page"].is_object()) {
                 spec.page_override = parse_page_config(ds["page"]);
                 spec.has_page_override = true;
+                if (ds["page"].contains("margins") && ds["page"]["margins"].is_object()) {
+                    spec.margin_overrides = parse_margins_override(ds["page"]["margins"]);
+                }
             }
         }
 
