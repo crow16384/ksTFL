@@ -15,6 +15,7 @@
 #include "zip_writer.h"
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 namespace kstfl {
 
@@ -81,23 +82,22 @@ private:
                     const StyleResolver& resolver) const;
 
     /// Emit table header rows.
-    /// @param width_scale  Scaling factor to apply to column widths so the
-    ///                     horizontal segment fills the full table width.
+    /// @param col_widths  Per-column scaled widths (column index -> EMU).
     void emit_table_header(XmlWriter& w,
                            const HeaderGrid& header_grid,
                            const HorizontalSegment& segment,
                            const StyleResolver& resolver,
-                           double width_scale) const;
+                           const std::unordered_map<size_t, int64_t>& col_widths) const;
 
     /// Emit a single table body row.
-    /// @param width_scale  Scaling factor for column widths (horizontal segments).
+    /// @param col_widths  Per-column scaled widths (column index -> EMU).
     void emit_table_row(XmlWriter& w,
                         const LogicalRow& row,
                         const HorizontalSegment& segment,
                         const TFLSpec& spec,
                         const StyleResolver& resolver,
-                        bool is_last_row = false,
-                        double width_scale = 1.0) const;
+                        bool is_last_row,
+                        const std::unordered_map<size_t, int64_t>& col_widths) const;
 
     /// Emit a paragraph with styled content.
     void emit_paragraph(XmlWriter& w,

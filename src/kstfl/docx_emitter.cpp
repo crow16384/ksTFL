@@ -1351,7 +1351,7 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
                                      const HeaderGrid& header_grid,
                                      const HorizontalSegment& segment,
                                      const StyleResolver& resolver,
-                                     double width_scale) const {
+                                     const std::unordered_map<size_t, int64_t>& col_widths) const {
     // Base header style: template cascade without column/stub refs
     StyleDef base_hdr = resolver.resolve_base_header_style();
 
@@ -1400,15 +1400,15 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
 
             // Skip cells entirely outside this segment
             if (visible_span > 0) {
-                // Scale the visible portion of the cell width
-                int64_t unscaled_emu = cell.width.emu;
-                if (cell.col_span > 0 && visible_span < cell.col_span) {
-                    // Partial span: proportional fraction of the original width
-                    unscaled_emu = cell.width.emu * visible_span / cell.col_span;
+                // Compute visible width by summing per-column scaled widths
+                int64_t visible_emu = 0;
+                for (size_t ci = col_start; ci < col_end; ++ci) {
+                    auto it = col_widths.find(ci);
+                    if (it != col_widths.end()) {
+                        visible_emu += it->second;
+                    }
                 }
-                int64_t scaled_emu = static_cast<int64_t>(
-                    static_cast<double>(unscaled_emu) * width_scale);
-                Length visible_width{scaled_emu};
+                Length visible_width{visible_emu};
 
                 w.start_element("w:tc");
 
@@ -1465,7 +1465,7 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
                                   const TFLSpec& spec,
                                   const StyleResolver& resolver,
                                   bool is_last_row,
-                                  double width_scale) const {
+                                  const std::unordered_map<size_t, int64_t>& col_widths) const {
     w.start_element("w:tr");
 
     // Row properties
@@ -1510,13 +1510,21 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
             }
         }
 
-        // Cell properties — scale width for horizontal segment
-        Length cell_width = cell.is_merge_leader
-            ? cell.merged_width
-            : (col_idx < spec.columns.size() ? spec.columns[col_idx].resolved_width : Length{0});
-        if (width_scale != 1.0) {
-            cell_width = Length{static_cast<int64_t>(
-                static_cast<double>(cell_width.emu) * width_scale)};
+        // Cell properties — use per-column scaled width
+        Length cell_width{0};
+        if (cell.is_merge_leader) {
+            // Sum scaled widths of all merged columns
+            for (int mi = 0; mi < cell.merge_span; ++mi) {
+                auto it = col_widths.find(col_idx + mi);
+                if (it != col_widths.end()) {
+                    cell_width = cell_width + Length{it->second};
+                }
+            }
+        } else {
+            auto it = col_widths.find(col_idx);
+            if (it != col_widths.end()) {
+                cell_width = Length{it->second};
+            }
         }
 
         TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
@@ -1563,31 +1571,54 @@ void DocxEmitter::emit_table(XmlWriter& w,
 
     // ---- Horizontal-segment width scaling ----
     // When isColBreak splits columns into segments, each segment only
-    // displays a subset of all columns.  We must scale widths so that
-    // each segment fills the full table width.
+    // displays a subset of all columns.  We scale non-ID columns so the
+    // segment fills the full table width, while ID columns keep their
+    // original width so they align across interleaved segments.
     Length full_table_width{0};
     for (const auto& col : spec.columns) {
         full_table_width = full_table_width + col.resolved_width;
     }
 
-    Length raw_segment_width{0};
-    for (size_t col_idx : segment.column_indices) {
-        if (col_idx < spec.columns.size()) {
-            raw_segment_width = raw_segment_width + spec.columns[col_idx].resolved_width;
+    bool is_subset = (segment.column_indices.size() < spec.columns.size());
+
+    // Build per-column scaled width map
+    std::unordered_map<size_t, int64_t> col_widths;
+    if (is_subset) {
+        // Sum raw widths of ID and non-ID columns in this segment
+        int64_t id_raw = 0, non_id_raw = 0;
+        for (size_t col_idx : segment.column_indices) {
+            if (col_idx < spec.columns.size()) {
+                if (spec.columns[col_idx].is_id) {
+                    id_raw += spec.columns[col_idx].resolved_width.emu;
+                } else {
+                    non_id_raw += spec.columns[col_idx].resolved_width.emu;
+                }
+            }
+        }
+        // Non-ID columns share the remaining width after ID columns
+        double non_id_scale = (non_id_raw > 0)
+            ? static_cast<double>(full_table_width.emu - id_raw)
+              / static_cast<double>(non_id_raw)
+            : 1.0;
+        for (size_t col_idx : segment.column_indices) {
+            if (col_idx < spec.columns.size()) {
+                if (spec.columns[col_idx].is_id) {
+                    col_widths[col_idx] = spec.columns[col_idx].resolved_width.emu;
+                } else {
+                    col_widths[col_idx] = static_cast<int64_t>(
+                        spec.columns[col_idx].resolved_width.emu * non_id_scale);
+                }
+            }
+        }
+    } else {
+        for (size_t col_idx : segment.column_indices) {
+            if (col_idx < spec.columns.size()) {
+                col_widths[col_idx] = spec.columns[col_idx].resolved_width.emu;
+            }
         }
     }
 
-    // Scale factor: only apply when the segment is a true subset
-    double width_scale = 1.0;
-    if (raw_segment_width.emu > 0 &&
-        segment.column_indices.size() < spec.columns.size()) {
-        width_scale = static_cast<double>(full_table_width.emu)
-                    / static_cast<double>(raw_segment_width.emu);
-    }
-
-    // Table width = scaled segment width (== full_table_width when scaling)
-    Length table_width = (width_scale != 1.0) ? full_table_width
-                                              : raw_segment_width;
+    Length table_width = full_table_width;
     w.start_element("w:tblW");
     w.attribute("w:w", std::to_string(table_width.to_twips()));
     w.attribute("w:type", "dxa");
@@ -1663,18 +1694,17 @@ void DocxEmitter::emit_table(XmlWriter& w,
     // Grid definition (spec §19.3: gridCol widths in twips, scaled per segment)
     w.start_element("w:tblGrid");
     for (size_t col_idx : segment.column_indices) {
-        if (col_idx < spec.columns.size()) {
-            int64_t scaled_emu = static_cast<int64_t>(
-                spec.columns[col_idx].resolved_width.emu * width_scale);
+        auto it = col_widths.find(col_idx);
+        if (it != col_widths.end()) {
             w.start_element("w:gridCol");
-            w.attribute("w:w", std::to_string(Length{scaled_emu}.to_twips()));
+            w.attribute("w:w", std::to_string(Length{it->second}.to_twips()));
             w.end_element();
         }
     }
     w.end_element();
 
     // Header rows
-    emit_table_header(w, header_grid, segment, resolver, width_scale);
+    emit_table_header(w, header_grid, segment, resolver, col_widths);
 
     // Body rows for this page slice
     // Find effective last data row (skip trailing GroupBreak rows)
@@ -1688,7 +1718,7 @@ void DocxEmitter::emit_table(XmlWriter& w,
     for (size_t ri = page.first_row; ri <= page.last_row && ri < rows.size(); ++ri) {
         if (rows[ri].type == LogicalRowType::GroupBreak) continue;
         bool is_last = (ri == effective_last_row);
-        emit_table_row(w, rows[ri], segment, spec, resolver, is_last, width_scale);
+        emit_table_row(w, rows[ri], segment, spec, resolver, is_last, col_widths);
     }
 
     w.end_element();  // w:tbl
@@ -2153,15 +2183,23 @@ void DocxEmitter::emit(
         const auto& rows = rows_it->second;
         const auto& header_grid = headers_it->second;
 
-        // Emit each segment (horizontal pagination)
-        for (const auto& segment : pagination.segments) {
-            for (size_t pi = 0; pi < segment.pages.size(); ++pi) {
+        // Emit pages interleaved across horizontal segments so that all
+        // segments for the same row range are adjacent in the document.
+        // Order: seg1-pg1, seg2-pg1, seg1-pg2, seg2-pg2, ...
+        size_t max_pages = 0;
+        for (const auto& seg : pagination.segments) {
+            max_pages = std::max(max_pages, seg.pages.size());
+        }
+        bool first_physical_page = true;
+        for (size_t pi = 0; pi < max_pages; ++pi) {
+            for (const auto& segment : pagination.segments) {
+                if (pi >= segment.pages.size()) continue;
                 const auto& page = segment.pages[pi];
 
-                // Page break between pages (not before first page of first segment)
-                if (pi > 0 || segment.segment_index > 0) {
+                if (!first_physical_page) {
                     emit_page_break(doc_w);
                 }
+                first_physical_page = false;
 
                 emit_page(doc_w, spec, page, segment, rows, header_grid,
                           resolver);
