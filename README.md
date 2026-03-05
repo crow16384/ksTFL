@@ -228,7 +228,7 @@ Combine specifications into reports and render to DOCX:
 **render_docx() Parameters**:
 
 - `spec_json`: Path to spec JSON file from `save_report()`
-- `template_json`: Path to styles template (default: bundled `KeyStat_default` template)
+- `template_json`: Path to styles template (default: bundled `CRO Example_default` template)
 - `output_path`: Output .docx file path
 - `font_dirs`: Additional font search directories (optional)
 - `fallback_font`: Custom fallback font path (optional)
@@ -342,7 +342,7 @@ The C++20 rendering engine provides a complete end-to-end pipeline:
 - Inline markup: `**bold**`, `*italic*`, `__underline__`, `~~strikethrough~~`
 - Structural borders (header top/bottom, table bottom)
 - Title soft-break rendering (combined paragraph with per-group font styling)
-- Configurable style templates (`KeyStat_default` bundled)
+- Configurable style templates (`CRO Example_default` bundled)
 
 ---
 
@@ -424,7 +424,7 @@ This project is licensed under the GNU General Public License v3.0 or later — 
 ## Author
 
 **Igor Aleschenkov**  
-KeyStat Solutions
+CRO Example Solutions
 
 ---
 

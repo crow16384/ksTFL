@@ -102,7 +102,7 @@ Internal helpers:
 ## Bundled Resources (inst/)
 
 ### inst/templates/
-- KeyStat_default.json: default styles template
+- CRO Example_default.json: default styles template
 
 ### inst/fonts/
 - LiberationSans-Regular/Bold/Italic/BoldItalic.ttf

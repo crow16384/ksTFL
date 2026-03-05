@@ -255,7 +255,7 @@ Combine specifications into reports and render to DOCX:
 - `spec_json`: Path to spec JSON file from
   [`save_report()`](https://example.com/reference/save_report.md)
 - `template_json`: Path to styles template (default: bundled
-  `KeyStat_default` template)
+  `CRO Example_default` template)
 - `output_path`: Output .docx file path
 - `font_dirs`: Additional font search directories (optional)
 - `fallback_font`: Custom fallback font path (optional)
@@ -373,7 +373,7 @@ types (Table, Figure, Text) - Inline markup: `**bold**`, `*italic*`,
 `__underline__`, `~~strikethrough~~` - Structural borders (header
 top/bottom, table bottom) - Title soft-break rendering (combined
 paragraph with per-group font styling) - Configurable style templates
-(`KeyStat_default` bundled)
+(`CRO Example_default` bundled)
 
 ------------------------------------------------------------------------
 
@@ -462,7 +462,7 @@ later — see the [LICENSE](https://example.com/LICENSE) file for details.
 ## Author
 
 **Igor Aleschenkov**  
-KeyStat Solutions
+CRO Example Solutions
 
 ------------------------------------------------------------------------
 

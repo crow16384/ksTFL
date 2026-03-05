@@ -7,7 +7,7 @@
 #'     `inst/templates/<name>.json`.
 #'   \item A file path to an external template JSON file (absolute or relative).
 #' }
-#' Falls back to `KeyStat_default.json` with a warning when the value is absent
+#' Falls back to `CRO Example_default.json` with a warning when the value is absent
 #' or cannot be resolved.
 #'
 #' @param spec_json_path Path to the spec JSON file.
@@ -36,7 +36,7 @@
       }
       cli::cli_warn(c(
         "External template file {.path {doc_template}} not found.",
-        i = "Falling back to {.val KeyStat_default}."
+        i = "Falling back to {.val CRO Example_default}."
       ))
     } else {
       resolved <- system.file(
@@ -48,13 +48,13 @@
       }
       cli::cli_warn(c(
         "Template {.val {doc_template}} not found in package templates.",
-        i = "Falling back to {.val KeyStat_default}.",
+        i = "Falling back to {.val CRO Example_default}.",
         i = "Available templates: {.val {.list_bundled_templates()}}"
       ))
     }
   }
 
-  system.file("templates", "KeyStat_default.json",
+  system.file("templates", "CRO Example_default.json",
               package = "ksTFL", mustWork = TRUE)
 }
 
@@ -83,7 +83,7 @@
 #'   \code{docTemplate} name stored in the spec (set via
 #'   \code{\link{set_page_style}(docTemplate = "Navy_Pro")}). The name is looked
 #'   up in the package's bundled \code{inst/templates/} directory. If not found,
-#'   the default \code{KeyStat_default} template is used and a warning is issued.
+#'   the default \code{CRO Example_default} template is used and a warning is issued.
 #' @param output_path Character string. Path for the output .docx file. If the
 #'   directory does not exist, it will be created.
 #' @param font_dirs Character vector (optional). Additional directories to search

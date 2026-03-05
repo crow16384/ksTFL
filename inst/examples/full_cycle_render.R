@@ -218,7 +218,7 @@ tfl_reset_options()
 
 # Set session-wide defaults
 tfl_set_options(
-  add_header(c("KeyStat Solutions", "", "CONFIDENTIAL")),
+  add_header(c("CRO Example Solutions", "", "CONFIDENTIAL")),
   add_footer(c("Protocol ABC-123", "Page {PAGE} of {NUMPAGES}", "25FEB2026")),
   add_style("default_title",
     s_font(font_name = "Courier New", font_size = "10pt", bold = TRUE)
@@ -538,7 +538,7 @@ tfl_reset_options()
 
 # Set clinical defaults
 tfl_set_options(
-  add_header(c("KeyStat Solutions", "Study ABC-123", "CONFIDENTIAL")),
+  add_header(c("CRO Example Solutions", "Study ABC-123", "CONFIDENTIAL")),
   add_footer(c("Source: ADSL, ADVS", "Page {PAGE} of {NUMPAGES}", "25FEB2026")),
   set_page_style(
     page = p_page(

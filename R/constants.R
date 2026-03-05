@@ -268,7 +268,7 @@ NULL
 
 #' Default document template name
 #' @noRd
-.const_default_doc_template <- "KeyStat_default"
+.const_default_doc_template <- "CRO Example_default"
 
 #' Default column format string for numeric types
 #' @noRd

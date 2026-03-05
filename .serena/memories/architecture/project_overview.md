@@ -5,7 +5,7 @@ ksTFL is an R package for generating structured JSON metadata specifications for
 
 ## Version and Author
 - Version: 0.1.0
-- Author: Igor Aleschenkov (KeyStat Solutions)
+- Author: Igor Aleschenkov (CRO Example Solutions)
 - License: MIT
 
 ## Key Design Principles

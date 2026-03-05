@@ -27,7 +27,7 @@ This function can only be used inside \code{\link{set_page_style}}.
 \dontrun{
 spec <- create_text() |>
   set_page_style(
-    docTemplate = "KeyStat_default",
+    docTemplate = "CRO Example_default",
     page = p_page(
       size = "A4",
       orientation = "landscape",

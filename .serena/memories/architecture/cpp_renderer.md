@@ -118,7 +118,7 @@ Complete DOCX generation engine. Reads JSON spec + data from save_report(), prod
 - PKG_LIBS: pkg-config --libs for harfbuzz, freetype2, minizip
 - 15 source files compiled
 
-## Template (KeyStat_default.json)
+## Template (CRO Example_default.json)
 - Title: Courier New 9pt bold, center
 - Subtitle: Courier New 9pt, left
 - Footnotes: Arial 8pt italic, left

@@ -84,7 +84,7 @@ The R function `save_report()` already strips `.metadata` from all specs before 
     },
     "attribs": {
       "documentStyle": {
-        "docTemplate": "KeyStat_default",  // Template name → look up in styles template
+        "docTemplate": "CRO Example_default",  // Template name → look up in styles template
         "page": {
           "size": "A4",                     // A4 | A3 | Letter | Legal | Executive
           "orientation": "landscape"        // portrait | landscape
@@ -1684,7 +1684,7 @@ result <- save_report(report, docFileName = "cars")
 # Render to DOCX
 render_docx(
     spec_json = file.path(result$metaPath, result$spec_file),
-    template_json = system.file("templates", "KeyStat_default.json", package = "ksTFL"),
+    template_json = system.file("templates", "CRO Example_default.json", package = "ksTFL"),
     output_path = file.path(result$metaPath, "cars.docx")
 )
 ```
@@ -1754,8 +1754,8 @@ src/                           ← C++ source (compiled by R CMD INSTALL)
 │       └── json.hpp
 inst/
 ├── templates/                 ← Resolved style templates (JSON)
-│   ├── KeyStat_default.json
-│   └── KeyStat_landscape.json
+│   ├── CRO Example_default.json
+│   └── CRO Example_landscape.json
 ├── fonts/                     ← Embedded fallback fonts (optional)
 │   └── LiberationSans-*.ttf
 └── schemas/                   ← Existing schemas (unchanged)

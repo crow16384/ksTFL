@@ -1230,7 +1230,7 @@ p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL,
 #' \dontrun{
 #' spec <- create_text() |>
 #'   set_page_style(
-#'     docTemplate = "KeyStat_default",
+#'     docTemplate = "CRO Example_default",
 #'     page = p_page(
 #'       size = "A4",
 #'       orientation = "landscape",
@@ -2832,7 +2832,7 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
 #' @param spec TFL spec object
 #' @param docTemplate Character. Template to use for rendering. Accepts either:
 #'   \itemize{
-#'     \item A predefined bundled template name (e.g. `"KeyStat_default"`, `"Navy_Pro"`).
+#'     \item A predefined bundled template name (e.g. `"CRO Example_default"`, `"Navy_Pro"`).
 #'       Use \code{tfl_list_templates()} to see all available names.
 #'     \item A file path (absolute or relative) to an external template JSON file.
 #'       The path must point to an existing file conforming to \code{styles_schema_v2.json}.

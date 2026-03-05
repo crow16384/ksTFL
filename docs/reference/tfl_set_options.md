@@ -55,11 +55,11 @@ tfl_set_options(
 - docTemplate:
 
   Character; name of a predefined bundled template (e.g.
-  `"KeyStat_default"`, `"Navy_Pro"`) or a file path to an external
+  `"CRO Example_default"`, `"Navy_Pro"`) or a file path to an external
   template JSON file. When `NULL` (default) the current session template
   is left unchanged. Use
   [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md)
-  to restore the built-in default (`"KeyStat_default"`).
+  to restore the built-in default (`"CRO Example_default"`).
 
 - footnotePlace:
 

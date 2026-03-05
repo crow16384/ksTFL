@@ -22,7 +22,7 @@ If \code{NULL} (default), the template is resolved automatically from the
 \code{docTemplate} name stored in the spec (set via
 \code{\link{set_page_style}(docTemplate = "Navy_Pro")}). The name is looked
 up in the package's bundled \code{inst/templates/} directory. If not found,
-the default \code{KeyStat_default} template is used and a warning is issued.}
+the default \code{CRO Example_default} template is used and a warning is issued.}
 
 \item{output_path}{Character string. Path for the output .docx file. If the
 directory does not exist, it will be created.}

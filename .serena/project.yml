@@ -40,7 +40,7 @@ encoding: "utf-8"
 language_backend:
 
 # whether to use project's .gitignore files to ignore files
-ignore_all_files_in_gitignore: true
+ignore_all_files_in_gitignore: false
 
 # list of additional paths to ignore in this project.
 # Same syntax as gitignore, so you can use * and **.

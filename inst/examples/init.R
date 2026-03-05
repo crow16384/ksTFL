@@ -38,7 +38,7 @@ aligndec <- function(var, na.rep="", indent=0) {
 ##Common doc headers/footers
 tfl_reset_options()
 tfl_set_options(
-  add_header(c("Miracle Drug" , "CONFIDENTIAL", "KeyStat LLC.")),
+  add_header(c("Miracle Drug" , "CONFIDENTIAL", "CRO Example LLC.")),
   add_footer(c("Test Outputs", "Page {PAGE} of {NUMPAGES}")),
   add_footer(c("Program: TestProgram.R")),
   output_directory = out_dir,

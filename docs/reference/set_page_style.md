@@ -25,7 +25,7 @@ set_page_style(spec, docTemplate = NULL, page = NULL)
 
   Character. Template to use for rendering. Accepts either:
 
-  - A predefined bundled template name (e.g. `"KeyStat_default"`,
+  - A predefined bundled template name (e.g. `"CRO Example_default"`,
     `"Navy_Pro"`). Use
     [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)
     to see all available names.

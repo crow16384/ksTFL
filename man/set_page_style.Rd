@@ -17,7 +17,7 @@ set_page_style(spec, docTemplate = NULL, page = NULL)
 
 \item{docTemplate}{Character. Template to use for rendering. Accepts either:
 \itemize{
-\item A predefined bundled template name (e.g. \code{"KeyStat_default"}, \code{"Navy_Pro"}).
+\item A predefined bundled template name (e.g. \code{"CRO Example_default"}, \code{"Navy_Pro"}).
 Use \code{tfl_list_templates()} to see all available names.
 \item A file path (absolute or relative) to an external template JSON file.
 The path must point to an existing file conforming to \code{styles_schema_v2.json}.

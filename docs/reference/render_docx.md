@@ -33,7 +33,7 @@ render_docx(
   `docTemplate` name stored in the spec (set via
   [`set_page_style`](https://example.com/reference/set_page_style.md)`(docTemplate = "Navy_Pro")`).
   The name is looked up in the package's bundled `inst/templates/`
-  directory. If not found, the default `KeyStat_default` template is
+  directory. If not found, the default `CRO Example_default` template is
   used and a warning is issued.
 
 - output_path:

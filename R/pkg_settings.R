@@ -125,10 +125,10 @@ tfl_get_option <- function(name) {
 #'   \item Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_style()`, `add_body_text()`, and `set_page_style(`p_page(`p_margins()`)`)`.
 #'   \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 #' }
-#' @param docTemplate Character; name of a predefined bundled template (e.g. `"KeyStat_default"`,
+#' @param docTemplate Character; name of a predefined bundled template (e.g. `"CRO Example_default"`,
 #'   `"Navy_Pro"`) or a file path to an external template JSON file. When `NULL` (default) the
 #'   current session template is left unchanged. Use `tfl_reset_options()` to restore the
-#'   built-in default (`"KeyStat_default"`).
+#'   built-in default (`"CRO Example_default"`).
 #' @param footnotePlace Character; controls where footnotes are rendered.
 #'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
 #'   `"repeated"` (place under the table on every page),
