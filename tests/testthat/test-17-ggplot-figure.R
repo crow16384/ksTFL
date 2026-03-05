@@ -102,6 +102,47 @@ test_that("create_figure() accepts a ggplot2 object and returns TFL_spec", {
   spec <- create_figure(p)
   expect_s3_class(spec, "TFL_spec")
   expect_equal(spec$document$docType, "Figure")
+  expect_true(is.list(spec$figure))
+  expect_true(!is.null(spec$figure$figureScaleMode))
+})
+
+test_that("create_figure() uses figure defaults from options", {
+  skip_if_not_installed("ggplot2")
+  old <- tfl_get_options()
+  on.exit(.options_env$settings <- old, add = TRUE)
+  tfl_set_options(
+    figureWidth = "70%",
+    figureHeight = "5cm",
+    figureDevice = "png",
+    figureAspectRatio = 1.25,
+    figureScaleMode = "fitWidth"
+  )
+  p <- make_plot()
+  spec <- create_figure(p)
+  expect_equal(spec$figure$width, "70%")
+  expect_equal(spec$figure$height, "5cm")
+  expect_equal(spec$figure$device, "png")
+  expect_equal(spec$figure$aspectRatio, 1.25)
+  expect_equal(spec$figure$figureScaleMode, "fitWidth")
+})
+
+test_that("set_document() overrides figure settings", {
+  skip_if_not_installed("ggplot2")
+  p <- make_plot()
+  spec <- create_figure(p) |>
+    set_document(
+      figureWidth = "80%",
+      figureHeight = "10cm",
+      figureDevice = "svg",
+      figureAspectRatio = 2,
+      figureScaleMode = "fitPage"
+    )
+
+  expect_equal(spec$figure$width, "80%")
+  expect_equal(spec$figure$height, "10cm")
+  expect_equal(spec$figure$device, "svg")
+  expect_equal(spec$figure$aspectRatio, 2)
+  expect_equal(spec$figure$figureScaleMode, "fitPage")
 })
 
 test_that("create_figure() stores a valid readable file path for ggplot2 input", {
@@ -122,25 +163,34 @@ test_that("create_figure() stores PNG path by default for ggplot2 input", {
 
 test_that("create_figure() respects device = 'jpeg' for ggplot2 input", {
   skip_if_not_installed("ggplot2")
+  old <- tfl_get_options()
+  on.exit(.options_env$settings <- old, add = TRUE)
+  tfl_set_options(figureDevice = "jpeg")
   p <- make_plot()
-  spec <- create_figure(p, device = "jpeg")
+  spec <- create_figure(p)
   expect_match(spec$.metadata$filePath, "\\.jpeg$", ignore.case = TRUE)
   expect_true(file.exists(spec$.metadata$filePath))
 })
 
 test_that("create_figure() respects device = 'svg' for ggplot2 input", {
   skip_if_not_installed("ggplot2")
+  old <- tfl_get_options()
+  on.exit(.options_env$settings <- old, add = TRUE)
+  tfl_set_options(figureDevice = "svg")
   p <- make_plot()
-  spec <- create_figure(p, device = "svg")
+  spec <- create_figure(p)
   expect_match(spec$.metadata$filePath, "\\.svg$", ignore.case = TRUE)
   expect_true(file.exists(spec$.metadata$filePath))
 })
 
 test_that("create_figure() forwards width/height/dpi without error", {
   skip_if_not_installed("ggplot2")
+  old <- tfl_get_options()
+  on.exit(.options_env$settings <- old, add = TRUE)
+  tfl_set_options(figureWidth = "8in", figureHeight = "5in")
   p <- make_plot()
   # Should not throw
-  spec <- create_figure(p, width = 8, height = 5, dpi = 150L)
+  spec <- create_figure(p, dpi = 150L)
   expect_s3_class(spec, "TFL_spec")
   expect_true(file.exists(spec$.metadata$filePath))
 })

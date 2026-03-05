@@ -34,6 +34,30 @@
   
   spec
 }
+
+#' Internal: Convert figure size string to inches for temporary ggplot export
+#' @keywords internal
+#' @noRd
+.figure_size_to_inches <- function(size_str, default_in = 6) {
+  if (is.null(size_str) || !is.character(size_str) || length(size_str) != 1L) {
+    return(as.numeric(default_in))
+  }
+  if (grepl("%$", size_str)) {
+    return(as.numeric(default_in))
+  }
+  m <- regexec("^([0-9]+(?:\\.[0-9]+)?)(in|cm|mm|pt)$", size_str, perl = TRUE)
+  cap <- regmatches(size_str, m)[[1]]
+  if (length(cap) != 3L) return(as.numeric(default_in))
+  val <- as.numeric(cap[2])
+  unit <- cap[3]
+  switch(unit,
+    "in" = val,
+    "cm" = val / 2.54,
+    "mm" = val / 25.4,
+    "pt" = val / 72,
+    as.numeric(default_in)
+  )
+}
   
 #' Internal: Initialize a TFL Specification Object
 #'
@@ -87,10 +111,19 @@
       ))
     }
 
+    settings <- tfl_get_options()
     spec$document$docType <- docType
     spec$document$hasData <- FALSE
+    spec$figure <- list(
+      width = unclass(settings$figureWidth),
+      height = unclass(settings$figureHeight),
+      aspectRatio = unclass(settings$figureAspectRatio),
+      figureScaleMode = unclass(settings$figureScaleMode),
+      device = unclass(settings$figureDevice)
+    )
     spec$columns <- NULL
     spec$stubColumns <- NULL
+    spec$styleRows <- NULL
     spec$.metadata$filePath <- normalizePath(file.path(data), winslash = "/", mustWork = FALSE)
     class(spec) <- "TFL_spec"
     spec$.metadata$hash <- .generate_hash(spec)
@@ -109,6 +142,7 @@
     spec$document$hasData <- FALSE
     spec$stubColumns <- NULL
     spec$columns <- NULL
+    spec$styleRows <- NULL
     class(spec) <- "TFL_spec"
     spec$.metadata$hash <- .generate_hash(spec)
     return(spec)
@@ -649,14 +683,16 @@ create_table <- function(data = NULL, cols = everything()) {
 #' p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
 #' spec <- create_figure(p)
 #'
-#' ## Control output dimensions
-#' spec <- create_figure(p, width = 8, height = 5, dpi = 150)
+#' ## Control figure defaults via options
+#' tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "png")
+#' spec <- create_figure(p, dpi = 150)
 #'
-#' ## Use JPEG output
-#' spec <- create_figure(p, device = "jpeg", width = 7, height = 4.5)
+#' ## Override per figure
+#' spec <- create_figure(p) |>
+#'   set_document(figureDevice = "jpeg", figureScaleMode = "fitWidth")
 #'
 #' ## Full pipeline
-#' spec <- create_figure(p, width = 6, height = 4) |>
+#' spec <- create_figure(p) |>
 #'   add_title("Weight vs MPG") |>
 #'   add_footnote("Source: Motor Trend, 1974.")
 #' report <- create_report(spec)
@@ -667,16 +703,21 @@ create_table <- function(data = NULL, cols = everything()) {
 #' )
 #' }
 #'
-create_figure <- function(plot_or_path, width = 6, height = 4, dpi = 300L, device = "png") {
+create_figure <- function(plot_or_path, dpi = 300L) {
+
+  settings <- tfl_get_options()
+  fig_device <- settings$figureDevice %||% "png"
 
   # Branch 1: ggplot2 object — render to temporary file
   if (inherits(plot_or_path, c("gg", "ggplot"))) {
+    export_w <- .figure_size_to_inches(settings$figureWidth %||% "6in", default_in = 6)
+    export_h <- .figure_size_to_inches(settings$figureHeight %||% "4in", default_in = 4)
     plot_or_path <- .save_ggplot_to_temp(
       plot   = plot_or_path,
-      width  = width,
-      height = height,
+      width  = export_w,
+      height = export_h,
       dpi    = dpi,
-      device = device
+      device = fig_device
     )
 
   # Branch 2: character file path — pass through as-is
@@ -694,7 +735,5 @@ create_figure <- function(plot_or_path, width = 6, height = 4, dpi = 300L, devic
   }
 
   spec <- .tfl_init(data = plot_or_path, cols = everything(), docType = "Figure")
-  spec$document$figureWidthIn  <- as.numeric(width)
-  spec$document$figureHeightIn <- as.numeric(height)
   spec
 }

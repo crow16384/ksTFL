@@ -1,5 +1,5 @@
 // kstfl/types.h — Core data structures for the ksTFL DOCX renderer
-// Mirrors the JSON schema structures from spec_schema_v1.json and styles_schema_v1.json
+// Mirrors the JSON schema structures from spec_schema_v2.json and styles_schema_v1.json
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
@@ -529,10 +529,17 @@ struct DocumentInfo {
     bool glue_num_type = false;              // informational: number type was auto-generated
     int doc_order = 0;
     bool is_continues = false;               // if true, titles don't repeat on subsequent pages
-    std::optional<double> content_width;     // percent of usable width (0.0–1.0 or 0–100)
+    std::optional<std::string> content_width_raw; // e.g. "100%", "16cm", "6.5in"
     FootnotePlace footnote_place = FootnotePlace::Repeated;
-    double figure_width_in = 6.0;            // figure width in inches (for Figure docType)
-    double figure_height_in = 4.0;           // figure height in inches (for Figure docType)
+};
+
+/// Figure-specific rendering options.
+struct FigureInfo {
+    std::optional<std::string> width;        // e.g. "70%", "6in", "12cm"
+    std::optional<std::string> height;       // e.g. "50%", "4in", "8cm"
+    std::optional<double> aspect_ratio;      // width/height
+    std::string scale_mode = "fixed";       // fixed | fitWidth | fitPage
+    std::string device = "png";             // png | jpeg | jpg | svg
 };
 
 // ---------------------------------------------------------------------------
@@ -568,6 +575,7 @@ struct TFLSpec {
     // Data reference
     std::string data_ref;                    // links to data JSON file
     std::string figure_path;                 // for Figure docType: path to image file
+    FigureInfo figure;
 };
 
 // ---------------------------------------------------------------------------

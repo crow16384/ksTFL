@@ -1,0 +1,1107 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "title": "KeyStat TFL specifications (v2)",
+    "description": "Defines structure and meta-data for multiple TFLs, keyed by specification ID",
+    "properties": {
+        "_metadata": {
+            "type": "object",
+            "title": "Top-level metadata",
+            "description": "Container for filesystem metadata",
+            "properties": {
+                "outDir": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "description": "Output directory for serialized files"
+                },
+                "docFileName": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "description": "Document file base name"
+                },
+                "datetime": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "description": "ISO 8601 formatted timestamp when the report was saved",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "patternProperties": {
+        "^[A-Za-z0-9][A-Za-z0-9_.-]*_[a-f0-9]{16}$": {
+            "type": "object",
+            "title": "TFL Specification",
+            "description": "A single TFL specification containing structure and meta-data",
+            "properties": {
+                "attribs": {
+                    "type": "object",
+                    "title": "Doc Properties and Styles",
+                    "description": "Document attributes and styles definitions",
+                    "properties": {
+                        "documentStyle": {
+                            "type": "object",
+                            "description": "Defines document properties",
+                            "properties": {
+                                "docTemplate": {
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ],
+                                    "description": "Name of the predefined document template",
+                                    "default": "KeyStat_default"
+                                },
+                                "page": {
+                                    "type": "object",
+                                    "title": "Page Settings",
+                                    "description": "Document page configuration including size, orientation, and margins",
+                                    "properties": {
+                                        "size": {
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "title": "Page Size",
+                                            "description": "Standard paper size for the document",
+                                            "default": "A4",
+                                            "enum": [
+                                                "A4",
+                                                "A3",
+                                                "Letter",
+                                                "Legal",
+                                                "Executive"
+                                            ]
+                                        },
+                                        "orientation": {
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "title": "Page Orientation",
+                                            "description": "Page layout direction",
+                                            "default": "landscape",
+                                            "enum": [
+                                                "portrait",
+                                                "landscape"
+                                            ]
+                                        },
+                                        "margins": {
+                                            "type": "object",
+                                            "title": "Page Margins",
+                                            "description": "Margin measurements for all sides of the page",
+                                            "properties": {
+                                                "top": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Top Margin",
+                                                    "description": "Distance from top edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "bottom": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Bottom Margin",
+                                                    "description": "Distance from bottom edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "left": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Left Margin",
+                                                    "description": "Distance from left edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "right": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Right Margin",
+                                                    "description": "Distance from right edge of page to main content area (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "header": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Header Margin",
+                                                    "description": "Distance from top edge of page to header content (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                },
+                                                "footer": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Footer Margin",
+                                                    "description": "Distance from bottom edge of page to footer content (Word typically uses inches or centimeters)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                }
+                                            },
+                                            "required": [
+                                                "top",
+                                                "bottom",
+                                                "left",
+                                                "right",
+                                                "header",
+                                                "footer"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "size",
+                                        "orientation"
+                                    ]
+                                }
+                            }
+                        },
+                        "styles": {
+                            "type": "object",
+                            "description": "Style overrides definitions keyed by style ID",
+                            "patternProperties": {
+                                ".*": {
+                                    "type": "object",
+                                    "properties": {
+                                        "paragraph": {
+                                            "type": "object",
+                                            "description": "Paragraph-level formatting properties",
+                                            "properties": {
+                                                "alignment": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "enum": [
+                                                        "left",
+                                                        "right",
+                                                        "center",
+                                                        "justify",
+                                                        "distributed"
+                                                    ]
+                                                },
+                                                "spacing": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "before": {
+                                                            "type": [
+                                                                "null",
+                                                                "string"
+                                                            ],
+                                                            "description": "Space before paragraph (Word typically uses points)",
+                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$"
+                                                        },
+                                                        "after": {
+                                                            "type": [
+                                                                "null",
+                                                                "string"
+                                                            ],
+                                                            "description": "Space after paragraph (Word typically uses points)",
+                                                            "pattern": "^[0-9]+(\\.[0-9]+)?(pt|cm|in|mm)$"
+                                                        },
+                                                        "line_spacing": {
+                                                            "type": [
+                                                                "null",
+                                                                "number"
+                                                            ],
+                                                            "minimum": 1,
+                                                            "description": "Line spacing multiplier (e.g., 1.5 for 1.5x spacing)"
+                                                        }
+                                                    }
+                                                },
+                                                "indents": {
+                                                    "type": "object",
+                                                    "description": "Paragraph indentation settings",
+                                                    "properties": {
+                                                        "left": {
+                                                            "type": [
+                                                                "null",
+                                                                "string"
+                                                            ],
+                                                            "description": "Left indent (Word typically uses inches or centimeters)",
+                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                        },
+                                                        "right": {
+                                                            "type": [
+                                                                "null",
+                                                                "string"
+                                                            ],
+                                                            "description": "Right indent (Word typically uses inches or centimeters)",
+                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                        },
+                                                        "first_line": {
+                                                            "type": [
+                                                                "null",
+                                                                "string"
+                                                            ],
+                                                            "description": "First line indent (negative for hanging indent). Word typically uses inches or centimeters",
+                                                            "pattern": "^-?[0-9]+(\\.[0-9]+)?(in|cm|mm|pt)$"
+                                                        }
+                                                    }
+                                                },
+                                                "word_style": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "description": "Base Word style to inherit from",
+                                                    "enum": [
+                                                        "Normal",
+                                                        "Heading 1",
+                                                        "Heading 2",
+                                                        "Title",
+                                                        "Subtitle",
+                                                        "No Spacing",
+                                                        "Strong",
+                                                        "Quote",
+                                                        "Intense Quote"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "font": {
+                                            "type": "object",
+                                            "description": "Font properties",
+                                            "properties": {
+                                                "font_name": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "Arial",
+                                                        "Courier New",
+                                                        "Times New Roman",
+                                                        "Calibri"
+                                                    ]
+                                                },
+                                                "font_size": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "description": "Font size in points (Word standard unit)",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
+                                                },
+                                                "bold": {
+                                                    "type": "boolean"
+                                                },
+                                                "italic": {
+                                                    "type": "boolean"
+                                                },
+                                                "underline": {
+                                                    "type": "boolean"
+                                                },
+                                                "color": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                                                },
+                                                "highlight": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                                                }
+                                            }
+                                        },
+                                        "table_style": {
+                                            "type": "object",
+                                            "description": "Table cell specific styling overrides",
+                                            "properties": {
+                                                "background_color": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                                                },
+                                                "row_height": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "title": "Row Height",
+                                                    "description": "Height of the table row (Word typically uses points)",
+                                                    "default": "auto",
+                                                    "pattern": "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm))|(auto)$"
+                                                },
+                                                "vertical_alignment": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "enum": [
+                                                        "top",
+                                                        "center",
+                                                        "bottom"
+                                                    ]
+                                                },
+                                                "text_orientation": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "enum": [
+                                                        "horizontal",
+                                                        "vertical_90",
+                                                        "vertical_270"
+                                                    ]
+                                                },
+                                                "borders": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "top": {
+                                                            "$ref": "#/$defs/borderProperties"
+                                                        },
+                                                        "bottom": {
+                                                            "$ref": "#/$defs/borderProperties"
+                                                        },
+                                                        "left": {
+                                                            "$ref": "#/$defs/borderProperties"
+                                                        },
+                                                        "right": {
+                                                            "$ref": "#/$defs/borderProperties"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "docFormat": {
+                            "type": "string",
+                            "description": "Format of the output file (e.g. docx)",
+                            "default": "docx",
+                            "enum": [
+                                "docx"
+                            ]
+                        }
+                    }
+                },
+                "document": {
+                    "type": "object",
+                    "title": "Output properties",
+                    "description": "Output properties",
+                    "properties": {
+                        "docType": {
+                            "type": "string",
+                            "description": "Clinical report type",
+                            "enum": [
+                                "Table",
+                                "Figure",
+                                "Text"
+                            ]
+                        },
+                        "glueNumType": {
+                            "type": "boolean",
+                            "description": "Yes to glue the Type and Number to first title (e.g. Listing 16.1 <title 1>), No to keep Type and Number as a separate first row",
+                            "default": true
+                        },
+                        "docOrder": {
+                            "type": [
+                                "null",
+                                "integer"
+                            ],
+                            "description": "Defines the order of the output (e.g. when outputs are combined to a single document)",
+                            "minimum": 0
+                        },
+                        "isContinues": {
+                            "type": "boolean",
+                            "title": "Is table continues or has page breaks",
+                            "description": "Yes if page breaks should be ignored"
+                        },
+                        "contentWidth": {
+                            "type": [
+                                "null",
+                                "string"
+                            ],
+                            "title": "Width of the doc Content",
+                            "description": "Defines the width of the content, e.g. the desired width of the Table or Image (Word typically uses percentage, inches, or centimeters)",
+                            "pattern": "^\\d+(\\.\\d+)?(%|in|cm)$"
+                        },
+                        "footnotePlace": {
+                            "type": "string",
+                            "enum": ["doc_footer", "repeated", "last_page"],
+                            "title": "Footnote placement",
+                            "description": "Where to place footnotes: 'doc_footer' = inside the Word footer (below footer rows), 'repeated' = under the table on every page, 'last_page' = under the table on the last page only",
+                            "default": "repeated"
+                        },
+                        "hasData": {
+                            "type": "boolean",
+                            "title": "Is document has any data to report",
+                            "description": "When it set to false we assume that table/listing has no data rows (empty), in that case we can provide the placeholder text to print instead of writing empty table with no rows"
+                        }
+                    },
+                    "required": [
+                        "hasData",
+                        "docType"
+                    ]
+                },
+                "headers": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "title": "Document Headers",
+                    "description": "List of document headers",
+                    "items": {
+                        "type": "array",
+                        "maxItems": 3,
+                        "minItems": 0,
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "footers": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "title": "Document footers",
+                    "description": "List of document footers",
+                    "minItems": 0,
+                    "items": {
+                        "type": "array",
+                        "maxItems": 3,
+                        "minItems": 0,
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "dataRef": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "description": "List of file names with data in json format or list of picture files",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "figure": {
+                    "type": [
+                        "null",
+                        "object"
+                    ],
+                    "title": "Figure properties",
+                    "description": "Figure sizing and scaling settings",
+                    "properties": {
+                        "width": {
+                            "type": [
+                                "null",
+                                "string"
+                            ],
+                            "description": "Figure width (Word units or percentage)",
+                            "pattern": "^\\d+(\\.\\d+)?(%|in|cm|mm|pt)$"
+                        },
+                        "height": {
+                            "type": [
+                                "null",
+                                "string"
+                            ],
+                            "description": "Figure height (Word units or percentage)",
+                            "pattern": "^\\d+(\\.\\d+)?(%|in|cm|mm|pt)$"
+                        },
+                        "aspectRatio": {
+                            "type": [
+                                "null",
+                                "number"
+                            ],
+                            "description": "Width/height ratio used when one dimension is missing or when fitting",
+                            "exclusiveMinimum": 0
+                        },
+                        "figureScaleMode": {
+                            "type": [
+                                "null",
+                                "string"
+                            ],
+                            "description": "Scaling mode for figure placement",
+                            "enum": [
+                                "fixed",
+                                "fitWidth",
+                                "fitPage"
+                            ]
+                        },
+                        "device": {
+                            "type": [
+                                "null",
+                                "string"
+                            ],
+                            "description": "Figure output/input device type",
+                            "enum": [
+                                "png",
+                                "jpeg",
+                                "jpg",
+                                "svg"
+                            ]
+                        }
+                    }
+                },
+                "stubColumns": {
+                    "type": [
+                        "null",
+                        "object"
+                    ],
+                    "title": "Stub columns definition",
+                    "description": "Provides description of stub (spanning) headers in format 'stub_id':{<params>}",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "object",
+                            "title": "Order of stub header",
+                            "properties": {
+                                "label": {
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ],
+                                    "description": "Spanning header label"
+                                },
+                                "cols": {
+                                    "type": "array",
+                                    "minItems": 0,
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "labelStyleRef": {
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs to be applied to stub label"
+                                },
+                                "stubOrder": {
+                                    "type": "integer",
+                                    "minimum": 0
+                                }
+                            },
+                            "required": [
+                                "label",
+                                "cols",
+                                "stubOrder"
+                            ]
+                        }
+                    }
+                },
+                "columns": {
+                    "type": [
+                        "null",
+                        "object"
+                    ],
+                    "title": "Data Columns Description",
+                    "description": "Provides description of each data column in format 'col_id':{<params>}",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "object",
+                            "properties": {
+                                "colOrder": {
+                                    "type": "integer",
+                                    "description": "Position of column in the data",
+                                    "minimum": 0
+                                },
+                                "label": {
+                                    "type": [
+                                        "null",
+                                        "string"
+                                    ],
+                                    "description": "Label of the column"
+                                },
+                                "isID": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "description": "Defines if the column should be repeated as Identifier if table spans more than one page",
+                                    "default": false
+                                },
+                                "isVisible": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "description": "Defines whether the column should be reported or not",
+                                    "default": true
+                                },
+                                "isGrouping": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "description": "Is column defines group of values",
+                                    "default": false
+                                },
+                                "isPaging": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "description": "Specify if column defines the page breaks",
+                                    "default": false
+                                },
+                                "labelStyleRef": {
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "IDs of the defined styles to be applied to the column label"
+                                },
+                                "isColBreak": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "description": "If Yes the output will be split to next page on this column",
+                                    "default": false
+                                },
+                                "dedupe": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "description": "Defines if duplicated values should be removed"
+                                },
+                                "blankAfter": {
+                                    "type": [
+                                        "boolean",
+                                        "null"
+                                    ],
+                                    "description": "Whether to insert a blank line when value in the column changes",
+                                    "default": false
+                                },
+                                "format": {
+                                    "type": "object",
+                                    "description": "defines the column data type and representation format",
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "string",
+                                                "numeric"
+                                            ]
+                                        },
+                                        "format": {
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "description": "defines the format for numeric data type in terms of Sprintf()",
+                                            "default": "%d"
+                                        },
+                                        "missings": {
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "description": "Defines how to report missing values in numeric columns"
+                                        },
+                                        "colWidth": {
+                                            "type": [
+                                                "null",
+                                                "string"
+                                            ],
+                                            "description": "Column width (Word typically uses percentage, inches, or centimeters)",
+                                            "pattern": "^\\d+(\\.\\d+)?(%|in|cm)$"
+                                        },
+                                        "valueStyleRef": {
+                                            "type": [
+                                                "null",
+                                                "array"
+                                            ],
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "type"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+                "styleRows": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "title": "Rows Styling Data",
+                    "description": "Represents a column with the length equal to number of rows in data and contains a strings that describes the styling and other actions to be performed on a given data row when reporting",
+                    "items": {
+                        "type": "string",
+                        "title": "styling rules",
+                        "description": "Each element is a text string where the rules applied to the given row of table is described"
+                    }
+                },
+                "titles": {
+                    "type": [
+                        "null",
+                        "object"
+                    ],
+                    "title": "Output Titles",
+                    "description": "Provides a set of output titles with different styling (if required)",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "object",
+                            "properties": {
+                                "text": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "title": "Titles",
+                                        "description": "Array of strings that represents the titles. When reported they should be concatenated using soft line break to represent one paragraph of text"
+                                    },
+                                    "minItems": 1
+                                },
+                                "styleRef": {
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
+                                },
+                                "order": {
+                                    "type": "integer",
+                                    "description": "Order of the title group",
+                                    "minimum": 0
+                                },
+                                "toclevel": {
+                                    "type": [
+                                        "null",
+                                        "integer"
+                                    ],
+                                    "description": "Optional TOC level (1-9). When set, the first occurrence of this title is marked as a Table of Contents entry so the user can add a TOC in Word. Multi-line titles are concatenated with space; inline styling is stripped for the TOC entry.",
+                                    "minimum": 1,
+                                    "maximum": 9
+                                }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
+                        }
+                    }
+                },
+                "subtitles": {
+                    "type": [
+                        "null",
+                        "object"
+                    ],
+                    "title": "Output Subtitles",
+                    "description": "Provides a set of output subtitles with different styling (if required)",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "object",
+                            "properties": {
+                                "text": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "title": "Titles",
+                                        "description": "Array of strings that represents the titles. When reported they should be concatenated using soft line break to represent one paragraph of text"
+                                    },
+                                    "minItems": 1
+                                },
+                                "styleRef": {
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
+                                },
+                                "order": {
+                                    "type": "integer",
+                                    "description": "Order of the title group",
+                                    "minimum": 0
+                                }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
+                        }
+                    }
+                },
+                "footnotes": {
+                    "type": [
+                        "null",
+                        "object"
+                    ],
+                    "title": "Output Footnotes",
+                    "description": "Provides a set of output footnotes with different styling (if required)",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "object",
+                            "properties": {
+                                "text": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "title": "Titles",
+                                        "description": "Array of strings that represents the titles. When reported they should be concatenated using soft line break to represent one paragraph of text"
+                                    },
+                                    "minItems": 1
+                                },
+                                "styleRef": {
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
+                                },
+                                "order": {
+                                    "type": "integer",
+                                    "description": "Order of the title group",
+                                    "minimum": 0
+                                }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
+                        }
+                    }
+                },
+                "bodyText": {
+                    "type": [
+                        "null",
+                        "object"
+                    ],
+                    "title": "Body Text",
+                    "description": "This is a text that will be printed instead of the table or figure when e.g. there is no data to report (i.e. hasData is false)",
+                    "patternProperties": {
+                        ".*": {
+                            "type": "object",
+                            "properties": {
+                                "text": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string",
+                                        "title": "Titles",
+                                        "description": "Set of strings to be reported in one paragraph"
+                                    },
+                                    "minItems": 1
+                                },
+                                "styleRef": {
+                                    "type": [
+                                        "null",
+                                        "array"
+                                    ],
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "description": "Style IDs that define the styling of the text group"
+                                },
+                                "order": {
+                                    "type": "integer",
+                                    "description": "Order of the title group",
+                                    "minimum": 0
+                                }
+                            },
+                            "required": [
+                                "text",
+                                "order"
+                            ]
+                        }
+                    }
+                }
+            },
+            "required": [
+                "document",
+                "attribs"
+            ],
+            "allOf": [
+                {
+                    "oneOf": [
+                        {
+                            "title": "Table spec",
+                            "properties": {
+                                "document": {
+                                    "type": "object",
+                                    "properties": {
+                                        "docType": {
+                                            "const": "Table"
+                                        }
+                                    },
+                                    "required": [
+                                        "docType"
+                                    ]
+                                }
+                            },
+                            "not": {
+                                "required": [
+                                    "figure"
+                                ]
+                            }
+                        },
+                        {
+                            "title": "Figure spec",
+                            "properties": {
+                                "document": {
+                                    "type": "object",
+                                    "properties": {
+                                        "docType": {
+                                            "const": "Figure"
+                                        }
+                                    },
+                                    "required": [
+                                        "docType"
+                                    ]
+                                },
+                                "dataRef": {
+                                    "type": "array",
+                                    "minItems": 1,
+                                    "maxItems": 1,
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "figure": {
+                                    "type": "object",
+                                    "required": [
+                                        "figureScaleMode",
+                                        "device"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "figure",
+                                "dataRef"
+                            ],
+                            "not": {
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "columns"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "stubColumns"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "styleRows"
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "title": "Text spec",
+                            "properties": {
+                                "document": {
+                                    "type": "object",
+                                    "properties": {
+                                        "docType": {
+                                            "const": "Text"
+                                        }
+                                    },
+                                    "required": [
+                                        "docType"
+                                    ]
+                                }
+                            },
+                            "not": {
+                                "anyOf": [
+                                    {
+                                        "required": [
+                                            "columns"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "stubColumns"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "styleRows"
+                                        ]
+                                    },
+                                    {
+                                        "required": [
+                                            "figure"
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "$defs": {
+        "borderProperties": {
+            "type": "object",
+            "description": "Border styling properties",
+            "properties": {
+                "color": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "pattern": "^#[0-9A-Fa-f]{6}$"
+                },
+                "width": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "description": "Border width in points (Word standard unit)",
+                    "pattern": "^[0-9]+(\\.[0-9]+)?pt$"
+                },
+                "line_style": {
+                    "type": [
+                        "null",
+                        "string"
+                    ],
+                    "enum": [
+                        "single",
+                        "double",
+                        "dashed",
+                        "dotted",
+                        "thick",
+                        "none"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

@@ -18,6 +18,11 @@
     footnotePlace       = "repeated",
     isContinues         = FALSE,
     contentWidth        = "100%",
+    figureWidth         = "6in",
+    figureHeight        = "4in",
+    figureDevice        = "png",
+    figureAspectRatio   = 1.5,
+    figureScaleMode     = "fixed",
     
     # Data display defaults
     missings            = .const_default_missing_value,
@@ -204,6 +209,9 @@ tfl_get_option <- function(name) {
 tfl_set_options <- function(..., docTemplate = NULL,
                          footnotePlace = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
+                         figureWidth = NULL, figureHeight = NULL,
+                         figureDevice = NULL, figureAspectRatio = NULL,
+                         figureScaleMode = NULL,
                          autoColWidth = NULL, minColWidth = NULL,
                          insertTOC = NULL, tocTitle = NULL,
                          output_directory = NULL, meta_directory = NULL) {
@@ -228,6 +236,12 @@ tfl_set_options <- function(..., docTemplate = NULL,
         checkmate::assert_choice(val, choices = c("doc_footer", "repeated", "last_page"), .var.name = pname)
       } else if (pname == "minColWidth") {
         checkmate::assert_numeric(val, len = 1, lower = 0, any.missing = FALSE, .var.name = pname)
+      } else if (pname %in% c("figureAspectRatio")) {
+        checkmate::assert_number(val, lower = 0, .var.name = pname)
+      } else if (pname %in% c("figureScaleMode")) {
+        checkmate::assert_choice(val, choices = .const_figure_scale_modes, .var.name = pname)
+      } else if (pname %in% c("figureDevice")) {
+        checkmate::assert_choice(val, choices = .const_figure_devices, .var.name = pname)
       } else if (pname %in% c("doc_style_template", "missings", "tocTitle")) {
         checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("output_directory", "meta_directory")) {
@@ -238,6 +252,10 @@ tfl_set_options <- function(..., docTemplate = NULL,
         .validate_pattern(contentWidth, .const_pattern_content_width,
                       "contentWidth", "tfl_set_options",
                       "Must be like '100%', '6.5in', or '16.51cm'")
+      } else if (pname %in% c("figureWidth", "figureHeight")) {
+        .validate_pattern(val, .const_pattern_figure_size,
+                      pname, "tfl_set_options",
+                      "Must be like '70%', '6.5in', '16.51cm', '120pt', or '40mm'")
       } else {
         # Fallback: if a default exists, warn when types differ
         default_val <- .options_env$defaults[[pname]]

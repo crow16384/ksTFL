@@ -10,6 +10,72 @@ static constexpr const char* W_NS_DOC = "http://schemas.openxmlformats.org/wordp
 static constexpr const char* R_NS_DOC = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 static constexpr const char* MC_NS_DOC = "http://schemas.openxmlformats.org/markup-compatibility/2006";
 
+static double safe_aspect_ratio(const TFLSpec& spec) {
+    if (spec.figure.aspect_ratio.has_value() && *spec.figure.aspect_ratio > 0.0) {
+        return *spec.figure.aspect_ratio;
+    }
+    return 1.5; // Default 6:4
+}
+
+static Length parse_figure_length(const std::optional<std::string>& raw,
+                                  Length reference,
+                                  Length fallback) {
+    if (!raw.has_value() || raw->empty()) return fallback;
+    try {
+        return Length::parse(*raw, reference.emu);
+    } catch (...) {
+        return fallback;
+    }
+}
+
+static std::pair<int64_t, int64_t> resolve_figure_size_emu(const TFLSpec& spec,
+                                                            const PageConfig& page,
+                                                            const StyleResolver& resolver) {
+    Length usable_w = page.usable_width();
+    Length usable_h = page.usable_height();
+    Length content_w = resolver.resolve_table_width(spec, usable_w);
+    double ar = safe_aspect_ratio(spec); // width / height
+
+    Length default_w = Length::from_in(6.0);
+    Length default_h = Length::from_in(4.0);
+
+    Length w = parse_figure_length(spec.figure.width, content_w, default_w);
+    Length h = parse_figure_length(spec.figure.height, usable_h, default_h);
+
+    if (spec.figure.scale_mode == "fitWidth") {
+        w = content_w;
+        h = Length{static_cast<int64_t>(w.emu / ar)};
+    } else if (spec.figure.scale_mode == "fitPage") {
+        Length max_w = content_w;
+        Length max_h = usable_h;
+        Length fit_h_from_w{static_cast<int64_t>(max_w.emu / ar)};
+        if (fit_h_from_w <= max_h) {
+            w = max_w;
+            h = fit_h_from_w;
+        } else {
+            h = max_h;
+            w = Length{static_cast<int64_t>(h.emu * ar)};
+        }
+    } else {
+        // fixed: if only one dimension provided, infer the other from aspect ratio
+        bool has_w = spec.figure.width.has_value();
+        bool has_h = spec.figure.height.has_value();
+        if (has_w && !has_h) {
+            h = Length{static_cast<int64_t>(w.emu / ar)};
+        } else if (!has_w && has_h) {
+            w = Length{static_cast<int64_t>(h.emu * ar)};
+        }
+    }
+
+    // Clamp to page bounds for safety.
+    if (w > content_w) w = content_w;
+    if (h > usable_h) h = usable_h;
+    if (w.emu <= 0) w = default_w;
+    if (h.emu <= 0) h = default_h;
+
+    return {w.emu, h.emu};
+}
+
 std::string DocxEmitter::emit_document_xml(
         const TFLDocument& doc,
         const std::unordered_map<std::string, PaginationResult>& resolved_pages,
@@ -88,10 +154,10 @@ std::string DocxEmitter::emit_document_xml(
                 auto rid_it = figure_rids.find(spec.key);
                 if (rid_it != figure_rids.end()) {
                     ++figure_img_counter;
-                    int64_t cx = static_cast<int64_t>(
-                        spec.document.figure_width_in  * 914400.0);
-                    int64_t cy = static_cast<int64_t>(
-                        spec.document.figure_height_in * 914400.0);
+                    PageConfig page_cfg = resolver.resolve_page_config(spec);
+                    auto size_emu = resolve_figure_size_emu(spec, page_cfg, resolver);
+                    int64_t cx = size_emu.first;
+                    int64_t cy = size_emu.second;
                     emit_figure_drawing(doc_w, rid_it->second,
                                         cx, cy, figure_img_counter);
                 }

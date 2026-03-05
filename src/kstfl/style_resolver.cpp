@@ -36,13 +36,8 @@ PageConfig StyleResolver::resolve_page_config(const TFLSpec& spec) const {
 // ---------------------------------------------------------------------------
 
 Length StyleResolver::resolve_table_width(const TFLSpec& spec, Length usable_width) const {
-    if (spec.document.content_width.has_value()) {
-        double cw = *spec.document.content_width;
-        if (cw > 0 && cw <= 100.0) {
-            // Percent of usable width
-            return Length{static_cast<int64_t>(usable_width.emu * cw / 100.0)};
-        }
-        // Sentinel -1 means absolute (stored in the string) — should be resolved elsewhere
+    if (spec.document.content_width_raw.has_value()) {
+        return Length::parse(*spec.document.content_width_raw, usable_width.emu);
     }
     // Default: full usable width
     return usable_width;

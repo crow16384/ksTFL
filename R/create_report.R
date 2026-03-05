@@ -342,7 +342,7 @@
 #'
 #' This function takes multiple TFL specification objects and/or previously created
 #' TFL report objects and combines them into a single report object matching the
-#' spec_schema_v1 structure. Each spec is keyed by a combination of its variable
+#' spec_schema_v2 structure. Each spec is keyed by a combination of its variable
 #' name and metadata hash (for direct specs) or preserves original keys (for specs
 #' from reports).
 #'

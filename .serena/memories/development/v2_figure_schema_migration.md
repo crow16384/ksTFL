@@ -1,0 +1,21 @@
+# Figure schema v2 migration (Mar 2026)
+
+- Introduced `spec_schema_v2.json` and switched `.const_spec_schema_file` from v1 to v2.
+- Added strict docType discrimination in schema (`Table`/`Figure`/`Text`) with figure-only constraints:
+  - `Figure` requires `figure` object and `dataRef` length exactly 1.
+  - `Figure` forbids `columns`, `stubColumns`, `styleRows`.
+  - `Text` forbids table-only fields and `figure`.
+- Refactored R API:
+  - `create_figure(plot_or_path, dpi=300L)` now uses options + `set_document()` for figure sizing/device.
+  - Added options: `figureWidth`, `figureHeight`, `figureDevice`, `figureAspectRatio`, `figureScaleMode`.
+  - `set_document()` now supports figure overrides.
+- Updated C++ model/parser/render path:
+  - Replaced document-level `figureWidthIn/figureHeightIn` with `FigureInfo` block on spec.
+  - Added unit-aware figure sizing and scale modes (`fixed`, `fitWidth`, `fitPage`) in `docx_document.cpp`.
+  - `contentWidth` now parsed as raw string and resolved via `Length::parse`.
+- Serializer fix required for v2 combinators:
+  - Added discriminator shortcut by `document.docType` when resolving `oneOf`/`anyOf`.
+  - Merge selected variant with base schema to preserve shared properties/array safeguards.
+- Validation:
+  - Targeted tests: `test-10-serialization.R`, `test-17-ggplot-figure.R` pass.
+  - Full suite via `pkgload::load_all('.')` + `testthat::test_dir('tests/testthat')` passes (`TEST_EXIT=0`).

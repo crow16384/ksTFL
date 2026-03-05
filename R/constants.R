@@ -23,6 +23,7 @@ NULL
 ## Initial empty spec structure
 .const_empty_spec <- list(
   document    = list(),
+  figure      = list(),
   attribs     = list(),
   headers     = list(),
   footers     = list(),
@@ -90,6 +91,14 @@ NULL
 #' Allowed document types
 #' @noRd
 .const_doc_types <- c("Table", "Figure", "Text")
+
+#' Allowed figure scale modes
+#' @noRd
+.const_figure_scale_modes <- c("fixed", "fitWidth", "fitPage")
+
+#' Allowed figure device values
+#' @noRd
+.const_figure_devices <- c("png", "jpeg", "jpg", "svg")
 
 #' Border sides (used for iterating over borders)
 #' @noRd
@@ -195,6 +204,10 @@ NULL
 #' @noRd
 .const_pattern_content_width <- "^\\d+(\\.\\d+)?(%|in|cm)$"
 
+#' Pattern for figure width/height (allows %, in, cm, mm, pt)
+#' @noRd
+.const_pattern_figure_size <- "^\\d+(\\.\\d+)?(%|in|cm|mm|pt)$"
+
 # ============================================================
 # SCHEMA PROPERTY LISTS - Allowed properties for each schema type
 # ============================================================
@@ -219,6 +232,7 @@ NULL
   column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter", "format"),
   stub_column = c("label", "cols", "labelStyleRef", "stubOrder"),
   document = c("docType", "docOrder", "isContinues", "contentWidth", "footnotePlace", "hasData"),
+  figure = c("width", "height", "aspectRatio", "figureScaleMode", "device"),
   text_group = c("text", "styleRef", "order", "toclevel")
 )
 
@@ -290,7 +304,7 @@ NULL
 
 #' Schema file names
 #' @noRd
-.const_spec_schema_file = "spec_schema_v1.json"
+.const_spec_schema_file = "spec_schema_v2.json"
 #' Style schema file name
 #' @noRd
 .const_style_schema_file = "styles_schema_v1.json"

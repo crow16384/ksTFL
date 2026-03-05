@@ -909,6 +909,29 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
   
   variants <- if (one_of) schema[[.const_schema_keywords$oneOf]] else schema[[.const_schema_keywords$anyOf]]
   matches <- logical(length(variants))
+
+  # Discriminator shortcut: select variant by document.docType const when available.
+  if (is.list(value) && !is.null(value$document) && is.list(value$document) &&
+      !is.null(value$document$docType) && is.character(value$document$docType) &&
+      length(value$document$docType) == 1L) {
+    doc_type <- value$document$docType
+    discr_matches <- logical(length(variants))
+
+    for (i in seq_along(variants)) {
+      subs <- variants[[i]]
+      const_val <- tryCatch(
+        subs[[.const_schema_keywords$properties]][["document"]][[.const_schema_keywords$properties]][["docType"]][[.const_schema_keywords$const]],
+        error = function(e) NULL
+      )
+      if (!is.null(const_val) && identical(const_val, doc_type)) {
+        discr_matches[i] <- TRUE
+      }
+    }
+
+    if (sum(discr_matches) == 1L) {
+      return(which(discr_matches))
+    }
+  }
   
   for (i in seq_along(variants)) {
     subs <- variants[[i]]
@@ -990,7 +1013,11 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     idx <- .resolve_combinator_type(data, schema)
     if (!is.null(idx)) {
       variants <- if (!is.null(schema$oneOf)) schema$oneOf else schema$anyOf
-      schema <- variants[[idx]]
+      selected <- .resolve_allOf(variants[[idx]])
+      base_schema <- schema
+      base_schema$oneOf <- NULL
+      base_schema$anyOf <- NULL
+      schema <- .merge_recursive(base_schema, selected)
       schema <- .resolve_allOf(schema)
     }
   }

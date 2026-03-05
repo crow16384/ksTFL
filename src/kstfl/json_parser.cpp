@@ -589,36 +589,27 @@ static DocumentInfo parse_document_info(const json& j) {
 
     di.doc_order = get_int(j, "docOrder", 0);
     di.is_continues = get_bool(j, "isContinues", false);
-    // Figure dimension fields (inches)
-    if (j.contains("figureWidthIn") && j["figureWidthIn"].is_number())
-        di.figure_width_in = j["figureWidthIn"].get<double>();
-    if (j.contains("figureHeightIn") && j["figureHeightIn"].is_number())
-        di.figure_height_in = j["figureHeightIn"].get<double>();
-
     // footnotePlace: "doc_footer" | "repeated" | "last_page" (default "repeated")
     auto fp = get_str(j, "footnotePlace");
     if (fp == "doc_footer")       di.footnote_place = FootnotePlace::DocFooter;
     else if (fp == "last_page")   di.footnote_place = FootnotePlace::LastPage;
     else                          di.footnote_place = FootnotePlace::Repeated;
 
-    auto cw = get_opt_str(j, "contentWidth");
-    if (cw.has_value()) {
-        // contentWidth can be "85%", "7in", "18cm"
-        const std::string& s = *cw;
-        if (!s.empty() && s.back() == '%') {
-            try {
-                di.content_width = std::stod(s.substr(0, s.size() - 1));
-            } catch (...) {
-                throw RenderError("Invalid contentWidth: '" + s + "'");
-            }
-        } else {
-            // Absolute width — store as negative to distinguish (will be resolved later)
-            // Actually, store as 0 and let resolver handle the length
-            di.content_width = -1.0; // sentinel: means absolute width in cw string
-        }
-    }
+    di.content_width_raw = get_opt_str(j, "contentWidth");
 
     return di;
+}
+
+static FigureInfo parse_figure_info(const json& j) {
+    FigureInfo fi;
+    fi.width = get_opt_str(j, "width");
+    fi.height = get_opt_str(j, "height");
+    fi.aspect_ratio = get_opt_dbl(j, "aspectRatio");
+    auto sm = get_opt_str(j, "figureScaleMode");
+    if (sm.has_value()) fi.scale_mode = *sm;
+    auto dev = get_opt_str(j, "device");
+    if (dev.has_value()) fi.device = *dev;
+    return fi;
 }
 
 // ---------------------------------------------------------------------------
@@ -685,6 +676,11 @@ static TFLSpec parse_single_spec(const std::string& key, const json& j) {
     // DataRef
     auto refs = get_str_array(j, "dataRef");
     if (!refs.empty()) spec.data_ref = refs[0];
+
+    // Figure properties
+    if (j.contains("figure") && j["figure"].is_object()) {
+        spec.figure = parse_figure_info(j["figure"]);
+    }
 
     return spec;
 }

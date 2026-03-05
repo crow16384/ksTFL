@@ -2600,7 +2600,12 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' }
 set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
                          footnotePlace = NULL, hasData = NULL,
-                         docTemplate = NULL) {
+                         docTemplate = NULL,
+                         figureWidth = NULL,
+                         figureHeight = NULL,
+                         figureDevice = NULL,
+                         figureAspectRatio = NULL,
+                         figureScaleMode = NULL) {
   assert_class(spec, "TFL_spec")
   
   
@@ -2627,9 +2632,46 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
                       "contentWidth", "set_document",
                       "Must be like '100%', '6.5in', or '16.51cm'")
   }
+
+  figure_params <- list(
+    width = figureWidth,
+    height = figureHeight,
+    device = figureDevice,
+    aspectRatio = figureAspectRatio,
+    figureScaleMode = figureScaleMode
+  )
+  figure_params <- figure_params[!vapply(figure_params, is.null, logical(1))]
+
+  if (length(figure_params) > 0) {
+    .validate_params(figure_params, "figure", "set_document")
+
+    if (!is.null(figure_params$width)) {
+      .validate_pattern(figure_params$width, .const_pattern_figure_size,
+                        "figureWidth", "set_document",
+                        "Must be like '70%', '6.5in', '16.51cm', '120pt', or '40mm'")
+    }
+    if (!is.null(figure_params$height)) {
+      .validate_pattern(figure_params$height, .const_pattern_figure_size,
+                        "figureHeight", "set_document",
+                        "Must be like '70%', '6.5in', '16.51cm', '120pt', or '40mm'")
+    }
+    if (!is.null(figure_params$device)) {
+      checkmate::assert_choice(figure_params$device, .const_figure_devices, .var.name = "figureDevice")
+    }
+    if (!is.null(figure_params$figureScaleMode)) {
+      checkmate::assert_choice(figure_params$figureScaleMode, .const_figure_scale_modes, .var.name = "figureScaleMode")
+    }
+    if (!is.null(figure_params$aspectRatio)) {
+      checkmate::assert_number(figure_params$aspectRatio, lower = 0, .var.name = "figureAspectRatio")
+    }
+  }
   
   # Merge with last-win
   spec$document <- .merge_recursive(spec$document, params)
+
+  if (length(figure_params) > 0) {
+    spec$figure <- .merge_recursive(spec$figure, figure_params)
+  }
 
   if (!is.null(docTemplate)) {
     set_page_style(spec, docTemplate = docTemplate)
