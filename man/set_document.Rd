@@ -10,7 +10,12 @@ set_document(
   contentWidth = NULL,
   footnotePlace = NULL,
   hasData = NULL,
-  docTemplate = NULL
+  docTemplate = NULL,
+  figureWidth = NULL,
+  figureHeight = NULL,
+  figureDevice = NULL,
+  figureAspectRatio = NULL,
+  figureScaleMode = NULL
 )
 }
 \arguments{

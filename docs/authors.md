@@ -9,12 +9,12 @@
 ## Citation
 
 Aleschenkov I, Larchenko V (2026). *ksTFL: ksTFL Framework*. R package
-version 0.2.3, <https://example.com>.
+version 0.3.0, <https://example.com>.
 
     @Manual{,
       title = {ksTFL: ksTFL Framework},
       author = {Igor Aleschenkov and Vladimir Larchenko},
       year = {2026},
-      note = {R package version 0.2.3},
+      note = {R package version 0.3.0},
       url = {https://example.com},
     }

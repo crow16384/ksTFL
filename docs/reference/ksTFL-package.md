@@ -6,13 +6,9 @@ build specs with
 [`create_figure()`](https://example.com/reference/create_figure.md), or
 [`create_text()`](https://example.com/reference/create_text.md), then
 add titles, column definitions, styles, and options. Combine specs with
-[`create_report()`](https://example.com/reference/create_report.md),
-save to JSON (and data files) with
-[`save_report()`](https://example.com/reference/save_report.md), and
+[`create_report()`](https://example.com/reference/create_report.md), and
 render to DOCX with
-[`render_docx()`](https://example.com/reference/render_docx.md) or in
-one step with
-[`write_doc()`](https://example.com/reference/write_doc.md).
+[`write_doc()`](https://example.com/reference/write_doc.md) in one step.
 
 ## Details
 
@@ -27,13 +23,12 @@ content and styling (e.g.
 [`set_document()`](https://example.com/reference/set_document.md)). (3)
 Combine specs with
 [`create_report()`](https://example.com/reference/create_report.md). (4)
-Save and render:
-[`save_report()`](https://example.com/reference/save_report.md) writes
-the spec JSON and data files;
-[`render_docx()`](https://example.com/reference/render_docx.md) produces
-the DOCX; or use
-[`write_doc()`](https://example.com/reference/write_doc.md) to do both
-in one call.
+Render to DOCX with
+[`write_doc()`](https://example.com/reference/write_doc.md)
+(recommended). Advanced users can split this into
+[`save_report()`](https://example.com/reference/save_report.md) +
+[`render_docx()`](https://example.com/reference/render_docx.md) for JSON
+inspection.
 
 To get started, see the vignettes:
 

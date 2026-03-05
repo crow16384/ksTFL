@@ -4,7 +4,7 @@
 \alias{create_figure}
 \title{Create a Figure Specification}
 \usage{
-create_figure(plot_or_path, width = 6, height = 4, dpi = 300L, device = "png")
+create_figure(plot_or_path, dpi = 300L)
 }
 \arguments{
 \item{plot_or_path}{One of:
@@ -16,17 +16,17 @@ rendered to a temporary file via \code{ggplot2::ggsave()}. Use \code{width},
 \code{height}, \code{dpi}, and \code{device} to control output dimensions.
 }}
 
+\item{dpi}{Integer. Resolution (dots per inch) when \code{plot_or_path} is a
+ggplot2 object. Ignored for file paths. Default: \code{300}.}
+
 \item{width}{Numeric. Plot width in inches when \code{plot_or_path} is a ggplot2
 object. Ignored for file paths. Default: \code{6}.}
 
 \item{height}{Numeric. Plot height in inches when \code{plot_or_path} is a
 ggplot2 object. Ignored for file paths. Default: \code{4}.}
 
-\item{dpi}{Integer. Resolution (dots per inch) when \code{plot_or_path} is a
-ggplot2 object. Ignored for file paths. Default: \code{300}.}
-
 \item{device}{Character. Output format when \code{plot_or_path} is a ggplot2
-object. One of \code{"png"} (default), \code{"jpeg"}, \code{"jpg"}, \code{"svg"}.
+object. One of \code{"svg"} (default), \code{"png"}, \code{"jpeg"}, \code{"jpg"}.
 Ignored for file paths.}
 }
 \value{
@@ -35,7 +35,7 @@ A \code{TFL_spec} object with \code{docType = "Figure"}.
 \description{
 Create and initialize a TFL specification for embedding a figure. Accepts
 either a \strong{file path} to an existing image or a \strong{ggplot2 object} that is
-rendered automatically to a temporary PNG file.
+rendered automatically to a temporary SVG file.
 }
 \details{
 When a ggplot2 object is passed:
@@ -61,14 +61,16 @@ library(ggplot2)
 p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
 spec <- create_figure(p)
 
-## Control output dimensions
-spec <- create_figure(p, width = 8, height = 5, dpi = 150)
+## Control figure defaults via options
+tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "svg")
+spec <- create_figure(p, dpi = 150)
 
-## Use JPEG output
-spec <- create_figure(p, device = "jpeg", width = 7, height = 4.5)
+## Override per figure
+spec <- create_figure(p) |>
+  set_document(figureDevice = "jpeg", figureScaleMode = "fitWidth")
 
 ## Full pipeline
-spec <- create_figure(p, width = 6, height = 4) |>
+spec <- create_figure(p) |>
   add_title("Weight vs MPG") |>
   add_footnote("Source: Motor Trend, 1974.")
 report <- create_report(spec)
