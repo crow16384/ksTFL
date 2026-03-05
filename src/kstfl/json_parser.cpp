@@ -596,6 +596,10 @@ static DocumentInfo parse_document_info(const json& j) {
     else                          di.footnote_place = FootnotePlace::Repeated;
 
     di.content_width_raw = get_opt_str(j, "contentWidth");
+    auto top_el = get_opt_str(j, "topEmptyLine");
+    if (top_el.has_value()) di.top_empty_line = Length::parse(*top_el);
+    auto bottom_el = get_opt_str(j, "bottomEmptyLine");
+    if (bottom_el.has_value()) di.bottom_empty_line = Length::parse(*bottom_el);
 
     return di;
 }
@@ -780,6 +784,10 @@ static StylesTemplate parse_template_internal(const json& root) {
                 else if (*ta == "right")  tmpl.table_style.table_alignment = Alignment::Right;
                 else if (*ta == "left")   tmpl.table_style.table_alignment = Alignment::Left;
             }
+            auto top_el = get_opt_str(layout, "topEmptyLine");
+            if (top_el.has_value()) tmpl.table_style.top_empty_line = Length::parse(*top_el);
+            auto bottom_el = get_opt_str(layout, "bottomEmptyLine");
+            if (bottom_el.has_value()) tmpl.table_style.bottom_empty_line = Length::parse(*bottom_el);
         }
 
         // structural

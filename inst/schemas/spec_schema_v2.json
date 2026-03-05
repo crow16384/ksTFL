@@ -339,6 +339,22 @@
                                                     "default": "auto",
                                                     "pattern": "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm))|(auto)$"
                                                 },
+                                                "topEmptyLine": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "description": "Optional blank row height inserted after header and before first body row.",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(pt|in|cm|mm)$"
+                                                },
+                                                "bottomEmptyLine": {
+                                                    "type": [
+                                                        "null",
+                                                        "string"
+                                                    ],
+                                                    "description": "Optional blank row height inserted after last body row and before table bottom border.",
+                                                    "pattern": "^[0-9]+(\\.[0-9]+)?(pt|in|cm|mm)$"
+                                                },
                                                 "vertical_alignment": {
                                                     "type": [
                                                         "null",
@@ -446,6 +462,24 @@
                             "type": "boolean",
                             "title": "Is document has any data to report",
                             "description": "When it set to false we assume that table/listing has no data rows (empty), in that case we can provide the placeholder text to print instead of writing empty table with no rows"
+                        },
+                        "topEmptyLine": {
+                            "type": [
+                                "null",
+                                "string"
+                            ],
+                            "title": "Top empty line",
+                            "description": "Optional blank row height inserted after table header and before first body row.",
+                            "pattern": "^[0-9]+(\\.[0-9]+)?(pt|in|cm|mm)$"
+                        },
+                        "bottomEmptyLine": {
+                            "type": [
+                                "null",
+                                "string"
+                            ],
+                            "title": "Bottom empty line",
+                            "description": "Optional blank row height inserted after last body row and before table bottom border.",
+                            "pattern": "^[0-9]+(\\.[0-9]+)?(pt|in|cm|mm)$"
                         }
                     },
                     "required": [

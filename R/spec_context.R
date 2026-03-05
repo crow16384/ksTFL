@@ -724,6 +724,8 @@ assign("stack", character(0), envir = .context_marker_env)
 #' 
 #' @param background_color Cell background color
 #' @param row_height Row height
+#' @param topEmptyLine Empty spacer row height after header; use units like "6pt".
+#' @param bottomEmptyLine Empty spacer row height before bottom border; use units like "6pt".
 #' @param vertical_alignment Vertical alignment
 #' @param text_orientation Text orientation
 #' @param borders Borders specification
@@ -731,6 +733,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @keywords internal
 #' @noRd
 .table_style_spec <- function(background_color = NULL, row_height = NULL,
+                              topEmptyLine = NULL, bottomEmptyLine = NULL,
                               vertical_alignment = NULL, text_orientation = NULL,
                               borders = NULL) {
   params <- list()
@@ -746,6 +749,20 @@ assign("stack", character(0), envir = .context_marker_env)
                       "row_height", "table_style_spec",
                       "Must be like '12pt', '0.5in', '1.27cm', '12.7mm', or 'auto'")
     params$row_height <- row_height
+  }
+
+  if (!is.null(topEmptyLine)) {
+    .validate_pattern(topEmptyLine, .const_pattern_table_empty_line,
+                      "topEmptyLine", "table_style_spec",
+                      "Must be like '12pt', '0.5in', '1.27cm', or '12.7mm' (set NULL to disable)")
+    params$topEmptyLine <- topEmptyLine
+  }
+
+  if (!is.null(bottomEmptyLine)) {
+    .validate_pattern(bottomEmptyLine, .const_pattern_table_empty_line,
+                      "bottomEmptyLine", "table_style_spec",
+                      "Must be like '12pt', '0.5in', '1.27cm', or '12.7mm' (set NULL to disable)")
+    params$bottomEmptyLine <- bottomEmptyLine
   }
   
   if (!is.null(vertical_alignment)) {
@@ -1086,6 +1103,8 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
 #' 
 #' @param background_color Cell background color as hex code or color name
 #' @param row_height Row height, e.g. "15mm" or "auto"
+#' @param topEmptyLine Empty spacer row height after header, e.g. "6pt"; NULL disables it
+#' @param bottomEmptyLine Empty spacer row height before bottom border, e.g. "6pt"; NULL disables it
 #' @param vertical_alignment Vertical alignment: "top", "center", "bottom"
 #' @param text_orientation Text orientation: "horizontal", "vertical_90", "vertical_270"
 #' @param borders Borders object created with \code{\link{s_borders}}
@@ -1110,6 +1129,7 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
 #'   )
 #' }
 s_table_style <- function(background_color = NULL, row_height = NULL,
+                          topEmptyLine = NULL, bottomEmptyLine = NULL,
                           vertical_alignment = NULL, text_orientation = NULL,
                           borders = NULL) {
   .assert_context(c("add_style"), "s_table_style")
@@ -1127,6 +1147,8 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
   spec <- .table_style_spec(
     background_color = background_color,
     row_height = row_height,
+    topEmptyLine = topEmptyLine,
+    bottomEmptyLine = bottomEmptyLine,
     vertical_alignment = vertical_alignment,
     text_orientation = text_orientation,
     borders = borders
@@ -2667,6 +2689,10 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   or `"last_page"` (place under the table on the last page only).
 #'   Default `"repeated"`.
 #' @param hasData Whether document has data to report
+#' @param topEmptyLine Empty spacer row height after table header (table-level), e.g. "6pt".
+#'   Use NULL to disable. `0pt` is treated as no spacer row.
+#' @param bottomEmptyLine Empty spacer row height before table bottom border (table-level), e.g. "6pt".
+#'   Use NULL to disable. `0pt` is treated as no spacer row.
 #' @param docTemplate Character. Template to use for rendering. Accepts either:
 #'   \itemize{
 #'     \item Name of a bundled template (see `tfl_list_templates()`).
@@ -2685,6 +2711,8 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' }
 set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
                          footnotePlace = NULL, hasData = NULL,
+                         topEmptyLine = NULL,
+                         bottomEmptyLine = NULL,
                          docTemplate = NULL,
                          figureWidth = NULL,
                          figureHeight = NULL,
@@ -2704,7 +2732,9 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
     isContinues = isContinues,
     contentWidth = contentWidth,
     footnotePlace = footnotePlace,
-    hasData = hasData
+    hasData = hasData,
+    topEmptyLine = topEmptyLine,
+    bottomEmptyLine = bottomEmptyLine
   )
   params <- params[!sapply(params, is.null)]
   
@@ -2715,6 +2745,18 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
     .validate_pattern(contentWidth, .const_pattern_content_width, 
                       "contentWidth", "set_document",
                       "Must be like '100%', '6.5in', or '16.51cm'")
+  }
+
+  if (!is.null(topEmptyLine)) {
+    .validate_pattern(topEmptyLine, .const_pattern_table_empty_line,
+                      "topEmptyLine", "set_document",
+                      "Must be like '12pt', '0.5in', '1.27cm', or '12.7mm' (or NULL to disable)")
+  }
+
+  if (!is.null(bottomEmptyLine)) {
+    .validate_pattern(bottomEmptyLine, .const_pattern_table_empty_line,
+                      "bottomEmptyLine", "set_document",
+                      "Must be like '12pt', '0.5in', '1.27cm', or '12.7mm' (or NULL to disable)")
   }
 
   figure_params <- list(

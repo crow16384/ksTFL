@@ -196,6 +196,10 @@ NULL
 #' @noRd
 .const_pattern_row_height <- "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm)|auto)$"
 
+#' Pattern for table empty-line height (allows pt, cm, in, mm)
+#' @noRd
+.const_pattern_table_empty_line <- "^[0-9]+(\\.[0-9]+)?(pt|in|cm|mm)$"
+
 #' Pattern for column width (allows %, in, cm)
 #' @noRd
 .const_pattern_col_width <- "^\\d+(\\.\\d+)?(%|in|cm)$"
@@ -222,7 +226,7 @@ NULL
   paragraph = c("alignment", "spacing", "indents", "word_style"),
   spacing = c("before", "after", "line_spacing"),
   indents = c("left", "right", "first_line"),
-  table_style = c("background_color", "row_height", "vertical_alignment", "text_orientation", "borders"),
+  table_style = c("background_color", "row_height", "vertical_alignment", "text_orientation", "borders", "topEmptyLine", "bottomEmptyLine"),
   borders = c("top", "bottom", "left", "right"),
   border = c("color", "width", "line_style"),
   page = c("size", "orientation", "margins"),
@@ -231,7 +235,7 @@ NULL
   col_format = c("type", "format", "missings", "colWidth", "valueStyleRef"),
   column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter", "format"),
   stub_column = c("label", "cols", "labelStyleRef", "stubOrder"),
-  document = c("docType", "docOrder", "isContinues", "contentWidth", "footnotePlace", "hasData"),
+  document = c("docType", "docOrder", "isContinues", "contentWidth", "footnotePlace", "hasData", "topEmptyLine", "bottomEmptyLine"),
   figure = c("width", "height", "figureScaleMode", "device"),
   text_group = c("text", "styleRef", "order", "toclevel")
 )

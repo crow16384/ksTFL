@@ -381,21 +381,90 @@ void DocxEmitter::emit_table(XmlWriter& w,
     // Build segment column set once, shared by header and all body rows
     std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
                                          segment.column_indices.end());
+
+    // Effective spacer rows: per-table spec override wins over template default.
+    std::optional<Length> top_empty_line = spec.document.top_empty_line.has_value()
+        ? spec.document.top_empty_line
+        : tmpl_.table_style.top_empty_line;
+    std::optional<Length> bottom_empty_line = spec.document.bottom_empty_line.has_value()
+        ? spec.document.bottom_empty_line
+        : tmpl_.table_style.bottom_empty_line;
+
+    auto emit_empty_spacer_row = [&](const Length& spacer_height, bool apply_table_bottom_border) {
+        if (spacer_height.emu <= 0) return;
+
+        w.start_element("w:tr");
+
+        w.start_element("w:trPr");
+        w.self_closing_element("w:cantSplit");
+        w.start_element("w:trHeight");
+        w.attribute("w:val", std::to_string(spacer_height.to_twips()));
+        w.attribute("w:hRule", "exact");
+        w.end_element();
+        w.end_element();
+
+        for (size_t col_idx : segment.column_indices) {
+            w.start_element("w:tc");
+
+            StyleDef cell_style;
+
+            // Spacer rows should suppress inner horizontal rules while preserving
+            // table-level behavior. We explicitly nil top/bottom borders.
+            TableCellProps tcp;
+            Borders spacer_borders;
+            Border none_border;
+            none_border.line_style = BorderLineStyle::None;
+            spacer_borders.top = none_border;
+            spacer_borders.bottom = none_border;
+
+            // When this is the bottom spacer, the structural bottom border must
+            // appear AFTER the spacer (table border semantics requested by user).
+            if (apply_table_bottom_border && tmpl_.table_style.structural.table_bottom_border.has_value()) {
+                spacer_borders.bottom = tmpl_.table_style.structural.table_bottom_border;
+            }
+            tcp.borders = spacer_borders;
+
+            Length cell_width{0};
+            auto it = col_widths.find(col_idx);
+            if (it != col_widths.end()) {
+                cell_width = Length{it->second};
+            }
+
+            emit_cell_props(w, tcp, cell_width, 1);
+            emit_paragraph(w, "", cell_style);
+
+            w.end_element();  // w:tc
+        }
+
+        w.end_element();  // w:tr
+    };
+
     emit_table_header(w, header_grid, segment, resolver, col_widths, seg_cols);
 
     // Body rows for this page slice
-    // Find effective last data row (skip trailing GroupBreak rows)
-    size_t effective_last_row = page.last_row;
-    while (effective_last_row > page.first_row &&
-           effective_last_row < rows.size() &&
-           rows[effective_last_row].type == LogicalRowType::GroupBreak) {
-        --effective_last_row;
+    // Find effective last data row and whether this slice contains body rows.
+    size_t effective_last_row = page.first_row;
+    bool has_body_rows = false;
+    for (size_t ri = page.first_row; ri <= page.last_row && ri < rows.size(); ++ri) {
+        if (rows[ri].type == LogicalRowType::GroupBreak) continue;
+        effective_last_row = ri;
+        has_body_rows = true;
     }
+
+    if (has_body_rows && top_empty_line.has_value() && top_empty_line->emu > 0) {
+        emit_empty_spacer_row(*top_empty_line, false);
+    }
+
+    bool use_bottom_spacer = has_body_rows && bottom_empty_line.has_value() && bottom_empty_line->emu > 0;
 
     for (size_t ri = page.first_row; ri <= page.last_row && ri < rows.size(); ++ri) {
         if (rows[ri].type == LogicalRowType::GroupBreak) continue;
-        bool is_last = (ri == effective_last_row);
+        bool is_last = (ri == effective_last_row) && !use_bottom_spacer;
         emit_table_row(w, rows[ri], segment, spec, resolver, is_last, col_widths, seg_cols);
+    }
+
+    if (use_bottom_spacer) {
+        emit_empty_spacer_row(*bottom_empty_line, true);
     }
 
     w.end_element();  // w:tbl

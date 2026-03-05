@@ -179,6 +179,16 @@
               "type": ["null","string"],
               "enum": [null, "left", "center", "right"],
               "description": "Horizontal alignment of the table on the page."
+            },
+            "topEmptyLine": {
+              "type": ["null", "string"],
+              "pattern": "^[0-9]+(\\.[0-9]+)?(pt|in|cm|mm)$",
+              "description": "Optional blank row height inserted after header and before first body row. Use null or 0pt to disable."
+            },
+            "bottomEmptyLine": {
+              "type": ["null", "string"],
+              "pattern": "^[0-9]+(\\.[0-9]+)?(pt|in|cm|mm)$",
+              "description": "Optional blank row height inserted after last body row and before table bottom border. Use null or 0pt to disable."
             }
           },
 

@@ -426,6 +426,16 @@ ui <- shiny::fluidPage(
             choices = c("left", "center", "right", ""),
             selected = "center"
           ),
+          shiny::textInput(
+            "tbl_top_empty_line",
+            "Top empty line (e.g. 6pt; 0pt or empty disables)",
+            value = "0pt"
+          ),
+          shiny::textInput(
+            "tbl_bottom_empty_line",
+            "Bottom empty line (e.g. 6pt; 0pt or empty disables)",
+            value = "0pt"
+          ),
           shiny::hr(),
           shiny::h3("Structural borders"),
           border_ui("struct_header_top", "Header top border"),
@@ -491,6 +501,7 @@ server <- function(input, output, session) {
     "doc_margin_top", "doc_margin_bottom", "doc_margin_left", "doc_margin_right",
     "doc_margin_header", "doc_margin_footer", "doc_widow_control",
     "tbl_allow_row_break", "tbl_repeat_header", "tbl_prevent_header_break", "tbl_alignment",
+    "tbl_top_empty_line", "tbl_bottom_empty_line",
     "struct_allheaders_vertical", "struct_tablebody_vertical",
     "cell_default_top", "cell_default_bottom", "cell_default_left", "cell_default_right",
     "cell_default_vertical",
@@ -655,6 +666,8 @@ server <- function(input, output, session) {
     shiny::updateCheckboxInput(session, "tbl_repeat_header",         value = isTRUE(layout$repeat_header_on_each_page))
     shiny::updateCheckboxInput(session, "tbl_prevent_header_break",  value = isTRUE(layout$prevent_header_row_break))
     shiny::updateSelectInput(session, "tbl_alignment", selected = local_or_default(layout$table_alignment, "center"))
+    shiny::updateTextInput(session, "tbl_top_empty_line", value = local_or_default(layout$topEmptyLine, "0pt"))
+    shiny::updateTextInput(session, "tbl_bottom_empty_line", value = local_or_default(layout$bottomEmptyLine, "0pt"))
 
     # Structural borders
     struct <- tmpl$tableStyle$structural
@@ -801,7 +814,9 @@ server <- function(input, output, session) {
       allow_row_break_across_pages = isTRUE(input$tbl_allow_row_break),
       repeat_header_on_each_page   = isTRUE(input$tbl_repeat_header),
       prevent_header_row_break     = isTRUE(input$tbl_prevent_header_break),
-      table_alignment              = null_if_empty(input$tbl_alignment)
+      table_alignment              = null_if_empty(input$tbl_alignment),
+      topEmptyLine                 = null_if_empty(input$tbl_top_empty_line),
+      bottomEmptyLine              = null_if_empty(input$tbl_bottom_empty_line)
     )
 
     structural <- list(

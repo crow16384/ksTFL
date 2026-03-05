@@ -53,3 +53,24 @@ test_that("styles editor marks and applies real edits", {
     expect_equal(assembled_template()$document$page$margins$top, "9in")
   })
 })
+
+test_that("styles editor persists table empty-line layout edits", {
+  skip_if_not_installed("shiny")
+  skip_if_not_installed("colourpicker")
+
+  editor_env <- load_styles_editor_env()
+
+  shiny::testServer(editor_env$server, {
+    session$setInputs(bundled_template = "Carbon_Dark")
+    session$setInputs(load_bundled = 1)
+    session$flushReact()
+
+    session$setInputs(tbl_top_empty_line = "6pt")
+    session$setInputs(tbl_bottom_empty_line = "8pt")
+    session$flushReact()
+
+    expect_true(has_user_edits())
+    expect_equal(assembled_template()$tableStyle$layout$topEmptyLine, "6pt")
+    expect_equal(assembled_template()$tableStyle$layout$bottomEmptyLine, "8pt")
+  })
+})

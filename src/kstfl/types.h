@@ -330,6 +330,8 @@ struct TableStyleConfig {
 
     // Layout
     std::optional<Alignment> table_alignment;  // table alignment on page (left/center/right)
+    std::optional<Length> top_empty_line;      // spacer row after header
+    std::optional<Length> bottom_empty_line;   // spacer row before bottom border
     std::optional<Borders> table_borders;
     std::optional<Length> default_cell_margin_top;
     std::optional<Length> default_cell_margin_bottom;
@@ -544,6 +546,8 @@ struct DocumentInfo {
     bool is_continues = false;               // if true, titles don't repeat on subsequent pages
     std::optional<std::string> content_width_raw; // e.g. "100%", "16cm", "6.5in"
     FootnotePlace footnote_place = FootnotePlace::Repeated;
+    std::optional<Length> top_empty_line;    // spacer row after table header
+    std::optional<Length> bottom_empty_line; // spacer row before table bottom border
 };
 
 /// Figure-specific rendering options.

@@ -7,6 +7,8 @@
 s_table_style(
   background_color = NULL,
   row_height = NULL,
+  topEmptyLine = NULL,
+  bottomEmptyLine = NULL,
   vertical_alignment = NULL,
   text_orientation = NULL,
   borders = NULL
@@ -16,6 +18,10 @@ s_table_style(
 \item{background_color}{Cell background color as hex code or color name}
 
 \item{row_height}{Row height, e.g. "15mm" or "auto"}
+
+\item{topEmptyLine}{Empty spacer row height after header, e.g. "6pt"; NULL disables it}
+
+\item{bottomEmptyLine}{Empty spacer row height before bottom border, e.g. "6pt"; NULL disables it}
 
 \item{vertical_alignment}{Vertical alignment: "top", "center", "bottom"}
 

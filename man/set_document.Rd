@@ -10,6 +10,8 @@ set_document(
   contentWidth = NULL,
   footnotePlace = NULL,
   hasData = NULL,
+  topEmptyLine = NULL,
+  bottomEmptyLine = NULL,
   docTemplate = NULL,
   figureWidth = NULL,
   figureHeight = NULL,
@@ -31,6 +33,12 @@ or \code{"last_page"} (place under the table on the last page only).
 Default \code{"repeated"}.}
 
 \item{hasData}{Whether document has data to report}
+
+\item{topEmptyLine}{Empty spacer row height after table header (table-level), e.g. "6pt".
+Use NULL to disable. \code{0pt} is treated as no spacer row.}
+
+\item{bottomEmptyLine}{Empty spacer row height before table bottom border (table-level), e.g. "6pt".
+Use NULL to disable. \code{0pt} is treated as no spacer row.}
 
 \item{docTemplate}{Character. Template to use for rendering. Accepts either:
 \itemize{

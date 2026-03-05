@@ -124,6 +124,27 @@ test_that("add_style() with multiple borders", {
   expect_true(!is.null(style$table_style$borders$right))
 })
 
+test_that("add_style() accepts table empty-line settings", {
+  spec <- create_text()
+  spec <- add_style(
+    spec,
+    id = "empty_line_style",
+    s_table_style(topEmptyLine = "6pt", bottomEmptyLine = "4pt")
+  )
+
+  style <- spec$attribs$styles$empty_line_style
+  expect_equal(style$table_style$topEmptyLine, "6pt")
+  expect_equal(style$table_style$bottomEmptyLine, "4pt")
+})
+
+test_that("set_document() accepts table empty-line settings", {
+  spec <- create_table(iris)
+  spec <- set_document(spec, topEmptyLine = "6pt", bottomEmptyLine = "8pt")
+
+  expect_equal(spec$document$topEmptyLine, "6pt")
+  expect_equal(spec$document$bottomEmptyLine, "8pt")
+})
+
 test_that("add_style() with indentation", {
   spec <- create_text()
   spec <- add_style(spec, id = "indented",

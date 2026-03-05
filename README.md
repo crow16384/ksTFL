@@ -165,7 +165,7 @@ Define and compose styles:
 | `s_paragraph(word_style, alignment, spacing, indents)` | Paragraph formatting | Style component |
 | `s_spacing(before, after, line_spacing)` | Spacing settings | Style component |
 | `s_indents(left, right, first_line)` | Indentation settings | Style component |
-| `s_table_style(background_color, row_height, vertical_alignment, text_orientation, borders)` | Table cell styling | Style component |
+| `s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)` | Table cell styling | Style component |
 | `s_borders(top, bottom, left, right)` | Border definitions | Style component |
 | `s_border(color, width, line_style)` | Individual border | Style component |
 | `f_combine(...)` | Combine multiple style references | Combined style reference |
@@ -193,7 +193,7 @@ Configure document-level settings:
 
 | Function | Purpose | Key Parameters |
 |----------|---------|----------------|
-| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `hasData` |
+| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `topEmptyLine`, `bottomEmptyLine`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `hasData` |
 | `set_page_style(spec, docTemplate, page)` | Configure page layout & template | Template name, page settings |
 | `p_page(size, orientation, margins)` | Page settings helper | A4/Letter/Legal, portrait/landscape |
 | `p_margins(top, bottom, left, right, header, footer)` | Margin settings helper | Dimensions with units (in, cm, pt, mm) |
