@@ -381,7 +381,38 @@ ui <- shiny::fluidPage(
           text_style_ui("subtitles",  "Subtitles"),
           text_style_ui("footnotes",  "Footnotes"),
           text_style_ui("tableHeader","Table header"),
-          text_style_ui("tableBody",  "Table body")
+          text_style_ui("tableBody",  "Table body"),
+          text_style_ui("tocTitle",   "TOC title"),
+          text_style_ui("tocEntry",   "TOC entry"),
+          text_style_ui("figureCaption", "Figure caption")
+        ),
+        shiny::tabPanel(
+          "Figure style",
+          shiny::h3("Figure layout"),
+          shiny::selectInput(
+            "fig_alignment",
+            "Alignment",
+            choices = c("left", "center", "right", ""),
+            selected = "center"
+          ),
+          shiny::fluidRow(
+            shiny::column(6, shiny::textInput("fig_space_before", "Space before", value = "3pt")),
+            shiny::column(6, shiny::textInput("fig_space_after", "Space after", value = "3pt"))
+          ),
+          shiny::hr(),
+          shiny::h3("Caption"),
+          shiny::selectInput(
+            "fig_caption_position",
+            "Caption position",
+            choices = c("below", "above"),
+            selected = "below"
+          ),
+          shiny::selectInput(
+            "fig_caption_style_ref",
+            "Caption text style",
+            choices = c("figureCaption", "default", "subtitles", "titles", "tocEntry"),
+            selected = "figureCaption"
+          )
         ),
         shiny::tabPanel(
           "Table style",
@@ -449,6 +480,67 @@ server <- function(input, output, session) {
   current_template <- shiny::reactiveVal(initial)
   # Keep track of the original template used to seed the current editing session
   original_template <- shiny::reactiveVal(initial)
+  # Track whether inputs are being populated from template (not user edits)
+  is_seeding <- shiny::reactiveVal(TRUE)
+  # No-op load/save must preserve the original JSON structure and values
+  has_user_edits <- shiny::reactiveVal(FALSE)
+  baseline_inputs <- shiny::reactiveVal(list())
+
+  editor_input_ids <- c(
+    "doc_page_size", "doc_page_orientation",
+    "doc_margin_top", "doc_margin_bottom", "doc_margin_left", "doc_margin_right",
+    "doc_margin_header", "doc_margin_footer", "doc_widow_control",
+    "tbl_allow_row_break", "tbl_repeat_header", "tbl_prevent_header_break", "tbl_alignment",
+    "struct_allheaders_vertical", "struct_tablebody_vertical",
+    "cell_default_top", "cell_default_bottom", "cell_default_left", "cell_default_right",
+    "cell_default_vertical",
+    "fig_alignment", "fig_space_before", "fig_space_after",
+    "fig_caption_position", "fig_caption_style_ref"
+  )
+
+  style_prefixes <- c(
+    "default", "docHeader", "docFooter", "titles", "subtitles", "footnotes",
+    "tableHeader", "tableBody", "tocTitle", "tocEntry", "figureCaption"
+  )
+  style_suffixes <- c(
+    "font_name", "font_size", "bold", "italic", "underline", "color",
+    "alignment", "spacing_before", "spacing_after", "line_spacing",
+    "indent_left", "indent_right", "indent_first"
+  )
+  for (p in style_prefixes) {
+    editor_input_ids <- c(editor_input_ids, paste0(p, "_", style_suffixes))
+  }
+
+  border_prefixes <- c(
+    "struct_header_top", "struct_header_bottom", "struct_table_bottom",
+    "header_row_border_top", "header_row_border_bottom", "header_row_border_left", "header_row_border_right",
+    "body_row_border_top", "body_row_border_bottom", "body_row_border_left", "body_row_border_right"
+  )
+  border_suffixes <- c("color", "width", "line_style")
+  for (p in border_prefixes) {
+    editor_input_ids <- c(editor_input_ids, paste0(p, "_", border_suffixes))
+  }
+
+  row_prefixes <- c("header_row", "body_row")
+  row_suffixes <- c(
+    "background_color", "row_height", "vertical_alignment", "text_orientation",
+    "cell_top", "cell_bottom", "cell_left", "cell_right"
+  )
+  for (p in row_prefixes) {
+    editor_input_ids <- c(editor_input_ids, paste0(p, "_", row_suffixes))
+  }
+
+  snapshot_editor_inputs <- shiny::reactive({
+    vals <- lapply(editor_input_ids, function(id) input[[id]])
+    names(vals) <- editor_input_ids
+    vals
+  })
+
+  shiny::observeEvent(snapshot_editor_inputs(), {
+    if (!is_seeding()) {
+      has_user_edits(!identical(snapshot_editor_inputs(), baseline_inputs()))
+    }
+  }, ignoreInit = TRUE)
 
   # Sync dark theme with UI and localStorage
   shiny::observeEvent(input$dark_theme, {
@@ -464,6 +556,8 @@ server <- function(input, output, session) {
     # When a new bundled template is loaded, reset both current and original
     original_template(tmpl)
     current_template(tmpl)
+    has_user_edits(FALSE)
+    baseline_inputs(list())
   })
 
   # Load uploaded template
@@ -476,6 +570,8 @@ server <- function(input, output, session) {
     # When a new uploaded template is loaded, reset both current and original
     original_template(tmpl)
     current_template(tmpl)
+    has_user_edits(FALSE)
+    baseline_inputs(list())
   })
 
   # Reset JSON/editor state back to the original template for this session
@@ -484,10 +580,13 @@ server <- function(input, output, session) {
     # Force reactive invalidation even if template object is identical
     current_template(NULL)
     current_template(tmpl)
+    has_user_edits(FALSE)
+    baseline_inputs(list())
   })
 
   # When template changes, push values into inputs
   shiny::observeEvent(current_template(), {
+    is_seeding(TRUE)
     tmpl <- current_template()
 
     # Document
@@ -546,6 +645,9 @@ server <- function(input, output, session) {
     seed_text_style("footnotes",  ts$footnotes)
     seed_text_style("tableHeader",ts$tableHeader)
     seed_text_style("tableBody",  ts$tableBody)
+    seed_text_style("tocTitle",   ts$tocTitle)
+    seed_text_style("tocEntry",   ts$tocEntry)
+    seed_text_style("figureCaption", ts$figureCaption)
 
     # Table layout
     layout <- tmpl$tableStyle$layout
@@ -629,10 +731,38 @@ server <- function(input, output, session) {
     body_row   <- tmpl$tableStyle$body$row
     seed_row("header_row", header_row)
     seed_row("body_row",   body_row)
+
+    figure_layout <- tmpl$figureStyle$layout %||% list()
+    figure_caption <- tmpl$figureStyle$caption %||% list()
+    style_choices <- names(ts)
+    if (is.null(style_choices) || length(style_choices) == 0L) {
+      style_choices <- c("figureCaption", "default", "subtitles", "titles", "tocEntry")
+    }
+    shiny::updateSelectInput(session, "fig_alignment", selected = local_or_default(figure_layout$alignment, "center"))
+    shiny::updateTextInput(session, "fig_space_before", value = local_or_default(figure_layout$space_before, "3pt"))
+    shiny::updateTextInput(session, "fig_space_after", value = local_or_default(figure_layout$space_after, "3pt"))
+    shiny::updateSelectInput(session, "fig_caption_position", selected = local_or_default(figure_caption$position, "below"))
+    shiny::updateSelectInput(
+      session,
+      "fig_caption_style_ref",
+      choices = style_choices,
+      selected = local_or_default(figure_caption$textStyleRef, "figureCaption")
+    )
+
+    session$onFlushed(function() {
+      baseline_inputs(shiny::isolate(snapshot_editor_inputs()))
+      has_user_edits(FALSE)
+      is_seeding(FALSE)
+    }, once = TRUE)
   }, ignoreNULL = TRUE)
 
   assembled_template <- shiny::reactive({
     tmpl <- current_template()
+
+    # Preserve exact loaded content when user did not change inputs.
+    if (!has_user_edits()) {
+      return(tmpl)
+    }
 
     # Document
     document <- list(
@@ -654,16 +784,18 @@ server <- function(input, output, session) {
     )
 
     ts <- tmpl$textStyles %||% list()
-    textStyles <- list(
-      default     = text_style_from_inputs(input, "default",    ts$default),
-      docHeader   = text_style_from_inputs(input, "docHeader",  ts$docHeader),
-      docFooter   = text_style_from_inputs(input, "docFooter",  ts$docFooter),
-      titles      = text_style_from_inputs(input, "titles",     ts$titles),
-      subtitles   = text_style_from_inputs(input, "subtitles",  ts$subtitles),
-      footnotes   = text_style_from_inputs(input, "footnotes",  ts$footnotes),
-      tableHeader = text_style_from_inputs(input, "tableHeader",ts$tableHeader),
-      tableBody   = text_style_from_inputs(input, "tableBody",  ts$tableBody)
-    )
+    textStyles <- ts
+    textStyles$default       <- text_style_from_inputs(input, "default",      ts$default)
+    textStyles$docHeader     <- text_style_from_inputs(input, "docHeader",    ts$docHeader)
+    textStyles$docFooter     <- text_style_from_inputs(input, "docFooter",    ts$docFooter)
+    textStyles$titles        <- text_style_from_inputs(input, "titles",       ts$titles)
+    textStyles$subtitles     <- text_style_from_inputs(input, "subtitles",    ts$subtitles)
+    textStyles$footnotes     <- text_style_from_inputs(input, "footnotes",    ts$footnotes)
+    textStyles$tableHeader   <- text_style_from_inputs(input, "tableHeader",  ts$tableHeader)
+    textStyles$tableBody     <- text_style_from_inputs(input, "tableBody",    ts$tableBody)
+    textStyles$tocTitle      <- text_style_from_inputs(input, "tocTitle",     ts$tocTitle)
+    textStyles$tocEntry      <- text_style_from_inputs(input, "tocEntry",     ts$tocEntry)
+    textStyles$figureCaption <- text_style_from_inputs(input, "figureCaption", ts$figureCaption)
 
     layout <- list(
       allow_row_break_across_pages = isTRUE(input$tbl_allow_row_break),
@@ -697,23 +829,32 @@ server <- function(input, output, session) {
     header_row <- row_style_from_inputs(input, "header_row", tmpl$tableStyle$header$row)
     body_row   <- row_style_from_inputs(input, "body_row",   tmpl$tableStyle$body$row)
 
-    tableStyle <- list(
-      layout     = layout,
-      structural = structural,
-      cellDefaults = cellDefaults,
-      header = list(
-        row = header_row
-      ),
-      body = list(
-        row = body_row
-      )
+    tableStyle <- tmpl$tableStyle %||% list()
+    tableStyle$layout <- layout
+    tableStyle$structural <- structural
+    tableStyle$cellDefaults <- cellDefaults
+    tableStyle$header <- tableStyle$header %||% list()
+    tableStyle$body <- tableStyle$body %||% list()
+    tableStyle$header$row <- header_row
+    tableStyle$body$row <- body_row
+
+    figureStyle <- tmpl$figureStyle %||% list()
+    figureStyle$layout <- list(
+      alignment = null_if_empty(input$fig_alignment) %||% "center",
+      space_before = null_if_empty(input$fig_space_before) %||% "3pt",
+      space_after = null_if_empty(input$fig_space_after) %||% "3pt"
+    )
+    figureStyle$caption <- list(
+      position = null_if_empty(input$fig_caption_position) %||% "below",
+      textStyleRef = null_if_empty(input$fig_caption_style_ref) %||% "figureCaption"
     )
 
-    list(
-      document   = document,
-      textStyles = textStyles,
-      tableStyle = tableStyle
-    )
+    out <- tmpl
+    out$document <- document
+    out$textStyles <- textStyles
+    out$tableStyle <- tableStyle
+    out$figureStyle <- figureStyle
+    out
   })
 
   output$template_json <- shiny::renderText({

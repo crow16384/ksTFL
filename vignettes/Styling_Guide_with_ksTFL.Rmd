@@ -15,7 +15,8 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   comment = "", collapse = TRUE, eval = FALSE,
-  dev = if (capabilities("cairo")) "cairo_png" else "pdf"
+  dev = "png",
+  dev.args = if (capabilities("cairo")) list(type = "cairo") else NULL
 )
 options(pkgdown.internet = FALSE)
 ```

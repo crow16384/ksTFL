@@ -1,8 +1,11 @@
 options(pkgdown.internet = FALSE)
 
-# Use Cairo PNG device so knitr figure output works headless (no X11 display)
+# Use PNG device with optional Cairo backend so knitr figure output works headless.
 if (requireNamespace("knitr", quietly = TRUE)) {
-  knitr::opts_chunk$set(dev = "cairo_png")
+  knitr::opts_chunk$set(
+    dev = "png",
+    dev.args = if (capabilities("cairo")) list(type = "cairo") else NULL
+  )
 }
 
 # When building the pkgdown site, downlit calls tools::CRAN_package_db() via
