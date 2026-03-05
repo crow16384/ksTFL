@@ -18,7 +18,8 @@ void DocxEmitter::build_hdr_ftr_parts(
     int hdr_ftr_idx = 1;
     for (size_t spec_idx = 0; spec_idx < doc.specs.size(); ++spec_idx) {
         const auto& spec = doc.specs[spec_idx];
-        StyleResolver resolver(tmpl_, spec.spec_styles);
+        const auto& spec_tmpl = template_for_spec(spec.key);
+        StyleResolver resolver(spec_tmpl, spec.spec_styles);
         PageConfig page_config = resolver.resolve_page_config(spec);
         Length usable_width = page_config.usable_width();
 

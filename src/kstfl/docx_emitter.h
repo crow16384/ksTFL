@@ -32,6 +32,7 @@ struct HdrFtrPartInfo {
 class DocxEmitter {
 public:
     DocxEmitter(const StylesTemplate& tmpl,
+                const std::unordered_map<std::string, StylesTemplate>* per_spec_templates,
                 const RendererConfig& config);
 
     /// Emit a complete .docx file for a TFLDocument.
@@ -81,6 +82,9 @@ private:
         const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
         const std::unordered_map<std::string, HeaderGrid>& resolved_headers,
         const std::vector<SpecHdrFtrRefs>& spec_hdr_ftr_refs) const;
+
+    /// Returns template for a spec key, falling back to default template.
+    const StylesTemplate& template_for_spec(const std::string& spec_key) const;
 
     // ---- Per-spec emission ----
     /// Emit document.xml content for a single spec's page.
@@ -242,6 +246,7 @@ private:
     void stamp_exact_line_height(StyleDef& style) const;
 
     const StylesTemplate& tmpl_;
+    const std::unordered_map<std::string, StylesTemplate>* per_spec_templates_;
     const RendererConfig& config_;
     TextMeasurer* measurer_ = nullptr;  ///< set during emit(), cleared after
 

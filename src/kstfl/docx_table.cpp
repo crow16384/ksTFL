@@ -17,6 +17,7 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
                                      const StyleResolver& resolver,
                                      const std::unordered_map<size_t, int64_t>& col_widths,
                                      const std::unordered_set<size_t>& seg_cols) const {
+    const auto& tmpl = resolver.template_styles();
     // Base header style: template cascade without column/stub refs
     StyleDef base_hdr = resolver.resolve_base_header_style();
 
@@ -87,17 +88,17 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
                 TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
 
                 // Override with structural borders (highest priority)
-                if (is_first_header_row && tmpl_.table_style.structural.header_top_border.has_value()) {
+                if (is_first_header_row && tmpl.table_style.structural.header_top_border.has_value()) {
                     if (!tcp.borders.has_value()) {
                         tcp.borders = Borders{};
                     }
-                    tcp.borders->top = tmpl_.table_style.structural.header_top_border;
+                    tcp.borders->top = tmpl.table_style.structural.header_top_border;
                 }
-                if (is_last_header_row && tmpl_.table_style.structural.header_bottom_border.has_value()) {
+                if (is_last_header_row && tmpl.table_style.structural.header_bottom_border.has_value()) {
                     if (!tcp.borders.has_value()) {
                         tcp.borders = Borders{};
                     }
-                    tcp.borders->bottom = tmpl_.table_style.structural.header_bottom_border;
+                    tcp.borders->bottom = tmpl.table_style.structural.header_bottom_border;
                 }
 
                 emit_cell_props(w, tcp, visible_width, visible_span, cell.v_merge);
@@ -125,6 +126,7 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
                                   bool is_last_row,
                                   const std::unordered_map<size_t, int64_t>& col_widths,
                                   const std::unordered_set<size_t>& seg_cols) const {
+    const auto& tmpl = resolver.template_styles();
     w.start_element("w:tr");
 
     // Row properties
@@ -201,11 +203,11 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
         TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
 
         // Override bottom border on last row with structural table_bottom_border
-        if (is_last_row && tmpl_.table_style.structural.table_bottom_border.has_value()) {
+        if (is_last_row && tmpl.table_style.structural.table_bottom_border.has_value()) {
             if (!tcp.borders.has_value()) {
                 tcp.borders = Borders{};
             }
-            tcp.borders->bottom = tmpl_.table_style.structural.table_bottom_border;
+            tcp.borders->bottom = tmpl.table_style.structural.table_bottom_border;
         }
 
         emit_cell_props(w, tcp, cell_width, effective_span);
@@ -230,6 +232,7 @@ void DocxEmitter::emit_table(XmlWriter& w,
                               const std::vector<LogicalRow>& rows,
                               const HeaderGrid& header_grid,
                               const StyleResolver& resolver) const {
+    const auto& tmpl = resolver.template_styles();
     w.start_element("w:tbl");
 
     // Table properties
@@ -299,13 +302,13 @@ void DocxEmitter::emit_table(XmlWriter& w,
     w.end_element();
 
     // Table alignment on page (spec: tableStyle.layout.table_alignment)
-    if (tmpl_.table_style.table_alignment.has_value()) {
+    if (tmpl.table_style.table_alignment.has_value()) {
         w.element_with_attr("w:jc", "w:val",
-            alignment_to_ooxml(*tmpl_.table_style.table_alignment));
+            alignment_to_ooxml(*tmpl.table_style.table_alignment));
     }
 
     // Table borders from template
-    if (tmpl_.table_style.table_borders.has_value()) {
+    if (tmpl.table_style.table_borders.has_value()) {
         w.start_element("w:tblBorders");
         auto emit_border = [&](const char* name, const std::optional<Border>& b) {
             if (!b.has_value()) return;
@@ -324,7 +327,7 @@ void DocxEmitter::emit_table(XmlWriter& w,
             }
             w.end_element();
         };
-        const auto& borders = tmpl_.table_style.table_borders.value();
+        const auto& borders = tmpl.table_style.table_borders.value();
         emit_border("w:top", borders.top);
         emit_border("w:left", borders.left);
         emit_border("w:bottom", borders.bottom);
@@ -358,8 +361,8 @@ void DocxEmitter::emit_table(XmlWriter& w,
         w.attribute("w:w", "0");
         w.attribute("w:type", "dxa");
         w.end_element();
-        emit_margin("w:left", tmpl_.table_style.default_cell_margin_left);
-        emit_margin("w:right", tmpl_.table_style.default_cell_margin_right);
+        emit_margin("w:left", tmpl.table_style.default_cell_margin_left);
+        emit_margin("w:right", tmpl.table_style.default_cell_margin_right);
         w.end_element();
     }
 
@@ -385,10 +388,10 @@ void DocxEmitter::emit_table(XmlWriter& w,
     // Effective spacer rows: per-table spec override wins over template default.
     std::optional<Length> top_empty_line = spec.document.top_empty_line.has_value()
         ? spec.document.top_empty_line
-        : tmpl_.table_style.top_empty_line;
+        : tmpl.table_style.top_empty_line;
     std::optional<Length> bottom_empty_line = spec.document.bottom_empty_line.has_value()
         ? spec.document.bottom_empty_line
-        : tmpl_.table_style.bottom_empty_line;
+        : tmpl.table_style.bottom_empty_line;
 
     auto emit_empty_spacer_row = [&](const Length& spacer_height, bool apply_table_bottom_border) {
         if (spacer_height.emu <= 0) return;
@@ -419,8 +422,8 @@ void DocxEmitter::emit_table(XmlWriter& w,
 
             // When this is the bottom spacer, the structural bottom border must
             // appear AFTER the spacer (table border semantics requested by user).
-            if (apply_table_bottom_border && tmpl_.table_style.structural.table_bottom_border.has_value()) {
-                spacer_borders.bottom = tmpl_.table_style.structural.table_bottom_border;
+            if (apply_table_bottom_border && tmpl.table_style.structural.table_bottom_border.has_value()) {
+                spacer_borders.bottom = tmpl.table_style.structural.table_bottom_border;
             }
             tcp.borders = spacer_borders;
 

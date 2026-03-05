@@ -638,3 +638,45 @@ test_that("save_report() JSON metadata has valid datetime", {
   
   expect_match(datetime, "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
 })
+
+# ============================================================================
+# Tests: render_docx template resolution helpers
+# ============================================================================
+
+test_that(".resolve_template_paths_by_spec() resolves per-spec docTemplate values", {
+  spec1 <- create_table(test_df)
+  spec1 <- set_page_style(spec1, docTemplate = "Navy_Pro")
+
+  spec2 <- create_text()
+  spec2 <- set_page_style(spec2, docTemplate = "Carbon_Dark")
+  spec2 <- add_body_text(spec2, "content")
+
+  report <- create_report(spec1, spec2)
+  temp_dir <- create_test_dir()
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  saved <- save_report(report, docFileName = "tmpl.docx", metaPath = temp_dir)
+  spec_path <- file.path(temp_dir, saved$spec_file)
+
+  resolved <- .resolve_template_paths_by_spec(spec_path)
+
+  expect_equal(length(resolved), 2L)
+  resolved_files <- basename(unlist(resolved, use.names = FALSE))
+  expect_true("Navy_Pro.json" %in% resolved_files)
+  expect_true("Carbon_Dark.json" %in% resolved_files)
+})
+
+test_that(".build_multi_template_payload() creates valid multi-template payload", {
+  paths_by_spec <- list(
+    spec_a = system.file("templates", "Navy_Pro.json", package = "ksTFL", mustWork = TRUE),
+    spec_b = system.file("templates", "Carbon_Dark.json", package = "ksTFL", mustWork = TRUE)
+  )
+
+  payload_json <- .build_multi_template_payload(paths_by_spec)
+  payload <- jsonlite::fromJSON(payload_json, simplifyVector = FALSE)
+
+  expect_true(isTRUE(payload[["_ksTFL_multi_template"]]))
+  expect_true(!is.null(payload$default))
+  expect_true(!is.null(payload$per_spec$spec_a))
+  expect_true(!is.null(payload$per_spec$spec_b))
+})

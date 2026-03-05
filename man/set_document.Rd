@@ -35,10 +35,10 @@ Default \code{"repeated"}.}
 \item{hasData}{Whether document has data to report}
 
 \item{topEmptyLine}{Empty spacer row height after table header (table-level), e.g. "6pt".
-Use NULL to disable. \code{0pt} is treated as no spacer row.}
+Use NULL to disable. \verb{0pt} is treated as no spacer row.}
 
 \item{bottomEmptyLine}{Empty spacer row height before table bottom border (table-level), e.g. "6pt".
-Use NULL to disable. \code{0pt} is treated as no spacer row.}
+Use NULL to disable. \verb{0pt} is treated as no spacer row.}
 
 \item{docTemplate}{Character. Template to use for rendering. Accepts either:
 \itemize{

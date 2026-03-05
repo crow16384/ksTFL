@@ -1,41 +1,19 @@
-#' Resolve a template path from the docTemplate value stored in a spec JSON
-#'
-#' Reads the first spec entry's `attribs$documentStyle$docTemplate` field and
-#' resolves it to an absolute JSON file path. The value may be:
-#' \itemize{
-#'   \item A predefined bundled template name (e.g. `"Navy_Pro"`) — looked up in
-#'     `inst/templates/<name>.json`.
-#'   \item A file path to an external template JSON file (absolute or relative).
-#' }
-#' Falls back to `CRO Example_default.json` with a warning when the value is absent
-#' or cannot be resolved.
-#'
-#' @param spec_json_path Path to the spec JSON file.
-#' @return Absolute path to the resolved template JSON file.
+#' Resolve a single template value to an absolute JSON path
 #' @keywords internal
 #' @noRd
-.resolve_template_path <- function(spec_json_path) {
-  doc_template <- tryCatch({
-    spec_data  <- jsonlite::fromJSON(spec_json_path, simplifyVector = FALSE)
-    spec_keys  <- setdiff(names(spec_data), "_metadata")
-    if (length(spec_keys) > 0L) {
-      spec_data[[spec_keys[[1L]]]][["attribs"]][["documentStyle"]][["docTemplate"]]
-    } else {
-      NULL
-    }
-  }, error = function(e) NULL)
+.resolve_template_value <- function(doc_template, spec_key = NULL) {
+  key_hint <- if (!is.null(spec_key)) paste0("[", spec_key, "] ") else ""
 
   if (!is.null(doc_template) && nzchar(doc_template)) {
-    # If the value looks like a file path (contains a path separator or ends
-    # with .json), treat it as an external file path.
-    is_file_path <- grepl("[/\\\\]", doc_template) || grepl("\\.json$", doc_template, ignore.case = TRUE)
+    is_file_path <- grepl("[/\\\\]", doc_template) ||
+      grepl("\\.json$", doc_template, ignore.case = TRUE)
 
     if (is_file_path) {
       if (file.exists(doc_template)) {
         return(normalizePath(doc_template))
       }
       cli::cli_warn(c(
-        "External template file {.path {doc_template}} not found.",
+        paste0(key_hint, "External template file {.path ", doc_template, "} not found."),
         i = "Falling back to {.val CRO Example_default}."
       ))
     } else {
@@ -47,7 +25,7 @@
         return(resolved)
       }
       cli::cli_warn(c(
-        "Template {.val {doc_template}} not found in package templates.",
+        paste0(key_hint, "Template {.val ", doc_template, "} not found in package templates."),
         i = "Falling back to {.val CRO Example_default}.",
         i = "Available templates: {.val {.list_bundled_templates()}}"
       ))
@@ -56,6 +34,39 @@
 
   system.file("templates", "CRO Example_default.json",
               package = "ksTFL", mustWork = TRUE)
+}
+
+#' Resolve templates for all specs from a spec JSON file
+#' @keywords internal
+#' @noRd
+.resolve_template_paths_by_spec <- function(spec_json_path) {
+  spec_data <- jsonlite::fromJSON(spec_json_path, simplifyVector = FALSE)
+  spec_keys <- setdiff(names(spec_data), "_metadata")
+
+  out <- list()
+  for (k in spec_keys) {
+    doc_template <- spec_data[[k]][["attribs"]][["documentStyle"]][["docTemplate"]]
+    out[[k]] <- .resolve_template_value(doc_template, spec_key = k)
+  }
+  out
+}
+
+#' Build renderer payload for per-spec templates
+#' @keywords internal
+#' @noRd
+.build_multi_template_payload <- function(paths_by_spec) {
+  stopifnot(length(paths_by_spec) > 0L)
+  default_path <- unname(paths_by_spec[[1L]])
+
+  payload <- list(
+    `_ksTFL_multi_template` = TRUE,
+    default = jsonlite::fromJSON(default_path, simplifyVector = FALSE),
+    per_spec = lapply(paths_by_spec, function(path) {
+      jsonlite::fromJSON(path, simplifyVector = FALSE)
+    })
+  )
+
+  jsonlite::toJSON(payload, auto_unbox = TRUE, null = "null")
 }
 
 #' List all bundled template names (without .json extension)
@@ -79,11 +90,14 @@
 #' @param spec_json Character string. Path to the spec JSON file produced by
 #'   \code{\link{save_report}}.
 #' @param template_json Character string. Path to the styles template JSON file.
-#'   If \code{NULL} (default), the template is resolved automatically from the
-#'   \code{docTemplate} name stored in the spec (set via
-#'   \code{\link{set_page_style}(docTemplate = "Navy_Pro")}). The name is looked
-#'   up in the package's bundled \code{inst/templates/} directory. If not found,
-#'   the default \code{CRO Example_default} template is used and a warning is issued.
+#'   If provided, this template is used for all specs (global override).
+#'   If \code{NULL} (default), each spec resolves its own template from
+#'   \code{docTemplate} (set via
+#'   \code{\link{set_page_style}(docTemplate = "Navy_Pro")}). For multi-spec
+#'   reports, different specs may therefore use different templates. Template
+#'   names are looked up in the package's bundled \code{inst/templates/}
+#'   directory. Missing values or unknown names fall back to
+#'   \code{CRO Example_default} with a warning.
 #' @param output_path Character string. Path for the output .docx file. If the
 #'   directory does not exist, it will be created.
 #' @param font_dirs Character vector (optional). Additional directories to search
@@ -117,8 +131,10 @@
 #' Microsoft Word's line height calculation.
 #'
 #' \strong{Template}: The template controls default styles (fonts, spacing, borders),
-#' page layout, and table formatting. Use the bundled template or provide a custom
-#' one conforming to \code{styles_schema_v2.json}.
+#' page layout, and table formatting. By default (\code{template_json = NULL}),
+#' template selection is per-spec using each spec's \code{docTemplate}. Set
+#' \code{template_json} to force one template for the full document. Custom
+#' templates must conform to \code{styles_schema_v2.json}.
 #'
 #' @export
 #'
@@ -160,10 +176,6 @@ render_docx <- function(spec_json,
   if (!is.null(template_json)) {
     checkmate::assert_string(template_json)
     checkmate::assert_file_exists(template_json, access = "r")
-  } else {
-    # Resolve template from docTemplate name stored in the spec JSON, then
-    # fall back to the bundled default if the name is absent or unresolvable.
-    template_json <- .resolve_template_path(spec_json)
   }
 
   if (!is.null(font_dirs)) {
@@ -205,14 +217,48 @@ render_docx <- function(spec_json,
   }
 
   # ---- Call C++ renderer ----
-  n_pages <- render_docx_impl(
-    spec_json_path = spec_json,
-    template_json_path = template_json,
-    output_path = output_path,
-    font_dirs = font_dirs,
-    fallback_font = fallback_font,
-    verbose = verbose
-  )
+  if (!is.null(template_json)) {
+    # Backward-compatible global override: one template for all specs.
+    n_pages <- render_docx_impl(
+      spec_json_path = spec_json,
+      template_json_path = template_json,
+      output_path = output_path,
+      font_dirs = font_dirs,
+      fallback_font = fallback_font,
+      verbose = verbose
+    )
+  } else {
+    # Per-spec template resolution from each spec's docTemplate.
+    paths_by_spec <- .resolve_template_paths_by_spec(spec_json)
+    unique_paths <- unique(unname(unlist(paths_by_spec, use.names = FALSE)))
+
+    if (length(unique_paths) == 1L) {
+      # Fast path: all specs use same template.
+      n_pages <- render_docx_impl(
+        spec_json_path = spec_json,
+        template_json_path = unique_paths[[1L]],
+        output_path = output_path,
+        font_dirs = font_dirs,
+        fallback_font = fallback_font,
+        verbose = verbose
+      )
+    } else {
+      # Multi-template path: embed per-spec templates in payload.
+      spec_json_str <- paste(readLines(spec_json, warn = FALSE), collapse = "\n")
+      template_payload <- .build_multi_template_payload(paths_by_spec)
+      data_dir <- normalizePath(dirname(spec_json), mustWork = TRUE)
+
+      n_pages <- render_docx_from_strings_impl(
+        spec_json = spec_json_str,
+        template_json = template_payload,
+        output_path = output_path,
+        data_dir = data_dir,
+        font_dirs = font_dirs,
+        fallback_font = fallback_font,
+        verbose = verbose
+      )
+    }
+  }
 
   page_label <- if (!is.null(n_pages) && length(n_pages) == 1L && n_pages != 1L) "pages" else "page"
   cli::cli_alert_success("DOCX rendered: {.path {output_path}} ({n_pages} {page_label})")

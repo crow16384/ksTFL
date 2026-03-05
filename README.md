@@ -228,7 +228,7 @@ Combine specifications into reports and render to DOCX:
 **render_docx() Parameters**:
 
 - `spec_json`: Path to spec JSON file from `save_report()`
-- `template_json`: Path to styles template (default: bundled `CRO Example_default` template)
+- `template_json`: Optional global template override; if omitted, templates are resolved per spec from each spec's `docTemplate` (fallback: bundled `CRO Example_default`)
 - `output_path`: Output .docx file path
 - `font_dirs`: Additional font search directories (optional)
 - `fallback_font`: Custom fallback font path (optional)
@@ -339,6 +339,7 @@ The C++20 rendering engine provides a complete end-to-end pipeline:
 - **Vertical & horizontal pagination** with configurable page break rules
 - **OOXML emission** into valid .docx ZIP packages
 - Support for all 3 document types (Table, Figure, Text)
+- **Per-spec template rendering** in multi-spec reports (mixed `docTemplate` values)
 - Inline markup: `**bold**`, `*italic*`, `__underline__`, `~~strikethrough~~`
 - Structural borders (header top/bottom, table bottom)
 - Title soft-break rendering (combined paragraph with per-group font styling)

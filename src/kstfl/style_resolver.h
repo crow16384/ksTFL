@@ -85,6 +85,9 @@ public:
     /// occur in practice).
     const StyleDef* find_style(const std::string& id) const;
 
+    /// Expose template styles used by this resolver.
+    const StylesTemplate& template_styles() const { return tmpl_; }
+
 private:
     const StylesTemplate& tmpl_;
     const StyleMap& spec_styles_;

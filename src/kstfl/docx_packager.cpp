@@ -15,7 +15,8 @@ void DocxEmitter::emit_package(
     // for whatever page size and orientation the document uses.
     std::optional<int> toc_tab_twips;
     if (!doc.specs.empty()) {
-        StyleResolver first_resolver(tmpl_, doc.specs[0].spec_styles);
+        const auto& first_tmpl = template_for_spec(doc.specs[0].key);
+        StyleResolver first_resolver(first_tmpl, doc.specs[0].spec_styles);
         PageConfig first_page = first_resolver.resolve_page_config(doc.specs[0]);
         toc_tab_twips = static_cast<int>(first_page.usable_width().to_twips());
     }

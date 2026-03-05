@@ -18,11 +18,14 @@ render_docx(
 \code{\link{save_report}}.}
 
 \item{template_json}{Character string. Path to the styles template JSON file.
-If \code{NULL} (default), the template is resolved automatically from the
-\code{docTemplate} name stored in the spec (set via
-\code{\link{set_page_style}(docTemplate = "Navy_Pro")}). The name is looked
-up in the package's bundled \code{inst/templates/} directory. If not found,
-the default \code{CRO Example_default} template is used and a warning is issued.}
+If provided, this template is used for all specs (global override).
+If \code{NULL} (default), each spec resolves its own template from
+\code{docTemplate} (set via
+\code{\link{set_page_style}(docTemplate = "Navy_Pro")}). For multi-spec
+reports, different specs may therefore use different templates. Template
+names are looked up in the package's bundled \code{inst/templates/}
+directory. Missing values or unknown names fall back to
+\code{CRO Example_default} with a warning.}
 
 \item{output_path}{Character string. Path for the output .docx file. If the
 directory does not exist, it will be created.}
@@ -67,8 +70,10 @@ computed from the OS/2 table (usWinAscent/usWinDescent) to match
 Microsoft Word's line height calculation.
 
 \strong{Template}: The template controls default styles (fonts, spacing, borders),
-page layout, and table formatting. Use the bundled template or provide a custom
-one conforming to \code{styles_schema_v2.json}.
+page layout, and table formatting. By default (\code{template_json = NULL}),
+template selection is per-spec using each spec's \code{docTemplate}. Set
+\code{template_json} to force one template for the full document. Custom
+templates must conform to \code{styles_schema_v2.json}.
 }
 \examples{
 \dontrun{

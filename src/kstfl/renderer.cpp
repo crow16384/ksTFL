@@ -16,11 +16,15 @@
 
 #include <filesystem>
 #include <fstream>
+#include <nlohmann/json.hpp>
 #include <Rcpp.h>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 
 namespace kstfl {
+
+using json = nlohmann::json;
 
 // ---------------------------------------------------------------------------
 // Constructor / Destructor
@@ -68,6 +72,48 @@ static std::string read_file_to_string(const std::string& path) {
     return content;
 }
 
+struct TemplateBundle {
+    StylesTemplate default_template;
+    std::unordered_map<std::string, StylesTemplate> per_spec_templates;
+};
+
+static TemplateBundle parse_template_bundle(const std::string& template_json) {
+    TemplateBundle bundle;
+
+    json root;
+    try {
+        root = json::parse(template_json);
+    } catch (...) {
+        // Keep the existing parse error behavior for single-template mode.
+        bundle.default_template = parse_template_json_string(template_json);
+        return bundle;
+    }
+
+    bool is_multi_payload = root.is_object()
+        && root.contains("_ksTFL_multi_template")
+        && root["_ksTFL_multi_template"].is_boolean()
+        && root["_ksTFL_multi_template"].get<bool>()
+        && root.contains("default")
+        && root.contains("per_spec")
+        && root["per_spec"].is_object();
+
+    if (!is_multi_payload) {
+        bundle.default_template = parse_template_json_string(template_json);
+        return bundle;
+    }
+
+    bundle.default_template = parse_template_json_string(root["default"].dump());
+
+    for (auto it = root["per_spec"].begin(); it != root["per_spec"].end(); ++it) {
+        if (it.value().is_object()) {
+            bundle.per_spec_templates[it.key()] =
+                parse_template_json_string(it.value().dump());
+        }
+    }
+
+    return bundle;
+}
+
 // ---------------------------------------------------------------------------
 // render: from file paths
 // ---------------------------------------------------------------------------
@@ -104,8 +150,16 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         Rcpp::Rcerr << "[ksTFL] Phase 1: Parsing JSON inputs...\n";
     }
 
-    // Parse template
-    StylesTemplate tmpl = parse_template_json_string(template_json);
+    // Parse template (single-template or multi-template payload)
+    TemplateBundle template_bundle = parse_template_bundle(template_json);
+
+    auto template_for_spec = [&](const std::string& spec_key) -> const StylesTemplate& {
+        auto it = template_bundle.per_spec_templates.find(spec_key);
+        if (it != template_bundle.per_spec_templates.end()) {
+            return it->second;
+        }
+        return template_bundle.default_template;
+    };
 
     // Parse spec document
     TFLDocument doc = parse_spec_json_string(spec_json);
@@ -209,7 +263,8 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         if (config_.verbose) {
             Rcpp::Rcerr << "[ksTFL]   Phase 3a: Resolving styles...\n";
         }
-        StyleResolver resolver(tmpl, spec.spec_styles);
+        const StylesTemplate& spec_tmpl = template_for_spec(spec.key);
+        StyleResolver resolver(spec_tmpl, spec.spec_styles);
 
         PageConfig page_config = resolver.resolve_page_config(spec);
         if (config_.verbose) {
@@ -490,7 +545,11 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         Rcpp::Rcerr << "[ksTFL] Phase 4: Emitting DOCX...\n";
     }
 
-    DocxEmitter emitter(tmpl, config_);
+    DocxEmitter emitter(
+        template_bundle.default_template,
+        template_bundle.per_spec_templates.empty() ? nullptr : &template_bundle.per_spec_templates,
+        config_
+    );
     emitter.emit(doc, data_tables, output_path,
                   all_pages, all_rows, all_headers, &measurer);
 

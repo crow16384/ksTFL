@@ -29,8 +29,9 @@
 #'   page. Defaults to `tfl_get_option("tocTitle")`.
 #' @param template_json Optional character string. Path to a styles template
 #'   JSON file passed through to [render_docx()]. If `NULL` (default), the
-#'   template is resolved automatically from the spec via
-#'   [render_docx()].
+#'   renderer resolves template(s) from each spec's `docTemplate` value via
+#'   [render_docx()] (allowing mixed templates in multi-spec reports).
+#'   If provided, this path is used as a single global template.
 #' @param font_dirs Optional character vector of additional directories to
 #'   search for fonts when rendering via [render_docx()].
 #' @param fallback_font Optional character string. Path to a fallback font file

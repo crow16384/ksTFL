@@ -139,7 +139,8 @@ std::string DocxEmitter::emit_document_xml(
     // Uses the first spec's page config and header/footer refs so the TOC page
     // inherits the same page size, margins, and running headers/footers.
     if (doc.metadata.insert_toc && !doc.specs.empty()) {
-        StyleResolver first_resolver(tmpl_, doc.specs[0].spec_styles);
+        const auto& first_tmpl = template_for_spec(doc.specs[0].key);
+        StyleResolver first_resolver(first_tmpl, doc.specs[0].spec_styles);
         PageConfig toc_page = first_resolver.resolve_page_config(doc.specs[0]);
         const auto& first_refs = spec_hdr_ftr_refs[0];
         emit_toc_page(doc_w, doc.metadata.toc_title, toc_page,
@@ -162,13 +163,15 @@ std::string DocxEmitter::emit_document_xml(
         const auto& spec = doc.specs[spec_idx];
 
         // Create style resolver for this spec
-        StyleResolver resolver(tmpl_, spec.spec_styles);
+        const auto& spec_tmpl = template_for_spec(spec.key);
+        StyleResolver resolver(spec_tmpl, spec.spec_styles);
 
         // ----- Emit section break for previous spec (not before first) -----
         if (spec_idx > 0) {
             // Section break paragraph with previous spec's section properties
             const auto& prev_spec = doc.specs[spec_idx - 1];
-            StyleResolver prev_resolver(tmpl_, prev_spec.spec_styles);
+            const auto& prev_tmpl = template_for_spec(prev_spec.key);
+            StyleResolver prev_resolver(prev_tmpl, prev_spec.spec_styles);
             PageConfig prev_page = prev_resolver.resolve_page_config(prev_spec);
             const auto& prev_refs = spec_hdr_ftr_refs[spec_idx - 1];
 
@@ -237,11 +240,11 @@ std::string DocxEmitter::emit_document_xml(
                         reserved_height = reserved_height + measure_text_groups_height(spec.subtitles, "caption");
                     }
 
-                    if (tmpl_.figure_style.space_before.has_value()) {
-                        reserved_height = reserved_height + *tmpl_.figure_style.space_before;
+                    if (spec_tmpl.figure_style.space_before.has_value()) {
+                        reserved_height = reserved_height + *spec_tmpl.figure_style.space_before;
                     }
-                    if (tmpl_.figure_style.space_after.has_value()) {
-                        reserved_height = reserved_height + *tmpl_.figure_style.space_after;
+                    if (spec_tmpl.figure_style.space_after.has_value()) {
+                        reserved_height = reserved_height + *spec_tmpl.figure_style.space_after;
                     }
 
                     Length max_figure_height = page_cfg.usable_height() - reserved_height;
@@ -255,18 +258,18 @@ std::string DocxEmitter::emit_document_xml(
                     int64_t cy = size_emu.second;
 
                     std::optional<ParagraphProps> figure_pp = std::nullopt;
-                    if (tmpl_.figure_style.alignment.has_value() ||
-                        tmpl_.figure_style.space_before.has_value() ||
-                        tmpl_.figure_style.space_after.has_value()) {
+                    if (spec_tmpl.figure_style.alignment.has_value() ||
+                        spec_tmpl.figure_style.space_before.has_value() ||
+                        spec_tmpl.figure_style.space_after.has_value()) {
                         ParagraphProps pp;
-                        if (tmpl_.figure_style.alignment.has_value()) {
-                            pp.alignment = tmpl_.figure_style.alignment;
+                        if (spec_tmpl.figure_style.alignment.has_value()) {
+                            pp.alignment = spec_tmpl.figure_style.alignment;
                         }
-                        if (tmpl_.figure_style.space_before.has_value() ||
-                            tmpl_.figure_style.space_after.has_value()) {
+                        if (spec_tmpl.figure_style.space_before.has_value() ||
+                            spec_tmpl.figure_style.space_after.has_value()) {
                             SpacingProps sp;
-                            sp.before = tmpl_.figure_style.space_before;
-                            sp.after = tmpl_.figure_style.space_after;
+                            sp.before = spec_tmpl.figure_style.space_before;
+                            sp.after = spec_tmpl.figure_style.space_after;
                             pp.spacing = sp;
                         }
                         figure_pp = pp;
@@ -280,14 +283,14 @@ std::string DocxEmitter::emit_document_xml(
                         }
                     };
 
-                    if (tmpl_.figure_style.caption_position == "above") {
+                    if (spec_tmpl.figure_style.caption_position == "above") {
                         emit_caption();
                     }
 
                     emit_figure_drawing(doc_w, rid_it->second,
                                         cx, cy, figure_img_counter, figure_pp);
 
-                    if (tmpl_.figure_style.caption_position != "above") {
+                    if (spec_tmpl.figure_style.caption_position != "above") {
                         emit_caption();
                     }
                 }
@@ -361,7 +364,8 @@ std::string DocxEmitter::emit_document_xml(
     if (!doc.specs.empty()) {
         size_t last_idx = doc.specs.size() - 1;
         const auto& last_spec = doc.specs[last_idx];
-        StyleResolver last_resolver(tmpl_, last_spec.spec_styles);
+        const auto& last_tmpl = template_for_spec(last_spec.key);
+        StyleResolver last_resolver(last_tmpl, last_spec.spec_styles);
         PageConfig last_page = last_resolver.resolve_page_config(last_spec);
         const auto& last_refs = spec_hdr_ftr_refs[last_idx];
         emit_section_props(doc_w, last_page,

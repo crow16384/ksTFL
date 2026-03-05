@@ -43,8 +43,9 @@ page. Defaults to \code{tfl_get_option("tocTitle")}.}
 
 \item{template_json}{Optional character string. Path to a styles template
 JSON file passed through to \code{\link[=render_docx]{render_docx()}}. If \code{NULL} (default), the
-template is resolved automatically from the spec via
-\code{\link[=render_docx]{render_docx()}}.}
+renderer resolves template(s) from each spec's \code{docTemplate} value via
+\code{\link[=render_docx]{render_docx()}} (allowing mixed templates in multi-spec reports).
+If provided, this path is used as a single global template.}
 
 \item{font_dirs}{Optional character vector of additional directories to
 search for fonts when rendering via \code{\link[=render_docx]{render_docx()}}.}

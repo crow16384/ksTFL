@@ -887,9 +887,11 @@ create_report() → write_doc()  →  output.docx
 # Create multiple specs
 table_spec <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 table_spec <- add_title(table_spec, "Laboratory Results")
+table_spec <- set_page_style(table_spec, docTemplate = "Navy_Pro")
 
 text_spec <- create_text()
 text_spec <- add_body_text(text_spec, "All values are from the locked database.")
+text_spec <- set_page_style(text_spec, docTemplate = "Carbon_Dark")
 
 # Assemble into report
 report_full <- create_report(table_spec, text_spec)
@@ -897,6 +899,10 @@ report_full <- create_report(table_spec, text_spec)
 # Render — validates, writes JSON metadata, and produces the DOCX
 write_doc(report_full, name = "example_report", outDir = "./out", metaPath = tempdir())
 ```
+
+In this workflow, each spec keeps its own `docTemplate` styling when rendered
+together in one DOCX (sectioned multi-spec output). To force a single style
+for the entire report, pass `template_json` to `write_doc()` or `render_docx()`.
 
 **Key parameters**:
 - `report`: A `TFL_report` object (created via `create_report()`)

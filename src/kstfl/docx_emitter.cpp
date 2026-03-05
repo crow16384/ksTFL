@@ -14,8 +14,20 @@ namespace kstfl {
 // Constructor
 // ---------------------------------------------------------------------------
 
-DocxEmitter::DocxEmitter(const StylesTemplate& tmpl, const RendererConfig& config)
-    : tmpl_(tmpl), config_(config) {}
+DocxEmitter::DocxEmitter(const StylesTemplate& tmpl,
+                         const std::unordered_map<std::string, StylesTemplate>* per_spec_templates,
+                         const RendererConfig& config)
+    : tmpl_(tmpl), per_spec_templates_(per_spec_templates), config_(config) {}
+
+const StylesTemplate& DocxEmitter::template_for_spec(const std::string& spec_key) const {
+    if (per_spec_templates_) {
+        auto it = per_spec_templates_->find(spec_key);
+        if (it != per_spec_templates_->end()) {
+            return it->second;
+        }
+    }
+    return tmpl_;
+}
 
 // ---------------------------------------------------------------------------
 // [Content_Types].xml, _rels/.rels, and word/_rels/document.xml.rels
