@@ -1,5 +1,5 @@
 // kstfl/types.h — Core data structures for the ksTFL DOCX renderer
-// Mirrors the JSON schema structures from spec_schema_v2.json and styles_schema_v1.json
+// Mirrors the JSON schema structures from spec_schema_v2.json and styles_schema_v2.json
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
@@ -310,7 +310,7 @@ struct PageConfig {
 };
 
 // ---------------------------------------------------------------------------
-// Styles template (from styles_schema_v1.json)
+// Styles template (from styles_schema_v2.json)
 // ---------------------------------------------------------------------------
 
 /// Table style configuration from template.
@@ -349,6 +349,18 @@ struct TextStyles {
     StyleDef footnotes;
     StyleDef table_header;
     StyleDef table_body;
+    StyleDef toc_title;
+    StyleDef toc_entry;
+    StyleDef figure_caption;
+};
+
+/// Figure defaults from template styles.
+struct FigureStyleConfig {
+    std::optional<Alignment> alignment;
+    std::optional<Length> space_before;
+    std::optional<Length> space_after;
+    std::string caption_position = "below";      // above | below
+    std::string caption_text_style_ref = "figureCaption";
 };
 
 /// Complete styles template.
@@ -356,6 +368,7 @@ struct StylesTemplate {
     PageConfig page;
     TextStyles text_styles;
     TableStyleConfig table_style;
+    FigureStyleConfig figure_style;
     std::optional<bool> widow_control;
 };
 

@@ -90,7 +90,7 @@ Microsoft Word's line height calculation.
 
 **Template**: The template controls default styles (fonts, spacing,
 borders), page layout, and table formatting. Use the bundled template or
-provide a custom one conforming to `styles_schema_v1.json`.
+provide a custom one conforming to `styles_schema_v2.json`.
 
 ## Examples
 

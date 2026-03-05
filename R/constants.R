@@ -307,7 +307,7 @@ NULL
 .const_spec_schema_file = "spec_schema_v2.json"
 #' Style schema file name
 #' @noRd
-.const_style_schema_file = "styles_schema_v1.json"
+.const_style_schema_file = "styles_schema_v2.json"
 #' Row style schema file name
 #' @noRd
 .const_row_style_schema_file = "row_style_actions_schema_v0.json"

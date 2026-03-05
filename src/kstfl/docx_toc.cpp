@@ -167,17 +167,10 @@ void DocxEmitter::emit_toc_page(XmlWriter& w,
 {
     // Optional title paragraph
     if (!toc_title.empty()) {
-        w.start_element("w:p");
-        w.start_element("w:r");
-        w.start_element("w:rPr");
-        w.self_closing_element("w:b");
-        w.end_element();  // w:rPr
-        w.start_element("w:t");
-        w.attribute("xml:space", "preserve");
-        w.text(toc_title);
-        w.end_element();  // w:t
-        w.end_element();  // w:r
-        w.end_element();  // w:p
+        StyleResolver toc_resolver(tmpl_, StyleMap{});
+        StyleDef toc_title_style = toc_resolver.resolve_toc_title_style();
+        stamp_exact_line_height(toc_title_style);
+        emit_paragraph(w, toc_title, toc_title_style);
     }
 
     // TOC field paragraph: { TOC \f \z }

@@ -16,7 +16,6 @@
       "widow_control": true
     }
   },
-
   "textStyles": {
     "default": {
       "font": {
@@ -166,9 +165,62 @@
           "line_spacing": 1.0
         }
       }
+    },
+    "tocTitle": {
+      "font": {
+        "font_name": "Arial",
+        "font_size": "10pt",
+        "bold": true,
+        "italic": false,
+        "underline": false,
+        "color": "2D2D2D"
+      },
+      "paragraph": {
+        "alignment": "left",
+        "spacing": {
+          "before": "0pt",
+          "after": "3pt",
+          "line_spacing": 1.1
+        }
+      }
+    },
+    "tocEntry": {
+      "font": {
+        "font_name": "Arial",
+        "font_size": "8.5pt",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "color": "3C3C3C"
+      },
+      "paragraph": {
+        "alignment": "left",
+        "spacing": {
+          "before": "0pt",
+          "after": "2pt",
+          "line_spacing": 1.0
+        }
+      }
+    },
+    "figureCaption": {
+      "font": {
+        "font_name": "Arial",
+        "font_size": "8.5pt",
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "color": "3C3C3C"
+      },
+      "paragraph": {
+        "alignment": "left",
+        "spacing": {
+          "before": "0pt",
+          "after": "2pt",
+          "line_spacing": 1.0
+        }
+      }
     }
   },
-
   "tableStyle": {
     "layout": {
       "allow_row_break_across_pages": false,
@@ -176,7 +228,6 @@
       "prevent_header_row_break": true,
       "table_alignment": "center"
     },
-
     "structural": {
       "header_top_border": {
         "color": "2D2D2D",
@@ -200,7 +251,6 @@
         "vertical_alignment": "top"
       }
     },
-
     "cellDefaults": {
       "cell_margins": {
         "top": "1pt",
@@ -210,7 +260,6 @@
       },
       "vertical_alignment": "center"
     },
-
     "header": {
       "row": {
         "background_color": "2D2D2D",
@@ -246,7 +295,6 @@
         }
       }
     },
-
     "body": {
       "row": {
         "background_color": null,
@@ -281,6 +329,17 @@
           }
         }
       }
+    }
+  },
+  "figureStyle": {
+    "layout": {
+      "alignment": "center",
+      "space_before": "3pt",
+      "space_after": "3pt"
+    },
+    "caption": {
+      "position": "below",
+      "textStyleRef": "figureCaption"
     }
   }
 }

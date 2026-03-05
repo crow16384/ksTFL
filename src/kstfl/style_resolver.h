@@ -68,6 +68,15 @@ public:
     /// Resolve a style for body text (hasData=false).
     StyleDef resolve_body_text_style(const std::optional<std::string>& custom_ref = std::nullopt) const;
 
+    /// Resolve style for TOC title paragraph.
+    StyleDef resolve_toc_title_style() const;
+
+    /// Resolve base style for TOC entries (TOC1..TOC9).
+    StyleDef resolve_toc_entry_style() const;
+
+    /// Resolve style for figure captions.
+    StyleDef resolve_figure_caption_style(const std::vector<std::string>& style_refs = {}) const;
+
     /// Lookup a named style by ID from the spec's custom styles map.
     /// Template styles (default, tableHeader, etc.) are struct fields accessed
     /// directly by the resolve_*() methods, not via string lookup.
@@ -79,6 +88,9 @@ public:
 private:
     const StylesTemplate& tmpl_;
     const StyleMap& spec_styles_;
+
+    /// Resolve a named template text style key (e.g., "titles", "figureCaption").
+    const StyleDef* find_template_text_style(const std::string& key) const;
 
     /// Apply a named style ref on top of base.
     StyleDef apply_style_ref(const StyleDef& base, const std::string& ref) const;

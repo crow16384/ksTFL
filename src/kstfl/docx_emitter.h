@@ -186,7 +186,8 @@ private:
                              const std::string& r_id,
                              int64_t cx_emu,
                              int64_t cy_emu,
-                             int img_id) const;
+                             int img_id,
+                             const std::optional<ParagraphProps>& paragraph_props = std::nullopt) const;
 
     /// Emit section properties.
     /// @param is_body_level  True for the body-level sectPr (last child of

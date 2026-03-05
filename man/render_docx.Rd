@@ -68,7 +68,7 @@ Microsoft Word's line height calculation.
 
 \strong{Template}: The template controls default styles (fonts, spacing, borders),
 page layout, and table formatting. Use the bundled template or provide a custom
-one conforming to \code{styles_schema_v1.json}.
+one conforming to \code{styles_schema_v2.json}.
 }
 \examples{
 \dontrun{

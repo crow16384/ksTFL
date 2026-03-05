@@ -1,0 +1,496 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Clinical TFL Styling Template Schema (v0.3.0)",
+  "description": "Defines default and non-overridable styling rules for clinical Tables, Figures, Listings, TOC, and captions. Styles from spec and template are merged using last-wins strategy.",
+
+  "type": "object",
+
+  "properties": {
+    "document": {
+      "type": "object",
+      "description": "Document-wide layout and paragraph defaults applied to all rendered content.",
+
+      "properties": {
+        "page": {
+          "type": "object",
+          "description": "Defines page size, orientation, and margins for the document.",
+
+          "properties": {
+            "size": {
+              "type": "string",
+              "enum": ["A4", "A3", "Letter", "Legal", "Executive"],
+              "description": "Physical paper size used for the document."
+            },
+            "orientation": {
+              "type": "string",
+              "enum": ["portrait", "landscape"],
+              "description": "Page orientation."
+            },
+            "margins": {
+              "$ref": "#/$defs/pageMargins",
+              "description": "Page margins including header and footer spacing."
+            }
+          },
+          "required": ["size", "orientation", "margins"],
+          "additionalProperties": false
+        },
+
+        "paragraphDefaults": {
+          "type": "object",
+          "description": "Paragraph-level defaults applied unless explicitly overridden.",
+
+          "properties": {
+            "widow_control": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enables widow/orphan control to prevent isolated lines at page breaks."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+
+      "required": ["page"],
+      "additionalProperties": false
+    },
+
+    "textStyles": {
+      "type": "object",
+      "description": "Named text styles used as defaults and referenced by content elements. Can be overridden or extended by spec-defined styles.",
+
+      "properties": {
+        "default": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Base text style applied when no other style is specified."
+        },
+        "docHeader": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Text style for document headers."
+        },
+        "docFooter": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Text style for document footers."
+        },
+        "titles": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Default style for titles (e.g., table titles, section titles)."
+        },
+        "subtitles": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Default style for subtitles or secondary titles."
+        },
+        "footnotes": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Default style for footnotes and annotations."
+        },
+        "tableHeader": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Default text style applied to table header cells."
+        },
+        "tableBody": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Default text style applied to table body cells."
+        },
+        "tocTitle": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Style for the TOC page heading text."
+        },
+        "tocEntry": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Base style applied to TOC entry paragraphs (levels 1-9 share this base)."
+        },
+        "figureCaption": {
+          "$ref": "#/$defs/textStyle",
+          "description": "Base style for figure captions."
+        }
+      },
+
+      "required": ["default", "titles", "subtitles", "footnotes", "tocTitle", "tocEntry", "figureCaption"],
+      "additionalProperties": false
+    },
+
+    "figureStyle": {
+      "type": "object",
+      "description": "Defines default figure block layout and caption behavior.",
+      "properties": {
+        "layout": {
+          "type": "object",
+          "properties": {
+            "alignment": {
+              "type": ["null", "string"],
+              "enum": [null, "left", "center", "right"],
+              "description": "Horizontal alignment of figure paragraph."
+            },
+            "space_before": {
+              "type": ["null", "string"],
+              "description": "Spacing before figure paragraph."
+            },
+            "space_after": {
+              "type": ["null", "string"],
+              "description": "Spacing after figure paragraph."
+            }
+          },
+          "additionalProperties": false
+        },
+        "caption": {
+          "type": "object",
+          "properties": {
+            "position": {
+              "type": "string",
+              "enum": ["above", "below"],
+              "description": "Caption position relative to the image."
+            },
+            "textStyleRef": {
+              "type": "string",
+              "description": "Named textStyles key used as base style for figure caption."
+            }
+          },
+          "required": ["position", "textStyleRef"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["layout", "caption"],
+      "additionalProperties": false
+    },
+
+    "tableStyle": {
+      "type": "object",
+      "description": "Defines default, structural, and overridable table styling rules.",
+
+      "properties": {
+        "layout": {
+          "type": "object",
+          "description": "Table-level layout behavior affecting pagination and positioning.",
+
+          "properties": {
+            "allow_row_break_across_pages": {
+              "type": "boolean",
+              "description": "Controls whether table rows are allowed to split across page boundaries."
+            },
+            "repeat_header_on_each_page": {
+              "type": "boolean",
+              "description": "Repeats header rows at the top of each page when the table spans multiple pages."
+            },
+            "prevent_header_row_break": {
+              "type": "boolean",
+              "description": "Prevents header rows from breaking across pages."
+            },
+            "table_alignment": {
+              "type": ["null","string"],
+              "enum": [null, "left", "center", "right"],
+              "description": "Horizontal alignment of the table on the page."
+            }
+          },
+
+          "required": ["allow_row_break_across_pages", "repeat_header_on_each_page"],
+          "additionalProperties": false
+        },
+
+        "structural": {
+          "type": "object",
+          "description": "Non-overridable visual invariants defining the table’s structural identity.",
+
+          "properties": {
+            "header_top_border": {
+              "$ref": "#/$defs/borderProperties",
+              "description": "Border applied above the topmost header row."
+            },
+            "header_bottom_border": {
+              "$ref": "#/$defs/borderProperties",
+              "description": "Border applied below the last header row."
+            },
+            "table_bottom_border": {
+              "$ref": "#/$defs/borderProperties",
+              "description": "Border applied below the final row of the table."
+            },
+            "allHeaders": {
+              "$ref": "#/$defs/structuralRowStyle",
+              "description": "Non-overridable styling applied to all header rows."
+            },
+            "tableBody": {
+              "$ref": "#/$defs/structuralRowStyle",
+              "description": "Non-overridable styling applied to all body rows."
+            }
+          },
+
+          "required": [
+            "header_top_border",
+            "header_bottom_border",
+            "table_bottom_border"
+          ],
+          "additionalProperties": false
+        },
+
+        "cellDefaults": {
+          "type": "object",
+          "description": "Default cell-level formatting applied unless overridden by row or cell styles.",
+
+          "properties": {
+            "cell_margins": {
+              "$ref": "#/$defs/cellMargins",
+              "description": "Default padding inside table cells."
+            },
+            "vertical_alignment": {
+              "type": ["null","string"],
+              "enum": [null, "top", "center", "bottom"],
+              "default": "center",
+              "description": "Default vertical alignment of cell contents."
+            }
+          },
+
+          "additionalProperties": false
+        },
+
+        "header": {
+          "type": "object",
+          "description": "Overridable styling applied to header rows.",
+
+          "properties": {
+            "textStyleRef": {
+              "type": "string",
+              "description": "Reference to a named text style applied to header cells."
+            },
+            "row": {
+              "$ref": "#/$defs/tableRowStyle",
+              "description": "Row-level styling applied to header rows."
+            }
+          },
+
+          "required": ["row"],
+          "additionalProperties": false
+        },
+
+        "body": {
+          "type": "object",
+          "description": "Overridable styling applied to body rows.",
+
+          "properties": {
+            "textStyleRef": {
+              "type": "string",
+              "description": "Reference to a named text style applied to body cells."
+            },
+            "row": {
+              "$ref": "#/$defs/tableRowStyle",
+              "description": "Row-level styling applied to body rows."
+            }
+          },
+
+          "required": ["row"],
+          "additionalProperties": false
+        }
+      },
+
+      "required": ["layout", "structural", "header", "body"],
+      "additionalProperties": false
+    }
+  },
+
+  "required": ["document", "textStyles", "tableStyle", "figureStyle"],
+
+  "$defs": {
+    "pageMargins": {
+      "type": "object",
+      "description": "Defines page margins including header and footer spacing.",
+
+      "properties": {
+        "top": { "type": "string", "description": "Top page margin." },
+        "bottom": { "type": "string", "description": "Bottom page margin." },
+        "left": { "type": "string", "description": "Left page margin." },
+        "right": { "type": "string", "description": "Right page margin." },
+        "header": { "type": "string", "description": "Distance between page edge and header." },
+        "footer": { "type": "string", "description": "Distance between page edge and footer." }
+      },
+
+      "required": ["top", "bottom", "left", "right", "header", "footer"],
+      "additionalProperties": false
+    },
+
+    "cellMargins": {
+      "type": "object",
+      "description": "Defines padding inside table cells.",
+
+      "properties": {
+        "top": { "type": ["null","string"], "description": "Top cell padding." },
+        "bottom": { "type": ["null","string"], "description": "Bottom cell padding." },
+        "left": { "type": ["null","string"], "description": "Left cell padding." },
+        "right": { "type": ["null","string"], "description": "Right cell padding." }
+      },
+
+      "additionalProperties": false
+    },
+
+    "borderProperties": {
+      "type": "object",
+      "description": "Defines border appearance for table elements.",
+
+      "properties": {
+        "color": {
+          "type": ["null","string"],
+          "description": "Border color in hex format."
+        },
+        "width": {
+          "type": ["null","string"],
+          "description": "Border width in points."
+        },
+        "line_style": {
+          "type": ["null","string"],
+          "enum": [null, "single", "double", "dashed", "dotted", "thick", "none"],
+          "description": "Border line style."
+        }
+      },
+
+      "additionalProperties": false
+    },
+
+    "structuralRowStyle": {
+      "type": "object",
+      "description": "Non-overridable visual properties applied uniformly to a table region.",
+
+      "properties": {
+        "background_color": {
+          "type": ["null","string"],
+          "description": "Background fill color."
+        },
+        "cell_margins": {
+          "$ref": "#/$defs/cellMargins",
+          "description": "Cell padding applied to the region."
+        },
+        "vertical_alignment": {
+          "type": ["null","string"],
+          "enum": [null, "top", "center", "bottom"],
+          "description": "Vertical alignment of cell contents."
+        }
+      },
+
+      "additionalProperties": false
+    },
+
+    "tableRowStyle": {
+      "type": "object",
+      "description": "Row-level style properties that may be overridden by the spec schema.",
+
+      "properties": {
+        "background_color": {
+          "type": ["null","string"],
+          "description": "Row background color."
+        },
+        "row_height": {
+          "type": ["null","string"],
+          "description": "Row height value or 'auto'."
+        },
+        "vertical_alignment": {
+          "type": ["null","string"],
+          "enum": [null, "top", "center", "bottom"],
+          "description": "Vertical alignment of cell contents."
+        },
+        "text_orientation": {
+          "type": ["null","string"],
+          "enum": [null, "horizontal", "vertical_90", "vertical_270"],
+          "description": "Orientation of text inside cells."
+        },
+        "cell_margins": {
+          "$ref": "#/$defs/cellMargins",
+          "description": "Cell padding for the row."
+        },
+        "borders": {
+          "type": "object",
+          "description": "Borders applied to cells in the row.",
+
+          "properties": {
+            "top": { "$ref": "#/$defs/borderProperties" },
+            "bottom": { "$ref": "#/$defs/borderProperties" },
+            "left": { "$ref": "#/$defs/borderProperties" },
+            "right": { "$ref": "#/$defs/borderProperties" }
+          },
+
+          "additionalProperties": false
+        }
+      },
+
+      "additionalProperties": false
+    },
+
+    "textStyle": {
+      "type": "object",
+      "description": "Defines paragraph and font styling for text content.",
+
+      "properties": {
+        "word_style": {
+          "type": ["null","string"],
+          "description": "Optional MS Word built-in style name."
+        },
+        "paragraph": {
+          "type": "object",
+          "description": "Paragraph-level formatting.",
+
+          "properties": {
+            "alignment": {
+              "type": ["null","string"],
+              "enum": [null, "left", "right", "center", "justify", "distributed"],
+              "description": "Horizontal text alignment."
+            },
+            "spacing": {
+              "type": "object",
+              "description": "Spacing before, after, and between lines.",
+
+              "properties": {
+                "before": { "type": ["null","string"], "description": "Spacing before paragraph." },
+                "after": { "type": ["null","string"], "description": "Spacing after paragraph." },
+                "line_spacing": {
+                  "type": ["null","number"],
+                  "description": "Line spacing multiplier."
+                }
+              },
+
+              "additionalProperties": false
+            },
+            "indents": {
+              "type": "object",
+              "description": "Paragraph indentation.",
+
+              "properties": {
+                "left": { "type": ["null","string"], "description": "Left indent." },
+                "right": { "type": ["null","string"], "description": "Right indent." },
+                "first_line": { "type": ["null","string"], "description": "First-line indent." }
+              },
+
+              "additionalProperties": false
+            }
+          },
+
+          "additionalProperties": false
+        },
+        "font": {
+          "type": "object",
+          "description": "Font-level formatting.",
+
+          "properties": {
+            "font_name": {
+              "type": "string",
+              "description": "Font family name."
+            },
+            "font_size": {
+              "type": ["null","string"],
+              "description": "Font size in points."
+            },
+            "bold": { "type": "boolean", "description": "Bold text." },
+            "italic": { "type": "boolean", "description": "Italic text." },
+            "underline": { "type": "boolean", "description": "Underlined text." },
+            "color": {
+              "type": ["null","string"],
+              "description": "Text color."
+            },
+            "highlight": {
+              "type": ["null","string"],
+              "description": "Background highlight color."
+            }
+          },
+
+          "additionalProperties": false
+        }
+      },
+
+      "additionalProperties": false
+    }
+  }
+}

@@ -71,6 +71,8 @@ std::string DocxEmitter::emit_styles(std::optional<int> toc_tab_pos_twips) const
     w.end_element();
 
     const int toc_tab_twips = toc_tab_pos_twips.value_or(15840);
+    StyleResolver toc_resolver(tmpl_, StyleMap{});
+    StyleDef toc_entry_style = toc_resolver.resolve_toc_entry_style();
     for (int level = 1; level <= 9; ++level) {
         std::string style_id = "TOC" + std::to_string(level);
         std::string style_name = "toc " + std::to_string(level);
@@ -81,6 +83,9 @@ std::string DocxEmitter::emit_styles(std::optional<int> toc_tab_pos_twips) const
         w.element_with_attr("w:name", "w:val", style_name);
         w.element_with_attr("w:basedOn", "w:val", "Normal");
         w.start_element("w:pPr");
+        if (toc_entry_style.paragraph.has_value()) {
+            emit_para_props(w, *toc_entry_style.paragraph);
+        }
         if (indent_twips > 0) {
             w.start_element("w:ind");
             w.attribute("w:left", std::to_string(indent_twips));
@@ -94,6 +99,11 @@ std::string DocxEmitter::emit_styles(std::optional<int> toc_tab_pos_twips) const
         w.end_element();
         w.end_element();
         w.end_element();
+
+        if (toc_entry_style.font.has_value()) {
+            emit_run_props(w, *toc_entry_style.font);
+        }
+
         w.end_element();
     }
 

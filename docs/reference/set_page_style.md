@@ -32,7 +32,7 @@ set_page_style(spec, docTemplate = NULL, page = NULL)
 
   - A file path (absolute or relative) to an external template JSON
     file. The path must point to an existing file conforming to
-    `styles_schema_v1.json`.
+    `styles_schema_v2.json`.
 
   When `NULL` (default) the current session template is used.
 

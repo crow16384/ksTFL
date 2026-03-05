@@ -298,4 +298,47 @@ StyleDef StyleResolver::resolve_body_text_style(const std::optional<std::string>
     return result;
 }
 
+StyleDef StyleResolver::resolve_toc_title_style() const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    result.merge_from(tmpl_.text_styles.toc_title);
+    return result;
+}
+
+StyleDef StyleResolver::resolve_toc_entry_style() const {
+    StyleDef result = tmpl_.text_styles.default_style;
+    result.merge_from(tmpl_.text_styles.toc_entry);
+    return result;
+}
+
+StyleDef StyleResolver::resolve_figure_caption_style(const std::vector<std::string>& style_refs) const {
+    StyleDef result = tmpl_.text_styles.default_style;
+
+    const StyleDef* base = find_template_text_style(tmpl_.figure_style.caption_text_style_ref);
+    if (base) {
+        result.merge_from(*base);
+    } else {
+        result.merge_from(tmpl_.text_styles.figure_caption);
+    }
+
+    for (const auto& ref : style_refs) {
+        result = apply_style_ref(result, ref);
+    }
+    return result;
+}
+
+const StyleDef* StyleResolver::find_template_text_style(const std::string& key) const {
+    if (key == "default") return &tmpl_.text_styles.default_style;
+    if (key == "docHeader") return &tmpl_.text_styles.doc_header;
+    if (key == "docFooter") return &tmpl_.text_styles.doc_footer;
+    if (key == "titles") return &tmpl_.text_styles.titles;
+    if (key == "subtitles") return &tmpl_.text_styles.subtitles;
+    if (key == "footnotes") return &tmpl_.text_styles.footnotes;
+    if (key == "tableHeader") return &tmpl_.text_styles.table_header;
+    if (key == "tableBody") return &tmpl_.text_styles.table_body;
+    if (key == "tocTitle") return &tmpl_.text_styles.toc_title;
+    if (key == "tocEntry") return &tmpl_.text_styles.toc_entry;
+    if (key == "figureCaption") return &tmpl_.text_styles.figure_caption;
+    return nullptr;
+}
+
 }  // namespace kstfl

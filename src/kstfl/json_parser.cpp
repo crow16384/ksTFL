@@ -763,6 +763,9 @@ static StylesTemplate parse_template_internal(const json& root) {
         if (ts.contains("footnotes"))   tmpl.text_styles.footnotes     = parse_text_style(ts["footnotes"]);
         if (ts.contains("tableHeader")) tmpl.text_styles.table_header  = parse_text_style(ts["tableHeader"]);
         if (ts.contains("tableBody"))   tmpl.text_styles.table_body    = parse_text_style(ts["tableBody"]);
+        if (ts.contains("tocTitle"))    tmpl.text_styles.toc_title     = parse_text_style(ts["tocTitle"]);
+        if (ts.contains("tocEntry"))    tmpl.text_styles.toc_entry     = parse_text_style(ts["tocEntry"]);
+        if (ts.contains("figureCaption")) tmpl.text_styles.figure_caption = parse_text_style(ts["figureCaption"]);
     }
 
     // tableStyle
@@ -838,6 +841,34 @@ static StylesTemplate parse_template_internal(const json& root) {
                 if (ml.has_value()) tmpl.table_style.default_cell_margin_left = Length::parse(*ml);
                 auto mr = get_opt_str(cm, "right");
                 if (mr.has_value()) tmpl.table_style.default_cell_margin_right = Length::parse(*mr);
+            }
+        }
+
+        // figureStyle
+        if (root.contains("figureStyle") && root["figureStyle"].is_object()) {
+            const auto& fig = root["figureStyle"];
+
+            if (fig.contains("layout") && fig["layout"].is_object()) {
+                const auto& layout = fig["layout"];
+                auto a = get_opt_str(layout, "alignment");
+                if (a.has_value()) {
+                    if (*a == "center") tmpl.figure_style.alignment = Alignment::Center;
+                    else if (*a == "right") tmpl.figure_style.alignment = Alignment::Right;
+                    else if (*a == "left") tmpl.figure_style.alignment = Alignment::Left;
+                }
+
+                auto sb = get_opt_str(layout, "space_before");
+                if (sb.has_value()) tmpl.figure_style.space_before = Length::parse(*sb);
+                auto sa = get_opt_str(layout, "space_after");
+                if (sa.has_value()) tmpl.figure_style.space_after = Length::parse(*sa);
+            }
+
+            if (fig.contains("caption") && fig["caption"].is_object()) {
+                const auto& cap = fig["caption"];
+                auto p = get_opt_str(cap, "position");
+                if (p.has_value()) tmpl.figure_style.caption_position = *p;
+                auto sr = get_opt_str(cap, "textStyleRef");
+                if (sr.has_value()) tmpl.figure_style.caption_text_style_ref = *sr;
             }
         }
     }

@@ -2712,7 +2712,7 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
 #'     \item A predefined bundled template name (e.g. `"KeyStat_default"`, `"Navy_Pro"`).
 #'       Use \code{tfl_list_templates()} to see all available names.
 #'     \item A file path (absolute or relative) to an external template JSON file.
-#'       The path must point to an existing file conforming to \code{styles_schema_v1.json}.
+#'       The path must point to an existing file conforming to \code{styles_schema_v2.json}.
 #'   }
 #'   When \code{NULL} (default) the current session template is used.
 #' @param page Page settings object created with \code{\link{p_page}} or a list with keys: size, orientation, margins

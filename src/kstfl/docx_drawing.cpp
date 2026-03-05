@@ -16,8 +16,12 @@ void DocxEmitter::emit_figure_drawing(XmlWriter& w,
                                       const std::string& r_id,
                                       int64_t cx_emu,
                                       int64_t cy_emu,
-                                      int img_id) const {
+                                      int img_id,
+                                      const std::optional<ParagraphProps>& paragraph_props) const {
     w.start_element("w:p");
+    if (paragraph_props.has_value()) {
+        emit_para_props(w, *paragraph_props);
+    }
     w.start_element("w:r");
     w.start_element("w:drawing");
 

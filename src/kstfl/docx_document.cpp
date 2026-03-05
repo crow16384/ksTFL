@@ -158,8 +158,43 @@ std::string DocxEmitter::emit_document_xml(
                     auto size_emu = resolve_figure_size_emu(spec, page_cfg, resolver);
                     int64_t cx = size_emu.first;
                     int64_t cy = size_emu.second;
+
+                    std::optional<ParagraphProps> figure_pp = std::nullopt;
+                    if (tmpl_.figure_style.alignment.has_value() ||
+                        tmpl_.figure_style.space_before.has_value() ||
+                        tmpl_.figure_style.space_after.has_value()) {
+                        ParagraphProps pp;
+                        if (tmpl_.figure_style.alignment.has_value()) {
+                            pp.alignment = tmpl_.figure_style.alignment;
+                        }
+                        if (tmpl_.figure_style.space_before.has_value() ||
+                            tmpl_.figure_style.space_after.has_value()) {
+                            SpacingProps sp;
+                            sp.before = tmpl_.figure_style.space_before;
+                            sp.after = tmpl_.figure_style.space_after;
+                            pp.spacing = sp;
+                        }
+                        figure_pp = pp;
+                    }
+
+                    auto emit_caption = [&]() {
+                        if (!spec.subtitles.empty()) {
+                            emit_text_groups(doc_w, spec.subtitles,
+                                             resolver.resolve_figure_caption_style(),
+                                             resolver);
+                        }
+                    };
+
+                    if (tmpl_.figure_style.caption_position == "above") {
+                        emit_caption();
+                    }
+
                     emit_figure_drawing(doc_w, rid_it->second,
-                                        cx, cy, figure_img_counter);
+                                        cx, cy, figure_img_counter, figure_pp);
+
+                    if (tmpl_.figure_style.caption_position != "above") {
+                        emit_caption();
+                    }
                 }
             } else {
                 // Text (or Figure with no resolved path): emit bodyText
