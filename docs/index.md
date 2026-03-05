@@ -179,7 +179,7 @@ Define and compose styles:
 | `s_paragraph(word_style, alignment, spacing, indents)` | Paragraph formatting | Style component |
 | `s_spacing(before, after, line_spacing)` | Spacing settings | Style component |
 | `s_indents(left, right, first_line)` | Indentation settings | Style component |
-| `s_table_style(background_color, row_height, vertical_alignment, text_orientation, borders)` | Table cell styling | Style component |
+| `s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)` | Table cell styling | Style component |
 | `s_borders(top, bottom, left, right)` | Border definitions | Style component |
 | `s_border(color, width, line_style)` | Individual border | Style component |
 | `f_combine(...)` | Combine multiple style references | Combined style reference |
@@ -214,7 +214,7 @@ Configure document-level settings:
 
 | Function | Purpose | Key Parameters |
 |----|----|----|
-| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `hasData` |
+| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `topEmptyLine`, `bottomEmptyLine`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `hasData` |
 | `set_page_style(spec, docTemplate, page)` | Configure page layout & template | Template name, page settings |
 | `p_page(size, orientation, margins)` | Page settings helper | A4/Letter/Legal, portrait/landscape |
 | `p_margins(top, bottom, left, right, header, footer)` | Margin settings helper | Dimensions with units (in, cm, pt, mm) |
@@ -254,8 +254,9 @@ Combine specifications into reports and render to DOCX:
 
 - `spec_json`: Path to spec JSON file from
   [`save_report()`](https://example.com/reference/save_report.md)
-- `template_json`: Path to styles template (default: bundled
-  `CRO Example_default` template)
+- `template_json`: Optional global template override; if omitted,
+  templates are resolved per spec from each spec’s `docTemplate`
+  (fallback: bundled `CRO Example_default`)
 - `output_path`: Output .docx file path
 - `font_dirs`: Additional font search directories (optional)
 - `fallback_font`: Custom fallback font path (optional)
@@ -369,11 +370,12 @@ The C++20 rendering engine provides a complete end-to-end pipeline: -
 Liberation Sans → DejaVu Sans → Noto Sans → FreeSans) - **Vertical &
 horizontal pagination** with configurable page break rules - **OOXML
 emission** into valid .docx ZIP packages - Support for all 3 document
-types (Table, Figure, Text) - Inline markup: `**bold**`, `*italic*`,
-`__underline__`, `~~strikethrough~~` - Structural borders (header
-top/bottom, table bottom) - Title soft-break rendering (combined
-paragraph with per-group font styling) - Configurable style templates
-(`CRO Example_default` bundled)
+types (Table, Figure, Text) - **Per-spec template rendering** in
+multi-spec reports (mixed `docTemplate` values) - Inline markup:
+`**bold**`, `*italic*`, `__underline__`, `~~strikethrough~~` -
+Structural borders (header top/bottom, table bottom) - Title soft-break
+rendering (combined paragraph with per-group font styling) -
+Configurable style templates (`CRO Example_default` bundled)
 
 ------------------------------------------------------------------------
 

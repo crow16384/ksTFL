@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -972,15 +972,22 @@ writing metadata and data files to <code>metaPath</code>
 <code class="sourceCode R"><span><span class="co"># Create multiple specs</span></span>
 <span><span class="va">table_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">labs_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">ALT</span>, <span class="va">AST</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">table_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">table_spec</span>, <span class="st">"Laboratory Results"</span><span class="op">)</span></span>
+<span><span class="va">table_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span><span class="va">table_spec</span>, docTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">text_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">text_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">text_spec</span>, <span class="st">"All values are from the locked database."</span><span class="op">)</span></span>
+<span><span class="va">text_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span><span class="va">text_spec</span>, docTemplate <span class="op">=</span> <span class="st">"Carbon_Dark"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Assemble into report</span></span>
 <span><span class="va">report_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">table_spec</span>, <span class="va">text_spec</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Render — validates, writes JSON metadata, and produces the DOCX</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report_full</span>, name <span class="op">=</span> <span class="st">"example_report"</span>, outDir <span class="op">=</span> <span class="st">"./out"</span>, metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>In this workflow, each spec keeps its own <code>docTemplate</code>
+styling when rendered together in one DOCX (sectioned multi-spec
+output). To force a single style for the entire report, pass
+<code>template_json</code> to <code><a href="../reference/write_doc.html">write_doc()</a></code> or
+<code><a href="../reference/render_docx.html">render_docx()</a></code>.</p>
 <p><strong>Key parameters</strong>: - <code>report</code>: A
 <code>TFL_report</code> object (created via
 <code><a href="../reference/create_report.html">create_report()</a></code>) - <code>name</code>: Base name for the

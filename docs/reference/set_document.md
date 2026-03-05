@@ -17,7 +17,13 @@ set_document(
   contentWidth = NULL,
   footnotePlace = NULL,
   hasData = NULL,
-  docTemplate = NULL
+  topEmptyLine = NULL,
+  bottomEmptyLine = NULL,
+  docTemplate = NULL,
+  figureWidth = NULL,
+  figureHeight = NULL,
+  figureDevice = NULL,
+  figureScaleMode = NULL
 )
 ```
 
@@ -45,6 +51,16 @@ set_document(
 - hasData:
 
   Whether document has data to report
+
+- topEmptyLine:
+
+  Empty spacer row height after table header (table-level), e.g. "6pt".
+  Use NULL to disable. `0pt` is treated as no spacer row.
+
+- bottomEmptyLine:
+
+  Empty spacer row height before table bottom border (table-level), e.g.
+  "6pt". Use NULL to disable. `0pt` is treated as no spacer row.
 
 - docTemplate:
 

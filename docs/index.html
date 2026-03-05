@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -414,7 +414,7 @@
 <td>Style component</td>
 </tr>
 <tr>
-<td><code>s_table_style(background_color, row_height, vertical_alignment, text_orientation, borders)</code></td>
+<td><code>s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)</code></td>
 <td>Table cell styling</td>
 <td>Style component</td>
 </tr>
@@ -466,7 +466,7 @@
 <td><code>set_document(spec, ...)</code></td>
 <td>Set document metadata</td>
 <td>
-<code>docPrefix</code>, <code>glueNumType</code>, <code>isContinues</code>, <code>contentWidth</code>, <code>bodyTitles</code>, <code>bodySubtitles</code>, <code>footnotePlace</code>, <code>hasData</code>
+<code>docPrefix</code>, <code>glueNumType</code>, <code>isContinues</code>, <code>contentWidth</code>, <code>topEmptyLine</code>, <code>bottomEmptyLine</code>, <code>bodyTitles</code>, <code>bodySubtitles</code>, <code>footnotePlace</code>, <code>hasData</code>
 </td>
 </tr>
 <tr>
@@ -550,7 +550,7 @@
 <code>spec_json</code>: Path to spec JSON file from <code><a href="reference/save_report.html">save_report()</a></code>
 </li>
 <li>
-<code>template_json</code>: Path to styles template (default: bundled <code>CRO Example_default</code> template)</li>
+<code>template_json</code>: Optional global template override; if omitted, templates are resolved per spec from each spec’s <code>docTemplate</code> (fallback: bundled <code>CRO Example_default</code>)</li>
 <li>
 <code>output_path</code>: Output .docx file path</li>
 <li>
@@ -668,7 +668,7 @@
 <div class="section level3">
 <h3 id="id_6-built-in-docx-renderer">6. Built-in DOCX Renderer<a class="anchor" aria-label="anchor" href="#id_6-built-in-docx-renderer"></a>
 </h3>
-<p>The C++20 rendering engine provides a complete end-to-end pipeline: - <strong>HarfBuzz text shaping</strong> for deterministic text measurement - <strong>FreeType font loading</strong> with automatic fallback chain (Arial → Liberation Sans → DejaVu Sans → Noto Sans → FreeSans) - <strong>Vertical &amp; horizontal pagination</strong> with configurable page break rules - <strong>OOXML emission</strong> into valid .docx ZIP packages - Support for all 3 document types (Table, Figure, Text) - Inline markup: <code>**bold**</code>, <code>*italic*</code>, <code>__underline__</code>, <code>~~strikethrough~~</code> - Structural borders (header top/bottom, table bottom) - Title soft-break rendering (combined paragraph with per-group font styling) - Configurable style templates (<code>CRO Example_default</code> bundled)</p>
+<p>The C++20 rendering engine provides a complete end-to-end pipeline: - <strong>HarfBuzz text shaping</strong> for deterministic text measurement - <strong>FreeType font loading</strong> with automatic fallback chain (Arial → Liberation Sans → DejaVu Sans → Noto Sans → FreeSans) - <strong>Vertical &amp; horizontal pagination</strong> with configurable page break rules - <strong>OOXML emission</strong> into valid .docx ZIP packages - Support for all 3 document types (Table, Figure, Text) - <strong>Per-spec template rendering</strong> in multi-spec reports (mixed <code>docTemplate</code> values) - Inline markup: <code>**bold**</code>, <code>*italic*</code>, <code>__underline__</code>, <code>~~strikethrough~~</code> - Structural borders (header top/bottom, table bottom) - Title soft-break rendering (combined paragraph with per-group font styling) - Configurable style templates (<code>CRO Example_default</code> bundled)</p>
 <hr>
 </div>
 </div>

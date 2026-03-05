@@ -9,6 +9,8 @@ This function can only be used inside
 s_table_style(
   background_color = NULL,
   row_height = NULL,
+  topEmptyLine = NULL,
+  bottomEmptyLine = NULL,
   vertical_alignment = NULL,
   text_orientation = NULL,
   borders = NULL
@@ -24,6 +26,15 @@ s_table_style(
 - row_height:
 
   Row height, e.g. "15mm" or "auto"
+
+- topEmptyLine:
+
+  Empty spacer row height after header, e.g. "6pt"; NULL disables it
+
+- bottomEmptyLine:
+
+  Empty spacer row height before bottom border, e.g. "6pt"; NULL
+  disables it
 
 - vertical_alignment:
 

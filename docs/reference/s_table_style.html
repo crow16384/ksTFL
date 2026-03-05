@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,6 +48,8 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">s_table_style</span><span class="op">(</span></span>
 <span>  background_color <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  row_height <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  topEmptyLine <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  bottomEmptyLine <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  vertical_alignment <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  text_orientation <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  borders <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -64,6 +66,14 @@
 
 <dt id="arg-row-height">row_height<a class="anchor" aria-label="anchor" href="#arg-row-height"></a></dt>
 <dd><p>Row height, e.g. "15mm" or "auto"</p></dd>
+
+
+<dt id="arg-topemptyline">topEmptyLine<a class="anchor" aria-label="anchor" href="#arg-topemptyline"></a></dt>
+<dd><p>Empty spacer row height after header, e.g. "6pt"; NULL disables it</p></dd>
+
+
+<dt id="arg-bottomemptyline">bottomEmptyLine<a class="anchor" aria-label="anchor" href="#arg-bottomemptyline"></a></dt>
+<dd><p>Empty spacer row height before bottom border, e.g. "6pt"; NULL disables it</p></dd>
 
 
 <dt id="arg-vertical-alignment">vertical_alignment<a class="anchor" aria-label="anchor" href="#arg-vertical-alignment"></a></dt>

@@ -28,13 +28,15 @@ render_docx(
 
 - template_json:
 
-  Character string. Path to the styles template JSON file. If `NULL`
-  (default), the template is resolved automatically from the
-  `docTemplate` name stored in the spec (set via
+  Character string. Path to the styles template JSON file. If provided,
+  this template is used for all specs (global override). If `NULL`
+  (default), each spec resolves its own template from `docTemplate` (set
+  via
   [`set_page_style`](https://example.com/reference/set_page_style.md)`(docTemplate = "Navy_Pro")`).
-  The name is looked up in the package's bundled `inst/templates/`
-  directory. If not found, the default `CRO Example_default` template is
-  used and a warning is issued.
+  For multi-spec reports, different specs may therefore use different
+  templates. Template names are looked up in the package's bundled
+  `inst/templates/` directory. Missing values or unknown names fall back
+  to `CRO Example_default` with a warning.
 
 - output_path:
 
@@ -89,8 +91,10 @@ computed from the OS/2 table (usWinAscent/usWinDescent) to match
 Microsoft Word's line height calculation.
 
 **Template**: The template controls default styles (fonts, spacing,
-borders), page layout, and table formatting. Use the bundled template or
-provide a custom one conforming to `styles_schema_v2.json`.
+borders), page layout, and table formatting. By default
+(`template_json = NULL`), template selection is per-spec using each
+spec's `docTemplate`. Set `template_json` to force one template for the
+full document. Custom templates must conform to `styles_schema_v2.json`.
 
 ## Examples
 

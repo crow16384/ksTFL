@@ -181,9 +181,12 @@ orientation, and borders.
 
 **Parameters**: - `background_color`: Cell background color (hex, e.g.,
 “#E8E8E8”) - `row_height`: Height of table row (e.g., “25pt”) -
-`vertical_alignment`: “top”, “center”, “bottom” - `text_orientation`:
-“horizontal”, “vertical_90”, “vertical_270” - `borders`: Border
-specification (use `s_borders(...)`)
+`topEmptyLine`: Optional empty spacer row after header (e.g., “6pt”, use
+`NULL` or `0pt` to disable) - `bottomEmptyLine`: Optional empty spacer
+row before the bottom border (e.g., “6pt”, use `NULL` or `0pt` to
+disable) - `vertical_alignment`: “top”, “center”, “bottom” -
+`text_orientation`: “horizontal”, “vertical_90”, “vertical_270” -
+`borders`: Border specification (use `s_borders(...)`)
 
 **Example**:
 
@@ -199,6 +202,13 @@ spec <- add_style(spec, id = "header_cell",
 # Vertically rotated text (90 degrees)
 spec <- add_style(spec, id = "rotated_header",
   s_table_style(text_orientation = "vertical_90"))
+
+# Add table-level spacer rows via set_document()
+spec <- set_document(
+  spec,
+  topEmptyLine = "6pt",
+  bottomEmptyLine = "6pt"
+)
 ```
 
 ### `s_borders()` — Border specifications

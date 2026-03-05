@@ -2,12 +2,12 @@
 
 Create and initialize a TFL specification for embedding a figure.
 Accepts either a **file path** to an existing image or a **ggplot2
-object** that is rendered automatically to a temporary PNG file.
+object** that is rendered automatically to a temporary SVG file.
 
 ## Usage
 
 ``` r
-create_figure(plot_or_path, width = 6, height = 4, dpi = 300L, device = "png")
+create_figure(plot_or_path, dpi = 300L)
 ```
 
 ## Arguments
@@ -25,6 +25,11 @@ create_figure(plot_or_path, width = 6, height = 4, dpi = 300L, device = "png")
     Use `width`, `height`, `dpi`, and `device` to control output
     dimensions.
 
+- dpi:
+
+  Integer. Resolution (dots per inch) when `plot_or_path` is a ggplot2
+  object. Ignored for file paths. Default: `300`.
+
 - width:
 
   Numeric. Plot width in inches when `plot_or_path` is a ggplot2 object.
@@ -35,15 +40,10 @@ create_figure(plot_or_path, width = 6, height = 4, dpi = 300L, device = "png")
   Numeric. Plot height in inches when `plot_or_path` is a ggplot2
   object. Ignored for file paths. Default: `4`.
 
-- dpi:
-
-  Integer. Resolution (dots per inch) when `plot_or_path` is a ggplot2
-  object. Ignored for file paths. Default: `300`.
-
 - device:
 
   Character. Output format when `plot_or_path` is a ggplot2 object. One
-  of `"png"` (default), `"jpeg"`, `"jpg"`, `"svg"`. Ignored for file
+  of `"svg"` (default), `"png"`, `"jpeg"`, `"jpg"`. Ignored for file
   paths.
 
 ## Value
@@ -82,14 +82,16 @@ library(ggplot2)
 p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
 spec <- create_figure(p)
 
-## Control output dimensions
-spec <- create_figure(p, width = 8, height = 5, dpi = 150)
+## Control figure defaults via options
+tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "svg")
+spec <- create_figure(p, dpi = 150)
 
-## Use JPEG output
-spec <- create_figure(p, device = "jpeg", width = 7, height = 4.5)
+## Override per figure
+spec <- create_figure(p) |>
+  set_document(figureDevice = "jpeg", figureScaleMode = "fitWidth")
 
 ## Full pipeline
-spec <- create_figure(p, width = 6, height = 4) |>
+spec <- create_figure(p) |>
   add_title("Weight vs MPG") |>
   add_footnote("Source: Motor Trend, 1974.")
 report <- create_report(spec)

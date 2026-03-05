@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -248,10 +248,15 @@ standalone.</p>
 orientation, and borders.</p>
 <p><strong>Parameters</strong>: - <code>background_color</code>: Cell
 background color (hex, e.g., “#E8E8E8”) - <code>row_height</code>:
-Height of table row (e.g., “25pt”) - <code>vertical_alignment</code>:
-“top”, “center”, “bottom” - <code>text_orientation</code>: “horizontal”,
-“vertical_90”, “vertical_270” - <code>borders</code>: Border
-specification (use <code>s_borders(...)</code>)</p>
+Height of table row (e.g., “25pt”) - <code>topEmptyLine</code>: Optional
+empty spacer row after header (e.g., “6pt”, use <code>NULL</code> or
+<code>0pt</code> to disable) - <code>bottomEmptyLine</code>: Optional
+empty spacer row before the bottom border (e.g., “6pt”, use
+<code>NULL</code> or <code>0pt</code> to disable) -
+<code>vertical_alignment</code>: “top”, “center”, “bottom” -
+<code>text_orientation</code>: “horizontal”, “vertical_90”,
+“vertical_270” - <code>borders</code>: Border specification (use
+<code>s_borders(...)</code>)</p>
 <p><strong>Example</strong>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
@@ -264,7 +269,14 @@ specification (use <code>s_borders(...)</code>)</p>
 <span></span>
 <span><span class="co"># Vertically rotated text (90 degrees)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"rotated_header"</span>,</span>
-<span>  <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>text_orientation <span class="op">=</span> <span class="st">"vertical_90"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>text_orientation <span class="op">=</span> <span class="st">"vertical_90"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Add table-level spacer rows via set_document()</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span></span>
+<span>  <span class="va">spec</span>,</span>
+<span>  topEmptyLine <span class="op">=</span> <span class="st">"6pt"</span>,</span>
+<span>  bottomEmptyLine <span class="op">=</span> <span class="st">"6pt"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="s_borders-border-specifications">

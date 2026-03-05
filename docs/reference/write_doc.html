@@ -11,7 +11,7 @@ immediately renders it to a DOCX file in a single call."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -109,8 +109,9 @@ page. Defaults to <code>tfl_get_option("tocTitle")</code>.</p></dd>
 <dt id="arg-template-json">template_json<a class="anchor" aria-label="anchor" href="#arg-template-json"></a></dt>
 <dd><p>Optional character string. Path to a styles template
 JSON file passed through to <code><a href="render_docx.html">render_docx()</a></code>. If <code>NULL</code> (default), the
-template is resolved automatically from the spec via
-<code><a href="render_docx.html">render_docx()</a></code>.</p></dd>
+renderer resolves template(s) from each spec's <code>docTemplate</code> value via
+<code><a href="render_docx.html">render_docx()</a></code> (allowing mixed templates in multi-spec reports).
+If provided, this path is used as a single global template.</p></dd>
 
 
 <dt id="arg-font-dirs">font_dirs<a class="anchor" aria-label="anchor" href="#arg-font-dirs"></a></dt>

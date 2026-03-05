@@ -13,7 +13,7 @@ document order (docOrder) is assigned by create_report()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,13 @@ document order (<code>docOrder</code>) is assigned by <code><a href="create_repo
 <span>  contentWidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  footnotePlace <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hasData <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  docTemplate <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  topEmptyLine <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  bottomEmptyLine <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  docTemplate <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  figureWidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  figureHeight <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  figureDevice <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  figureScaleMode <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,6 +96,16 @@ Default <code>"repeated"</code>.</p></dd>
 
 <dt id="arg-hasdata">hasData<a class="anchor" aria-label="anchor" href="#arg-hasdata"></a></dt>
 <dd><p>Whether document has data to report</p></dd>
+
+
+<dt id="arg-topemptyline">topEmptyLine<a class="anchor" aria-label="anchor" href="#arg-topemptyline"></a></dt>
+<dd><p>Empty spacer row height after table header (table-level), e.g. "6pt".
+Use NULL to disable. <code>0pt</code> is treated as no spacer row.</p></dd>
+
+
+<dt id="arg-bottomemptyline">bottomEmptyLine<a class="anchor" aria-label="anchor" href="#arg-bottomemptyline"></a></dt>
+<dd><p>Empty spacer row height before table bottom border (table-level), e.g. "6pt".
+Use NULL to disable. <code>0pt</code> is treated as no spacer row.</p></dd>
 
 
 <dt id="arg-doctemplate">docTemplate<a class="anchor" aria-label="anchor" href="#arg-doctemplate"></a></dt>

@@ -70,8 +70,11 @@ write_doc(
   Optional character string. Path to a styles template JSON file passed
   through to
   [`render_docx()`](https://example.com/reference/render_docx.md). If
-  `NULL` (default), the template is resolved automatically from the spec
-  via [`render_docx()`](https://example.com/reference/render_docx.md).
+  `NULL` (default), the renderer resolves template(s) from each spec's
+  `docTemplate` value via
+  [`render_docx()`](https://example.com/reference/render_docx.md)
+  (allowing mixed templates in multi-spec reports). If provided, this
+  path is used as a single global template.
 
 - font_dirs:
 
