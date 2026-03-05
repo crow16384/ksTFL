@@ -20,7 +20,7 @@
     contentWidth        = "100%",
     figureWidth         = "6in",
     figureHeight        = "4in",
-    figureDevice        = "png",
+    figureDevice        = "svg",
     figureAspectRatio   = 1.5,
     figureScaleMode     = "fixed",
     

@@ -539,7 +539,7 @@ struct FigureInfo {
     std::optional<std::string> height;       // e.g. "50%", "4in", "8cm"
     std::optional<double> aspect_ratio;      // width/height
     std::string scale_mode = "fixed";       // fixed | fitWidth | fitPage
-    std::string device = "png";             // png | jpeg | jpg | svg
+    std::string device = "svg";             // png | jpeg | jpg | svg
 };
 
 // ---------------------------------------------------------------------------

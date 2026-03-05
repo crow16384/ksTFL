@@ -591,14 +591,14 @@ create_table <- function(data = NULL, cols = everything()) {
 #' @param width Numeric. Plot width in inches. Default: `6`.
 #' @param height Numeric. Plot height in inches. Default: `4`.
 #' @param dpi Integer. Resolution in dots per inch. Default: `300`.
-#' @param device Character. Output device. One of `"png"` (default),
+#' @param device Character. Output device. One of `"svg"` (default),
 #'   `"jpeg"`, `"svg"`. Must be supported by the C++ renderer.
 #'
 #' @return Character string — absolute path to the created temporary file.
 #'
 #' @keywords internal
 #' @noRd
-.save_ggplot_to_temp <- function(plot, width = 6, height = 4, dpi = 300L, device = "png") {
+.save_ggplot_to_temp <- function(plot, width = 6, height = 4, dpi = 300L, device = "svg") {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     cli_abort(c(
       "Package {.pkg ggplot2} is required to use ggplot2 objects with {.fn create_figure}.",
@@ -636,7 +636,7 @@ create_table <- function(data = NULL, cols = everything()) {
 #'
 #' Create and initialize a TFL specification for embedding a figure. Accepts
 #' either a **file path** to an existing image or a **ggplot2 object** that is
-#' rendered automatically to a temporary PNG file.
+#' rendered automatically to a temporary SVG file.
 #'
 #' @param plot_or_path One of:
 #'   \itemize{
@@ -653,7 +653,7 @@ create_table <- function(data = NULL, cols = everything()) {
 #' @param dpi Integer. Resolution (dots per inch) when `plot_or_path` is a
 #'   ggplot2 object. Ignored for file paths. Default: `300`.
 #' @param device Character. Output format when `plot_or_path` is a ggplot2
-#'   object. One of `"png"` (default), `"jpeg"`, `"jpg"`, `"svg"`.
+#'   object. One of `"svg"` (default), `"png"`, `"jpeg"`, `"jpg"`.
 #'   Ignored for file paths.
 #'
 #' @return A `TFL_spec` object with `docType = "Figure"`.
@@ -684,7 +684,7 @@ create_table <- function(data = NULL, cols = everything()) {
 #' spec <- create_figure(p)
 #'
 #' ## Control figure defaults via options
-#' tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "png")
+#' tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "svg")
 #' spec <- create_figure(p, dpi = 150)
 #'
 #' ## Override per figure
@@ -706,7 +706,7 @@ create_table <- function(data = NULL, cols = everything()) {
 create_figure <- function(plot_or_path, dpi = 300L) {
 
   settings <- tfl_get_options()
-  fig_device <- settings$figureDevice %||% "png"
+  fig_device <- settings$figureDevice %||% "svg"
 
   # Branch 1: ggplot2 object — render to temporary file
   if (inherits(plot_or_path, c("gg", "ggplot"))) {

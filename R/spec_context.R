@@ -1701,6 +1701,25 @@ define_cols <- function(spec, cols,
                         blankAfter = NULL,
                         type = NULL, format = NULL, missings = NULL, 
                         colWidth = NULL, valueStyleRef = NULL) {
+
+  .merge_style_refs_last_wins <- function(existing, incoming) {
+    to_chr <- function(x) {
+      if (is.null(x) || identical(x, NA)) return(character(0))
+      if (!is.character(x)) {
+        cli_abort(c(
+          "Internal error while merging style references in {.fn define_cols}",
+          x = "Expected character style refs, got {.cls {class(x)[1]}}"
+        ))
+      }
+      x[!is.na(x)]
+    }
+
+    merged <- c(to_chr(existing), to_chr(incoming))
+    merged <- merged[!duplicated(merged, fromLast = TRUE)]
+    if (length(merged) == 0L) return(NULL)
+    merged
+  }
+
   assert_class(spec, "TFL_spec")
   cols <- enquos(cols)
   cols <- .get_data_column_names(spec$.metadata$data_env$`__data__`, !!!cols)
@@ -1797,7 +1816,8 @@ define_cols <- function(spec, cols,
         if (pname == "labelStyleRef") {
           val <- pval[[i]]
           if (!identical(val, NA)) {
-            col_params[[pname]] <- val
+            existing_label <- spec$columns[[col_id]]$labelStyleRef
+            col_params[[pname]] <- .merge_style_refs_last_wins(existing_label, val)
           }
         } else {
           col_val <- if (length(pval) == 1L) pval else pval[i]
@@ -1827,7 +1847,9 @@ define_cols <- function(spec, cols,
       if (!is.null(resolved_valuestyleref)) {
         val <- resolved_valuestyleref[[i]]
         if (!identical(val, NA)) {
-          col_format_params$valueStyleRef <- val
+          existing_format <- spec$columns[[col_id]]$format
+          existing_value_style <- if (!is.null(existing_format)) existing_format$valueStyleRef else NULL
+          col_format_params$valueStyleRef <- .merge_style_refs_last_wins(existing_value_style, val)
         }
       }
       

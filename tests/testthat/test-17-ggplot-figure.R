@@ -20,12 +20,12 @@ create_test_dir <- function() {
 # .save_ggplot_to_temp() — unit tests
 # ============================================================================
 
-test_that(".save_ggplot_to_temp() creates a PNG file by default", {
+test_that(".save_ggplot_to_temp() creates an SVG file by default", {
   skip_if_not_installed("ggplot2")
   p <- make_plot()
   path <- ksTFL:::.save_ggplot_to_temp(p)
   expect_true(file.exists(path))
-  expect_match(path, "\\.png$", ignore.case = TRUE)
+  expect_match(path, "\\.svg$", ignore.case = TRUE)
   unlink(path)
 })
 
@@ -154,11 +154,11 @@ test_that("create_figure() stores a valid readable file path for ggplot2 input",
   expect_true(file.exists(stored_path))
 })
 
-test_that("create_figure() stores PNG path by default for ggplot2 input", {
+test_that("create_figure() stores SVG path by default for ggplot2 input", {
   skip_if_not_installed("ggplot2")
   p <- make_plot()
   spec <- create_figure(p)
-  expect_match(spec$.metadata$filePath, "\\.png$", ignore.case = TRUE)
+  expect_match(spec$.metadata$filePath, "\\.svg$", ignore.case = TRUE)
 })
 
 test_that("create_figure() respects device = 'jpeg' for ggplot2 input", {
@@ -245,7 +245,7 @@ test_that("save_report() copies ggplot2 figure file to metaPath", {
   # Image file should be copied to metaPath
   spec_key  <- names(report)[1]
   data_ref  <- report[[spec_key]]$dataRef
-  img_file  <- file.path(temp_dir, paste0(data_ref, ".png"))
+  img_file  <- file.path(temp_dir, paste0(data_ref, ".svg"))
   expect_true(file.exists(img_file))
 })
 
@@ -268,10 +268,10 @@ test_that("save_report() handles mixed Table + ggplot2 Figure report", {
   tbl_ref  <- report[[tbl_key]]$dataRef
   expect_true(file.exists(file.path(temp_dir, paste0(tbl_ref, ".json"))))
 
-  # Figure PNG should exist
+  # Figure SVG should exist
   fig_key  <- names(report)[2]
   fig_ref  <- report[[fig_key]]$dataRef
-  expect_true(file.exists(file.path(temp_dir, paste0(fig_ref, ".png"))))
+  expect_true(file.exists(file.path(temp_dir, paste0(fig_ref, ".svg"))))
 })
 
 test_that("dataRef for ggplot2 figure matches expected format", {

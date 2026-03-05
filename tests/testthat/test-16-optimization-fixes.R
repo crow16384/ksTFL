@@ -431,6 +431,28 @@ test_that("style consolidation merges f_combine correctly", {
   expect_true(!is.null(merged_style))
 })
 
+test_that("define_cols merges valueStyleRef across sequential calls", {
+  data <- data.frame(CAT2 = c("a", "b"), RPH104 = c("1", "2"), PLCB = c("3", "4"))
+
+  spec <- create_table(data) |>
+    define_cols(c(CAT2, RPH104, PLCB), valueStyleRef = "indent_1") |>
+    define_cols(everything(), valueStyleRef = "fs_8")
+
+  expect_equal(spec$columns$CAT2$format$valueStyleRef, c("indent_1", "fs_8"))
+  expect_equal(spec$columns$RPH104$format$valueStyleRef, c("indent_1", "fs_8"))
+  expect_equal(spec$columns$PLCB$format$valueStyleRef, c("indent_1", "fs_8"))
+})
+
+test_that("define_cols merges labelStyleRef with last-wins dedup", {
+  data <- data.frame(x = 1:3)
+
+  spec <- create_table(data) |>
+    define_cols(x, labelStyleRef = c("s_old", "s_mid")) |>
+    define_cols(x, labelStyleRef = c("s_mid", "s_new"))
+
+  expect_equal(spec$columns$x$labelStyleRef, c("s_old", "s_mid", "s_new"))
+})
+
 # ----------------------------------------------------------------------------
 # Width Recalculation Edge Cases
 # ----------------------------------------------------------------------------
