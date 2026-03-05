@@ -550,7 +550,6 @@ struct DocumentInfo {
 struct FigureInfo {
     std::optional<std::string> width;        // e.g. "70%", "6in", "12cm"
     std::optional<std::string> height;       // e.g. "50%", "4in", "8cm"
-    std::optional<double> aspect_ratio;      // width/height
     std::string scale_mode = "fixed";       // fixed | fitWidth | fitPage
     std::string device = "svg";             // png | jpeg | jpg | svg
 };

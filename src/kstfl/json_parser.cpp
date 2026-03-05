@@ -604,7 +604,6 @@ static FigureInfo parse_figure_info(const json& j) {
     FigureInfo fi;
     fi.width = get_opt_str(j, "width");
     fi.height = get_opt_str(j, "height");
-    fi.aspect_ratio = get_opt_dbl(j, "aspectRatio");
     auto sm = get_opt_str(j, "figureScaleMode");
     if (sm.has_value()) fi.scale_mode = *sm;
     auto dev = get_opt_str(j, "device");

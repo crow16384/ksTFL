@@ -14,7 +14,6 @@ set_document(
   figureWidth = NULL,
   figureHeight = NULL,
   figureDevice = NULL,
-  figureAspectRatio = NULL,
   figureScaleMode = NULL
 )
 }

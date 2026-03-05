@@ -327,6 +327,69 @@ assign("stack", character(0), envir = .context_marker_env)
   invisible(NULL)
 }
 
+#' Validate and normalize figure dimension settings
+#'
+#' Enforces unit consistency and scale mode interactions for figure sizing.
+#'
+#' @param width Character or NULL. Figure width.
+#' @param height Character or NULL. Figure height.
+#' @param figureScaleMode Character. One of fixed/fitWidth/fitPage.
+#' @param fn_name Character. Calling function name for diagnostics.
+#' @param default_width Character. Fallback width for fixed mode.
+#' @param default_height Character. Fallback height for fixed mode.
+#'
+#' @return Named list with normalized width, height, and figureScaleMode.
+#' @keywords internal
+#' @noRd
+.validate_figure_dimension_settings <- function(width, height, figureScaleMode,
+                                                fn_name,
+                                                default_width = "6in",
+                                                default_height = "4in") {
+  mode <- figureScaleMode %||% "fixed"
+
+  if (mode %in% c("fitWidth", "fitPage")) {
+    if (!is.null(width) || !is.null(height)) {
+      cli_warn(c(
+        "Figure dimensions are ignored when {.arg figureScaleMode = {.str {mode}}} in {.fn {fn_name}}",
+        i = "The renderer computes figure size from page bounds in this mode"
+      ))
+    }
+    return(list(width = NULL, height = NULL, figureScaleMode = mode))
+  }
+
+  if (!is.null(width) && !is.null(height)) {
+    unit_w <- sub("^.*?(%|in|cm|mm|pt)$", "\\1", width)
+    unit_h <- sub("^.*?(%|in|cm|mm|pt)$", "\\1", height)
+    if (xor(unit_w == "%", unit_h == "%")) {
+      cli_abort(c(
+        "Inconsistent figure size units in {.fn {fn_name}}:",
+        x = "Cannot mix percentage and absolute units",
+        i = "Use either both percentage values (for example, '70%' and '50%')",
+        i = "or both absolute values (for example, '6in' and '4in')"
+      ))
+    }
+  }
+
+  if (mode == "fixed") {
+    if (is.null(width) && !is.null(height)) {
+      cli_warn(c(
+        "Missing {.arg figureWidth} in fixed mode in {.fn {fn_name}}",
+        i = "Using default width {.str {default_width}}"
+      ))
+      width <- default_width
+    }
+    if (!is.null(width) && is.null(height)) {
+      cli_warn(c(
+        "Missing {.arg figureHeight} in fixed mode in {.fn {fn_name}}",
+        i = "Using default height {.str {default_height}}"
+      ))
+      height <- default_height
+    }
+  }
+
+  list(width = width, height = height, figureScaleMode = mode)
+}
+
 #' Validate Color Value
 #'
 #' Checks that a color value is either a valid hex code or a predefined color name.
@@ -2626,12 +2689,11 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
                          figureWidth = NULL,
                          figureHeight = NULL,
                          figureDevice = NULL,
-                         figureAspectRatio = NULL,
                          figureScaleMode = NULL) {
   assert_class(spec, "TFL_spec")
   
   
-  if (is.null(hasData) & is.null(spec$document$hasData)) {
+  if (is.null(hasData) && is.null(spec$document$hasData)) {
     cli_warn(c(
       "hasData not specified in {.fn set_document}",
       i = "Set hasData = TRUE if there is data to report, FALSE otherwise"
@@ -2659,10 +2721,11 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
     width = figureWidth,
     height = figureHeight,
     device = figureDevice,
-    aspectRatio = figureAspectRatio,
     figureScaleMode = figureScaleMode
   )
   figure_params <- figure_params[!vapply(figure_params, is.null, logical(1))]
+
+  merge_figure_params <- figure_params
 
   if (length(figure_params) > 0) {
     .validate_params(figure_params, "figure", "set_document")
@@ -2683,16 +2746,34 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
     if (!is.null(figure_params$figureScaleMode)) {
       checkmate::assert_choice(figure_params$figureScaleMode, .const_figure_scale_modes, .var.name = "figureScaleMode")
     }
-    if (!is.null(figure_params$aspectRatio)) {
-      checkmate::assert_number(figure_params$aspectRatio, lower = 0, .var.name = "figureAspectRatio")
+
+    resolved_mode <- figure_params$figureScaleMode %||% spec$figure$figureScaleMode %||% "fixed"
+    resolved_width <- figure_params$width %||% spec$figure$width
+    resolved_height <- figure_params$height %||% spec$figure$height
+    defaults <- tfl_get_options()
+
+    normalized <- .validate_figure_dimension_settings(
+      width = resolved_width,
+      height = resolved_height,
+      figureScaleMode = resolved_mode,
+      fn_name = "set_document",
+      default_width = defaults$figureWidth %||% "6in",
+      default_height = defaults$figureHeight %||% "4in"
+    )
+
+    merge_figure_params <- merge_figure_params[setdiff(names(merge_figure_params), c("width", "height"))]
+    if (normalized$figureScaleMode == "fixed" &&
+        (!is.null(figure_params$width) || !is.null(figure_params$height) || !is.null(figure_params$figureScaleMode))) {
+      merge_figure_params$width <- normalized$width
+      merge_figure_params$height <- normalized$height
     }
   }
   
   # Merge with last-win
   spec$document <- .merge_recursive(spec$document, params)
 
-  if (length(figure_params) > 0) {
-    spec$figure <- .merge_recursive(spec$figure, figure_params)
+  if (length(merge_figure_params) > 0) {
+    spec$figure <- .merge_recursive(spec$figure, merge_figure_params)
   }
 
   if (!is.null(docTemplate)) {

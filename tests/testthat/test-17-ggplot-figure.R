@@ -110,39 +110,82 @@ test_that("create_figure() uses figure defaults from options", {
   skip_if_not_installed("ggplot2")
   old <- tfl_get_options()
   on.exit(.options_env$settings <- old, add = TRUE)
-  tfl_set_options(
-    figureWidth = "70%",
-    figureHeight = "5cm",
-    figureDevice = "png",
-    figureAspectRatio = 1.25,
-    figureScaleMode = "fitWidth"
+  expect_warning(
+    tfl_set_options(
+      figureWidth = "70%",
+      figureHeight = "50%",
+      figureDevice = "png",
+      figureScaleMode = "fitWidth"
+    ),
+    "Figure dimensions are ignored"
   )
   p <- make_plot()
   spec <- create_figure(p)
-  expect_equal(spec$figure$width, "70%")
-  expect_equal(spec$figure$height, "5cm")
+  expect_equal(spec$figure$width, old$figureWidth)
+  expect_equal(spec$figure$height, old$figureHeight)
   expect_equal(spec$figure$device, "png")
-  expect_equal(spec$figure$aspectRatio, 1.25)
   expect_equal(spec$figure$figureScaleMode, "fitWidth")
 })
 
 test_that("set_document() overrides figure settings", {
   skip_if_not_installed("ggplot2")
   p <- make_plot()
-  spec <- create_figure(p) |>
-    set_document(
-      figureWidth = "80%",
-      figureHeight = "10cm",
-      figureDevice = "svg",
-      figureAspectRatio = 2,
-      figureScaleMode = "fitPage"
-    )
+  spec <- expect_warning(
+    create_figure(p) |>
+      set_document(
+        figureWidth = "8cm",
+        figureHeight = "10cm",
+        figureDevice = "svg",
+        figureScaleMode = "fitPage"
+      ),
+    "Figure dimensions are ignored"
+  )
 
-  expect_equal(spec$figure$width, "80%")
-  expect_equal(spec$figure$height, "10cm")
+  expect_equal(spec$figure$width, "6in")
+  expect_equal(spec$figure$height, "4in")
   expect_equal(spec$figure$device, "svg")
-  expect_equal(spec$figure$aspectRatio, 2)
   expect_equal(spec$figure$figureScaleMode, "fitPage")
+})
+
+test_that("set_document() warns and ignores explicit sizes in fit modes", {
+  skip_if_not_installed("ggplot2")
+  p <- make_plot()
+
+  expect_warning(
+    create_figure(p) |>
+      set_document(
+        figureWidth = "80%",
+        figureHeight = "10cm",
+        figureScaleMode = "fitWidth"
+      ),
+    "Figure dimensions are ignored"
+  )
+})
+
+test_that("set_document() fills missing fixed dimension from defaults", {
+  skip_if_not_installed("ggplot2")
+  p <- make_plot()
+  spec0 <- create_figure(p)
+  spec0$figure$height <- NULL
+
+  spec <- expect_warning(
+    set_document(spec0, figureWidth = "7in", figureScaleMode = "fixed"),
+    "Missing .*figureHeight"
+  )
+
+  expect_equal(spec$figure$width, "7in")
+  expect_equal(spec$figure$height, "4in")
+})
+
+test_that("set_document() errors for mixed percent and absolute units", {
+  skip_if_not_installed("ggplot2")
+  p <- make_plot()
+
+  expect_error(
+    create_figure(p) |>
+      set_document(figureWidth = "70%", figureHeight = "4in"),
+    "Cannot mix percentage and absolute units"
+  )
 })
 
 test_that("create_figure() stores a valid readable file path for ggplot2 input", {

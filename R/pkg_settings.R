@@ -21,7 +21,6 @@
     figureWidth         = "6in",
     figureHeight        = "4in",
     figureDevice        = "svg",
-    figureAspectRatio   = 1.5,
     figureScaleMode     = "fixed",
     
     # Data display defaults
@@ -210,7 +209,7 @@ tfl_set_options <- function(..., docTemplate = NULL,
                          footnotePlace = NULL,
                          isContinues = NULL, contentWidth = NULL, missings = NULL,
                          figureWidth = NULL, figureHeight = NULL,
-                         figureDevice = NULL, figureAspectRatio = NULL,
+                         figureDevice = NULL,
                          figureScaleMode = NULL,
                          autoColWidth = NULL, minColWidth = NULL,
                          insertTOC = NULL, tocTitle = NULL,
@@ -225,6 +224,10 @@ tfl_set_options <- function(..., docTemplate = NULL,
   params$docTemplate <- NULL
   params <- params[!sapply(params, is.null)]
 
+  figure_params <- params[c("figureWidth", "figureHeight", "figureDevice", "figureScaleMode")]
+  figure_params <- figure_params[!vapply(figure_params, is.null, logical(1))]
+  params <- params[setdiff(names(params), names(figure_params))]
+
   for (pname in names(params)) {
     if (pname %in% names(.options_env$settings)) {
       val <- params[[pname]]
@@ -236,12 +239,6 @@ tfl_set_options <- function(..., docTemplate = NULL,
         checkmate::assert_choice(val, choices = c("doc_footer", "repeated", "last_page"), .var.name = pname)
       } else if (pname == "minColWidth") {
         checkmate::assert_numeric(val, len = 1, lower = 0, any.missing = FALSE, .var.name = pname)
-      } else if (pname %in% c("figureAspectRatio")) {
-        checkmate::assert_number(val, lower = 0, .var.name = pname)
-      } else if (pname %in% c("figureScaleMode")) {
-        checkmate::assert_choice(val, choices = .const_figure_scale_modes, .var.name = pname)
-      } else if (pname %in% c("figureDevice")) {
-        checkmate::assert_choice(val, choices = .const_figure_devices, .var.name = pname)
       } else if (pname %in% c("doc_style_template", "missings", "tocTitle")) {
         checkmate::assert_character(val, len = 1, any.missing = FALSE, .var.name = pname)
       } else if (pname %in% c("output_directory", "meta_directory")) {
@@ -267,6 +264,53 @@ tfl_set_options <- function(..., docTemplate = NULL,
       .options_env$settings[[pname]] <- val
     } else {
       cli_warn("Unknown setting name: {pname}. Skipping.")
+    }
+  }
+
+  if (length(figure_params) > 0) {
+    if (!is.null(figure_params$figureScaleMode)) {
+      checkmate::assert_choice(figure_params$figureScaleMode,
+                               choices = .const_figure_scale_modes,
+                               .var.name = "figureScaleMode")
+    }
+    if (!is.null(figure_params$figureDevice)) {
+      checkmate::assert_choice(figure_params$figureDevice,
+                               choices = .const_figure_devices,
+                               .var.name = "figureDevice")
+    }
+    if (!is.null(figure_params$figureWidth)) {
+      .validate_pattern(figure_params$figureWidth, .const_pattern_figure_size,
+                        "figureWidth", "tfl_set_options",
+                        "Must be like '70%', '6.5in', '16.51cm', '120pt', or '40mm'")
+    }
+    if (!is.null(figure_params$figureHeight)) {
+      .validate_pattern(figure_params$figureHeight, .const_pattern_figure_size,
+                        "figureHeight", "tfl_set_options",
+                        "Must be like '70%', '6.5in', '16.51cm', '120pt', or '40mm'")
+    }
+
+    resolved_mode <- figure_params$figureScaleMode %||% .options_env$settings$figureScaleMode %||% "fixed"
+    resolved_width <- figure_params$figureWidth %||% .options_env$settings$figureWidth
+    resolved_height <- figure_params$figureHeight %||% .options_env$settings$figureHeight
+
+    normalized <- .validate_figure_dimension_settings(
+      width = resolved_width,
+      height = resolved_height,
+      figureScaleMode = resolved_mode,
+      fn_name = "tfl_set_options",
+      default_width = .options_env$defaults$figureWidth %||% "6in",
+      default_height = .options_env$defaults$figureHeight %||% "4in"
+    )
+
+    if (!is.null(figure_params$figureDevice)) {
+      .options_env$settings$figureDevice <- figure_params$figureDevice
+    }
+
+    .options_env$settings$figureScaleMode <- normalized$figureScaleMode
+    if (normalized$figureScaleMode == "fixed" &&
+        (!is.null(figure_params$figureWidth) || !is.null(figure_params$figureHeight) || !is.null(figure_params$figureScaleMode))) {
+      .options_env$settings$figureWidth <- normalized$width
+      .options_env$settings$figureHeight <- normalized$height
     }
   }
 

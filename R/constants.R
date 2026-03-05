@@ -232,7 +232,7 @@ NULL
   column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter", "format"),
   stub_column = c("label", "cols", "labelStyleRef", "stubOrder"),
   document = c("docType", "docOrder", "isContinues", "contentWidth", "footnotePlace", "hasData"),
-  figure = c("width", "height", "aspectRatio", "figureScaleMode", "device"),
+  figure = c("width", "height", "figureScaleMode", "device"),
   text_group = c("text", "styleRef", "order", "toclevel")
 )
 

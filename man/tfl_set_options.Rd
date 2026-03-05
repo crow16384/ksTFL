@@ -14,7 +14,6 @@ tfl_set_options(
   figureWidth = NULL,
   figureHeight = NULL,
   figureDevice = NULL,
-  figureAspectRatio = NULL,
   figureScaleMode = NULL,
   autoColWidth = NULL,
   minColWidth = NULL,

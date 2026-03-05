@@ -117,7 +117,6 @@
     spec$figure <- list(
       width = unclass(settings$figureWidth),
       height = unclass(settings$figureHeight),
-      aspectRatio = unclass(settings$figureAspectRatio),
       figureScaleMode = unclass(settings$figureScaleMode),
       device = unclass(settings$figureDevice)
     )

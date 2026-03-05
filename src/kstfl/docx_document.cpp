@@ -3,19 +3,13 @@
 #include "docx_emitter.h"
 #include "inline_parser.h"
 #include <algorithm>
+#include <cmath>
 
 namespace kstfl {
 
 static constexpr const char* W_NS_DOC = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
 static constexpr const char* R_NS_DOC = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 static constexpr const char* MC_NS_DOC = "http://schemas.openxmlformats.org/markup-compatibility/2006";
-
-static double safe_aspect_ratio(const TFLSpec& spec) {
-    if (spec.figure.aspect_ratio.has_value() && *spec.figure.aspect_ratio > 0.0) {
-        return *spec.figure.aspect_ratio;
-    }
-    return 1.5; // Default 6:4
-}
 
 static Length parse_figure_length(const std::optional<std::string>& raw,
                                   Length reference,
@@ -28,48 +22,98 @@ static Length parse_figure_length(const std::optional<std::string>& raw,
     }
 }
 
+static void fit_within_bounds(Length& w, Length& h,
+                              Length max_w, Length max_h) {
+    if (w.emu <= 0 || h.emu <= 0) return;
+
+    long double scale = 1.0L;
+    if (w > max_w && w.emu > 0) {
+        scale = std::min(scale,
+                         static_cast<long double>(max_w.emu) /
+                         static_cast<long double>(w.emu));
+    }
+    if (h > max_h && h.emu > 0) {
+        scale = std::min(scale,
+                         static_cast<long double>(max_h.emu) /
+                         static_cast<long double>(h.emu));
+    }
+
+    if (scale < 1.0L) {
+        w = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(
+            static_cast<long double>(w.emu) * scale)))};
+        h = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(
+            static_cast<long double>(h.emu) * scale)))};
+    }
+}
+
 static std::pair<int64_t, int64_t> resolve_figure_size_emu(const TFLSpec& spec,
                                                             const PageConfig& page,
-                                                            const StyleResolver& resolver) {
+                                                            const StyleResolver& resolver,
+                                                            Length max_figure_height) {
     Length usable_w = page.usable_width();
-    Length usable_h = page.usable_height();
     Length content_w = resolver.resolve_table_width(spec, usable_w);
-    double ar = safe_aspect_ratio(spec); // width / height
+    Length usable_h = page.usable_height();
+
+    if (max_figure_height.emu <= 0 || max_figure_height > usable_h) {
+        max_figure_height = usable_h;
+    }
 
     Length default_w = Length::from_in(6.0);
     Length default_h = Length::from_in(4.0);
 
-    Length w = parse_figure_length(spec.figure.width, content_w, default_w);
-    Length h = parse_figure_length(spec.figure.height, usable_h, default_h);
+    Length requested_w = parse_figure_length(spec.figure.width, content_w, default_w);
+    Length requested_h = parse_figure_length(spec.figure.height, max_figure_height, default_h);
+
+    if (requested_w.emu <= 0) requested_w = default_w;
+    if (requested_h.emu <= 0) requested_h = default_h;
+
+    const double fallback_ar =
+        (default_h.emu > 0)
+            ? static_cast<double>(default_w.emu) / static_cast<double>(default_h.emu)
+            : 1.5;
+    double requested_ar =
+        (requested_h.emu > 0)
+            ? static_cast<double>(requested_w.emu) / static_cast<double>(requested_h.emu)
+            : fallback_ar;
+    if (requested_ar <= 0.0) requested_ar = fallback_ar;
+
+    Length w = requested_w;
+    Length h = requested_h;
 
     if (spec.figure.scale_mode == "fitWidth") {
         w = content_w;
-        h = Length{static_cast<int64_t>(w.emu / ar)};
+        h = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(
+            static_cast<double>(w.emu) / requested_ar)))};
     } else if (spec.figure.scale_mode == "fitPage") {
-        Length max_w = content_w;
-        Length max_h = usable_h;
-        Length fit_h_from_w{static_cast<int64_t>(max_w.emu / ar)};
-        if (fit_h_from_w <= max_h) {
-            w = max_w;
+        Length fit_h_from_w{std::max<int64_t>(1, static_cast<int64_t>(std::llround(
+            static_cast<double>(content_w.emu) / requested_ar)))};
+        if (fit_h_from_w <= max_figure_height) {
+            w = content_w;
             h = fit_h_from_w;
         } else {
-            h = max_h;
-            w = Length{static_cast<int64_t>(h.emu * ar)};
+            h = max_figure_height;
+            w = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(
+                static_cast<double>(h.emu) * requested_ar)))};
         }
     } else {
-        // fixed: if only one dimension provided, infer the other from aspect ratio
+        // fixed: if one dimension is missing, infer from default 6:4 ratio.
         bool has_w = spec.figure.width.has_value();
         bool has_h = spec.figure.height.has_value();
         if (has_w && !has_h) {
-            h = Length{static_cast<int64_t>(w.emu / ar)};
+            h = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(
+                static_cast<double>(w.emu) / fallback_ar)))};
         } else if (!has_w && has_h) {
-            w = Length{static_cast<int64_t>(h.emu * ar)};
+            w = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(
+                static_cast<double>(h.emu) * fallback_ar)))};
         }
     }
 
-    // Clamp to page bounds for safety.
+    // Preserve aspect ratio while fitting into the remaining body area.
+    fit_within_bounds(w, h, content_w, max_figure_height);
+
+    // Clamp one more time for safety.
     if (w > content_w) w = content_w;
-    if (h > usable_h) h = usable_h;
+    if (h > max_figure_height) h = max_figure_height;
     if (w.emu <= 0) w = default_w;
     if (h.emu <= 0) h = default_h;
 
@@ -155,7 +199,58 @@ std::string DocxEmitter::emit_document_xml(
                 if (rid_it != figure_rids.end()) {
                     ++figure_img_counter;
                     PageConfig page_cfg = resolver.resolve_page_config(spec);
-                    auto size_emu = resolve_figure_size_emu(spec, page_cfg, resolver);
+                    Length content_w = resolver.resolve_table_width(spec, page_cfg.usable_width());
+
+                    auto measure_text_groups_height = [&](const std::vector<TextGroup>& groups,
+                                                          const char* role) -> Length {
+                        if (!measurer_ || groups.empty()) return Length{0};
+
+                        Length total{0};
+                        for (const auto& group : groups) {
+                            StyleDef style;
+                            if (std::string(role) == "title") {
+                                style = resolver.resolve_title_style(group.style_refs);
+                            } else if (std::string(role) == "caption") {
+                                style = resolver.resolve_figure_caption_style(group.style_refs);
+                            } else {
+                                style = resolver.resolve_footnote_style(group.style_refs);
+                            }
+
+                            std::string combined;
+                            for (size_t i = 0; i < group.text.size(); ++i) {
+                                if (i > 0) combined += "<br>";
+                                combined += group.text[i];
+                            }
+                            if (combined.empty()) continue;
+
+                            MeasuredText measured = measurer_->measure_plain(combined, style, content_w);
+                            total = total + measured.height;
+                        }
+
+                        return total;
+                    };
+
+                    Length reserved_height{0};
+                    reserved_height = reserved_height + measure_text_groups_height(spec.titles, "title");
+                    reserved_height = reserved_height + measure_text_groups_height(spec.footnotes, "footnote");
+                    if (!spec.subtitles.empty()) {
+                        reserved_height = reserved_height + measure_text_groups_height(spec.subtitles, "caption");
+                    }
+
+                    if (tmpl_.figure_style.space_before.has_value()) {
+                        reserved_height = reserved_height + *tmpl_.figure_style.space_before;
+                    }
+                    if (tmpl_.figure_style.space_after.has_value()) {
+                        reserved_height = reserved_height + *tmpl_.figure_style.space_after;
+                    }
+
+                    Length max_figure_height = page_cfg.usable_height() - reserved_height;
+                    if (max_figure_height.emu <= 0) {
+                        max_figure_height = Length::from_pt(1.0);
+                    }
+
+                    auto size_emu = resolve_figure_size_emu(
+                        spec, page_cfg, resolver, max_figure_height);
                     int64_t cx = size_emu.first;
                     int64_t cy = size_emu.second;
 
