@@ -230,3 +230,18 @@
 **Problem**: `XmlWriter::escape_text()` and `escape_attr()` allocated temporary `std::string` objects on every call, then appended to `buffer_`. For DOCX with thousands of cells, this caused significant temporary allocations.
 **Fix**: Replaced with `escape_text_into(std::string& dest, ...)` and `escape_attr_into(std::string& dest, ...)` that write directly into the destination buffer. Updated all callers: `text()`, `attribute()`, `element_with_attr()`.
 **Files**: src/kstfl/xml_writer.h, src/kstfl/xml_writer.cpp
+
+
+## Bug 27: Dotted Spec Keys Skip Schema Pattern Matching (Mar 2026)
+**Symptom**: Figure report built from an object like `t.fig.spec` rendered a DOCX without image/footnote content and reported `0 pages`.
+**Root Cause**: Top-level `patternProperties` in `inst/schemas/spec_schema_v1.json` only allowed `[A-Za-z0-9_-]`, so keys like `t.fig.spec_<hash>` did not match. Schema-aware array protection was skipped and single-item arrays (`dataRef`, title/subtitle/footnote `text`) were auto-unboxed to scalars.
+**Fix**: Expanded schema key regex to allow dots: `^[A-Za-z0-9][A-Za-z0-9_.-]*_[a-f0-9]{16}$`.
+**Files**: inst/schemas/spec_schema_v1.json, tests/testthat/test-10-serialization.R
+**Lesson**: Schema key patterns must match actual `create_report()` key generation rules, including dotted variable names from R objects.
+
+## Bug 28: Reported Page Count Ignored Text/Figure Specs (Mar 2026)
+**Symptom**: `render_docx()` printed `(0 pages)` for figure-only reports even when DOCX sections existed.
+**Root Cause**: `renderer.cpp` counted pages only from paginated table results (`all_pages` map), excluding text/figure sections and TOC.
+**Fix**: Total pages now include TOC (if enabled), per-table paginator pages, and one page per non-table spec.
+**File**: src/kstfl/renderer.cpp
+**Lesson**: Page-count reporting must follow emitted document sections, not only paginator outputs.
