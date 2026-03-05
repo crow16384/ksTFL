@@ -32,6 +32,14 @@ This guide covers the complete styling system in ksTFL:
 
 For runnable reporting examples integrating styles see [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd). For a quick start see [Getting Started](Getting_Started_with_ksTFL.Rmd).
 
+## Category and scope
+
+This is a styling-system vignette.
+
+- Audience: users defining reusable style systems for teams or studies
+- Focus: style primitives, composition, references, and maintainable conventions
+- Outcome: consistent style architecture across many reports
+
 ---
 
 ## Styling philosophy and workflow

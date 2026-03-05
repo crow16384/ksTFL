@@ -52,7 +52,7 @@ These are bundled in the Docker development image.
 library(ksTFL)
 
 # 1. Initialize a table specification
-spec <- create_table(mtcars, cols = c(mpg, cyl, hp, wt), docPrefix = "Table 1.1")
+spec <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
 
 # 2. Add document content
 spec <- spec |>
@@ -92,25 +92,25 @@ render_docx(
 
 Create specification objects for different document types:
 
-| Function | Purpose | Returns |
-|----|----|----|
-| `create_table(data, cols = everything(), docPrefix = NULL)` | Initialize table spec with data frame | `TFL_spec` |
-| `create_figure(plot_or_path, docPrefix = NULL, width = 6, height = 4, dpi = 300L, device = "png")` | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
-| `create_text(docPrefix = NULL)` | Initialize text-only spec (no data) | `TFL_spec` |
+| Function                                                        | Purpose                                                  | Returns    |
+|-----------------------------------------------------------------|----------------------------------------------------------|------------|
+| `create_table(data, cols = everything())`                       | Initialize table spec with data frame                    | `TFL_spec` |
+| `create_figure(plot_or_path, dpi = 300L)`                       | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
+| [`create_text()`](https://example.com/reference/create_text.md) | Initialize text-only spec (no data)                      | `TFL_spec` |
 
 ### Content Functions
 
 Add document elements to specifications:
 
-| Function | Purpose | Supports Style References |
-|----|----|----|
-| `add_title(spec, text, id, styleRef, order)` | Add title(s) to document | Yes |
-| `add_subtitle(spec, text, id, styleRef, order)` | Add subtitle(s) to document | Yes |
-| `add_footnote(spec, text, id, styleRef, order)` | Add footnote(s) to document | Yes |
-| `add_body_text(spec, text, id, styleRef, order)` | Add body text paragraphs | Yes |
-| `add_header(spec, ..., level)` | Add header row(s) (max 3 parts: left/center/right) | Yes |
-| `add_footer(spec, ..., level)` | Add footer row(s) (max 3 parts: left/center/right) | Yes |
-| `add_span_header(spec, cols, label, stubOrder, id, labelStyleRef)` | Add spanning column header | Yes |
+| Function                                                           | Purpose                                            | Supports Style References |
+|--------------------------------------------------------------------|----------------------------------------------------|---------------------------|
+| `add_title(spec, text, id, styleRef, order)`                       | Add title(s) to document                           | Yes                       |
+| `add_subtitle(spec, text, id, styleRef, order)`                    | Add subtitle(s) to document                        | Yes                       |
+| `add_footnote(spec, text, id, styleRef, order)`                    | Add footnote(s) to document                        | Yes                       |
+| `add_body_text(spec, text, id, styleRef, order)`                   | Add body text paragraphs                           | Yes                       |
+| `add_header(spec, ..., level)`                                     | Add header row(s) (max 3 parts: left/center/right) | Yes                       |
+| `add_footer(spec, ..., level)`                                     | Add footer row(s) (max 3 parts: left/center/right) | Yes                       |
+| `add_span_header(spec, cols, label, stubOrder, id, labelStyleRef)` | Add spanning column header                         | Yes                       |
 
 ### Column Configuration
 
@@ -124,34 +124,34 @@ define_cols(spec, cols, label, isVisible, isID, isGrouping, isPaging,
 
 **Column Parameters** (all support 1-or-n vectorized values):
 
-| Parameter | Purpose | Example |
-|----|----|----|
-| `label` | Column display labels | `"Age (years)"` |
-| `isVisible` | Show/hide columns (hidden = 0 width, data still accessible) | `TRUE` / `FALSE` |
-| `isID` | Identify key columns | `TRUE` |
-| `isGrouping` | Enable grouping behavior (boundary detection for dedup/subtitles) | `TRUE` |
-| `isPaging` | Force page breaks on value change | `TRUE` |
-| `labelStyleRef` | Style reference for column headers | `"header_bold"` |
-| `isColBreak` | Mark horizontal pagination break point | `TRUE` |
-| `dedupe` | Remove duplicate consecutive values | `TRUE` |
-| `blankAfter` | Insert blank row after value change | `TRUE` |
-| `type` | Override auto-detected column type | `"numeric"` / `"string"` |
-| `format` | Override auto-detected display format | `"0.00"` / `"%d"` |
-| `missings` | Custom representation for missing values | `"N/A"` |
-| `colWidth` | Set width (%, cm, pt, in, mm, auto) | `"25%"` / `"3cm"` |
-| `valueStyleRef` | Style reference for cell values | `"numeric_right"` |
+| Parameter       | Purpose                                                           | Example                  |
+|-----------------|-------------------------------------------------------------------|--------------------------|
+| `label`         | Column display labels                                             | `"Age (years)"`          |
+| `isVisible`     | Show/hide columns (hidden = 0 width, data still accessible)       | `TRUE` / `FALSE`         |
+| `isID`          | Identify key columns                                              | `TRUE`                   |
+| `isGrouping`    | Enable grouping behavior (boundary detection for dedup/subtitles) | `TRUE`                   |
+| `isPaging`      | Force page breaks on value change                                 | `TRUE`                   |
+| `labelStyleRef` | Style reference for column headers                                | `"header_bold"`          |
+| `isColBreak`    | Mark horizontal pagination break point                            | `TRUE`                   |
+| `dedupe`        | Remove duplicate consecutive values                               | `TRUE`                   |
+| `blankAfter`    | Insert blank row after value change                               | `TRUE`                   |
+| `type`          | Override auto-detected column type                                | `"numeric"` / `"string"` |
+| `format`        | Override auto-detected display format                             | `"0.00"` / `"%d"`        |
+| `missings`      | Custom representation for missing values                          | `"N/A"`                  |
+| `colWidth`      | Set width (%, cm, pt, in, mm, auto)                               | `"25%"` / `"3cm"`        |
+| `valueStyleRef` | Style reference for cell values                                   | `"numeric_right"`        |
 
 ### Conditional Row Styling
 
 Apply dynamic styling based on data conditions:
 
-| Function | Purpose | Example |
-|----|----|----|
-| `compute_cols(spec, condition, ...)` | Evaluate condition and apply actions | `compute_cols(spec, age > 65, c_style(value, styleRef = "alert"))` |
-| `c_style(cols, styleRef)` | Apply style to specified columns | `c_style(c(col1, col2), styleRef = "bold")` |
-| `c_merge(cols, styleRef)` | Merge specified columns into one cell | `c_merge(c(col1, col2, col3))` |
-| `c_addrow(position, value_from, styleRef)` | Insert row above/below | `c_addrow("above", group_col, styleRef = "header")` |
-| [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) | Insert page break at matching rows | [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) |
+| Function                                                        | Purpose                               | Example                                                            |
+|-----------------------------------------------------------------|---------------------------------------|--------------------------------------------------------------------|
+| `compute_cols(spec, condition, ...)`                            | Evaluate condition and apply actions  | `compute_cols(spec, age > 65, c_style(value, styleRef = "alert"))` |
+| `c_style(cols, styleRef)`                                       | Apply style to specified columns      | `c_style(c(col1, col2), styleRef = "bold")`                        |
+| `c_merge(cols, styleRef)`                                       | Merge specified columns into one cell | `c_merge(c(col1, col2, col3))`                                     |
+| `c_addrow(position, value_from, styleRef)`                      | Insert row above/below                | `c_addrow("above", group_col, styleRef = "header")`                |
+| [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) | Insert page break at matching rows    | [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md)    |
 
 **Helper Functions for Conditions**: - `firstOf(...)`: TRUE for first
 occurrence of each value combination - `lastOf(...)`: TRUE for last
@@ -172,17 +172,17 @@ merged cell’s displayed value is taken from the first column in the
 
 Define and compose styles:
 
-| Function | Purpose | Returns |
-|----|----|----|
-| `add_style(spec, id, ...)` | Add named style to spec | `TFL_spec` |
-| `s_font(font_name, font_size, bold, italic, underline, color, highlight)` | Font properties | Style component |
-| `s_paragraph(word_style, alignment, spacing, indents)` | Paragraph formatting | Style component |
-| `s_spacing(before, after, line_spacing)` | Spacing settings | Style component |
-| `s_indents(left, right, first_line)` | Indentation settings | Style component |
-| `s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)` | Table cell styling | Style component |
-| `s_borders(top, bottom, left, right)` | Border definitions | Style component |
-| `s_border(color, width, line_style)` | Individual border | Style component |
-| `f_combine(...)` | Combine multiple style references | Combined style reference |
+| Function                                                                                                                    | Purpose                           | Returns                  |
+|-----------------------------------------------------------------------------------------------------------------------------|-----------------------------------|--------------------------|
+| `add_style(spec, id, ...)`                                                                                                  | Add named style to spec           | `TFL_spec`               |
+| `s_font(font_name, font_size, bold, italic, underline, color, highlight)`                                                   | Font properties                   | Style component          |
+| `s_paragraph(word_style, alignment, spacing, indents)`                                                                      | Paragraph formatting              | Style component          |
+| `s_spacing(before, after, line_spacing)`                                                                                    | Spacing settings                  | Style component          |
+| `s_indents(left, right, first_line)`                                                                                        | Indentation settings              | Style component          |
+| `s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)` | Table cell styling                | Style component          |
+| `s_borders(top, bottom, left, right)`                                                                                       | Border definitions                | Style component          |
+| `s_border(color, width, line_style)`                                                                                        | Individual border                 | Style component          |
+| `f_combine(...)`                                                                                                            | Combine multiple style references | Combined style reference |
 
 **Context-Based Nesting Rules**: -
 [`s_font()`](https://example.com/reference/s_font.md),
@@ -212,22 +212,22 @@ spec <- add_style(spec, id = "header_style",
 
 Configure document-level settings:
 
-| Function | Purpose | Key Parameters |
-|----|----|----|
-| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `topEmptyLine`, `bottomEmptyLine`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `hasData` |
-| `set_page_style(spec, docTemplate, page)` | Configure page layout & template | Template name, page settings |
-| `p_page(size, orientation, margins)` | Page settings helper | A4/Letter/Legal, portrait/landscape |
-| `p_margins(top, bottom, left, right, header, footer)` | Margin settings helper | Dimensions with units (in, cm, pt, mm) |
+| Function                                              | Purpose                          | Key Parameters                                                                                                                                                                |
+|-------------------------------------------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `set_document(spec, ...)`                             | Set document metadata            | `isContinues`, `contentWidth`, `topEmptyLine`, `bottomEmptyLine`, `footnotePlace`, `hasData`, `docTemplate`, `figureWidth`, `figureHeight`, `figureDevice`, `figureScaleMode` |
+| `set_page_style(spec, docTemplate, page)`             | Configure page layout & template | Template name, page settings                                                                                                                                                  |
+| `p_page(size, orientation, margins)`                  | Page settings helper             | A4/Letter/Legal, portrait/landscape                                                                                                                                           |
+| `p_margins(top, bottom, left, right, header, footer)` | Margin settings helper           | Dimensions with units (in, cm, pt, mm)                                                                                                                                        |
 
 ### Report Assembly & Rendering
 
 Combine specifications into reports and render to DOCX:
 
-| Function | Purpose | Returns |
-|----|----|----|
-| `create_report(...)` | Combine specs/reports into single report | `TFL_report` |
-| `save_report(report, docFileName, outDir, metaPath, prettify)` | Serialize and export report | List with `spec_file`, `datetime`, `metaPath` |
-| `render_docx(spec_json, template_json, output_path, font_dirs, fallback_font, verbose)` | Render to styled DOCX document | Output file path (invisibly) |
+| Function                                                                                | Purpose                                  | Returns                                       |
+|-----------------------------------------------------------------------------------------|------------------------------------------|-----------------------------------------------|
+| `create_report(...)`                                                                    | Combine specs/reports into single report | `TFL_report`                                  |
+| `save_report(report, docFileName, outDir, metaPath, prettify)`                          | Serialize and export report              | List with `spec_file`, `datetime`, `metaPath` |
+| `render_docx(spec_json, template_json, output_path, font_dirs, fallback_font, verbose)` | Render to styled DOCX document           | Output file path (invisibly)                  |
 
 **create_report() Features**:
 
@@ -266,12 +266,12 @@ Combine specifications into reports and render to DOCX:
 
 Configure global defaults:
 
-| Function | Purpose |
-|----|----|
-| `tfl_set_options(...)` | Set package-level options (replaces, not accumulates) |
-| [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md) | Retrieve all current options |
-| `tfl_get_option(name)` | Retrieve single option value |
-| [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md) | Reset all options to defaults |
+| Function                                                                    | Purpose                                               |
+|-----------------------------------------------------------------------------|-------------------------------------------------------|
+| `tfl_set_options(...)`                                                      | Set package-level options (replaces, not accumulates) |
+| [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md)     | Retrieve all current options                          |
+| `tfl_get_option(name)`                                                      | Retrieve single option value                          |
+| [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md) | Reset all options to defaults                         |
 
 **Configurable Options**: - `autoColWidth`: Auto-recalculate column
 widths (default: `TRUE`) - `missings`: Default representation for
@@ -385,7 +385,7 @@ Configurable style templates (`CRO Example_default` bundled)
 library(ksTFL)
 
 # 1. Create and customize spec
-spec <- create_table(mtcars[1:10, ], docPrefix = "Table 1.1") |>
+spec <- create_table(mtcars[1:10, ]) |>
   add_title("Motor Trend Car Road Tests") |>
   add_subtitle("Performance Metrics") |>
   add_footnote("Source: 1974 Motor Trend US magazine.") |>

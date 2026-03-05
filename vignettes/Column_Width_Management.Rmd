@@ -30,6 +30,14 @@ This vignette explains how column widths are managed in ksTFL, including the
 LOCKED/UNLOCKED/VISIBLE partitioning system, automatic recalculation behavior, 
 and strategies for fine-tuning table layouts.
 
+## Category and scope
+
+This is a layout and pagination control vignette.
+
+- Audience: users optimizing table readability and page-fit behavior
+- Focus: width locking, auto-recalculation, invisible columns, and tradeoffs
+- Outcome: predictable, reproducible table geometry in rendered DOCX output
+
 ## Core Concepts
 
 ### Column States

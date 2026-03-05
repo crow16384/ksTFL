@@ -54,6 +54,7 @@ Define document-level properties. Multiple calls merge with last-win strategy.
 Document type (\code{docType}) is set automatically by \code{create_table()},
 \code{create_figure()}, or \code{create_text()} and cannot be changed here. Global
 document order (\code{docOrder}) is assigned by \code{create_report()}.
+\code{docPrefix} is not an argument of \code{set_document()} in the current API.
 }
 \examples{
 \dontrun{

@@ -8,6 +8,13 @@
 template:
   bootstrap: 5
 
+navbar:
+  left:
+    - text: Reference
+      href: reference/index.html
+    - text: Articles
+      href: articles/index.html
+
 # Required by pkgdown (placeholder until you deploy; e.g. GitHub Pages)
 # When you have a site URL, set it here: url: https://your-org.github.io/ksTFL/
 url: https://example.com
@@ -20,3 +27,19 @@ deploy:
 # Development mode: auto = release vs devel based on version
 development:
   mode: auto
+
+articles:
+  - title: Foundations
+    navbar: Foundations
+    contents:
+      - Getting_Started_with_ksTFL
+      - Reporting_Examples_with_ksTFL
+  - title: Styling And Layout
+    navbar: Styling and Layout
+    contents:
+      - Styling_Guide_with_ksTFL
+      - Column_Width_Management
+  - title: Advanced Workflows
+    navbar: Advanced
+    contents:
+      - Advanced_StyleRows

@@ -2679,6 +2679,7 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' Document type (`docType`) is set automatically by `create_table()`,
 #' `create_figure()`, or `create_text()` and cannot be changed here. Global
 #' document order (`docOrder`) is assigned by `create_report()`.
+#' `docPrefix` is not an argument of `set_document()` in the current API.
 #'
 #' @param spec TFL spec object
 #' @param isContinues Whether page breaks should be ignored

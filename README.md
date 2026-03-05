@@ -39,7 +39,7 @@ These are bundled in the Docker development image.
 library(ksTFL)
 
 # 1. Initialize a table specification
-spec <- create_table(mtcars, cols = c(mpg, cyl, hp, wt), docPrefix = "Table 1.1")
+spec <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
 
 # 2. Add document content
 spec <- spec |>
@@ -81,9 +81,9 @@ Create specification objects for different document types:
 
 | Function | Purpose | Returns |
 |----------|---------|---------|
-| `create_table(data, cols = everything(), docPrefix = NULL)` | Initialize table spec with data frame | `TFL_spec` |
-| `create_figure(plot_or_path, docPrefix = NULL, width = 6, height = 4, dpi = 300L, device = "png")` | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
-| `create_text(docPrefix = NULL)` | Initialize text-only spec (no data) | `TFL_spec` |
+| `create_table(data, cols = everything())` | Initialize table spec with data frame | `TFL_spec` |
+| `create_figure(plot_or_path, dpi = 300L)` | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
+| `create_text()` | Initialize text-only spec (no data) | `TFL_spec` |
 
 ### Content Functions
 
@@ -193,7 +193,7 @@ Configure document-level settings:
 
 | Function | Purpose | Key Parameters |
 |----------|---------|----------------|
-| `set_document(spec, ...)` | Set document metadata | `docPrefix`, `glueNumType`, `isContinues`, `contentWidth`, `topEmptyLine`, `bottomEmptyLine`, `bodyTitles`, `bodySubtitles`, `footnotePlace`, `hasData` |
+| `set_document(spec, ...)` | Set document metadata | `isContinues`, `contentWidth`, `topEmptyLine`, `bottomEmptyLine`, `footnotePlace`, `hasData`, `docTemplate`, `figureWidth`, `figureHeight`, `figureDevice`, `figureScaleMode` |
 | `set_page_style(spec, docTemplate, page)` | Configure page layout & template | Template name, page settings |
 | `p_page(size, orientation, margins)` | Page settings helper | A4/Letter/Legal, portrait/landscape |
 | `p_margins(top, bottom, left, right, header, footer)` | Margin settings helper | Dimensions with units (in, cm, pt, mm) |
@@ -353,7 +353,7 @@ The C++20 rendering engine provides a complete end-to-end pipeline:
 library(ksTFL)
 
 # 1. Create and customize spec
-spec <- create_table(mtcars[1:10, ], docPrefix = "Table 1.1") |>
+spec <- create_table(mtcars[1:10, ]) |>
   add_title("Motor Trend Car Road Tests") |>
   add_subtitle("Performance Metrics") |>
   add_footnote("Source: 1974 Motor Trend US magazine.") |>

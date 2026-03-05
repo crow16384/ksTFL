@@ -30,6 +30,7 @@ This keeps output names deterministic and easy to inventory.
 | `showcase/06_premium_qc_repro.R` | Premium QC reproducibility pipeline (dual-run, replay, cleanup preview) |
 | `showcase/07_premium_submission_multilang_templates.R` | Premium EN/RU submission variants with switchable templates |
 | `showcase/08_premium_submission_index_bundle.R` | Builds transfer bundle (`docs`, manifest, checksums) and DOCX index |
+| `showcase/09_template_override_multi_spec.R` | Multi-spec template behavior: per-spec docTemplate vs global template_json override |
 | `showcase/run_all_showcase.R` | Runs all curated scripts end-to-end |
 
 ## How to run

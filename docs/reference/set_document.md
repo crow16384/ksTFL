@@ -7,6 +7,7 @@ strategy. Document type (`docType`) is set automatically by
 [`create_text()`](https://example.com/reference/create_text.md) and
 cannot be changed here. Global document order (`docOrder`) is assigned
 by [`create_report()`](https://example.com/reference/create_report.md).
+`docPrefix` is not an argument of `set_document()` in the current API.
 
 ## Usage
 

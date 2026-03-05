@@ -7,6 +7,16 @@ titles/footnotes, reusable styles, and session defaults. All examples
 use exported ksTFL helpers only; set `eval=TRUE` locally to run the R
 chunks.
 
+## Category and scope
+
+This is an applied workflow vignette.
+
+- Audience: users who already know the basic pipeline and want practical
+  templates
+- Focus: end-to-end report assembly patterns you can adapt directly
+- Outcome: production-oriented examples for table, figure, text, and
+  multi-spec workflows
+
 **Related vignettes:** - [Getting
 Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd) —
 pipeline overview and all core concepts - [Styling

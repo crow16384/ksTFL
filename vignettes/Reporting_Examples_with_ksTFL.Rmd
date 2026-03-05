@@ -21,6 +21,14 @@ options(pkgdown.internet = FALSE)
 
 This vignette presents a realistic progression of reporting examples — from minimal tables/listings/figures/text to a full clinical-style table with multi-level headers, spanning stub columns, multi-line titles/footnotes, reusable styles, and session defaults. All examples use exported ksTFL helpers only; set `eval=TRUE` locally to run the R chunks.
 
+## Category and scope
+
+This is an applied workflow vignette.
+
+- Audience: users who already know the basic pipeline and want practical templates
+- Focus: end-to-end report assembly patterns you can adapt directly
+- Outcome: production-oriented examples for table, figure, text, and multi-spec workflows
+
 **Related vignettes:**
 - [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline overview and all core concepts
 - [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — complete style reference and built-in atoms
@@ -896,13 +904,23 @@ text_spec <- set_page_style(text_spec, docTemplate = "Carbon_Dark")
 # Assemble into report
 report_full <- create_report(table_spec, text_spec)
 
-# Render — validates, writes JSON metadata, and produces the DOCX
+# A) Per-spec templates (default): each spec uses its own docTemplate
 write_doc(report_full, name = "example_report", outDir = "./out", metaPath = tempdir())
+
+# B) Global override: force one template for all specs
+write_doc(
+  report_full,
+  name = "example_report_global_override",
+  outDir = "./out",
+  metaPath = tempdir(),
+  template_json = system.file("templates", "Navy_Pro.json", package = "ksTFL", mustWork = TRUE)
+)
 ```
 
-In this workflow, each spec keeps its own `docTemplate` styling when rendered
-together in one DOCX (sectioned multi-spec output). To force a single style
-for the entire report, pass `template_json` to `write_doc()` or `render_docx()`.
+In this workflow:
+
+- `write_doc(..., template_json = NULL)` keeps per-spec `docTemplate` styling.
+- `write_doc(..., template_json = <path>)` applies a single global template to all specs.
 
 **Key parameters**:
 - `report`: A `TFL_report` object (created via `create_report()`)

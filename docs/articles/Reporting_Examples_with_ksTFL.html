@@ -30,16 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting</a></li>
-    <li><a class="dropdown-item" href="../articles/Column_Width_Management.html">Column Width Management in ksTFL</a></li>
-    <li><a class="dropdown-item" href="../articles/Getting_Started_with_ksTFL.html">Getting Started with ksTFL</a></li>
-    <li><a class="dropdown-item" href="../articles/Reporting_Examples_with_ksTFL.html">Reporting Examples — ksTFL</a></li>
-    <li><a class="dropdown-item" href="../articles/Styling_Guide_with_ksTFL.html">Styling Guide — ksTFL</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -74,12 +65,25 @@ table with multi-level headers, spanning stub columns, multi-line
 titles/footnotes, reusable styles, and session defaults. All examples
 use exported ksTFL helpers only; set <code>eval=TRUE</code> locally to
 run the R chunks.</p>
+<div class="section level2">
+<h2 id="category-and-scope">Category and scope<a class="anchor" aria-label="anchor" href="#category-and-scope"></a>
+</h2>
+<p>This is an applied workflow vignette.</p>
+<ul>
+<li>Audience: users who already know the basic pipeline and want
+practical templates</li>
+<li>Focus: end-to-end report assembly patterns you can adapt
+directly</li>
+<li>Outcome: production-oriented examples for table, figure, text, and
+multi-spec workflows</li>
+</ul>
 <p><strong>Related vignettes:</strong> - <a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> — pipeline
 overview and all core concepts - <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> — complete style
 reference and built-in atoms - <a href="Advanced_StyleRows.Rmd">Advanced
 StyleRows</a> — deep dive into <code><a href="../reference/compute_cols.html">compute_cols()</a></code>,
 <code><a href="../reference/c_glue.html">c_glue()</a></code>, <code><a href="../reference/c_clear.html">c_clear()</a></code> - <a href="Column_Width_Management.Rmd">Column Width Management</a> — width
 locking, auto-calculation, invisible columns</p>
+</div>
 <div class="section level2">
 <h2 id="workflow-overview">Workflow overview<a class="anchor" aria-label="anchor" href="#workflow-overview"></a>
 </h2>
@@ -981,13 +985,26 @@ writing metadata and data files to <code>metaPath</code>
 <span><span class="co"># Assemble into report</span></span>
 <span><span class="va">report_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">table_spec</span>, <span class="va">text_spec</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Render — validates, writes JSON metadata, and produces the DOCX</span></span>
-<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report_full</span>, name <span class="op">=</span> <span class="st">"example_report"</span>, outDir <span class="op">=</span> <span class="st">"./out"</span>, metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>In this workflow, each spec keeps its own <code>docTemplate</code>
-styling when rendered together in one DOCX (sectioned multi-spec
-output). To force a single style for the entire report, pass
-<code>template_json</code> to <code><a href="../reference/write_doc.html">write_doc()</a></code> or
-<code><a href="../reference/render_docx.html">render_docx()</a></code>.</p>
+<span><span class="co"># A) Per-spec templates (default): each spec uses its own docTemplate</span></span>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report_full</span>, name <span class="op">=</span> <span class="st">"example_report"</span>, outDir <span class="op">=</span> <span class="st">"./out"</span>, metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># B) Global override: force one template for all specs</span></span>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span></span>
+<span>  <span class="va">report_full</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"example_report_global_override"</span>,</span>
+<span>  outDir <span class="op">=</span> <span class="st">"./out"</span>,</span>
+<span>  metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  template_json <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"templates"</span>, <span class="st">"Navy_Pro.json"</span>, package <span class="op">=</span> <span class="st">"ksTFL"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>In this workflow:</p>
+<ul>
+<li>
+<code>write_doc(..., template_json = NULL)</code> keeps per-spec
+<code>docTemplate</code> styling.</li>
+<li>
+<code>write_doc(..., template_json = &lt;path&gt;)</code> applies a
+single global template to all specs.</li>
+</ul>
 <p><strong>Key parameters</strong>: - <code>report</code>: A
 <code>TFL_report</code> object (created via
 <code><a href="../reference/create_report.html">create_report()</a></code>) - <code>name</code>: Base name for the

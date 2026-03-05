@@ -40,6 +40,20 @@ This separation enables:
 - Complex styling requirements (multi-level headers, spanning columns, conditional formatting)
 - When you need JSON metadata for downstream processing
 
+## How to use this guide
+
+This is the foundation vignette and best starting point for new users.
+
+- Audience: users building first end-to-end TFL workflows
+- Focus: core objects (`TFL_spec`, `TFL_report`), function flow, and minimal working examples
+- Outcome: ability to create, assemble, and render reports confidently
+
+Recommended reading order after this vignette:
+1. `Reporting_Examples_with_ksTFL` for realistic workflow patterns.
+2. `Styling_Guide_with_ksTFL` for style primitives and reusable style systems.
+3. `Column_Width_Management` for layout tuning.
+4. `Advanced_StyleRows` for conditional row actions.
+
 ---
 
 ## General workflow

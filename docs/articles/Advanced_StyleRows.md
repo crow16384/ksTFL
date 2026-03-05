@@ -12,6 +12,17 @@ its action functions:
 enable sophisticated data-driven formatting without manual
 post-processing.
 
+## Category and prerequisites
+
+This is an advanced conditional-logic vignette.
+
+- Audience: users building data-driven row-level formatting rules
+- Prerequisites: complete `Getting_Started_with_ksTFL` and basic
+  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  familiarity
+- Focus: lazy evaluation, helper functions, and composable row actions
+- Outcome: robust, reviewable conditional formatting workflows
+
 ## Core Concept: Lazy Evaluation
 
 [`compute_cols()`](https://example.com/reference/compute_cols.md) uses
