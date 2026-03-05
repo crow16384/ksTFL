@@ -36,7 +36,7 @@
         }
     },
     "patternProperties": {
-        "^[A-Za-z0-9][A-Za-z0-9_-]*_[a-f0-9]{16}$": {
+        "^[A-Za-z0-9][A-Za-z0-9_.-]*_[a-f0-9]{16}$": {
             "type": "object",
             "title": "TFL Specification",
             "description": "A single TFL specification containing structure and meta-data",

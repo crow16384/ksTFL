@@ -488,3 +488,34 @@ test_that("serialize_spec() order field preserved in content elements", {
     }
   }
 })
+
+test_that("serialize_spec() handles dotted spec keys with array-protected fields", {
+  skip_if_not_installed("ggplot2")
+
+  p <- ggplot2::ggplot(mtcars, ggplot2::aes(x = wt, y = mpg)) +
+    ggplot2::geom_point()
+
+  t.fig.spec <- create_figure(p) |>
+    add_title("Figure Title") |>
+    add_subtitle("Figure Subtitle") |>
+    add_footnote("Figure Footnote")
+
+  report <- create_report(t.fig.spec)
+  result <- serialize_spec(report)
+  fixed <- result$fixed
+
+  spec_keys <- names(fixed)[grep("^[A-Za-z0-9][A-Za-z0-9_.-]*_[a-f0-9]{16}$", names(fixed))]
+  expect_length(spec_keys, 1L)
+  expect_match(spec_keys[[1]], "^t\\.fig\\.spec_[a-f0-9]{16}$")
+
+  spec_obj <- fixed[[spec_keys[[1]]]]
+  expect_true(is.list(spec_obj$dataRef))
+
+  title_id <- names(spec_obj$titles)[[1]]
+  subtitle_id <- names(spec_obj$subtitles)[[1]]
+  footnote_id <- names(spec_obj$footnotes)[[1]]
+
+  expect_true(is.list(spec_obj$titles[[title_id]]$text))
+  expect_true(is.list(spec_obj$subtitles[[subtitle_id]]$text))
+  expect_true(is.list(spec_obj$footnotes[[footnote_id]]$text))
+})

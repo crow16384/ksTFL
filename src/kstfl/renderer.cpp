@@ -494,10 +494,22 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
     emitter.emit(doc, data_tables, output_path,
                   all_pages, all_rows, all_headers, &measurer);
 
-    // Compute total page count across all specs
-    size_t total_pages = 0;
-    for (const auto& kv : all_pages) {
-        total_pages += kv.second.total_pages;
+    // Compute total page count across all specs.
+    // Table specs use paginator counts; Text/Figure specs always emit one
+    // section page in document.xml.
+    size_t total_pages = doc.metadata.insert_toc ? 1 : 0;
+    for (const auto& spec : doc.specs) {
+        if (spec.document.doc_type == DocType::Table && spec.document.has_data) {
+            auto it = all_pages.find(spec.key);
+            if (it != all_pages.end()) {
+                total_pages += it->second.total_pages;
+            } else {
+                // Fallback safety: table section is still emitted as one page.
+                total_pages += 1;
+            }
+        } else {
+            total_pages += 1;
+        }
     }
 
     if (config_.verbose) {
