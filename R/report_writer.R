@@ -408,7 +408,13 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
   dest_filepath <- file.path(metaPath, dest_filename)
   
   # Copy file
-  file.copy(source_filepath, dest_filepath, overwrite = TRUE)
+  if (!file.copy(source_filepath, dest_filepath, overwrite = TRUE)) {
+    cli_abort(c(
+      "Failed to copy figure file to meta folder",
+      x = "Source: {.path {source_filepath}}",
+      x = "Destination: {.path {dest_filepath}}"
+    ))
+  }
   
   invisible(NULL)
 }

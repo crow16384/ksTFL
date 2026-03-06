@@ -209,9 +209,13 @@ FontMetrics FontCache::get_metrics(const FaceKey& key, double size_pt) {
     const CachedFace& face = get_face(key);
 
     // Set FreeType char size (size in 1/64 points)
-    FT_Set_Char_Size(face.ft_face, 0,
+    FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0,
                      static_cast<FT_F26Dot6>(size_pt * 64.0),
                      72, 72);  // 72 DPI
+    if (ft_err) {
+        throw RenderError("FT_Set_Char_Size failed for font '" + key.name +
+                          "' at size " + std::to_string(size_pt) + "pt");
+    }
 
     FontMetrics m;
     m.units_per_em = static_cast<double>(face.ft_face->units_per_EM);
@@ -244,9 +248,13 @@ FontMetrics FontCache::get_metrics(const FaceKey& key, double size_pt) {
 hb_font_t* FontCache::get_hb_font(const FaceKey& key, double size_pt) {
     const CachedFace& face = get_face(key);
     // Set size for proper shaping
-    FT_Set_Char_Size(face.ft_face, 0,
+    FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0,
                      static_cast<FT_F26Dot6>(size_pt * 64.0),
                      72, 72);
+    if (ft_err) {
+        throw RenderError("FT_Set_Char_Size failed for font '" + key.name +
+                          "' at size " + std::to_string(size_pt) + "pt");
+    }
     hb_ft_font_changed(face.hb_font);
     return face.hb_font;
 }

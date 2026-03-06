@@ -33,9 +33,9 @@ int render_docx_impl(const std::string& spec_json_path,
         return static_cast<int>(renderer.render(spec_json_path, template_json_path, output_path));
 
     } catch (const kstfl::RenderError& e) {
-        Rcpp::stop("ksTFL render error: %s", e.what());
+        Rcpp::stop(std::string("ksTFL render error: ") + e.what());
     } catch (const std::exception& e) {
-        Rcpp::stop("ksTFL internal error: %s", e.what());
+        Rcpp::stop(std::string("ksTFL internal error: ") + e.what());
     }
     return 0;
 }
@@ -66,9 +66,9 @@ int render_docx_from_strings_impl(const std::string& spec_json,
         return static_cast<int>(renderer.render_from_strings(spec_json, template_json, output_path, data_dir));
 
     } catch (const kstfl::RenderError& e) {
-        Rcpp::stop("ksTFL render error: %s", e.what());
+        Rcpp::stop(std::string("ksTFL render error: ") + e.what());
     } catch (const std::exception& e) {
-        Rcpp::stop("ksTFL internal error: %s", e.what());
+        Rcpp::stop(std::string("ksTFL internal error: ") + e.what());
     }
     return 0;
 }

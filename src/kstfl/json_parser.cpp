@@ -136,8 +136,16 @@ static FontProps parse_font_props(const json& j) {
             s = s.substr(0, s.size() - 2);
         }
         try {
-            fp.font_size = std::stod(s);
-        } catch (...) {
+            size_t idx = 0;
+            double val = std::stod(s, &idx);
+            if (idx != s.size()) {
+                throw RenderError("Invalid font_size: '" + *fs +
+                                  "' — unexpected characters after number");
+            }
+            fp.font_size = val;
+        } catch (const RenderError&) {
+            throw;
+        } catch (const std::exception&) {
             throw RenderError("Invalid font_size: '" + *fs + "'");
         }
     }

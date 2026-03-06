@@ -19,7 +19,11 @@ namespace kstfl {
 // ---------------------------------------------------------------------------
 
 TextMeasurer::TextMeasurer(FontCache& cache)
-    : cache_(cache), hb_buf_(hb_buffer_create()) {}
+    : cache_(cache), hb_buf_(hb_buffer_create()) {
+    if (!hb_buf_) {
+        throw RenderError("Failed to create HarfBuzz buffer");
+    }
+}
 
 TextMeasurer::~TextMeasurer() {
     if (hb_buf_) {
