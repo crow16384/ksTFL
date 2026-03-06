@@ -35,12 +35,14 @@ TextMeasurer::~TextMeasurer() {
 // Helpers
 // ---------------------------------------------------------------------------
 
+// Superscript/subscript scale factor (spec §16.4)
+static constexpr double kSubSuperScale = 0.65;
+
 double TextMeasurer::effective_font_size(const FontProps& font,
                                           const InlineRunStyle& run_style) const {
     double base_size = font.font_size.value_or(10.0);
-    // Superscript/subscript rendered at 65% of base size (spec §16.4)
     if (run_style.superscript || run_style.subscript) {
-        return base_size * 0.65;
+        return base_size * kSubSuperScale;
     }
     return base_size;
 }
