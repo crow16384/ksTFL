@@ -74,6 +74,12 @@ void DocxEmitter::emit(
     measurer_ = measurer;  // store for use in emit_page / emit_text_groups
     toc_bookmark_counter_ = 0;  // reset per document so IDs are deterministic
 
+    // RAII guard: reset measurer_ on scope exit (normal or exception)
+    struct MeasurerReset {
+        TextMeasurer*& ref;
+        ~MeasurerReset() { ref = nullptr; }
+    } measurer_guard{measurer_};
+
     // ======================================================================
     // Phase 1: Pre-compute header/footer XML parts and relationship IDs
     // ======================================================================
@@ -94,7 +100,6 @@ void DocxEmitter::emit(
 
     // Package all emitted XML parts and media into final DOCX archive.
     emit_package(doc, output_path, document_xml, all_hdr_ftr_parts);
-    measurer_ = nullptr;  // clear after emit
 }
 
 }  // namespace kstfl
