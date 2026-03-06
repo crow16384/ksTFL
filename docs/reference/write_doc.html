@@ -52,7 +52,7 @@ immediately renders it to a DOCX file in a single call.</p>
 <span>  prettify <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  toc <span class="op">=</span> <span class="fu"><a href="tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"insertTOC"</span><span class="op">)</span>,</span>
 <span>  tocTitle <span class="op">=</span> <span class="fu"><a href="tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"tocTitle"</span><span class="op">)</span>,</span>
-<span>  template_json <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  overrideTemplate <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  font_dirs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  fallback_font <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -99,12 +99,17 @@ Contents page via <code><a href="save_report.html">save_report()</a></code>. Def
 page. Defaults to <code>tfl_get_option("tocTitle")</code>.</p></dd>
 
 
-<dt id="arg-template-json">template_json<a class="anchor" aria-label="anchor" href="#arg-template-json"></a></dt>
-<dd><p>Optional character string. Path to a styles template
-JSON file passed through to <code><a href="render_docx.html">render_docx()</a></code>. If <code>NULL</code> (default), the
-renderer resolves template(s) from each spec's <code>docTemplate</code> value via
-<code><a href="render_docx.html">render_docx()</a></code> (allowing mixed templates in multi-spec reports).
-If provided, this path is used as a single global template.</p></dd>
+<dt id="arg-overridetemplate">overrideTemplate<a class="anchor" aria-label="anchor" href="#arg-overridetemplate"></a></dt>
+<dd><p>Optional character string. Global template override used
+by <code><a href="render_docx.html">render_docx()</a></code> for all specs. Accepts either:</p>
+<ul>
+<li><p>A predefined bundled template name (e.g. <code>"Navy_Pro"</code>).</p></li>
+<li><p>A file path (absolute or relative) to an external template JSON file.</p></li>
+</ul>
+<p>If <code>NULL</code> (default), templates are resolved per-spec from each spec's
+<code>docTemplate</code> value via <code><a href="render_docx.html">render_docx()</a></code> (allowing mixed templates in
+multi-spec reports). If a provided name/path cannot be resolved,
+a warning is emitted and <code>CRO Example_default</code> is used.</p></dd>
 
 
 <dt id="arg-font-dirs">font_dirs<a class="anchor" aria-label="anchor" href="#arg-font-dirs"></a></dt>

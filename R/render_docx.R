@@ -24,10 +24,11 @@
       if (nzchar(resolved)) {
         return(resolved)
       }
+      available_templates <- .list_bundled_templates()
       cli::cli_warn(c(
         paste0(key_hint, "Template {.val ", doc_template, "} not found in package templates."),
         i = "Falling back to {.val CRO Example_default}.",
-        i = "Available templates: {.val {.list_bundled_templates()}}"
+        i = "Available templates: {.val {available_templates}}"
       ))
     }
   }

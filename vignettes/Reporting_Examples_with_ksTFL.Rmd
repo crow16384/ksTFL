@@ -913,14 +913,14 @@ write_doc(
   name = "example_report_global_override",
   outDir = "./out",
   metaPath = tempdir(),
-  template_json = system.file("templates", "Navy_Pro.json", package = "ksTFL", mustWork = TRUE)
+  overrideTemplate = system.file("templates", "Navy_Pro.json", package = "ksTFL", mustWork = TRUE)
 )
 ```
 
 In this workflow:
 
-- `write_doc(..., template_json = NULL)` keeps per-spec `docTemplate` styling.
-- `write_doc(..., template_json = <path>)` applies a single global template to all specs.
+- `write_doc(..., overrideTemplate = NULL)` keeps per-spec `docTemplate` styling.
+- `write_doc(..., overrideTemplate = <name_or_path>)` applies a single global template to all specs.
 
 **Key parameters**:
 - `report`: A `TFL_report` object (created via `create_report()`)

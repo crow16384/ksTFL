@@ -680,3 +680,75 @@ test_that(".build_multi_template_payload() creates valid multi-template payload"
   expect_true(!is.null(payload$per_spec$spec_a))
   expect_true(!is.null(payload$per_spec$spec_b))
 })
+
+# ============================================================================
+# Tests: write_doc() overrideTemplate name-or-path compatibility
+# ============================================================================
+
+test_that("write_doc() accepts bundled template name in overrideTemplate", {
+  spec <- create_text() |> add_body_text("hello") |> set_document(hasData = FALSE)
+  report <- create_report(spec)
+  temp_dir <- create_test_dir()
+  out_dir <- create_test_dir()
+  on.exit({
+    unlink(temp_dir, recursive = TRUE)
+    unlink(out_dir, recursive = TRUE)
+  })
+
+  out_path <- write_doc(
+    report = report,
+    name = "write_doc_tmpl_name",
+    outDir = out_dir,
+    metaPath = temp_dir,
+    overrideTemplate = "Navy_Pro"
+  )
+
+  expect_true(file.exists(out_path))
+})
+
+test_that("write_doc() warns and falls back for unknown overrideTemplate name", {
+  spec <- create_text() |> add_body_text("hello") |> set_document(hasData = FALSE)
+  report <- create_report(spec)
+  temp_dir <- create_test_dir()
+  out_dir <- create_test_dir()
+  on.exit({
+    unlink(temp_dir, recursive = TRUE)
+    unlink(out_dir, recursive = TRUE)
+  })
+
+  out_path <- expect_warning(
+    write_doc(
+      report = report,
+      name = "write_doc_tmpl_fallback",
+      outDir = out_dir,
+      metaPath = temp_dir,
+      overrideTemplate = "Unknown_Template_Name"
+    ),
+    "Falling back to"
+  )
+
+  expect_true(file.exists(out_path))
+})
+
+test_that("write_doc() accepts external overrideTemplate path", {
+  spec <- create_text() |> add_body_text("hello") |> set_document(hasData = FALSE)
+  report <- create_report(spec)
+  temp_dir <- create_test_dir()
+  out_dir <- create_test_dir()
+  on.exit({
+    unlink(temp_dir, recursive = TRUE)
+    unlink(out_dir, recursive = TRUE)
+  })
+
+  template_path <- system.file("templates", "Navy_Pro.json", package = "ksTFL", mustWork = TRUE)
+
+  out_path <- write_doc(
+    report = report,
+    name = "write_doc_tmpl_path",
+    outDir = out_dir,
+    metaPath = temp_dir,
+    overrideTemplate = template_path
+  )
+
+  expect_true(file.exists(out_path))
+})

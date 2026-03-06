@@ -994,15 +994,15 @@ writing metadata and data files to <code>metaPath</code>
 <span>  name <span class="op">=</span> <span class="st">"example_report_global_override"</span>,</span>
 <span>  outDir <span class="op">=</span> <span class="st">"./out"</span>,</span>
 <span>  metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  template_json <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"templates"</span>, <span class="st">"Navy_Pro.json"</span>, package <span class="op">=</span> <span class="st">"ksTFL"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  overrideTemplate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"templates"</span>, <span class="st">"Navy_Pro.json"</span>, package <span class="op">=</span> <span class="st">"ksTFL"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>In this workflow:</p>
 <ul>
 <li>
-<code>write_doc(..., template_json = NULL)</code> keeps per-spec
+<code>write_doc(..., overrideTemplate = NULL)</code> keeps per-spec
 <code>docTemplate</code> styling.</li>
 <li>
-<code>write_doc(..., template_json = &lt;path&gt;)</code> applies a
+<code>write_doc(..., overrideTemplate = &lt;name_or_path&gt;)</code> applies a
 single global template to all specs.</li>
 </ul>
 <p><strong>Key parameters</strong>: - <code>report</code>: A

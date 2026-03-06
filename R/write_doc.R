@@ -27,11 +27,16 @@
 #'   `tfl_get_option("insertTOC")`.
 #' @param tocTitle Character(1). Heading placed above the TOC field on the TOC
 #'   page. Defaults to `tfl_get_option("tocTitle")`.
-#' @param template_json Optional character string. Path to a styles template
-#'   JSON file passed through to [render_docx()]. If `NULL` (default), the
-#'   renderer resolves template(s) from each spec's `docTemplate` value via
-#'   [render_docx()] (allowing mixed templates in multi-spec reports).
-#'   If provided, this path is used as a single global template.
+#' @param overrideTemplate Optional character string. Global template override used
+#'   by [render_docx()] for all specs. Accepts either:
+#'   \\itemize{
+#'     \\item A predefined bundled template name (e.g. `"Navy_Pro"`).
+#'     \\item A file path (absolute or relative) to an external template JSON file.
+#'   }
+#'   If `NULL` (default), templates are resolved per-spec from each spec's
+#'   `docTemplate` value via [render_docx()] (allowing mixed templates in
+#'   multi-spec reports). If a provided name/path cannot be resolved,
+#'   a warning is emitted and `CRO Example_default` is used.
 #' @param font_dirs Optional character vector of additional directories to
 #'   search for fonts when rendering via [render_docx()].
 #' @param fallback_font Optional character string. Path to a fallback font file
@@ -90,7 +95,7 @@ write_doc <- function(report,
                       prettify = FALSE,
                       toc = tfl_get_option("insertTOC"),
                       tocTitle = tfl_get_option("tocTitle"),
-                      template_json = NULL,
+                      overrideTemplate = NULL,
                       font_dirs = NULL,
                       fallback_font = NULL,
                       verbose = FALSE) {
@@ -107,8 +112,8 @@ write_doc <- function(report,
   checkmate::assert_string(tocTitle, null.ok = FALSE, .var.name = "tocTitle")
   checkmate::assert_flag(verbose, .var.name = "verbose")
 
-  if (!is.null(template_json)) {
-    checkmate::assert_string(template_json, null.ok = FALSE, .var.name = "template_json")
+  if (!is.null(overrideTemplate)) {
+    checkmate::assert_string(overrideTemplate, null.ok = FALSE, .var.name = "overrideTemplate")
   }
   if (!is.null(font_dirs)) {
     checkmate::assert_character(font_dirs, min.len = 1L, .var.name = "font_dirs")
@@ -141,10 +146,15 @@ write_doc <- function(report,
   spec_path   <- file.path(save_result$metaPath, save_result$spec_file)
   output_path <- file.path(outDir, docx_name)
 
+  # Keep overrideTemplate semantics consistent with docTemplate: bundled name or path.
+  if (!is.null(overrideTemplate)) {
+    overrideTemplate <- .resolve_template_value(overrideTemplate, spec_key = "write_doc")
+  }
+
   # ---- Render DOCX from saved spec ----
   render_docx(
     spec_json     = spec_path,
-    template_json = template_json,
+    template_json = overrideTemplate,
     output_path   = output_path,
     font_dirs     = font_dirs,
     fallback_font = fallback_font,
