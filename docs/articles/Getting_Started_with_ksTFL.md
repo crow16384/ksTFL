@@ -67,18 +67,18 @@ systems. 3. `Column_Width_Management` for layout tuning. 4.
 
 Each `TFL_spec` contains:
 
-| Component       | Purpose                                                                               | How to modify                                                                                                                            |
-|-----------------|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| **document**    | Metadata (docType, title, page settings)                                              | [`set_document()`](https://example.com/reference/set_document.md), [`set_page_style()`](https://example.com/reference/set_page_style.md) |
-| **columns**     | Column definitions, labels, formats, styles                                           | [`define_cols()`](https://example.com/reference/define_cols.md)                                                                          |
-| **stubColumns** | Spanning headers above column groups                                                  | [`add_span_header()`](https://example.com/reference/add_span_header.md)                                                                  |
-| **headers**     | Page header text (left/center/right)                                                  | [`add_header()`](https://example.com/reference/add_header.md)                                                                            |
-| **titles**      | Main document titles                                                                  | [`add_title()`](https://example.com/reference/add_title.md)                                                                              |
-| **subtitles**   | Secondary titles                                                                      | [`add_subtitle()`](https://example.com/reference/add_subtitle.md)                                                                        |
-| **bodyText**    | Narrative content                                                                     | [`add_body_text()`](https://example.com/reference/add_body_text.md)                                                                      |
-| **footnotes**   | Document footnotes                                                                    | [`add_footnote()`](https://example.com/reference/add_footnote.md)                                                                        |
-| **footers**     | Page footer text                                                                      | [`add_footer()`](https://example.com/reference/add_footer.md)                                                                            |
-| **styles**      | Named styles defined with [`add_style()`](https://example.com/reference/add_style.md) | [`add_style()`](https://example.com/reference/add_style.md)                                                                              |
+| Component | Purpose | How to modify |
+|----|----|----|
+| **document** | Metadata (docType, title, page settings) | [`set_document()`](https://example.com/reference/set_document.md), [`set_page_style()`](https://example.com/reference/set_page_style.md) |
+| **columns** | Column definitions, labels, formats, styles | [`define_cols()`](https://example.com/reference/define_cols.md) |
+| **stubColumns** | Spanning headers above column groups | [`add_span_header()`](https://example.com/reference/add_span_header.md) |
+| **headers** | Page header text (left/center/right) | [`add_header()`](https://example.com/reference/add_header.md) |
+| **titles** | Main document titles | [`add_title()`](https://example.com/reference/add_title.md) |
+| **subtitles** | Secondary titles | [`add_subtitle()`](https://example.com/reference/add_subtitle.md) |
+| **bodyText** | Narrative content | [`add_body_text()`](https://example.com/reference/add_body_text.md) |
+| **footnotes** | Document footnotes | [`add_footnote()`](https://example.com/reference/add_footnote.md) |
+| **footers** | Page footer text | [`add_footer()`](https://example.com/reference/add_footer.md) |
+| **styles** | Named styles defined with [`add_style()`](https://example.com/reference/add_style.md) | [`add_style()`](https://example.com/reference/add_style.md) |
 
 ------------------------------------------------------------------------
 
@@ -430,11 +430,11 @@ groups - **Merge columns**: Create group headers by merging columns -
 **Key action functions** (used inside
 [`compute_cols()`](https://example.com/reference/compute_cols.md)):
 
-| Function                                                        | Purpose                                           | Example                                                         |
-|-----------------------------------------------------------------|---------------------------------------------------|-----------------------------------------------------------------|
-| `c_style(cols, styleRef)`                                       | Apply style to columns in matching rows           | `c_style(c(mpg, hp), styleRef = "bold")`                        |
-| `c_merge(cols, styleRef = NULL)`                                | Merge adjacent columns                            | `c_merge(c(col1, col2), styleRef = "header")`                   |
-| `c_addrow(pos, value_from = NULL, styleRef = NULL)`             | Insert row above/below                            | `c_addrow(pos = "above")` for empty separator                   |
+| Function | Purpose | Example |
+|----|----|----|
+| `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
+| `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
+| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
 | [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) | Insert a page break at the matching row (no args) | [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) |
 
 **Condition syntax**:
@@ -727,15 +727,15 @@ write_doc(report, name = "demographics", outDir = "./output", metaPath = tempdir
 
 ## Key gotchas and tips
 
-| Gotcha                                              | Solution                                                                                                                                    |
-|-----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| **Calling s\_\* helpers outside add_style()**       | Always use s\_\* inside [`add_style()`](https://example.com/reference/add_style.md) — they validate context                                 |
-| **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns                                                                                      |
-| **Styles from f_combine() not consolidated**        | Call [`create_report()`](https://example.com/reference/create_report.md) before [`write_doc()`](https://example.com/reference/write_doc.md) |
-| **Multiple add_header() calls stack**               | Each call **appends** a new header level; use `level =` to replace a specific level                                                         |
-| **Figure file not found**                           | Check path is absolute or relative to current working directory                                                                             |
-| **create_text() with data argument**                | [`create_text()`](https://example.com/reference/create_text.md) requires `data = NULL` — no data for text specs                             |
-| **Overlapping stubs at same stubOrder**             | Error; use different `stubOrder` or non-overlapping column sets                                                                             |
+| Gotcha | Solution |
+|----|----|
+| **Calling s\_\* helpers outside add_style()** | Always use s\_\* inside [`add_style()`](https://example.com/reference/add_style.md) — they validate context |
+| **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
+| **Styles from f_combine() not consolidated** | Call [`create_report()`](https://example.com/reference/create_report.md) before [`write_doc()`](https://example.com/reference/write_doc.md) |
+| **Multiple add_header() calls stack** | Each call **appends** a new header level; use `level =` to replace a specific level |
+| **Figure file not found** | Check path is absolute or relative to current working directory |
+| **create_text() with data argument** | [`create_text()`](https://example.com/reference/create_text.md) requires `data = NULL` — no data for text specs |
+| **Overlapping stubs at same stubOrder** | Error; use different `stubOrder` or non-overlapping column sets |
 
 ------------------------------------------------------------------------
 
@@ -779,22 +779,22 @@ You now understand ksTFL’s core workflow. Next steps:
 
 ## Quick reference table
 
-| Task                     | Function                                                                                                                                                                                            | Notes                                                                                                                                                                                           |
-|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Create table spec        | `create_table(data, cols = ...)`                                                                                                                                                                    | Auto-detects columns, types, widths                                                                                                                                                             |
-| Create figure spec       | `create_figure(plot_or_path, ...)`                                                                                                                                                                  | File path or ggplot2 object; path must be readable                                                                                                                                              |
-| Create text spec         | [`create_text()`](https://example.com/reference/create_text.md)                                                                                                                                     | For narrative content only                                                                                                                                                                      |
-| Set document properties  | `set_document(spec, hasData = ...)`                                                                                                                                                                 | Optional: configure content width, placement                                                                                                                                                    |
-| Customize columns        | `define_cols(spec, cols, ...)`                                                                                                                                                                      | Use [`c()`](https://rdrr.io/r/base/c.html) for multiple columns                                                                                                                                 |
-| Define styles            | `add_style(spec, id = "name", ...)`                                                                                                                                                                 | Use [`s_font()`](https://example.com/reference/s_font.md), [`s_paragraph()`](https://example.com/reference/s_paragraph.md), [`s_table_style()`](https://example.com/reference/s_table_style.md) |
-| Add spanning header      | `add_span_header(spec, cols, label, ...)`                                                                                                                                                           | Supports tidyselect; multi-level headers                                                                                                                                                        |
-| Add titles/content       | [`add_title()`](https://example.com/reference/add_title.md), [`add_footnote()`](https://example.com/reference/add_footnote.md), [`add_body_text()`](https://example.com/reference/add_body_text.md) | Layer document content                                                                                                                                                                          |
-| Add page headers/footers | [`add_header()`](https://example.com/reference/add_header.md), [`add_footer()`](https://example.com/reference/add_footer.md)                                                                        | 3 parts: left/center/right                                                                                                                                                                      |
-| Set page style           | `set_page_style(spec, page = p_page(...))`                                                                                                                                                          | Configure page size, orientation, margins                                                                                                                                                       |
-| Combine specs            | `create_report(spec1, spec2, ...)`                                                                                                                                                                  | Consolidates styles, assigns order                                                                                                                                                              |
-| Save + render (one step) | `write_doc(report, name, ...)`                                                                                                                                                                      | Recommended: saves JSON + renders DOCX                                                                                                                                                          |
-| Save only                | `save_report(report, ...)`                                                                                                                                                                          | Writes JSON + data files for manual rendering                                                                                                                                                   |
-| Render from JSON         | `render_docx(spec_json, output_path)`                                                                                                                                                               | C++ renderer: JSON → styled DOCX                                                                                                                                                                |
-| Set session defaults     | `tfl_set_options(...)`                                                                                                                                                                              | Inherited by new specs in session                                                                                                                                                               |
-| Check options            | [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md), `tfl_get_option(name)`                                                                                                     | View current session settings                                                                                                                                                                   |
-| Reset options            | [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md)                                                                                                                         | Back to package defaults                                                                                                                                                                        |
+| Task | Function | Notes |
+|----|----|----|
+| Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
+| Create figure spec | `create_figure(plot_or_path, ...)` | File path or ggplot2 object; path must be readable |
+| Create text spec | [`create_text()`](https://example.com/reference/create_text.md) | For narrative content only |
+| Set document properties | `set_document(spec, hasData = ...)` | Optional: configure content width, placement |
+| Customize columns | `define_cols(spec, cols, ...)` | Use [`c()`](https://rdrr.io/r/base/c.html) for multiple columns |
+| Define styles | `add_style(spec, id = "name", ...)` | Use [`s_font()`](https://example.com/reference/s_font.md), [`s_paragraph()`](https://example.com/reference/s_paragraph.md), [`s_table_style()`](https://example.com/reference/s_table_style.md) |
+| Add spanning header | `add_span_header(spec, cols, label, ...)` | Supports tidyselect; multi-level headers |
+| Add titles/content | [`add_title()`](https://example.com/reference/add_title.md), [`add_footnote()`](https://example.com/reference/add_footnote.md), [`add_body_text()`](https://example.com/reference/add_body_text.md) | Layer document content |
+| Add page headers/footers | [`add_header()`](https://example.com/reference/add_header.md), [`add_footer()`](https://example.com/reference/add_footer.md) | 3 parts: left/center/right |
+| Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |
+| Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
+| Save + render (one step) | `write_doc(report, name, ...)` | Recommended: saves JSON + renders DOCX |
+| Save only | `save_report(report, ...)` | Writes JSON + data files for manual rendering |
+| Render from JSON | `render_docx(spec_json, output_path)` | C++ renderer: JSON → styled DOCX |
+| Set session defaults | `tfl_set_options(...)` | Inherited by new specs in session |
+| Check options | [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md), `tfl_get_option(name)` | View current session settings |
+| Reset options | [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md) | Back to package defaults |

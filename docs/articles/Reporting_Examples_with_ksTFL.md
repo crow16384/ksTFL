@@ -993,15 +993,25 @@ text_spec <- set_page_style(text_spec, docTemplate = "Carbon_Dark")
 # Assemble into report
 report_full <- create_report(table_spec, text_spec)
 
-# Render — validates, writes JSON metadata, and produces the DOCX
+# A) Per-spec templates (default): each spec uses its own docTemplate
 write_doc(report_full, name = "example_report", outDir = "./out", metaPath = tempdir())
+
+# B) Global override: force one template for all specs
+write_doc(
+  report_full,
+  name = "example_report_global_override",
+  outDir = "./out",
+  metaPath = tempdir(),
+  overrideTemplate = system.file("templates", "Navy_Pro.json", package = "ksTFL", mustWork = TRUE)
+)
 ```
 
-In this workflow, each spec keeps its own `docTemplate` styling when
-rendered together in one DOCX (sectioned multi-spec output). To force a
-single style for the entire report, pass `template_json` to
-[`write_doc()`](https://example.com/reference/write_doc.md) or
-[`render_docx()`](https://example.com/reference/render_docx.md).
+In this workflow:
+
+- `write_doc(..., overrideTemplate = NULL)` keeps per-spec `docTemplate`
+  styling.
+- `write_doc(..., overrideTemplate = <name_or_path>)` applies a single
+  global template to all specs.
 
 **Key parameters**: - `report`: A `TFL_report` object (created via
 [`create_report()`](https://example.com/reference/create_report.md)) -

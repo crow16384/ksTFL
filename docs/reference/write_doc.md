@@ -17,7 +17,7 @@ write_doc(
   prettify = FALSE,
   toc = tfl_get_option("insertTOC"),
   tocTitle = tfl_get_option("tocTitle"),
-  template_json = NULL,
+  overrideTemplate = NULL,
   font_dirs = NULL,
   fallback_font = NULL,
   verbose = FALSE
@@ -65,16 +65,21 @@ write_doc(
   Character(1). Heading placed above the TOC field on the TOC page.
   Defaults to `tfl_get_option("tocTitle")`.
 
-- template_json:
+- overrideTemplate:
 
-  Optional character string. Path to a styles template JSON file passed
-  through to
-  [`render_docx()`](https://example.com/reference/render_docx.md). If
-  `NULL` (default), the renderer resolves template(s) from each spec's
+  Optional character string. Global template override used by
+  [`render_docx()`](https://example.com/reference/render_docx.md) for
+  all specs. Accepts either:
+
+  - A file path (absolute or relative) to an external template JSON
+    file.
+
+  If `NULL` (default), templates are resolved per-spec from each spec's
   `docTemplate` value via
   [`render_docx()`](https://example.com/reference/render_docx.md)
-  (allowing mixed templates in multi-spec reports). If provided, this
-  path is used as a single global template.
+  (allowing mixed templates in multi-spec reports). If a provided
+  name/path cannot be resolved, a warning is emitted and
+  `CRO Example_default` is used.
 
 - font_dirs:
 

@@ -11,7 +11,7 @@ immediately renders it to a DOCX file in a single call."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,12 +101,8 @@ page. Defaults to <code>tfl_get_option("tocTitle")</code>.</p></dd>
 
 <dt id="arg-overridetemplate">overrideTemplate<a class="anchor" aria-label="anchor" href="#arg-overridetemplate"></a></dt>
 <dd><p>Optional character string. Global template override used
-by <code><a href="render_docx.html">render_docx()</a></code> for all specs. Accepts either:</p>
-<ul>
-<li><p>A predefined bundled template name (e.g. <code>"Navy_Pro"</code>).</p></li>
-<li><p>A file path (absolute or relative) to an external template JSON file.</p></li>
-</ul>
-<p>If <code>NULL</code> (default), templates are resolved per-spec from each spec's
+by <code><a href="render_docx.html">render_docx()</a></code> for all specs. Accepts either:</p><ul><li><p>A file path (absolute or relative) to an external template JSON file.</p></li>
+</ul><p>If <code>NULL</code> (default), templates are resolved per-spec from each spec's
 <code>docTemplate</code> value via <code><a href="render_docx.html">render_docx()</a></code> (allowing mixed templates in
 multi-spec reports). If a provided name/path cannot be resolved,
 a warning is emitted and <code>CRO Example_default</code> is used.</p></dd>
