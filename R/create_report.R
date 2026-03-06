@@ -29,114 +29,63 @@
   if (!inherits(spec, "TFL_spec")) {
     cli_abort("Input must be a TFL_spec object")
   }
-  
-  # Step 1: Collect all referenced styles AND compute hashes for combinations
-  # Do this completely inline to avoid nested function scope issues
-  referenced_styles <- list()
-  style_combinations <- list()
-  
-  # Helper to collect styles from a single list object (inline recursion below)
-  # Returns list of (combo_str, original, sorted) tuples found at this level
-  extract_style_refs_from_obj <- function(obj) {
-    if (is.null(obj) || !is.list(obj)) return(list())
-    
-    combos_found <- list()
-    
-    # Handle unnamed lists (like styleRows which is list(list(...), list(...), ...))
-    if (is.null(names(obj)) || all(names(obj) == "")) {
-      # Unnamed list - iterate through elements
+
+  # ---- Internal: walk all styleRef fields in a nested list ----
+  # Calls `callback(char_vec)` for every character vector found in
+  # "labelStyleRef", "valueStyleRef", or "styleRef" fields.
+  # Single recursive traversal — handles both named and unnamed lists.
+ .walk_style_refs <- function(obj, callback, depth = 15L) {
+    if (is.null(obj) || !is.list(obj) || depth <= 0L) return()
+
+    obj_names <- names(obj)
+
+    # Unnamed list — recurse into elements
+    if (is.null(obj_names) || all(obj_names == "")) {
       for (item in obj) {
-        if (is.list(item)) {
-          extract_style_refs_from_obj(item)
-        }
+        if (is.list(item)) .walk_style_refs(item, callback, depth - 1L)
       }
-      return(combos_found)
-    }
-    
-    # Named list - process fields
-    for (name in names(obj)) {
-      val <- obj[[name]]
-      if (is.null(val)) next
-      
-      if (name %in% c("labelStyleRef", "valueStyleRef", "styleRef")) {
-        # These fields should contain style references (character vectors)
-        if (is.character(val)) {
-          if (length(val) == 1) {
-            if (!(val %in% names(referenced_styles))) {
-              referenced_styles[[val]] <<- TRUE
-            }
-          } else if (length(val) > 1) {
-            sorted_combo <- sort(val)
-            combo_str <- paste(sorted_combo, collapse = "|")
-            if (!(combo_str %in% names(style_combinations))) {
-              style_combinations[[combo_str]] <<- list(
-                original = val, sorted = sorted_combo, hash = NA_character_
-              )
-            }
-            combos_found[[length(combos_found) + 1]] <- list(combo = combo_str, sorted = sorted_combo)
-            for (s in val) {
-              if (!(s %in% names(referenced_styles))) {
-                referenced_styles[[s]] <<- TRUE
-              }
-            }
-          }
-        }
-      } else if (is.list(val) && length(val) > 0) {
-        # Recurse into other list fields (handles nested action objects with styleRef)
-        extract_style_refs_from_obj(val)
-      }
-    }
-    combos_found
-  }
-  
-  # Process each major spec field
-  # For each, recursively search all nested lists
-  # max_depth prevents stack overflow from pathological nesting
-  process_spec_field <- function(field_obj, max_depth = 15) {
-    if (is.null(field_obj)) return()
-    if (max_depth <= 0) {
-      cli::cli_warn(c(
-        "Maximum recursion depth reached in style extraction",
-        i = "Deeply nested structures (>15 levels) are not fully processed"
-      ))
       return()
     }
-    
-    # Process current level
-    extract_style_refs_from_obj(field_obj)
-    
-    # Recursively process nested lists
-    if (is.list(field_obj) && max_depth > 0) {
-      for (name in names(field_obj)) {
-        val <- field_obj[[name]]
-        if (is.list(val) && length(val) > 0) {
-          # If it's a list with names, recurse
-          if (!is.null(names(val))) {
-            process_spec_field(val, max_depth - 1)
-          } else if (all(sapply(val, is.list))) {
-            # If it's unnamed list of lists, process each
-            for (item in val) {
-              if (is.list(item)) {
-                extract_style_refs_from_obj(item)
-                process_spec_field(item, max_depth - 1)
-              }
-            }
-          }
-        }
+
+    # Named list — inspect ref fields + recurse sublists
+    for (nm in obj_names) {
+      val <- obj[[nm]]
+      if (is.null(val)) next
+      if (nm %in% c("labelStyleRef", "valueStyleRef", "styleRef")) {
+        if (is.character(val)) callback(val)
+      } else if (is.list(val) && length(val) > 0L) {
+        .walk_style_refs(val, callback, depth - 1L)
       }
     }
   }
-  
-  # Collect from all spec fields
-  process_spec_field(spec$columns)
-  process_spec_field(spec$stubColumns)
-  process_spec_field(spec$titles)
-  process_spec_field(spec$subtitles)
-  process_spec_field(spec$footnotes)
-  process_spec_field(spec$bodyText)
-  process_spec_field(spec$headers)
-  process_spec_field(spec$footers)
-  process_spec_field(spec$styleRows)
+
+  # Convenience: walk all top-level spec fields that may contain style refs
+  .walk_all_fields <- function(callback) {
+    for (field in list(spec$columns, spec$stubColumns, spec$titles,
+                       spec$subtitles, spec$footnotes, spec$bodyText,
+                       spec$headers, spec$footers, spec$styleRows)) {
+      .walk_style_refs(field, callback)
+    }
+  }
+
+  # ---- Step 1: Collect all referenced styles and combinations ----
+  referenced_styles <- list()
+  style_combinations <- list()
+
+  .walk_all_fields(function(val) {
+    if (length(val) == 1L) {
+      referenced_styles[[val]] <<- TRUE
+    } else if (length(val) > 1L) {
+      sorted_combo <- sort(val)
+      combo_str <- paste(sorted_combo, collapse = "|")
+      if (is.null(style_combinations[[combo_str]])) {
+        style_combinations[[combo_str]] <<- list(
+          original = val, sorted = sorted_combo, hash = NA_character_
+        )
+      }
+      for (s in val) referenced_styles[[s]] <<- TRUE
+    }
+  })
   
   # Step 2: Validate component styles (before creating merged styles)
   # Collect all component style names that need to exist
@@ -280,57 +229,15 @@
   }
   
   # Step 5: Remove unreferenced styles
-  # Build updated referenced list after combination replacements
+  # Reuse .walk_all_fields to collect the final set of referenced styles
   updated_referenced <- list()
-  
-  .collect_final_refs <- function(obj) {
-    if (is.null(obj)) {
-      return()
-    }
-    
-    if (!is.list(obj)) {
-      return()
-    }
-    
-    # Handle unnamed lists (iterate through all elements)
-    if (is.null(names(obj)) || all(names(obj) == "")) {
-      for (item in obj) {
-        if (is.list(item)) {
-          .collect_final_refs(item)
-        }
-      }
-      return()
-    }
-    
-    # Named list - process fields
-    for (name in names(obj)) {
-      val <- obj[[name]]
-      if (is.null(val)) next
-      
-      if (name %in% c("labelStyleRef", "valueStyleRef", "styleRef")) {
-        if (is.character(val) && length(val) >= 1) {
-          for (s in val) {
-            if (!is.na(s) && nzchar(s)) {
-              updated_referenced[[s]] <<- TRUE
-            }
-          }
-        }
-      } else if (is.list(val)) {
-        # Recurse into other list fields
-        .collect_final_refs(val)
+  .walk_all_fields(function(val) {
+    for (s in val) {
+      if (!is.na(s) && nzchar(s)) {
+        updated_referenced[[s]] <<- TRUE
       }
     }
-  }
-  
-  .collect_final_refs(spec$columns)
-  .collect_final_refs(spec$stubColumns)
-  .collect_final_refs(spec$titles)
-  .collect_final_refs(spec$subtitles)
-  .collect_final_refs(spec$footnotes)
-  .collect_final_refs(spec$bodyText)
-  .collect_final_refs(spec$headers)
-  .collect_final_refs(spec$footers)
-  .collect_final_refs(spec$styleRows)
+  })
   
   # Keep only referenced styles
   spec$attribs$styles <- spec$attribs$styles[names(spec$attribs$styles) %in% names(updated_referenced)]
