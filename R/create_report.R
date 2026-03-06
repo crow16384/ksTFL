@@ -173,36 +173,30 @@
   
   # Step 4: Replace all style combination references with merged hashes
   .replace_style_refs <- function(obj) {
-    if (is.null(obj)) {
-      return(obj)
+    if (is.null(obj) || !is.list(obj)) return(obj)
+    
+    obj_names <- names(obj)
+    
+    # Unnamed list — recurse into each element
+    if (is.null(obj_names) || all(obj_names == "")) {
+      return(lapply(obj, .replace_style_refs))
     }
     
-    if (is.list(obj)) {
-      # Check if this is a list of lists (like styleRows action arrays)
-      # If all elements are lists, iterate and recurse on each
-      if (length(obj) > 0 && all(sapply(obj, is.list))) {
-        return(lapply(obj, .replace_style_refs))
-      }
-      
-      # Otherwise, process this list's named fields
-      for (name in names(obj)) {
-        if (name %in% c("labelStyleRef", "valueStyleRef", "styleRef")) {
-          val <- obj[[name]]
-          if (is.character(val) && length(val) > 1) {
-            # This is a combination - replace with hash
-            sorted_combo <- sort(val)
-            combo_str <- paste(sorted_combo, collapse = "|")
-            if (!is.null(merged_hashes[[combo_str]])) {
-              obj[[name]] <- merged_hashes[[combo_str]]
-            }
-          } else if (is.list(val)) {
-            # Recurse into list values (for nested action objects)
-            obj[[name]] <- .replace_style_refs(val)
+    # Named list — process style ref fields + recurse sublists
+    for (name in obj_names) {
+      if (name %in% c("labelStyleRef", "valueStyleRef", "styleRef")) {
+        val <- obj[[name]]
+        if (is.character(val) && length(val) > 1) {
+          sorted_combo <- sort(val)
+          combo_str <- paste(sorted_combo, collapse = "|")
+          if (!is.null(merged_hashes[[combo_str]])) {
+            obj[[name]] <- merged_hashes[[combo_str]]
           }
-        } else if (is.list(obj[[name]])) {
-          # Recurse into other list fields
-          obj[[name]] <- .replace_style_refs(obj[[name]])
+        } else if (is.list(val)) {
+          obj[[name]] <- .replace_style_refs(val)
         }
+      } else if (is.list(obj[[name]])) {
+        obj[[name]] <- .replace_style_refs(obj[[name]])
       }
     }
     
