@@ -137,7 +137,8 @@
 #' \code{template_json} to force one template for the full document. Custom
 #' templates must conform to \code{styles_schema_v2.json}.
 #'
-#' @export
+#' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' \dontrun{

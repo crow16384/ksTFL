@@ -74,11 +74,7 @@ spec <- create_figure(p) |>
   add_title("Weight vs MPG") |>
   add_footnote("Source: Motor Trend, 1974.")
 report <- create_report(spec)
-saved  <- save_report(report, docFileName = "fig01.docx")
-render_docx(
-  spec_json   = file.path(saved$metaPath, saved$spec_file),
-  output_path = "output/fig01.docx"
-)
+write_doc(report, name = "fig01", outDir = "output", metaPath = tempdir())
 }
 
 }

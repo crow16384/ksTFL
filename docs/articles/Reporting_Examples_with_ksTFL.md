@@ -1023,8 +1023,10 @@ are written
 **Advanced**: If you need to inspect the JSON before rendering (e.g. for
 debugging or CI pipelines), you can split the call into
 [`save_report()`](https://example.com/reference/save_report.md) +
-[`render_docx()`](https://example.com/reference/render_docx.md). See
-[`?write_doc`](https://example.com/reference/write_doc.md) for details.
+[`replay_report()`](https://example.com/reference/replay_report.md). See
+[`?write_doc`](https://example.com/reference/write_doc.md) and
+[`?replay_report`](https://example.com/reference/replay_report.md) for
+details.
 
 ------------------------------------------------------------------------
 

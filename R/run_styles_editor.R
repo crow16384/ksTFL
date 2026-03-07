@@ -4,7 +4,7 @@
 #' styles templates that conform to `styles_schema_v2.json`. Templates can be
 #' loaded from the bundled `inst/templates/` directory or uploaded from disk,
 #' then edited and downloaded as JSON for use with `set_page_style()` /
-#' `render_docx()`.
+#' `write_doc()`.
 #'
 #' This function requires the `shiny` package to be installed.
 #'

@@ -71,7 +71,8 @@ Document structure, content, column formats, and styles in R -
 <strong>ksTFL generates</strong>: A structured specification (JSON
 metadata + data files) - <strong>Built-in C++ renderer</strong>:
 Produces submission-quality DOCX documents with deterministic
-HarfBuzz-based pagination via <code><a href="../reference/render_docx.html">render_docx()</a></code></p>
+HarfBuzz-based pagination via <code><a href="../reference/write_doc.html">write_doc()</a></code> /
+<code><a href="../reference/replay_report.html">replay_report()</a></code></p>
 <p>This separation enables: - <strong>Consistency</strong>: All tables
 follow the same style templates - <strong>Automation</strong>: Generate
 50+ tables with consistent formatting and minimal code -
@@ -123,7 +124,7 @@ TFL_report
        ↓
 write_doc()  ← recommended: one-step save + render
   or
-save_report() → render_docx()  ← two-step: inspect JSON before rendering
+save_report() → replay_report()  ← two-step: inspect JSON before rendering
        ↓
 Styled .docx (C++ engine, deterministic HarfBuzz pagination)</code></pre>
 </div>
@@ -577,8 +578,8 @@ Examples: Conditional Row Actions</a>.</p>
 <div class="section level3">
 <h3 id="option-a-one-step-with-write_doc-recommended">Option A: One step with <code>write_doc()</code> (recommended)<a class="anchor" aria-label="anchor" href="#option-a-one-step-with-write_doc-recommended"></a>
 </h3>
-<p><code><a href="../reference/write_doc.html">write_doc()</a></code> combines <code><a href="../reference/save_report.html">save_report()</a></code> +
-<code><a href="../reference/render_docx.html">render_docx()</a></code> into a single call:</p>
+<p><code><a href="../reference/write_doc.html">write_doc()</a></code> combines save + render into a single
+call:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_table</span>, <span class="va">spec_text</span><span class="op">)</span></span>
 <span></span>
@@ -607,8 +608,8 @@ defaults once:</p>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"demographics"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="option-b-two-steps-with-save_report-render_docx">Option B: Two steps with <code>save_report()</code> +
-<code>render_docx()</code><a class="anchor" aria-label="anchor" href="#option-b-two-steps-with-save_report-render_docx"></a>
+<h3 id="option-b-two-steps-with-save_report-replay_report">Option B: Two steps with <code>save_report()</code> +
+<code>replay_report()</code><a class="anchor" aria-label="anchor" href="#option-b-two-steps-with-save_report-replay_report"></a>
 </h3>
 <p>Use this when you need to inspect or version-control the JSON
 metadata separately:</p>
@@ -622,9 +623,10 @@ metadata separately:</p>
 <span>  metaPath    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  prettify    <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>              <span class="co"># prettify = TRUE for readable JSON (debugging)</span></span>
 <span></span>
-<span><span class="co"># Step 2: Render the DOCX from the JSON spec</span></span>
-<span><span class="fu"><a href="../reference/render_docx.html">render_docx</a></span><span class="op">(</span></span>
+<span><span class="co"># Step 2: Re-render the DOCX from the saved JSON metadata</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span></span>
 <span>  spec_json   <span class="op">=</span> <span class="va">result</span><span class="op">$</span><span class="va">spec_file</span>,</span>
+<span>  meta_dir    <span class="op">=</span> <span class="va">result</span><span class="op">$</span><span class="va">metaPath</span>,</span>
 <span>  output_path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"./output"</span>, <span class="st">"my_report.docx"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><strong><code><a href="../reference/save_report.html">save_report()</a></code> output files</strong>: -
 <code>{metaPath}/{spec_hash}.json</code> — Main specification (consumed
@@ -1011,7 +1013,7 @@ repository</a>
 </tr>
 <tr class="even">
 <td>Render from JSON</td>
-<td><code>render_docx(spec_json, output_path)</code></td>
+<td><code>replay_report(spec_json, meta_dir, output_path)</code></td>
 <td>C++ renderer: JSON → styled DOCX</td>
 </tr>
 <tr class="odd">

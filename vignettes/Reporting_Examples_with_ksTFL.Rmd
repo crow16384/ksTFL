@@ -928,7 +928,7 @@ In this workflow:
 - `outDir`: Directory where the output DOCX is written
 - `metaPath`: Directory where intermediate JSON and data files are written
 
-**Advanced**: If you need to inspect the JSON before rendering (e.g. for debugging or CI pipelines), you can split the call into `save_report()` + `render_docx()`. See `?write_doc` for details.
+**Advanced**: If you need to inspect the JSON before rendering (e.g. for debugging or CI pipelines), you can split the call into `save_report()` + `replay_report()`. See `?write_doc` and `?replay_report` for details.
 
 ---
 

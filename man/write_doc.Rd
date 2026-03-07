@@ -42,29 +42,29 @@ Contents page via \code{\link[=save_report]{save_report()}}. Defaults to
 page. Defaults to \code{tfl_get_option("tocTitle")}.}
 
 \item{overrideTemplate}{Optional character string. Global template override used
-by \code{\link[=render_docx]{render_docx()}} for all specs. Accepts either:
+by the internal renderer for all specs. Accepts either:
 \\itemize{
 \\item A predefined bundled template name (e.g. \code{"Navy_Pro"}).
 \\item A file path (absolute or relative) to an external template JSON file.
 }
 If \code{NULL} (default), templates are resolved per-spec from each spec's
-\code{docTemplate} value via \code{\link[=render_docx]{render_docx()}} (allowing mixed templates in
+\code{docTemplate} value (allowing mixed templates in
 multi-spec reports). If a provided name/path cannot be resolved,
 a warning is emitted and \verb{CRO Example_default} is used.}
 
 \item{font_dirs}{Optional character vector of additional directories to
-search for fonts when rendering via \code{\link[=render_docx]{render_docx()}}.}
+search for fonts during rendering.}
 
 \item{fallback_font}{Optional character string. Path to a fallback font file
-used by \code{\link[=render_docx]{render_docx()}}. If \code{NULL}, the package default is used.}
+used by the renderer. If \code{NULL}, the package default is used.}
 
-\item{verbose}{Logical. If \code{TRUE}, \code{\link[=render_docx]{render_docx()}} prints progress messages.}
+\item{verbose}{Logical. If \code{TRUE}, prints renderer progress messages.}
 }
 \value{
 Invisibly returns the full path to the generated \code{.docx} file.
 }
 \description{
-Convenience wrapper around \code{\link[=save_report]{save_report()}} and \code{\link[=render_docx]{render_docx()}} that saves a
+Convenience wrapper around \code{\link[=save_report]{save_report()}} and the internal DOCX renderer that saves a
 \code{TFL_report} object to JSON (plus any required data/figure files) and
 immediately renders it to a DOCX file in a single call.
 }
@@ -113,6 +113,6 @@ write_doc(
 }
 }
 \seealso{
-\code{\link[=create_report]{create_report()}}, \code{\link[=save_report]{save_report()}}, \code{\link[=render_docx]{render_docx()}},
+\code{\link[=create_report]{create_report()}}, \code{\link[=save_report]{save_report()}}, \code{\link[=replay_report]{replay_report()}},
 \code{\link[=tfl_set_options]{tfl_set_options()}}, \code{\link[=tfl_get_option]{tfl_get_option()}}
 }

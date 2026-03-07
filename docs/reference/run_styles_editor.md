@@ -5,7 +5,7 @@ styles templates that conform to `styles_schema_v2.json`. Templates can
 be loaded from the bundled `inst/templates/` directory or uploaded from
 disk, then edited and downloaded as JSON for use with
 [`set_page_style()`](https://example.com/reference/set_page_style.md) /
-[`render_docx()`](https://example.com/reference/render_docx.md).
+[`write_doc()`](https://example.com/reference/write_doc.md).
 
 ## Usage
 

@@ -62,13 +62,9 @@ spec <- spec |>
   compute_cols(hp > 200, 
                c_style(hp, styleRef = "highlight_red"))
 
-# 5. Create report, save, and render to DOCX
+# 5. Create report and render to DOCX
 report <- create_report(spec)
-saved <- save_report(report, docFileName = "mtcars_report.docx")
-render_docx(
-  spec_json = file.path(saved$metaPath, saved$spec_file),
-  output_path = "output/mtcars_report.docx"
-)
+write_doc(report, name = "mtcars_report", outDir = "output", metaPath = tempdir())
 ```
 
 ---
@@ -206,7 +202,8 @@ Combine specifications into reports and render to DOCX:
 |----------|---------|---------|
 | `create_report(...)` | Combine specs/reports into single report | `TFL_report` |
 | `save_report(report, docFileName, outDir, metaPath, prettify)` | Serialize and export report | List with `spec_file`, `datetime`, `metaPath` |
-| `render_docx(spec_json, template_json, output_path, font_dirs, fallback_font, verbose)` | Render to styled DOCX document | Output file path (invisibly) |
+| `write_doc(report, name, outDir, metaPath, overrideTemplate, font_dirs, fallback_font, verbose)` | Save and render DOCX in one call | Output file path (invisibly) |
+| `replay_report(spec_json, meta_dir, output_path, template_json, verbose)` | Re-render DOCX from stored JSON metadata | Output file path (invisibly) |
 
 **create_report() Features**:
 
@@ -225,11 +222,13 @@ Combine specifications into reports and render to DOCX:
 - `metaPath`: Directory for metadata/data files (defaults to `tempdir()`)
 - `prettify`: If `TRUE`, formats JSON output for debugging
 
-**render_docx() Parameters**:
+**write_doc() Parameters**:
 
-- `spec_json`: Path to spec JSON file from `save_report()`
-- `template_json`: Optional global template override; if omitted, templates are resolved per spec from each spec's `docTemplate` (fallback: bundled `CRO Example_default`)
-- `output_path`: Output .docx file path
+- `report`: A `TFL_report` object from `create_report()`
+- `name`: Base output filename (without `.docx`)
+- `outDir`: Output directory for the final DOCX
+- `metaPath`: Directory for metadata/data files
+- `overrideTemplate`: Optional global template override (name or JSON path)
 - `font_dirs`: Additional font search directories (optional)
 - `fallback_font`: Custom fallback font path (optional)
 - `verbose`: Print progress messages (default: `FALSE`)
@@ -279,7 +278,7 @@ Configure global defaults:
    └─> save_report() — JSON spec + data files to disk
 
 5. Rendering
-   └─> render_docx() — C++ engine produces styled .docx
+  └─> write_doc() / replay_report() — C++ engine produces styled .docx
        └─> HarfBuzz text shaping → deterministic pagination
        └─> OOXML emission → valid .docx (ZIP) package
 ```
@@ -362,14 +361,8 @@ spec <- create_table(mtcars[1:10, ]) |>
 # 2. Assemble report
 report <- create_report(spec)
 
-# 3. Save metadata + data files
-saved <- save_report(report, docFileName = "demo.docx")
-
-# 4. Render to DOCX
-render_docx(
-  spec_json = file.path(saved$metaPath, saved$spec_file),
-  output_path = "output/demo.docx"
-)
+# 3. Save + render to DOCX
+write_doc(report, name = "demo", outDir = "output", metaPath = tempdir())
 ```
 
 ---
@@ -434,7 +427,7 @@ CRO Example Solutions
 **ksTFL** integrates metadata generation and document rendering in a single R package:
 
 - The **R layer** generates validated JSON specifications describing document structure, content, column formats, and styles
-- The **C++ rendering engine** (built-in, accessed via `render_docx()`) consumes these specifications and produces styled DOCX documents with deterministic pagination
+- The **C++ rendering engine** (built-in, used by `write_doc()` / `replay_report()`) consumes these specifications and produces styled DOCX documents with deterministic pagination
 
 This architecture enables:
 - Metadata generation (R) and rendering (C++) are independently optimizable

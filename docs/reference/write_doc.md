@@ -1,10 +1,10 @@
 # Save and Render a TFL Report to DOCX
 
 Convenience wrapper around
-[`save_report()`](https://example.com/reference/save_report.md) and
-[`render_docx()`](https://example.com/reference/render_docx.md) that
-saves a `TFL_report` object to JSON (plus any required data/figure
-files) and immediately renders it to a DOCX file in a single call.
+[`save_report()`](https://example.com/reference/save_report.md) and the
+internal DOCX renderer that saves a `TFL_report` object to JSON (plus
+any required data/figure files) and immediately renders it to a DOCX
+file in a single call.
 
 ## Usage
 
@@ -67,37 +67,28 @@ write_doc(
 
 - overrideTemplate:
 
-  Optional character string. Global template override used by
-  [`render_docx()`](https://example.com/reference/render_docx.md) for
-  all specs. Accepts either:
-
-  - A file path (absolute or relative) to an external template JSON
-    file.
-
-  If `NULL` (default), templates are resolved per-spec from each spec's
-  `docTemplate` value via
-  [`render_docx()`](https://example.com/reference/render_docx.md)
-  (allowing mixed templates in multi-spec reports). If a provided
-  name/path cannot be resolved, a warning is emitted and
+  Optional character string. Global template override used by the
+  internal renderer for all specs. Accepts either: \itemize \item A
+  predefined bundled template name (e.g. `"Navy_Pro"`). \item A file
+  path (absolute or relative) to an external template JSON file. If
+  `NULL` (default), templates are resolved per-spec from each spec's
+  `docTemplate` value (allowing mixed templates in multi-spec reports).
+  If a provided name/path cannot be resolved, a warning is emitted and
   `CRO Example_default` is used.
 
 - font_dirs:
 
   Optional character vector of additional directories to search for
-  fonts when rendering via
-  [`render_docx()`](https://example.com/reference/render_docx.md).
+  fonts during rendering.
 
 - fallback_font:
 
-  Optional character string. Path to a fallback font file used by
-  [`render_docx()`](https://example.com/reference/render_docx.md). If
-  `NULL`, the package default is used.
+  Optional character string. Path to a fallback font file used by the
+  renderer. If `NULL`, the package default is used.
 
 - verbose:
 
-  Logical. If `TRUE`,
-  [`render_docx()`](https://example.com/reference/render_docx.md) prints
-  progress messages.
+  Logical. If `TRUE`, prints renderer progress messages.
 
 ## Value
 
@@ -113,7 +104,7 @@ public, documented API function named `write_doc()`.
 
 [`create_report()`](https://example.com/reference/create_report.md),
 [`save_report()`](https://example.com/reference/save_report.md),
-[`render_docx()`](https://example.com/reference/render_docx.md),
+[`replay_report()`](https://example.com/reference/replay_report.md),
 [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md),
 [`tfl_get_option()`](https://example.com/reference/tfl_get_option.md)
 

@@ -71,7 +71,6 @@ export(
   # Report creation and serialization
   create_report,
   save_report,
-  render_docx,
   write_doc,
 
   # Meta folder management

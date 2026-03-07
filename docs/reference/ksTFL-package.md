@@ -27,8 +27,8 @@ Render to DOCX with
 [`write_doc()`](https://example.com/reference/write_doc.md)
 (recommended). Advanced users can split this into
 [`save_report()`](https://example.com/reference/save_report.md) +
-[`render_docx()`](https://example.com/reference/render_docx.md) for JSON
-inspection.
+[`replay_report()`](https://example.com/reference/replay_report.md) for
+JSON inspection.
 
 To get started, see the vignettes:
 

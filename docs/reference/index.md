@@ -77,8 +77,6 @@
   page margins
 - [`p_page()`](https://example.com/reference/p_page.md) : Define page
   settings
-- [`render_docx()`](https://example.com/reference/render_docx.md) :
-  Render a DOCX Document from TFL Report
 - [`replay_report()`](https://example.com/reference/replay_report.md) :
   Re-render a DOCX from Stored JSON
 - [`run_styles_editor()`](https://example.com/reference/run_styles_editor.md)

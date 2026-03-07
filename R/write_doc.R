@@ -4,7 +4,7 @@
 
 #' Save and Render a TFL Report to DOCX
 #'
-#' Convenience wrapper around [save_report()] and [render_docx()] that saves a
+#' Convenience wrapper around [save_report()] and the internal DOCX renderer that saves a
 #' `TFL_report` object to JSON (plus any required data/figure files) and
 #' immediately renders it to a DOCX file in a single call.
 #'
@@ -28,24 +28,24 @@
 #' @param tocTitle Character(1). Heading placed above the TOC field on the TOC
 #'   page. Defaults to `tfl_get_option("tocTitle")`.
 #' @param overrideTemplate Optional character string. Global template override used
-#'   by [render_docx()] for all specs. Accepts either:
+#'   by the internal renderer for all specs. Accepts either:
 #'   \\itemize{
 #'     \\item A predefined bundled template name (e.g. `"Navy_Pro"`).
 #'     \\item A file path (absolute or relative) to an external template JSON file.
 #'   }
 #'   If `NULL` (default), templates are resolved per-spec from each spec's
-#'   `docTemplate` value via [render_docx()] (allowing mixed templates in
+#'   `docTemplate` value (allowing mixed templates in
 #'   multi-spec reports). If a provided name/path cannot be resolved,
 #'   a warning is emitted and `CRO Example_default` is used.
 #' @param font_dirs Optional character vector of additional directories to
-#'   search for fonts when rendering via [render_docx()].
+#'   search for fonts during rendering.
 #' @param fallback_font Optional character string. Path to a fallback font file
-#'   used by [render_docx()]. If `NULL`, the package default is used.
-#' @param verbose Logical. If `TRUE`, [render_docx()] prints progress messages.
+#'   used by the renderer. If `NULL`, the package default is used.
+#' @param verbose Logical. If `TRUE`, prints renderer progress messages.
 #'
 #' @return Invisibly returns the full path to the generated `.docx` file.
 #'
-#' @seealso [create_report()], [save_report()], [render_docx()],
+#' @seealso [create_report()], [save_report()], [replay_report()],
 #'   [tfl_set_options()], [tfl_get_option()]
 #'
 #' @export
