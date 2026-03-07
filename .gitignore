@@ -23,6 +23,7 @@ src/*.a
 *.swp
 *.swo
 *~
+.serena/
 
 # OS
 .DS_Store
