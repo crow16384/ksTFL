@@ -1,5 +1,7 @@
 # Column Width Management in ksTFL
 
+![ksTFL logo](figures/ksTFL-logo.svg)
+
 ## Overview
 
 This vignette explains how column widths are managed in ksTFL, including

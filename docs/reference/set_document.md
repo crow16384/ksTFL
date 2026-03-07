@@ -72,6 +72,26 @@ set_document(
 
   - Full path to a custom styles JSON file.
 
+- figureWidth:
+
+  Character or `NULL`. Figure width (for example `"6in"`, `"15cm"`, or
+  `"70%"`). Applied when figure scale mode is fixed.
+
+- figureHeight:
+
+  Character or `NULL`. Figure height (for example `"4in"`, `"10cm"`, or
+  `"50%"`). Applied when figure scale mode is fixed.
+
+- figureDevice:
+
+  Character or `NULL`. Default output format for ggplot-based figures.
+  One of `"png"`, `"jpeg"`, `"jpg"`, or `"svg"`.
+
+- figureScaleMode:
+
+  Character or `NULL`. Figure sizing mode. One of `"fixed"`,
+  `"fitWidth"`, or `"fitPage"`.
+
 ## Value
 
 Updated spec object

@@ -1,5 +1,7 @@
 # Reporting Examples — ksTFL
 
+![ksTFL logo](figures/ksTFL-logo.svg)
+
 This vignette presents a realistic progression of reporting examples —
 from minimal tables/listings/figures/text to a full clinical-style table
 with multi-level headers, spanning stub columns, multi-line

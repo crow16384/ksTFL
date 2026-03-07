@@ -2,6 +2,8 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
+<img src="man/figures/ksTFL-logo.svg" alt="ksTFL logo" width="700" />
+
 ## Overview
 
 **ksTFL** is a professional R package for generating structured metadata specifications for clinical Tables, Figures, and Listings (TFLs) in pharmaceutical and clinical research. The package employs a declarative, specification-first architecture to describe document structure, data relationships, styling, and content formatting. Generated specifications are validated against a JSON schema and rendered into submission-quality styled DOCX documents via a built-in C++20 rendering engine with deterministic HarfBuzz-based text measurement.

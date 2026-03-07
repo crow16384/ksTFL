@@ -68,10 +68,14 @@ write_doc(
 - overrideTemplate:
 
   Optional character string. Global template override used by the
-  internal renderer for all specs. Accepts either: \itemize \item A
-  predefined bundled template name (e.g. `"Navy_Pro"`). \item A file
-  path (absolute or relative) to an external template JSON file. If
-  `NULL` (default), templates are resolved per-spec from each spec's
+  internal renderer for all specs. Accepts either:
+
+  - A predefined bundled template name (e.g. `"Navy_Pro"`).
+
+  - A file path (absolute or relative) to an external template JSON
+    file.
+
+  If `NULL` (default), templates are resolved per-spec from each spec's
   `docTemplate` value (allowing mixed templates in multi-spec reports).
   If a provided name/path cannot be resolved, a warning is emitted and
   `CRO Example_default` is used.

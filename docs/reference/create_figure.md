@@ -30,22 +30,6 @@ create_figure(plot_or_path, dpi = 300L)
   Integer. Resolution (dots per inch) when `plot_or_path` is a ggplot2
   object. Ignored for file paths. Default: `300`.
 
-- width:
-
-  Numeric. Plot width in inches when `plot_or_path` is a ggplot2 object.
-  Ignored for file paths. Default: `6`.
-
-- height:
-
-  Numeric. Plot height in inches when `plot_or_path` is a ggplot2
-  object. Ignored for file paths. Default: `4`.
-
-- device:
-
-  Character. Output format when `plot_or_path` is a ggplot2 object. One
-  of `"svg"` (default), `"png"`, `"jpeg"`, `"jpg"`. Ignored for file
-  paths.
-
 ## Value
 
 A `TFL_spec` object with `docType = "Figure"`.

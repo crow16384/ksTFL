@@ -24,6 +24,8 @@ knitr::opts_chunk$set(
 options(pkgdown.internet = FALSE)
 ```
 
+<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700" />
+
 ## Overview
 
 This vignette explains the powerful conditional row styling system in ksTFL, 

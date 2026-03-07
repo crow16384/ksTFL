@@ -19,6 +19,8 @@ knitr::opts_chunk$set(
 options(pkgdown.internet = FALSE)
 ```
 
+<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700" />
+
 This vignette presents a realistic progression of reporting examples — from minimal tables/listings/figures/text to a full clinical-style table with multi-level headers, spanning stub columns, multi-line titles/footnotes, reusable styles, and session defaults. All examples use exported ksTFL helpers only; set `eval=TRUE` locally to run the R chunks.
 
 ## Category and scope

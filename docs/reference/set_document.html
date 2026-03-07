@@ -15,7 +15,7 @@ docPrefix is not an argument of set_document() in the current API."></head><body
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,6 +108,26 @@ Use NULL to disable. <code>0pt</code> is treated as no spacer row.</p></dd>
 <dd><p>Character. Template to use for rendering. Accepts either:</p><ul><li><p>Name of a bundled template (see <code><a href="tfl_list_templates.html">tfl_list_templates()</a></code>).</p></li>
 <li><p>Full path to a custom styles JSON file.</p></li>
 </ul></dd>
+
+
+<dt id="arg-figurewidth">figureWidth<a class="anchor" aria-label="anchor" href="#arg-figurewidth"></a></dt>
+<dd><p>Character or <code>NULL</code>. Figure width (for example <code>"6in"</code>,
+<code>"15cm"</code>, or <code>"70%"</code>). Applied when figure scale mode is fixed.</p></dd>
+
+
+<dt id="arg-figureheight">figureHeight<a class="anchor" aria-label="anchor" href="#arg-figureheight"></a></dt>
+<dd><p>Character or <code>NULL</code>. Figure height (for example <code>"4in"</code>,
+<code>"10cm"</code>, or <code>"50%"</code>). Applied when figure scale mode is fixed.</p></dd>
+
+
+<dt id="arg-figuredevice">figureDevice<a class="anchor" aria-label="anchor" href="#arg-figuredevice"></a></dt>
+<dd><p>Character or <code>NULL</code>. Default output format for ggplot-based
+figures. One of <code>"png"</code>, <code>"jpeg"</code>, <code>"jpg"</code>, or <code>"svg"</code>.</p></dd>
+
+
+<dt id="arg-figurescalemode">figureScaleMode<a class="anchor" aria-label="anchor" href="#arg-figurescalemode"></a></dt>
+<dd><p>Character or <code>NULL</code>. Figure sizing mode.
+One of <code>"fixed"</code>, <code>"fitWidth"</code>, or <code>"fitPage"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

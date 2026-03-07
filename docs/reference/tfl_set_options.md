@@ -85,6 +85,26 @@ tfl_set_options(
   Character; default representation for missing values (e.g. "NA", ".",
   "—").
 
+- figureWidth:
+
+  Character; default figure width (for example `"6in"`, `"15cm"`, or
+  `"70%"`) when figure scale mode is `"fixed"`.
+
+- figureHeight:
+
+  Character; default figure height (for example `"4in"`, `"10cm"`, or
+  `"50%"`) when figure scale mode is `"fixed"`.
+
+- figureDevice:
+
+  Character; default output device for ggplot-based figures. One of
+  `"png"`, `"jpeg"`, `"jpg"`, or `"svg"`.
+
+- figureScaleMode:
+
+  Character; default figure scaling behavior. One of `"fixed"`,
+  `"fitWidth"`, or `"fitPage"`.
+
 - autoColWidth:
 
   Logical; enable automatic column width recalculation when user sets

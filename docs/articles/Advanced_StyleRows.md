@@ -1,5 +1,7 @@
 # Advanced StyleRows and Conditional Formatting
 
+![ksTFL logo](figures/ksTFL-logo.svg)
+
 ## Overview
 
 This vignette explains the powerful conditional row styling system in

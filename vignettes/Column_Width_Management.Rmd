@@ -24,6 +24,8 @@ knitr::opts_chunk$set(
 options(pkgdown.internet = FALSE)
 ```
 
+<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700" />
+
 ## Overview
 
 This vignette explains how column widths are managed in ksTFL, including the 
