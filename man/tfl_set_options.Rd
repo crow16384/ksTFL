@@ -48,6 +48,18 @@ Default \code{"repeated"}.}
 
 \item{missings}{Character; default representation for missing values (e.g. "NA", ".", "---").}
 
+\item{figureWidth}{Character; default figure width (for example \code{"6in"}, \code{"15cm"},
+or \code{"70\%"}) when figure scale mode is \code{"fixed"}.}
+
+\item{figureHeight}{Character; default figure height (for example \code{"4in"}, \code{"10cm"},
+or \code{"50\%"}) when figure scale mode is \code{"fixed"}.}
+
+\item{figureDevice}{Character; default output device for ggplot-based figures.
+One of \code{"png"}, \code{"jpeg"}, \code{"jpg"}, or \code{"svg"}.}
+
+\item{figureScaleMode}{Character; default figure scaling behavior.
+One of \code{"fixed"}, \code{"fitWidth"}, or \code{"fitPage"}.}
+
 \item{autoColWidth}{Logical; enable automatic column width recalculation when user sets \code{colWidth} via \code{define_cols()}.
 Default TRUE. When TRUE, locked columns maintain exact width while unlocked columns normalize to fill remaining space.
 Set FALSE to disable auto-recalculation and manage widths manually.}

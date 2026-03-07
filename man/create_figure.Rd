@@ -18,16 +18,6 @@ rendered to a temporary file via \code{ggplot2::ggsave()}. Use \code{width},
 
 \item{dpi}{Integer. Resolution (dots per inch) when \code{plot_or_path} is a
 ggplot2 object. Ignored for file paths. Default: \code{300}.}
-
-\item{width}{Numeric. Plot width in inches when \code{plot_or_path} is a ggplot2
-object. Ignored for file paths. Default: \code{6}.}
-
-\item{height}{Numeric. Plot height in inches when \code{plot_or_path} is a
-ggplot2 object. Ignored for file paths. Default: \code{4}.}
-
-\item{device}{Character. Output format when \code{plot_or_path} is a ggplot2
-object. One of \code{"svg"} (default), \code{"png"}, \code{"jpeg"}, \code{"jpg"}.
-Ignored for file paths.}
 }
 \value{
 A \code{TFL_spec} object with \code{docType = "Figure"}.

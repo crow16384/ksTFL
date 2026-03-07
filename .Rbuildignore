@@ -26,3 +26,4 @@
 ^\.Rprofile$
 ^_pkgdown\.yml$
 ^pkgdown$
+^compile_commands\.json$

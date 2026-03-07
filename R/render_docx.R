@@ -21,6 +21,16 @@
         "templates", paste0(doc_template, ".json"),
         package = "ksTFL"
       )
+      if (!nzchar(resolved)) {
+        # Keep backward compatibility with template names containing spaces
+        sanitized <- gsub(" ", "_", doc_template, fixed = TRUE)
+        if (!identical(sanitized, doc_template)) {
+          resolved <- system.file(
+            "templates", paste0(sanitized, ".json"),
+            package = "ksTFL"
+          )
+        }
+      }
       if (nzchar(resolved)) {
         return(resolved)
       }
@@ -33,7 +43,7 @@
     }
   }
 
-  system.file("templates", "CRO Example_default.json",
+  system.file("templates", "CRO_Example_default.json",
               package = "ksTFL", mustWork = TRUE)
 }
 

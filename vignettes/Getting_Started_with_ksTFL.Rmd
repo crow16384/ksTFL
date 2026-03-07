@@ -714,7 +714,7 @@ You now understand ksTFL's core workflow. Next steps:
 - **Function reference**: `?ksTFL` (package overview) or `?create_table`, `?define_cols`, etc.
 - **Reporting Examples**: [Detailed working examples with explanations](Reporting_Examples_with_ksTFL.Rmd)
 - **Styling Guide**: [Comprehensive style reference](Styling_Guide_with_ksTFL.Rmd)
-- **GitHub**: [ksTFL repository](https://github.com/...)
+- **GitHub**: [ksTFL repository](https://example.com)
 
 ---
 
