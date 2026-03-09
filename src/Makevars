@@ -4,10 +4,19 @@
 CXX_STD = CXX20
 
 ## nlohmann/json is header-only; bundled in src/vendor/
-PKG_CPPFLAGS = -I../inst/include -I./vendor \
-    $(shell pkg-config --cflags harfbuzz freetype2 minizip 2>/dev/null)
+HB_CFLAGS = $(shell pkg-config --cflags harfbuzz 2>/dev/null)
+FT_CFLAGS = $(shell pkg-config --cflags freetype2 2>/dev/null)
+MZ_CFLAGS = $(shell pkg-config --cflags minizip 2>/dev/null || pkg-config --cflags minizip-ng 2>/dev/null)
 
-PKG_LIBS = $(shell pkg-config --libs harfbuzz freetype2 minizip 2>/dev/null) \
+HB_LIBS = $(shell pkg-config --libs harfbuzz 2>/dev/null)
+FT_LIBS = $(shell pkg-config --libs freetype2 2>/dev/null)
+MZ_LIBS = $(shell pkg-config --libs minizip 2>/dev/null || pkg-config --libs minizip-ng 2>/dev/null)
+
+PKG_CPPFLAGS = -I../inst/include -I./vendor \
+    $(HB_CFLAGS) $(FT_CFLAGS) $(MZ_CFLAGS) \
+    -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/minizip
+
+PKG_LIBS = $(HB_LIBS) $(FT_LIBS) $(MZ_LIBS) -lharfbuzz -lfreetype -lminizip -lz \
     $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 ## Source files - renderer core + Rcpp bindings + C++ tests
