@@ -102,9 +102,6 @@ dev.off()
 
 ## 1 — Simple minimal table
 
-Goal: show a single-table workflow from data to a `TFL_spec` using only
-exported helpers.
-
 ``` r
 spec_min_table <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 spec_min_table <- add_title(spec_min_table, "Demographics (minimal)")
@@ -128,8 +125,6 @@ columns.
 
 ## 2 — Simple minimal figure
 
-Goal: create a figure spec from a local image file and add a title.
-
 ``` r
 spec_min_fig <- create_figure(plot_file)
 spec_min_fig <- add_title(spec_min_fig, "Example: Age vs SBP")
@@ -147,8 +142,6 @@ write_doc(rpt_min_fig, name = "fig_min", outDir = "./out", metaPath = tempdir())
 
 ## 3 — Simple minimal text (narrative)
 
-Goal: create a text-only spec for narrative content.
-
 ``` r
 spec_min_text <- create_text()
 spec_min_text <- add_body_text(spec_min_text, "This narrative describes the study population and analysis approach.")
@@ -165,10 +158,6 @@ write_doc(rpt_min_text, name = "txt_min", outDir = "./out", metaPath = tempdir()
 ------------------------------------------------------------------------
 
 ## 4 — Define columns: single, batch, and parameter recycling
-
-Goal: demonstrate
-[`define_cols()`](https://example.com/reference/define_cols.md) for both
-single-column and batch updates with flexible parameter mapping.
 
 ### Why `define_cols()`?
 
@@ -280,9 +269,6 @@ Then apply special behavior flags (ID, deduplicate, etc.)
 
 ## 5 — Set document properties (hasData, content width, placement)
 
-Goal: configure document-level properties like data availability flag,
-content width, and placement.
-
 **Key function**:
 [`set_document()`](https://example.com/reference/set_document.md) -
 `glueNumType`: Whether to combine type and number with first title
@@ -326,8 +312,6 @@ for complete document configuration
 
 ## 6 — Combine table/figure/text into a single report
 
-Goal: assemble mixed specs into a `TFL_report` and inspect its summary.
-
 ``` r
 report_simple <- create_report(spec_min_table, spec_min_fig, spec_min_text)
 print(report_simple)
@@ -346,9 +330,6 @@ preserves input order and consolidates styles and ids.
 ------------------------------------------------------------------------
 
 ## 7 — Column widths: automatic calculation and locking
-
-Goal: understand how column widths are automatically calculated and how
-to lock specific columns while others auto-adjust.
 
 ### How automatic column width works
 
@@ -500,9 +481,6 @@ you exceed limits:
 
 ## 8 — Table with titles, subtitles and footnotes
 
-Goal: build a clinical-style table with a title, subtitle, and footnote
-— the standard content layers for a clinical TFL.
-
 ``` r
 spec_multi <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_multi <- add_title(spec_multi, "Laboratory Results")
@@ -528,10 +506,6 @@ write_doc(rpt_multi, name = "tbl_multi", outDir = "./out", metaPath = tempdir())
 ------------------------------------------------------------------------
 
 ## 9 — Stub columns (spanning headers)
-
-Goal: demonstrate
-[`add_span_header()`](https://example.com/reference/add_span_header.md)
-to create stacked/spanning stub headers above groups of columns.
 
 ### Why spanning headers?
 
@@ -701,9 +675,6 @@ write_doc(rpt_stub, name = "tbl_stub", outDir = "./out", metaPath = tempdir())
 
 ## 10 — Styles and `f_combine()` for combined style references
 
-Goal: create reusable named styles and combine them flexibly using
-[`f_combine()`](https://example.com/reference/f_combine.md).
-
 ### Why named styles?
 
 Styles are foundational in professional reporting: - Define once,
@@ -820,9 +791,6 @@ write_doc(rpt_styles, name = "tbl_styles", outDir = "./out", metaPath = tempdir(
 ------------------------------------------------------------------------
 
 ## 11 — Conditional row actions with `compute_cols()`
-
-Goal: demonstrate conditional styling, merging, and row insertion using
-[`compute_cols()`](https://example.com/reference/compute_cols.md).
 
 **Overview**: While
 [`define_cols()`](https://example.com/reference/define_cols.md) sets
@@ -964,9 +932,6 @@ row during report assembly; style consolidation happens automatically
 
 ## 12 — Render to DOCX with `write_doc()`
 
-Goal: show the standard end-to-end export — assembling specs into a
-report and producing a DOCX file in one call.
-
 ### What `write_doc()` does
 
 [`write_doc()`](https://example.com/reference/write_doc.md) is the
@@ -1033,9 +998,6 @@ details.
 ------------------------------------------------------------------------
 
 ## 13 — Session-wide `tfl_options`: common headers/footers and default body text
-
-Goal: set session defaults so multiple specs inherit common headers,
-footers, and default body text without repeating code.
 
 ### Why session options?
 

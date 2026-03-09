@@ -25,10 +25,9 @@ Combine specs with
 [`create_report()`](https://example.com/reference/create_report.md). (4)
 Render to DOCX with
 [`write_doc()`](https://example.com/reference/write_doc.md)
-(recommended). Advanced users can split this into
-[`save_report()`](https://example.com/reference/save_report.md) +
-[`replay_report()`](https://example.com/reference/replay_report.md) for
-JSON inspection.
+(recommended). For JSON inspection, use
+[`save_report()`](https://example.com/reference/save_report.md) and
+[`replay_report()`](https://example.com/reference/replay_report.md).
 
 To get started, see the vignettes:
 

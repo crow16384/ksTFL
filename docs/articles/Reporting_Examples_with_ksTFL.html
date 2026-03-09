@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.3.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -151,8 +151,6 @@ writing permanent files while you experiment.</li>
 <div class="section level2">
 <h2 id="simple-minimal-table">1 — Simple minimal table<a class="anchor" aria-label="anchor" href="#simple-minimal-table"></a>
 </h2>
-<p>Goal: show a single-table workflow from data to a
-<code>TFL_spec</code> using only exported helpers.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_min_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">demog_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">age</span>, <span class="va">sex</span>, <span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">spec_min_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec_min_table</span>, <span class="st">"Demographics (minimal)"</span><span class="op">)</span></span>
@@ -171,8 +169,6 @@ readable overview including docType, titles and defined columns.</p>
 <div class="section level2">
 <h2 id="simple-minimal-figure">2 — Simple minimal figure<a class="anchor" aria-label="anchor" href="#simple-minimal-figure"></a>
 </h2>
-<p>Goal: create a figure spec from a local image file and add a
-title.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_min_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">plot_file</span><span class="op">)</span></span>
 <span><span class="va">spec_min_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec_min_fig</span>, <span class="st">"Example: Age vs SBP"</span><span class="op">)</span></span>
@@ -187,7 +183,6 @@ title.</p>
 <div class="section level2">
 <h2 id="simple-minimal-text-narrative">3 — Simple minimal text (narrative)<a class="anchor" aria-label="anchor" href="#simple-minimal-text-narrative"></a>
 </h2>
-<p>Goal: create a text-only spec for narrative content.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_min_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">spec_min_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec_min_text</span>, <span class="st">"This narrative describes the study population and analysis approach."</span><span class="op">)</span></span>
@@ -202,8 +197,6 @@ title.</p>
 <div class="section level2">
 <h2 id="define-columns-single-batch-and-parameter-recycling">4 — Define columns: single, batch, and parameter recycling<a class="anchor" aria-label="anchor" href="#define-columns-single-batch-and-parameter-recycling"></a>
 </h2>
-<p>Goal: demonstrate <code><a href="../reference/define_cols.html">define_cols()</a></code> for both single-column
-and batch updates with flexible parameter mapping.</p>
 <div class="section level3">
 <h3 id="why-define_cols">Why <code>define_cols()</code>?<a class="anchor" aria-label="anchor" href="#why-define_cols"></a>
 </h3>
@@ -307,8 +300,6 @@ Then apply special behavior flags (ID, deduplicate, etc.)</p>
 <div class="section level2">
 <h2 id="set-document-properties-hasdata-content-width-placement">5 — Set document properties (hasData, content width, placement)<a class="anchor" aria-label="anchor" href="#set-document-properties-hasdata-content-width-placement"></a>
 </h2>
-<p>Goal: configure document-level properties like data availability
-flag, content width, and placement.</p>
 <p><strong>Key function</strong>: <code><a href="../reference/set_document.html">set_document()</a></code> -
 <code>glueNumType</code>: Whether to combine type and number with first
 title (default TRUE) - <code>hasData</code>: Whether document contains
@@ -345,8 +336,6 @@ configuration</p>
 <div class="section level2">
 <h2 id="combine-tablefiguretext-into-a-single-report">6 — Combine table/figure/text into a single report<a class="anchor" aria-label="anchor" href="#combine-tablefiguretext-into-a-single-report"></a>
 </h2>
-<p>Goal: assemble mixed specs into a <code>TFL_report</code> and inspect
-its summary.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">report_simple</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_min_table</span>, <span class="va">spec_min_fig</span>, <span class="va">spec_min_text</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">report_simple</span><span class="op">)</span></span>
@@ -361,8 +350,6 @@ consolidates styles and ids.</p>
 <div class="section level2">
 <h2 id="column-widths-automatic-calculation-and-locking">7 — Column widths: automatic calculation and locking<a class="anchor" aria-label="anchor" href="#column-widths-automatic-calculation-and-locking"></a>
 </h2>
-<p>Goal: understand how column widths are automatically calculated and
-how to lock specific columns while others auto-adjust.</p>
 <div class="section level3">
 <h3 id="how-automatic-column-width-works">How automatic column width works<a class="anchor" aria-label="anchor" href="#how-automatic-column-width-works"></a>
 </h3>
@@ -514,8 +501,6 @@ allowed width when you exceed limits:</p>
 <div class="section level2">
 <h2 id="table-with-titles-subtitles-and-footnotes">8 — Table with titles, subtitles and footnotes<a class="anchor" aria-label="anchor" href="#table-with-titles-subtitles-and-footnotes"></a>
 </h2>
-<p>Goal: build a clinical-style table with a title, subtitle, and
-footnote — the standard content layers for a clinical TFL.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">labs_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">ALT</span>, <span class="va">AST</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">spec_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec_multi</span>, <span class="st">"Laboratory Results"</span><span class="op">)</span></span>
@@ -539,8 +524,6 @@ footnote — the standard content layers for a clinical TFL.</p>
 <div class="section level2">
 <h2 id="stub-columns-spanning-headers">9 — Stub columns (spanning headers)<a class="anchor" aria-label="anchor" href="#stub-columns-spanning-headers"></a>
 </h2>
-<p>Goal: demonstrate <code><a href="../reference/add_span_header.html">add_span_header()</a></code> to create
-stacked/spanning stub headers above groups of columns.</p>
 <div class="section level3">
 <h3 id="why-spanning-headers">Why spanning headers?<a class="anchor" aria-label="anchor" href="#why-spanning-headers"></a>
 </h3>
@@ -705,8 +688,6 @@ Styles must be defined before referencing them in
 <h2 id="styles-and-f_combine-for-combined-style-references">10 — Styles and <code>f_combine()</code> for combined style
 references<a class="anchor" aria-label="anchor" href="#styles-and-f_combine-for-combined-style-references"></a>
 </h2>
-<p>Goal: create reusable named styles and combine them flexibly using
-<code><a href="../reference/f_combine.html">f_combine()</a></code>.</p>
 <div class="section level3">
 <h3 id="why-named-styles">Why named styles?<a class="anchor" aria-label="anchor" href="#why-named-styles"></a>
 </h3>
@@ -818,8 +799,6 @@ different style combinations, provide a vector matching the column count
 <div class="section level2">
 <h2 id="conditional-row-actions-with-compute_cols">11 — Conditional row actions with <code>compute_cols()</code><a class="anchor" aria-label="anchor" href="#conditional-row-actions-with-compute_cols"></a>
 </h2>
-<p>Goal: demonstrate conditional styling, merging, and row insertion
-using <code><a href="../reference/compute_cols.html">compute_cols()</a></code>.</p>
 <p><strong>Overview</strong>: While <code><a href="../reference/define_cols.html">define_cols()</a></code> sets
 properties globally for all rows, <code><a href="../reference/compute_cols.html">compute_cols()</a></code> applies
 <strong>conditional actions</strong> to specific rows matching a
@@ -951,8 +930,6 @@ report assembly; style consolidation happens automatically</p>
 <div class="section level2">
 <h2 id="render-to-docx-with-write_doc">12 — Render to DOCX with <code>write_doc()</code><a class="anchor" aria-label="anchor" href="#render-to-docx-with-write_doc"></a>
 </h2>
-<p>Goal: show the standard end-to-end export — assembling specs into a
-report and producing a DOCX file in one call.</p>
 <div class="section level3">
 <h3 id="what-write_doc-does">What <code>write_doc()</code> does<a class="anchor" aria-label="anchor" href="#what-write_doc-does"></a>
 </h3>
@@ -1024,8 +1001,6 @@ into <code><a href="../reference/save_report.html">save_report()</a></code> + <c
 <h2 id="session-wide-tfl_options-common-headersfooters-and-default-body-text">13 — Session-wide <code>tfl_options</code>: common headers/footers
 and default body text<a class="anchor" aria-label="anchor" href="#session-wide-tfl_options-common-headersfooters-and-default-body-text"></a>
 </h2>
-<p>Goal: set session defaults so multiple specs inherit common headers,
-footers, and default body text without repeating code.</p>
 <div class="section level3">
 <h3 id="why-session-options">Why session options?<a class="anchor" aria-label="anchor" href="#why-session-options"></a>
 </h3>

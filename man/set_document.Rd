@@ -45,18 +45,6 @@ Use NULL to disable. \verb{0pt} is treated as no spacer row.}
 \item Name of a bundled template (see \code{tfl_list_templates()}).
 \item Full path to a custom styles JSON file.
 }}
-
-\item{figureWidth}{Character or \code{NULL}. Figure width (for example \code{"6in"},
-\code{"15cm"}, or \code{"70\%"}). Applied when figure scale mode is fixed.}
-
-\item{figureHeight}{Character or \code{NULL}. Figure height (for example \code{"4in"},
-\code{"10cm"}, or \code{"50\%"}). Applied when figure scale mode is fixed.}
-
-\item{figureDevice}{Character or \code{NULL}. Default output format for ggplot-based
-figures. One of \code{"png"}, \code{"jpeg"}, \code{"jpg"}, or \code{"svg"}.}
-
-\item{figureScaleMode}{Character or \code{NULL}. Figure sizing mode.
-One of \code{"fixed"}, \code{"fitWidth"}, or \code{"fitPage"}.}
 }
 \value{
 Updated spec object

@@ -43,9 +43,9 @@ page. Defaults to \code{tfl_get_option("tocTitle")}.}
 
 \item{overrideTemplate}{Optional character string. Global template override used
 by the internal renderer for all specs. Accepts either:
-\itemize{
-\item A predefined bundled template name (e.g. \code{"Navy_Pro"}).
-\item A file path (absolute or relative) to an external template JSON file.
+\\itemize{
+\\item A predefined bundled template name (e.g. \code{"Navy_Pro"}).
+\\item A file path (absolute or relative) to an external template JSON file.
 }
 If \code{NULL} (default), templates are resolved per-spec from each spec's
 \code{docTemplate} value (allowing mixed templates in

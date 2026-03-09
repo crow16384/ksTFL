@@ -17,8 +17,8 @@ options. Combine specs with \code{create_report()}, and render to DOCX with
 \code{create_figure()}, or \code{create_text()}. (2) Add content and styling
 (e.g. \code{add_title()}, \code{define_cols()}, \code{add_style()},
 \code{set_document()}). (3) Combine specs with \code{create_report()}. (4)
-Render to DOCX with \code{write_doc()} (recommended). Advanced users can split
-this into \code{save_report()} + \code{replay_report()} for JSON inspection.
+Render to DOCX with \code{write_doc()} (recommended). For JSON inspection,
+use \code{save_report()} and \code{replay_report()}.
 
 To get started, see the vignettes:
 \itemize{
