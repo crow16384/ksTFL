@@ -1,38 +1,9 @@
 {
   "mcpServers": {
     "serena": {
-      "command": "uvx",
+      "command": "${workspaceFolder}/tools/start_serena.sh",
       "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena-mcp-server"
-      ]
-    },
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
-      "env": {
-        "CONTEXT7_API_KEY": "ctx7sk-b1fcb041-f053-40fe-bbc7-97cef8badc74"
-      }
-    }
-  }
-}
-{
-  "mcpServers": {
-    "serena": {
-      "command": "/home/meguty/.cargo/bin/uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide",
-        "--project",
-        "/home/meguty/Develop/R/ksTFL"
+        "${workspaceFolder}"
       ]
     },
     "context7": {

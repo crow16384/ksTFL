@@ -23,7 +23,14 @@ src/*.a
 *.swp
 *.swo
 *~
-.serena/
+
+# Serena: keep shareable project config in git, ignore runtime data
+.serena/*
+!.serena/project.yml
+!.serena/project.local.yml
+.serena/cache/
+.serena/memories/
+.serena/logs/
 
 # OS
 .DS_Store
