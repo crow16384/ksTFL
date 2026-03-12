@@ -463,25 +463,30 @@ Rcpp::List cpp_test_inline_parser() {
         t.check(found, "nested b+i: run has both bold_override and italic_override");
     }
 
-    // --- Line break <br/> creates new paragraph ---
+    // --- Line break <br/> creates soft break (\\n run) within one paragraph ---
     {
         auto cell = parse_inline_markup("line1<br/>line2");
-        t.check(cell.paragraphs.size() >= size_t(2), "br/: >= 2 paragraphs");
-        bool found_line1 = false, found_line2 = false;
-        for (const auto& para : cell.paragraphs) {
-            for (const auto& run : para.runs) {
-                if (run.text.find("line1") != std::string::npos) found_line1 = true;
-                if (run.text.find("line2") != std::string::npos) found_line2 = true;
-            }
+        t.check_eq(cell.paragraphs.size(), size_t(1), "br/: 1 paragraph (soft break)");
+        bool found_line1 = false, found_br = false, found_line2 = false;
+        for (const auto& run : cell.paragraphs[0].runs) {
+            if (run.text == "line1") found_line1 = true;
+            if (run.text == "\n")    found_br    = true;
+            if (run.text == "line2") found_line2 = true;
         }
         t.check(found_line1, "br/: line1 text present");
+        t.check(found_br,    "br/: \\n run present");
         t.check(found_line2, "br/: line2 text present");
     }
 
-    // --- <br> (without /) also splits ---
+    // --- <br> (without /) also creates soft break ---
     {
         auto cell = parse_inline_markup("a<br>b");
-        t.check(cell.paragraphs.size() >= size_t(2), "br no slash: >= 2 paragraphs");
+        t.check_eq(cell.paragraphs.size(), size_t(1), "br no slash: 1 paragraph");
+        bool has_br = false;
+        for (const auto& run : cell.paragraphs[0].runs) {
+            if (run.text == "\n") has_br = true;
+        }
+        t.check(has_br, "br no slash: \\n run present");
     }
 
     // --- <p> tag creates new paragraph ---
@@ -490,10 +495,15 @@ Rcpp::List cpp_test_inline_parser() {
         t.check(cell.paragraphs.size() >= size_t(2), "<p>: >= 2 paragraphs");
     }
 
-    // --- Multiple line breaks ---
+    // --- Multiple line breaks → one paragraph with multiple \\n runs ---
     {
         auto cell = parse_inline_markup("a<br/>b<br/>c");
-        t.check(cell.paragraphs.size() >= size_t(3), "multi br/: >= 3 paragraphs");
+        t.check_eq(cell.paragraphs.size(), size_t(1), "multi br/: 1 paragraph");
+        size_t br_count = 0;
+        for (const auto& run : cell.paragraphs[0].runs) {
+            if (run.text == "\n") ++br_count;
+        }
+        t.check_eq(br_count, size_t(2), "multi br/: 2 \\n runs");
     }
 
     // --- Case-insensitive tag names ---

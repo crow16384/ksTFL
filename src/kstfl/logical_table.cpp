@@ -196,7 +196,10 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                         if (it != col_id_to_idx.end() && spec.columns[it->second].is_visible) {
                             covered[it->second] = true;
                             covered_by_span[it->second] = true;
-                            has_vmerge_restart[it->second] = false;
+                            // Do NOT reset has_vmerge_restart here — a column that
+                            // started a vertical merge at a higher level must keep
+                            // its Restart lineage so that lower rows and the label
+                            // row emit Continue markers.
                             total_width = total_width + spec.columns[it->second].resolved_width;
                             min_idx = std::min(min_idx, it->second);
                             max_idx = std::max(max_idx, it->second);
@@ -229,9 +232,15 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                     cell.source_col_index = col_idx;
 
                     if (has_vmerge_restart[col_idx]) {
+                        // Column already has a Restart from a higher row —
+                        // emit an empty continuation cell.
                         cell.label = "";
                         cell.v_merge = VMergeState::Continue;
                     } else if (covered_by_span[col_idx]) {
+                        // Column was part of a horizontal span at a higher
+                        // level but is uncovered at this level.  Emit an
+                        // empty placeholder; a post-pass will promote
+                        // lower-level stubs into these gaps.
                         cell.label = "";
                     } else {
                         cell.label = spec.columns[col_idx].label;
@@ -245,6 +254,122 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                 }
             }
             grid.rows.push_back(std::move(row));
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Post-pass: promote lower-level stubs into gap cells.
+    //
+    // When a column is covered by a horizontal span at a higher level but
+    // uncovered at an intermediate level, the intermediate row has an empty
+    // placeholder cell.  If a stub at a lower level covers the same columns,
+    // we promote it: place the stub content at the first gap row and mark
+    // all rows below (up to and including the stub's original row) as
+    // vMerge::Continue so that Word merges cells vertically.
+    // -----------------------------------------------------------------------
+    for (size_t ri = 0; ri + 1 < grid.rows.size(); ++ri) {
+        for (size_t ci = 0; ci < grid.rows[ri].size(); ++ci) {
+            auto& gap = grid.rows[ri][ci];
+            // Only consider empty placeholder cells (no vMerge state).
+            if (!gap.label.empty() || gap.v_merge != VMergeState::None
+                || gap.col_span != 1) {
+                continue;
+            }
+            size_t src = gap.source_col_index;
+
+            // Look for a span cell at a lower row whose range covers src.
+            for (size_t lri = ri + 1; lri < grid.rows.size(); ++lri) {
+                for (size_t lci = 0; lci < grid.rows[lri].size(); ++lci) {
+                    auto& lower = grid.rows[lri][lci];
+                    if (lower.label.empty() || lower.col_span <= 1) continue;
+                    size_t lo = lower.source_col_index;
+                    size_t hi = lo + static_cast<size_t>(lower.col_span) - 1;
+                    if (src < lo || src > hi) continue;
+
+                    // Found a span [lo..hi] that covers src.
+                    // Verify every physical column of the span is a gap at
+                    // row ri (empty, no vMerge, col_span==1).
+                    bool all_gaps = true;
+                    std::vector<size_t> gap_indices; // cell indices in grid.rows[ri]
+                    for (size_t gi = 0; gi < grid.rows[ri].size(); ++gi) {
+                        auto& g = grid.rows[ri][gi];
+                        if (g.source_col_index >= lo && g.source_col_index <= hi) {
+                            if (!g.label.empty() || g.v_merge != VMergeState::None
+                                || g.col_span != 1) {
+                                all_gaps = false;
+                                break;
+                            }
+                            gap_indices.push_back(gi);
+                        }
+                    }
+                    if (!all_gaps) break;
+
+                    // Promote: replace the first gap cell with the span
+                    // content and remove the remaining gap cells covered
+                    // by the span.
+                    size_t first_gi = gap_indices.front();
+                    auto& dest = grid.rows[ri][first_gi];
+                    dest.label = lower.label;
+                    dest.col_span = lower.col_span;
+                    dest.width = lower.width;
+                    dest.style_ref = lower.style_ref;
+                    dest.source_col_index = lower.source_col_index;
+                    // The promoted cell always needs vMerge::Restart
+                    // because the original position (and any intermediate
+                    // rows) will be marked as Continue below.
+                    dest.v_merge = VMergeState::Restart;
+
+                    // Remove extra gap cells that are now covered by the
+                    // promoted span (iterate in reverse to keep indices
+                    // stable).
+                    for (size_t k = gap_indices.size() - 1; k >= 1; --k) {
+                        grid.rows[ri].erase(
+                            grid.rows[ri].begin()
+                            + static_cast<std::ptrdiff_t>(gap_indices[k]));
+                    }
+
+                    // Mark the original span cell (and any intermediates
+                    // at the same column range) as Continue.
+                    for (size_t mri = ri + 1; mri <= lri; ++mri) {
+                        for (auto& mc : grid.rows[mri]) {
+                            if (mc.source_col_index >= lo
+                                && mc.source_col_index <= hi) {
+                                if (mc.source_col_index == lo
+                                    && mc.col_span == lower.col_span) {
+                                    // The promoted span's original position
+                                    // — replace with individual Continue
+                                    // cells (one per visible column).
+                                    mc.label = "";
+                                    mc.v_merge = VMergeState::Continue;
+                                    mc.col_span = lower.col_span;
+                                } else if (mc.col_span == 1) {
+                                    mc.label = "";
+                                    mc.v_merge = VMergeState::Continue;
+                                }
+                            }
+                        }
+                    }
+
+                    // Update ci to skip past the promoted span.
+                    ci = first_gi;  // outer loop will ++ci
+                    goto next_gap;
+                }
+            }
+            next_gap:;
+        }
+    }
+
+    // After promotion, update has_vmerge_restart for the label row.
+    // A column needs Continue in the label row if ANY stub row above has
+    // a Restart for it (individual column, not part of a span).
+    for (size_t ci_col = 0; ci_col < spec.columns.size(); ++ci_col) {
+        has_vmerge_restart[ci_col] = false;
+    }
+    for (const auto& hrow : grid.rows) {
+        for (const auto& hcell : hrow) {
+            if (hcell.v_merge == VMergeState::Restart && hcell.col_span == 1) {
+                has_vmerge_restart[hcell.source_col_index] = true;
+            }
         }
     }
 

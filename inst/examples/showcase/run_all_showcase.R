@@ -7,5 +7,7 @@ source(file.path(getwd(), "inst", "examples", "showcase", "06_premium_qc_repro.R
 source(file.path(getwd(), "inst", "examples", "showcase", "07_premium_submission_multilang_templates.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "08_premium_submission_index_bundle.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "09_template_override_multi_spec.R"))
+source(file.path(getwd(), "inst", "examples", "showcase", "10_ae_template_ru.R"))
+source(file.path(getwd(), "inst", "examples", "showcase", "11_ae_template_ru_real_counts.R"))
 
 cat("\nShowcase completed. Check: ", file.path(getwd(), "tmp", "showcase_output"), "\n", sep = "")

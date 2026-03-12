@@ -1,5 +1,6 @@
 suppressPackageStartupMessages({
-  library(ksTFL)
+  #library(ksTFL)
+  devtools::load_all()
   library(dplyr)
   library(tidyr)
   library(tibble)

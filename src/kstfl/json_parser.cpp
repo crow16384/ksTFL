@@ -430,7 +430,21 @@ static std::vector<StubColumn> parse_stub_columns(const json& j) {
     for (auto it = j.begin(); it != j.end(); ++it) {
         if (!it->is_object()) continue;
         StubColumn sc;
-        sc.label = get_str(*it, "label");
+        // Label may be a string or an array of strings (joined with <br>).
+        if (it->contains("label") && !(*it)["label"].is_null()) {
+            if ((*it)["label"].is_string()) {
+                sc.label = (*it)["label"].get<std::string>();
+            } else if ((*it)["label"].is_array()) {
+                std::string combined;
+                for (const auto& elem : (*it)["label"]) {
+                    if (elem.is_string()) {
+                        if (!combined.empty()) combined += "<br>";
+                        combined += elem.get<std::string>();
+                    }
+                }
+                sc.label = combined;
+            }
+        }
         sc.stub_order = get_int(*it, "stubOrder", 0);
         sc.cols = get_str_array(*it, "cols");
         auto lsr = get_str_array(*it, "labelStyleRef");
