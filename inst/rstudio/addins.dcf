@@ -1,0 +1,5 @@
+Name: Styles Editor
+Description: Launch the ksTFL styles template editor (Shiny app)
+Binding: run_styles_editor
+Package: ksTFL
+Interactive: true
