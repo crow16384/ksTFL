@@ -95,7 +95,7 @@ private:
                    const std::vector<LogicalRow>& rows,
                    const HeaderGrid& header_grid,
                    const StyleResolver& resolver,
-                   const std::vector<ParsedCell>& parsed_titles) const;
+                   const std::vector<std::vector<ParsedCell>>& parsed_titles) const;
 
     /// Emit a table element.
     void emit_table(XmlWriter& w,

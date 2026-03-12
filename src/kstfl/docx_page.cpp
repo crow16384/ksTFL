@@ -17,7 +17,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
                              const std::vector<LogicalRow>& rows,
                              const HeaderGrid& header_grid,
                              const StyleResolver& resolver,
-                             const std::vector<ParsedCell>& parsed_titles) const {
+                             const std::vector<std::vector<ParsedCell>>& parsed_titles) const {
 
     // NOTE: Document headers/footers are no longer emitted in the page body.
     // They are placed in separate word/headerN.xml and word/footerN.xml parts
@@ -43,12 +43,12 @@ void DocxEmitter::emit_page(XmlWriter& w,
 
     // 1. Titles (on first page, or repeated per spec §13.6)
     //    Each add_title() call is a separate TextGroup → separate paragraph.
-    //    Within a group, text lines are concatenated with soft breaks (<br>).
+    //    Within a group, text elements become soft line breaks (<w:br/>).
     //    Per-group font styles are preserved via styleRef.
     if (page.has_titles && !spec.titles.empty()) {
         StyleDef title_style = resolver.resolve_title_style();
 
-        // Emit each title group as a separate paragraph.
+        // Emit each title group as one paragraph with soft breaks between elements.
         for (size_t gi = 0; gi < spec.titles.size(); ++gi) {
             const auto& group = spec.titles[gi];
             StyleDef style = title_style;
@@ -62,8 +62,13 @@ void DocxEmitter::emit_page(XmlWriter& w,
             // Stamp exact line height so Word uses same height as paginator
             stamp_exact_line_height(style);
 
-            // Use precomputed parsed titles to avoid re-parsing on every page.
-            const ParsedCell& parsed = parsed_titles[gi];
+            // Use precomputed per-element parsed titles to avoid re-parsing.
+            const auto& parsed_elements = parsed_titles[gi];
+
+            w.start_element("w:p");
+            if (style.paragraph.has_value()) {
+                emit_para_props(w, style.paragraph.value());
+            }
 
             // When toclevel is set, emit TC field in same paragraph as title.
             // Only emit TC for the first horizontal segment to avoid duplicate
@@ -74,34 +79,25 @@ void DocxEmitter::emit_page(XmlWriter& w,
                     if (i > 0) toc_plain += ' ';
                     toc_plain += get_plain_text(group.text[i]);
                 }
-                // First paragraph carries the TC field
-                w.start_element("w:p");
-                if (style.paragraph.has_value()) {
-                    emit_para_props(w, style.paragraph.value());
-                }
                 emit_tc_field(w, toc_plain, group.toc_level);
-                if (!parsed.paragraphs.empty()) {
-                    emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
-                }
-                w.end_element();  // w:p
-                // Remaining paragraphs (from <br> splits) emitted without TC field
-                for (size_t pi = 1; pi < parsed.paragraphs.size(); ++pi) {
-                    emit_parsed_paragraph(w, parsed.paragraphs[pi], style);
-                }
-            } else {
-                // Emit parsed paragraphs directly (no TC field)
-                if (parsed.paragraphs.empty()) {
-                    w.start_element("w:p");
-                    if (style.paragraph.has_value()) {
-                        emit_para_props(w, style.paragraph.value());
-                    }
-                    w.end_element();
-                } else {
-                    for (const auto& para : parsed.paragraphs) {
-                        emit_parsed_paragraph(w, para, style);
-                    }
-                }
             }
+
+            FontProps base_font = style.font.value_or(FontProps{});
+            bool need_break = false;
+            for (const auto& parsed : parsed_elements) {
+                if (need_break) {
+                    w.start_element("w:r");
+                    emit_run_props(w, base_font);
+                    w.self_closing_element("w:br");
+                    w.end_element();  // w:r
+                }
+                for (const auto& para : parsed.paragraphs) {
+                    emit_parsed_paragraph_runs(w, para, style);
+                }
+                need_break = true;
+            }
+
+            w.end_element();  // w:p
         }
     }
 
@@ -124,7 +120,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
             }
         }
 
-        // Emit each resolved subtitle group.
+        // Emit each resolved subtitle group as one paragraph with soft breaks.
         // For groups with toc_level > 0:
         //   - Static subtitles (no #ByGroupX in original): TC only on first page.
         //   - Dynamic subtitles (contain #ByGroupX in original): TC on every page
@@ -140,10 +136,16 @@ void DocxEmitter::emit_page(XmlWriter& w,
             }
             stamp_exact_line_height(style);
 
-            std::string combined;
-            for (size_t li = 0; li < group.text.size(); ++li) {
-                if (li > 0) combined += "<br>";
-                combined += group.text[li];
+            // Parse each text element individually for inline markup.
+            std::vector<ParsedCell> parsed_elements;
+            parsed_elements.reserve(group.text.size());
+            for (const auto& txt : group.text) {
+                parsed_elements.push_back(parse_inline_markup(txt));
+            }
+
+            w.start_element("w:p");
+            if (style.paragraph.has_value()) {
+                emit_para_props(w, style.paragraph.value());
             }
 
             if (group.toc_level > 0) {
@@ -159,33 +161,31 @@ void DocxEmitter::emit_page(XmlWriter& w,
                 bool emit_tc = (is_dynamic || page.is_first_page)
                                && segment.segment_index == 0;
                 if (emit_tc) {
-                    // Build plain-text TC entry from the resolved (substituted) lines.
                     std::string toc_plain;
                     for (size_t li = 0; li < group.text.size(); ++li) {
                         if (li > 0) toc_plain += ' ';
                         toc_plain += get_plain_text(group.text[li]);
                     }
-                    ParsedCell parsed = parse_inline_markup(combined);
-                    // First paragraph carries the TC field
-                    w.start_element("w:p");
-                    if (style.paragraph.has_value()) {
-                        emit_para_props(w, style.paragraph.value());
-                    }
                     emit_tc_field(w, toc_plain, group.toc_level);
-                    if (!parsed.paragraphs.empty()) {
-                        emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
-                    }
-                    w.end_element();  // w:p
-                    // Remaining paragraphs (from <br> splits) emitted without TC field
-                    for (size_t pi = 1; pi < parsed.paragraphs.size(); ++pi) {
-                        emit_parsed_paragraph(w, parsed.paragraphs[pi], style);
-                    }
-                } else {
-                    emit_paragraph(w, combined, style);
                 }
-            } else {
-                emit_paragraph(w, combined, style);
             }
+
+            FontProps base_font = style.font.value_or(FontProps{});
+            bool need_break = false;
+            for (const auto& parsed : parsed_elements) {
+                if (need_break) {
+                    w.start_element("w:r");
+                    emit_run_props(w, base_font);
+                    w.self_closing_element("w:br");
+                    w.end_element();  // w:r
+                }
+                for (const auto& para : parsed.paragraphs) {
+                    emit_parsed_paragraph_runs(w, para, style);
+                }
+                need_break = true;
+            }
+
+            w.end_element();  // w:p
         }
     }
 

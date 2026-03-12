@@ -22,6 +22,7 @@ src/*.a
 .idea/
 *.swp
 *.swo
+.cache/
 *~
 
 # Serena: keep shareable project config in git, ignore runtime data

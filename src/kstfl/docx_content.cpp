@@ -355,10 +355,17 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
 
         stamp_exact_line_height(style);
 
-        std::string combined;
-        for (size_t i = 0; i < group.text.size(); ++i) {
-            if (i > 0) combined += "<br>";
-            combined += group.text[i];
+        // Parse each text element individually; emit all within one <w:p>
+        // with soft line breaks (<w:br/>) between elements.
+        std::vector<ParsedCell> parsed_elements;
+        parsed_elements.reserve(group.text.size());
+        for (const auto& txt : group.text) {
+            parsed_elements.push_back(parse_inline_markup(txt));
+        }
+
+        w.start_element("w:p");
+        if (style.paragraph.has_value()) {
+            emit_para_props(w, style.paragraph.value());
         }
 
         if (group.toc_level > 0) {
@@ -367,22 +374,26 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
                 if (i > 0) toc_plain += ' ';
                 toc_plain += get_plain_text(group.text[i]);
             }
-            ParsedCell parsed = parse_inline_markup(combined);
-            w.start_element("w:p");
-            if (style.paragraph.has_value()) {
-                emit_para_props(w, style.paragraph.value());
-            }
             emit_tc_field(w, toc_plain, group.toc_level);
-            if (!parsed.paragraphs.empty()) {
-                emit_parsed_paragraph_runs(w, parsed.paragraphs[0], style);
-            }
-            w.end_element();  // w:p
-            for (size_t pi = 1; pi < parsed.paragraphs.size(); ++pi) {
-                emit_parsed_paragraph(w, parsed.paragraphs[pi], style);
-            }
-        } else {
-            emit_paragraph(w, combined, style);
         }
+
+        FontProps base_font = style.font.value_or(FontProps{});
+        bool need_break = false;
+        for (const auto& parsed : parsed_elements) {
+            if (need_break) {
+                // Soft line break between text elements
+                w.start_element("w:r");
+                emit_run_props(w, base_font);
+                w.self_closing_element("w:br");
+                w.end_element();  // w:r
+            }
+            for (const auto& para : parsed.paragraphs) {
+                emit_parsed_paragraph_runs(w, para, style);
+            }
+            need_break = true;
+        }
+
+        w.end_element();  // w:p
     }
 }
 

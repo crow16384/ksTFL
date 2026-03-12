@@ -11,6 +11,10 @@ load_template_file <- function(path) {
   jsonlite::fromJSON(path, simplifyVector = FALSE)
 }
 
+load_template_raw <- function(path) {
+  paste(readLines(path, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
+}
+
 bundled_templates_dir <- function() {
   # When running from installed package or source tree, this relative path
   # points from inst/shiny/styles_editor/ to inst/templates/
@@ -101,6 +105,31 @@ text_style_from_inputs <- function(input, id_prefix, template_style = NULL) {
     }
   }
 
+  color_val <- {
+    raw <- get_val("color")
+    if (is.null(raw) || raw == "transparent" || !nzchar(raw)) NULL else sub("^#", "", raw)
+  }
+
+  paragraph <- list(
+    alignment = get_val("alignment", "left"),
+    spacing = list(
+      before       = get_val("spacing_before", "0pt"),
+      after        = get_val("spacing_after", "0pt"),
+      line_spacing = as.numeric(local_or_default(get_val("line_spacing", 1.0), 1.0))
+    )
+  )
+
+  indent_l <- get_val("indent_left")
+  indent_r <- get_val("indent_right")
+  indent_f <- get_val("indent_first")
+  if (nzchar(indent_l %||% "") || nzchar(indent_r %||% "") || nzchar(indent_f %||% "")) {
+    paragraph$indents <- list(
+      left       = if (nzchar(indent_l %||% "")) indent_l else "0pt",
+      right      = if (nzchar(indent_r %||% "")) indent_r else "0pt",
+      first_line = if (nzchar(indent_f %||% "")) indent_f else "0pt"
+    )
+  }
+
   list(
     font = list(
       font_name = get_val("font_name"),
@@ -108,24 +137,9 @@ text_style_from_inputs <- function(input, id_prefix, template_style = NULL) {
       bold      = isTRUE(get_val("bold", FALSE)),
       italic    = isTRUE(get_val("italic", FALSE)),
       underline = isTRUE(get_val("underline", FALSE)),
-      color     = {
-        raw <- get_val("color")
-        if (is.null(raw)) NULL else sub("^#", "", raw)
-      }
+      color     = color_val
     ),
-    paragraph = list(
-      alignment = get_val("alignment", "left"),
-      spacing = list(
-        before       = get_val("spacing_before", "0pt"),
-        after        = get_val("spacing_after", "0pt"),
-        line_spacing = as.numeric(local_or_default(get_val("line_spacing", 1.0), 1.0))
-      ),
-      indents = list(
-        left       = get_val("indent_left", "0pt"),
-        right      = get_val("indent_right", "0pt"),
-        first_line = get_val("indent_first", "0pt")
-      )
-    )
+    paragraph = paragraph
   )
 }
 
@@ -179,13 +193,16 @@ border_from_inputs <- function(input, id_prefix, template_border = NULL) {
   list(
     color = {
       raw <- get_val("color")
-      if (is.null(raw) || !nzchar(raw)) {
+      if (is.null(raw) || raw == "transparent" || !nzchar(raw)) {
         NULL
       } else {
         sub("^#", "", raw)
       }
     },
-    width      = null_if_empty(get_val("width")),
+    width = {
+      raw_w <- get_val("width")
+      if (is.null(raw_w) || !nzchar(raw_w)) NULL else raw_w
+    },
     line_style = null_if_empty(get_val("line_style"))
   )
 }
@@ -259,10 +276,12 @@ row_style_from_inputs <- function(input, id_prefix, template_row = NULL) {
 
   borders <- template_row$borders %||% list()
 
-  list(
+  text_orient <- null_if_empty(get_val("text_orientation"))
+
+  row_result <- list(
     background_color = {
       raw_bg <- get_val("background_color")
-      if (is.null(raw_bg) || !nzchar(raw_bg)) {
+      if (is.null(raw_bg) || raw_bg == "transparent" || !nzchar(raw_bg)) {
         NULL
       } else {
         sub("^#", "", raw_bg)
@@ -270,7 +289,6 @@ row_style_from_inputs <- function(input, id_prefix, template_row = NULL) {
     },
     row_height         = local_or_default(get_val("row_height"), "auto"),
     vertical_alignment = null_if_empty(get_val("vertical_alignment")) %||% "center",
-    text_orientation  = null_if_empty(get_val("text_orientation")) %||% "horizontal",
     cell_margins = list(
       top    = null_if_empty(get_val("cell_top")),
       bottom = null_if_empty(get_val("cell_bottom")),
@@ -284,6 +302,12 @@ row_style_from_inputs <- function(input, id_prefix, template_row = NULL) {
       right  = border_from_inputs(input, paste0(id_prefix, "_border_right"),  template_border = borders$right)
     )
   )
+
+  if (!is.null(text_orient)) {
+    row_result$text_orientation <- text_orient
+  }
+
+  row_result
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
@@ -486,10 +510,13 @@ ui <- shiny::fluidPage(
 server <- function(input, output, session) {
   # Current template (as list) used to seed UI and as a reference for unmapped fields
   # Initialize both current and original templates from the same initial value
-  initial <- initial_template()
+  init_paths <- bundled_template_paths()
+  initial <- load_template_file(init_paths[[1L]])
   current_template <- shiny::reactiveVal(initial)
   # Keep track of the original template used to seed the current editing session
   original_template <- shiny::reactiveVal(initial)
+  # Raw JSON text for the current template, used for no-op downloads
+  original_json_text <- shiny::reactiveVal(load_template_raw(init_paths[[1L]]))
   # Track whether inputs are being populated from template (not user edits)
   is_seeding <- shiny::reactiveVal(TRUE)
   # No-op load/save must preserve the original JSON structure and values
@@ -567,6 +594,7 @@ server <- function(input, output, session) {
     # When a new bundled template is loaded, reset both current and original
     original_template(tmpl)
     current_template(tmpl)
+    original_json_text(load_template_raw(path))
     has_user_edits(FALSE)
     baseline_inputs(list())
   })
@@ -581,6 +609,7 @@ server <- function(input, output, session) {
     # When a new uploaded template is loaded, reset both current and original
     original_template(tmpl)
     current_template(tmpl)
+    original_json_text(load_template_raw(file$datapath))
     has_user_edits(FALSE)
     baseline_inputs(list())
   })
@@ -633,6 +662,8 @@ server <- function(input, output, session) {
           ns("color"),
           value = paste0("#", gsub("^#", "", colour_val))
         )
+      } else {
+        colourpicker::updateColourInput(session, ns("color"), value = "transparent")
       }
       shiny::updateSelectInput(session, ns("alignment"), selected = local_or_default(style$paragraph$alignment, "left"))
       shiny::updateTextInput(session, ns("spacing_before"), value = local_or_default(style$paragraph$spacing$before, "0pt"))
@@ -642,9 +673,15 @@ server <- function(input, output, session) {
         ns("line_spacing"),
         value = as.numeric(local_or_default(style$paragraph$spacing$line_spacing, 1.0))
       )
-      shiny::updateTextInput(session, ns("indent_left"),  value = local_or_default(style$paragraph$indents$left, "0pt"))
-      shiny::updateTextInput(session, ns("indent_right"), value = local_or_default(style$paragraph$indents$right, "0pt"))
-      shiny::updateTextInput(session, ns("indent_first"), value = local_or_default(style$paragraph$indents$first_line, "0pt"))
+      if (!is.null(style$paragraph$indents)) {
+        shiny::updateTextInput(session, ns("indent_left"),  value = local_or_default(style$paragraph$indents$left, "0pt"))
+        shiny::updateTextInput(session, ns("indent_right"), value = local_or_default(style$paragraph$indents$right, "0pt"))
+        shiny::updateTextInput(session, ns("indent_first"), value = local_or_default(style$paragraph$indents$first_line, "0pt"))
+      } else {
+        shiny::updateTextInput(session, ns("indent_left"),  value = "")
+        shiny::updateTextInput(session, ns("indent_right"), value = "")
+        shiny::updateTextInput(session, ns("indent_first"), value = "")
+      }
     }
 
     ts <- tmpl$textStyles
@@ -681,6 +718,8 @@ server <- function(input, output, session) {
           ns("color"),
           value = paste0("#", gsub("^#", "", colour_val))
         )
+      } else {
+        colourpicker::updateColourInput(session, ns("color"), value = "transparent")
       }
       shiny::updateTextInput(session, ns("width"), value = local_or_default(border$width, ""))
       shiny::updateSelectInput(session, ns("line_style"), selected = local_or_default(border$line_style, "single"))
@@ -724,10 +763,12 @@ server <- function(input, output, session) {
           ns("background_color"),
           value = paste0("#", gsub("^#", "", bg_val))
         )
+      } else {
+        colourpicker::updateColourInput(session, ns("background_color"), value = "transparent")
       }
       shiny::updateTextInput(session, ns("row_height"), value = local_or_default(row_style$row_height, "auto"))
       shiny::updateSelectInput(session, ns("vertical_alignment"), selected = local_or_default(row_style$vertical_alignment, "center"))
-      shiny::updateSelectInput(session, ns("text_orientation"), selected = local_or_default(row_style$text_orientation, "horizontal"))
+      shiny::updateSelectInput(session, ns("text_orientation"), selected = local_or_default(row_style$text_orientation, ""))
       shiny::updateTextInput(session, ns("cell_top"),    value = local_or_default(row_style$cell_margins$top, ""))
       shiny::updateTextInput(session, ns("cell_bottom"), value = local_or_default(row_style$cell_margins$bottom, ""))
       shiny::updateTextInput(session, ns("cell_left"),   value = local_or_default(row_style$cell_margins$left, ""))
@@ -873,7 +914,11 @@ server <- function(input, output, session) {
   })
 
   output$template_json <- shiny::renderText({
-    jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE)
+    if (!has_user_edits()) {
+      original_json_text()
+    } else {
+      jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE, null = "null")
+    }
   })
 
   output$download_template <- shiny::downloadHandler(
@@ -882,8 +927,12 @@ server <- function(input, output, session) {
       paste0(name, "_edited.json")
     },
     content = function(file) {
-      json <- jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE)
-      writeLines(json, file, useBytes = TRUE)
+      if (!has_user_edits()) {
+        writeLines(original_json_text(), file, useBytes = TRUE)
+      } else {
+        json <- jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE, null = "null")
+        writeLines(json, file, useBytes = TRUE)
+      }
     }
   )
 }
