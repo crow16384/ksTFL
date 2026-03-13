@@ -332,8 +332,8 @@ void DocxEmitter::emit_table(XmlWriter& w,
         emit_border("w:left", borders.left);
         emit_border("w:bottom", borders.bottom);
         emit_border("w:right", borders.right);
-        emit_border("w:insideH", borders.top);  // Use top border for insideH
-        emit_border("w:insideV", borders.left);  // Use left border for insideV
+        emit_border("w:insideH", borders.insideH);
+        emit_border("w:insideV", borders.insideV);
         w.end_element();
     }
 

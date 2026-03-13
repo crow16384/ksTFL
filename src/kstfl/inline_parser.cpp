@@ -48,7 +48,25 @@ static TagType classify_tag(const std::string& name) {
 // ---------------------------------------------------------------------------
 
 bool has_inline_markup(const std::string& text) {
-    return text.find('<') != std::string::npos;
+    size_t pos = 0;
+    while ((pos = text.find('<', pos)) != std::string::npos) {
+        size_t start = pos + 1;
+        if (start >= text.size()) return false;
+        // Skip optional '/'
+        if (text[start] == '/') start++;
+        if (start >= text.size()) { pos++; continue; }
+        // Extract tag name (sequence of alpha chars)
+        size_t name_start = start;
+        while (start < text.size() &&
+               std::isalpha(static_cast<unsigned char>(text[start])))
+            start++;
+        if (start == name_start) { pos++; continue; }
+        std::string tag_name = text.substr(name_start, start - name_start);
+        if (classify_tag(tag_name) != TagType::Unknown)
+            return true;
+        pos++;
+    }
+    return false;
 }
 
 // ---------------------------------------------------------------------------

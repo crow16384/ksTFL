@@ -119,10 +119,14 @@ std::vector<std::string_view> split_words(std::string_view text) {
     std::vector<std::string_view> words;
     size_t word_start = 0;
     for (size_t i = 0; i < text.size(); ++i) {
-        if (text[i] == ' ' || text[i] == '\t' || i == text.size() - 1) {
+        if (text[i] == ' ' || text[i] == '\t') {
             words.push_back(text.substr(word_start, i - word_start + 1));
             word_start = i + 1;
         }
+    }
+    // Remaining characters after the last space (or entire text if no spaces)
+    if (word_start < text.size()) {
+        words.push_back(text.substr(word_start));
     }
     return words;
 }

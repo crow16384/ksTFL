@@ -138,12 +138,14 @@ struct Border {
     void merge_from(const Border& other);
 };
 
-/// Four-sided borders.
+/// Four-sided borders (plus optional OOXML table inner borders).
 struct Borders {
     std::optional<Border> top;
     std::optional<Border> bottom;
     std::optional<Border> left;
     std::optional<Border> right;
+    std::optional<Border> insideH;  // horizontal inner border (between rows)
+    std::optional<Border> insideV;  // vertical inner border (between columns)
 
     Borders merged_with(const Borders& other) const;
     void merge_from(const Borders& other);

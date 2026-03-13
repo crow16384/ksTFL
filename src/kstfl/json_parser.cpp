@@ -5,6 +5,7 @@
 #include "json_parser.h"
 #include <nlohmann/json.hpp>
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <Rcpp.h>
 
@@ -116,6 +117,10 @@ static Borders parse_borders(const json& j) {
         borders.left = parse_border(j["left"]);
     if (j.contains("right") && j["right"].is_object())
         borders.right = parse_border(j["right"]);
+    if (j.contains("insideH") && j["insideH"].is_object())
+        borders.insideH = parse_border(j["insideH"]);
+    if (j.contains("insideV") && j["insideV"].is_object())
+        borders.insideV = parse_border(j["insideV"]);
     return borders;
 }
 
@@ -810,6 +815,8 @@ static StylesTemplate parse_template_internal(const json& root) {
             if (top_el.has_value()) tmpl.table_style.top_empty_line = Length::parse(*top_el);
             auto bottom_el = get_opt_str(layout, "bottomEmptyLine");
             if (bottom_el.has_value()) tmpl.table_style.bottom_empty_line = Length::parse(*bottom_el);
+            if (layout.contains("table_borders") && layout["table_borders"].is_object())
+                tmpl.table_style.table_borders = parse_borders(layout["table_borders"]);
         }
 
         // structural
@@ -940,7 +947,11 @@ static DataTable parse_data_internal(const json& root) {
                 if (val.is_number_integer()) {
                     values.push_back(std::to_string(val.get<int64_t>()));
                 } else {
-                    values.push_back(std::to_string(val.get<double>()));
+                    // Use %.17g for full double precision (avoids the
+                    // limited 6-decimal formatting of std::to_string).
+                    char buf[64];
+                    std::snprintf(buf, sizeof(buf), "%.17g", val.get<double>());
+                    values.push_back(buf);
                 }
             } else if (val.is_boolean()) {
                 values.push_back(val.get<bool>() ? "TRUE" : "FALSE");
@@ -954,14 +965,15 @@ static DataTable parse_data_internal(const json& root) {
         }
     }
 
-    // Validate that all columns have the same length (detect ragged data)
+    // Validate and fix ragged data: pad shorter columns to n_rows with empty strings.
     for (const auto& col_name : dt.col_names) {
         auto col_it = dt.columns.find(col_name);
         if (col_it != dt.columns.end() && col_it->second.size() != dt.n_rows) {
             Rcpp::Rcerr << "[ksTFL] WARNING: Column '" << col_name
                       << "' has " << col_it->second.size()
                       << " rows but expected " << dt.n_rows
-                      << ". Data may be ragged.\n";
+                      << ". Padding with empty strings.\n";
+            col_it->second.resize(dt.n_rows, "");
         }
     }
 

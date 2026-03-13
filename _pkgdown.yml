@@ -43,3 +43,7 @@ articles:
     navbar: Advanced
     contents:
       - Advanced_StyleRows
+  - title: Internals
+    navbar: Internals
+    contents:
+      - Rendering_Pipeline

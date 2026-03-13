@@ -273,22 +273,37 @@ PaginationResult Paginator::paginate(
 
     // 3. Compute static block heights
 
-    // Header section height (doc headers)
+    // Header section height.
+    // In OOXML, header/footer sections render left/center/right side-by-side
+    // separated by tab stops.  Each section occupies roughly 1/3 of the page
+    // width.  Measure each independently and take the tallest.
     Length header_section_height{0};
     for (const auto& hdr : spec.headers) {
         StyleDef style = resolver.resolve_doc_header_style();
-        MeasuredText m = measurer.measure_plain(hdr.left + hdr.center + hdr.right,
-                                                 style, page_config.usable_width());
-        header_section_height = header_section_height + m.height;
+        Length third_width{page_config.usable_width().emu / 3};
+        Length max_section_height{0};
+        for (const auto& section : {hdr.left, hdr.center, hdr.right}) {
+            if (!section.empty()) {
+                MeasuredText m = measurer.measure_plain(section, style, third_width);
+                if (m.height > max_section_height) max_section_height = m.height;
+            }
+        }
+        header_section_height = header_section_height + max_section_height;
     }
 
-    // Footer section height
+    // Footer section height — same approach as headers.
     Length footer_section_height{0};
     for (const auto& ftr : spec.footers) {
         StyleDef style = resolver.resolve_doc_footer_style();
-        MeasuredText m = measurer.measure_plain(ftr.left + ftr.center + ftr.right,
-                                                 style, page_config.usable_width());
-        footer_section_height = footer_section_height + m.height;
+        Length third_width{page_config.usable_width().emu / 3};
+        Length max_section_height{0};
+        for (const auto& section : {ftr.left, ftr.center, ftr.right}) {
+            if (!section.empty()) {
+                MeasuredText m = measurer.measure_plain(section, style, third_width);
+                if (m.height > max_section_height) max_section_height = m.height;
+            }
+        }
+        footer_section_height = footer_section_height + max_section_height;
     }
 
     // Titles height.
@@ -506,8 +521,10 @@ PaginationResult Paginator::paginate(
         if (fn_place == FootnotePlace::LastPage && !segment.pages.empty()
             && footnotes_height.emu > 0) {
 
-            auto& last = segment.pages.back();
-            bool show_titles_last = last.is_first_page || repeat_titles;
+            // Use index-based access: push_back below may reallocate the
+            // vector, invalidating any reference obtained via back().
+            size_t last_idx = segment.pages.size() - 1;
+            bool show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
 
             Length avail_with_fn = compute_available_height(
                 page_config,
@@ -519,19 +536,19 @@ PaginationResult Paginator::paginate(
                 footer_section_height);
 
             // If the last page's content overflows with footnotes, spill rows
-            while (last.body_height > avail_with_fn
-                   && last.last_row > last.first_row) {
+            while (segment.pages[last_idx].body_height > avail_with_fn
+                   && segment.pages[last_idx].last_row > segment.pages[last_idx].first_row) {
 
                 // Remove the last row from this page
-                Length removed_h = row_heights[last.last_row];
-                last.body_height = last.body_height - removed_h;
-                last.last_row--;
+                Length removed_h = row_heights[segment.pages[last_idx].last_row];
+                segment.pages[last_idx].body_height = segment.pages[last_idx].body_height - removed_h;
+                segment.pages[last_idx].last_row--;
 
                 // Create a new last page for the spilled row(s)
                 PageSlice extra;
                 extra.page_number = page_num++;
                 extra.is_first_page = false;
-                extra.first_row = last.last_row + 1;
+                extra.first_row = segment.pages[last_idx].last_row + 1;
                 extra.last_row = extra.first_row;
                 extra.is_last_page = false;
                 extra.has_titles = repeat_titles;
@@ -545,13 +562,13 @@ PaginationResult Paginator::paginate(
                 extra.body_height = removed_h;
                 extra.has_footnotes = false;
 
-                last.is_last_page = false;
-                last.has_footnotes = false;
+                segment.pages[last_idx].is_last_page = false;
+                segment.pages[last_idx].has_footnotes = false;
 
                 segment.pages.push_back(std::move(extra));
-                last = segment.pages.back();
+                last_idx = segment.pages.size() - 1;
 
-                show_titles_last = last.is_first_page || repeat_titles;
+                show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
                 avail_with_fn = compute_available_height(
                     page_config,
                     header_section_height,

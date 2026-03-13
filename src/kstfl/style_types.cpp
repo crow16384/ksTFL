@@ -87,6 +87,14 @@ void Borders::merge_from(const Borders& other) {
         if (right.has_value()) right->merge_from(*other.right);
         else right = other.right;
     }
+    if (other.insideH.has_value()) {
+        if (insideH.has_value()) insideH->merge_from(*other.insideH);
+        else insideH = other.insideH;
+    }
+    if (other.insideV.has_value()) {
+        if (insideV.has_value()) insideV->merge_from(*other.insideV);
+        else insideV = other.insideV;
+    }
 }
 
 Borders Borders::merged_with(const Borders& other) const {

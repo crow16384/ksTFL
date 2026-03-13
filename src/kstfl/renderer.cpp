@@ -357,6 +357,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         // pass below.
         struct VMergeEntry {
             size_t row_idx;
+            size_t source_col_index;
             Length measured_height;
         };
         std::vector<VMergeEntry> vmerge_entries;
@@ -388,7 +389,7 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
 
                 if (cell.v_merge == VMergeState::Restart) {
                     // Defer — height will be distributed in second pass.
-                    vmerge_entries.push_back({ri, m.height});
+                    vmerge_entries.push_back({ri, cell.source_col_index, m.height});
                 } else if (cell.v_merge == VMergeState::Continue) {
                     // Skip — empty continuation cell.
                 } else {
@@ -407,12 +408,14 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         // increase the last row in the group by the deficit.
         for (const auto& entry : vmerge_entries) {
             size_t ri = entry.row_idx;
-            // Find the last row in the merge group (consecutive Continue rows).
+            // Find the last row in the merge group (consecutive Continue rows
+            // for the same source column).
             size_t last_ri = ri;
             for (size_t nri = ri + 1; nri < header_grid.rows.size(); ++nri) {
                 bool found_continue = false;
                 for (const auto& c : header_grid.rows[nri]) {
-                    if (c.v_merge == VMergeState::Continue && c.col_span == 1) {
+                    if (c.v_merge == VMergeState::Continue
+                        && c.source_col_index == entry.source_col_index) {
                         found_continue = true;
                         break;
                     }
