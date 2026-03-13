@@ -9,13 +9,13 @@
 ## Citation
 
 Aleschenkov I, Larchenko V (2026). *ksTFL: Framework for Clinical
-Tables, Figures, and Listings*. R package version 0.4.2,
+Tables, Figures, and Listings*. R package version 0.4.5,
 <https://example.com>.
 
     @Manual{,
       title = {ksTFL: Framework for Clinical Tables, Figures, and Listings},
       author = {Igor Aleschenkov and Vladimir Larchenko},
       year = {2026},
-      note = {R package version 0.4.2},
+      note = {R package version 0.4.5},
       url = {https://example.com},
     }

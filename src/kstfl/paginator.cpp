@@ -568,40 +568,47 @@ PaginationResult Paginator::paginate(
     // When is_continues=true, titles appear only on the first page.
     bool repeat_titles = !is_continues;
 
-    // 4. Paginate each segment
-    for (auto& segment : segments) {
+    // 4. Paginate
+    // When multiple segments exist (isColBreak), compute unified row heights
+    // (max across all segments per row) so that every segment uses the same
+    // page breaks.  Each segment keeps its own row_heights for rendering,
+    // but pagination decisions use the unified (tallest-per-row) heights.
+    std::vector<Length> pagination_heights;
+    if (has_multiple_segments) {
+        pagination_heights.resize(rows.size());
+        for (size_t ri = 0; ri < rows.size(); ++ri) {
+            Length max_h{0};
+            for (const auto& seg : segments) {
+                if (ri < seg.row_heights.size() && seg.row_heights[ri] > max_h)
+                    max_h = seg.row_heights[ri];
+            }
+            pagination_heights[ri] = max_h;
+        }
+    } else if (!segments.empty()) {
+        pagination_heights = segments[0].row_heights;
+    }
+
+    // Paginate once using unified heights, then replicate page breaks
+    // across all segments.
+    {
+        struct PageBreakInfo {
+            size_t first_row;
+            size_t last_row;
+            bool is_first_page;
+            bool is_last_page;
+            Length body_height;
+            std::vector<std::string> dynamic_subtitle_values;
+        };
+        std::vector<PageBreakInfo> page_breaks;
+
         size_t page_num = 1;
         size_t row_idx = 0;
         bool is_first = true;
 
         while (row_idx < rows.size()) {
-            PageSlice page;
-            page.page_number = page_num;
-            page.is_first_page = is_first;
-            page.first_row = row_idx;
-            page.has_titles = is_first || repeat_titles;
-            page.has_subtitles = true;
-
-            // Determine subtitle height for this page
-            // (may be dynamic if #ByGroupX placeholders are used)
             Length page_subtitle_h = subtitles_height;
-
-            // Store page heights
-            // When titles repeat, reserve height on all pages; otherwise only first.
             bool show_titles = is_first || repeat_titles;
-            page.header_section_height = header_section_height;
-            page.titles_height = show_titles ? titles_height : Length{0};
-            page.subtitles_height = page_subtitle_h;
-            page.table_header_height = table_header_height;
-            page.footnotes_height = (fn_place == FootnotePlace::DocFooter)
-                                        ? Length{0} : footnotes_height;
-            page.footer_section_height = footer_section_height;
 
-            // Reserve footnotes space based on placement strategy:
-            //   repeated  — footnotes on every page, always reserve
-            //   last_page — footnotes only on last page; do NOT reserve on
-            //               non-last pages (a post-pass adjusts the last page)
-            //   doc_footer — footnotes in Word footer part, no body reservation
             Length fn_reserve = (fn_place == FootnotePlace::Repeated)
                                     ? footnotes_height : Length{0};
             Length available = compute_available_height(
@@ -613,29 +620,22 @@ PaginationResult Paginator::paginate(
                 fn_reserve,
                 footer_section_height);
 
-
-            // Fill rows into this page
             Length used_height{0};
+            size_t first_row = row_idx;
             size_t last_row = row_idx;
+            std::vector<std::string> dyn_sub_vals;
 
             while (row_idx < rows.size()) {
-                // Check break triggers (spec §13.5 precedence)
-                if (row_idx > last_row || row_idx > page.first_row) {
-                    // Explicit page_break (from c_pageBreak() or isPaging column change)
+                if (row_idx > last_row || row_idx > first_row) {
                     if (rows[row_idx].force_page_break) break;
                 }
 
-                Length rh = segment.row_heights[row_idx];
+                Length rh = pagination_heights[row_idx];
 
-                // Check if row fits
                 if (used_height.emu > 0 && (used_height + rh) > available) {
                     break;
                 }
 
-                // Warn when a single row is taller than the physical page body
-                // height.  Use available + PAGE_SAFETY_MARGIN for the warning
-                // threshold because the safety margin is a pagination buffer,
-                // not indicative of actual overflow.
                 if (used_height.emu == 0 && rh > (available + PAGE_SAFETY_MARGIN)) {
                     Rcpp::Rcerr << "[ksTFL] WARNING: Row " << row_idx
                               << " height (" << rh.to_pt() << "pt) exceeds available"
@@ -646,12 +646,8 @@ PaginationResult Paginator::paginate(
                 used_height = used_height + rh;
                 last_row = row_idx;
 
-                // Capture grouping values for dynamic subtitles (first row only).
-                // Iterate spec.columns in definition order to ensure deterministic
-                // mapping: #ByGroup1 = first grouping/paging column, etc.
-                // If the first row is a synthetic row with empty group_values,
-                // scan forward to find the nearest row that carries them.
-                if (row_idx == page.first_row && page.dynamic_subtitle_values.empty()) {
+                // Capture grouping values for dynamic subtitles (first row of page)
+                if (row_idx == first_row && dyn_sub_vals.empty()) {
                     const auto* gv = &rows[row_idx].group_values;
                     if (gv->empty()) {
                         for (size_t scan = row_idx + 1; scan < rows.size(); ++scan) {
@@ -666,7 +662,7 @@ PaginationResult Paginator::paginate(
                             if (col.is_grouping || col.is_paging) {
                                 auto it = gv->find(col.id);
                                 if (it != gv->end()) {
-                                    page.dynamic_subtitle_values.push_back(it->second);
+                                    dyn_sub_vals.push_back(it->second);
                                 }
                             }
                         }
@@ -676,85 +672,77 @@ PaginationResult Paginator::paginate(
                 row_idx++;
             }
 
-            page.last_row = (row_idx > page.first_row) ? row_idx - 1 : page.first_row;
-            page.body_height = used_height;
+            PageBreakInfo pb;
+            pb.first_row = first_row;
+            pb.last_row = (row_idx > first_row) ? row_idx - 1 : first_row;
+            pb.is_first_page = is_first;
+            pb.is_last_page = (row_idx >= rows.size());
+            pb.body_height = used_height;
+            pb.dynamic_subtitle_values = std::move(dyn_sub_vals);
+            page_breaks.push_back(std::move(pb));
 
-            // Determine if this is the last page
-            page.is_last_page = (row_idx >= rows.size());
-
-            // Determine whether footnotes appear on this page
-            switch (fn_place) {
-                case FootnotePlace::Repeated:
-                    page.has_footnotes = true;
-                    break;
-                case FootnotePlace::LastPage:
-                    page.has_footnotes = page.is_last_page;
-                    break;
-                case FootnotePlace::DocFooter:
-                    page.has_footnotes = false;
-                    break;
-            }
-
-            segment.pages.push_back(std::move(page));
             is_first = false;
             page_num++;
         }
 
-        // Post-pass for last_page: ensure the last page has room for footnotes.
-        // We paginated without footnote reservation, so the last page may need
-        // rows moved to a new page if body_height + footnotes > available.
-        if (fn_place == FootnotePlace::LastPage && !segment.pages.empty()
-            && footnotes_height.emu > 0) {
+        // Apply the same page breaks to every segment
+        for (auto& segment : segments) {
+            segment.pages.clear();
+            for (size_t pi = 0; pi < page_breaks.size(); ++pi) {
+                const auto& pb = page_breaks[pi];
+                PageSlice page;
+                page.page_number = static_cast<size_t>(pi + 1);
+                page.is_first_page = pb.is_first_page;
+                page.first_row = pb.first_row;
+                page.last_row = pb.last_row;
+                page.is_last_page = pb.is_last_page;
+                page.has_titles = pb.is_first_page || repeat_titles;
+                page.has_subtitles = true;
+                page.dynamic_subtitle_values = pb.dynamic_subtitle_values;
 
-            // Use index-based access: push_back below may reallocate the
-            // vector, invalidating any reference obtained via back().
-            size_t last_idx = segment.pages.size() - 1;
-            bool show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
+                bool show_titles = page.has_titles;
+                page.header_section_height = header_section_height;
+                page.titles_height = show_titles ? titles_height : Length{0};
+                page.subtitles_height = subtitles_height;
+                page.table_header_height = table_header_height;
+                page.footer_section_height = footer_section_height;
 
-            Length avail_with_fn = compute_available_height(
-                page_config,
-                header_section_height,
-                show_titles_last ? titles_height : Length{0},
-                subtitles_height,
-                table_header_height,
-                footnotes_height,
-                footer_section_height);
+                // Recompute body_height using this segment's own row heights
+                Length seg_body{0};
+                for (size_t ri = pb.first_row; ri <= pb.last_row && ri < segment.row_heights.size(); ++ri) {
+                    seg_body = seg_body + segment.row_heights[ri];
+                }
+                page.body_height = seg_body;
 
-            // If the last page's content overflows with footnotes, spill rows
-            while (segment.pages[last_idx].body_height > avail_with_fn
-                   && segment.pages[last_idx].last_row > segment.pages[last_idx].first_row) {
+                switch (fn_place) {
+                    case FootnotePlace::Repeated:
+                        page.has_footnotes = true;
+                        page.footnotes_height = footnotes_height;
+                        break;
+                    case FootnotePlace::LastPage:
+                        page.has_footnotes = pb.is_last_page;
+                        page.footnotes_height = pb.is_last_page ? footnotes_height : Length{0};
+                        break;
+                    case FootnotePlace::DocFooter:
+                        page.has_footnotes = false;
+                        page.footnotes_height = Length{0};
+                        break;
+                }
 
-                // Remove the last row from this page
-                Length removed_h = segment.row_heights[segment.pages[last_idx].last_row];
-                segment.pages[last_idx].body_height = segment.pages[last_idx].body_height - removed_h;
-                segment.pages[last_idx].last_row--;
+                segment.pages.push_back(std::move(page));
+            }
+        }
 
-                // Create a new last page for the spilled row(s)
-                PageSlice extra;
-                extra.page_number = page_num++;
-                extra.is_first_page = false;
-                extra.first_row = segment.pages[last_idx].last_row + 1;
-                extra.last_row = extra.first_row;
-                extra.is_last_page = false;
-                extra.has_titles = repeat_titles;
-                extra.has_subtitles = true;
-                extra.header_section_height = header_section_height;
-                extra.titles_height = repeat_titles ? titles_height : Length{0};
-                extra.subtitles_height = subtitles_height;
-                extra.table_header_height = table_header_height;
-                extra.footnotes_height = footnotes_height;
-                extra.footer_section_height = footer_section_height;
-                extra.body_height = removed_h;
-                extra.has_footnotes = false;
+        // Post-pass for last_page footnotes (LastPage placement strategy).
+        // Run per-segment since body heights differ, but initial breaks are unified.
+        if (fn_place == FootnotePlace::LastPage && footnotes_height.emu > 0) {
+            for (auto& segment : segments) {
+                if (segment.pages.empty()) continue;
 
-                segment.pages[last_idx].is_last_page = false;
-                segment.pages[last_idx].has_footnotes = false;
+                size_t last_idx = segment.pages.size() - 1;
+                bool show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
 
-                segment.pages.push_back(std::move(extra));
-                last_idx = segment.pages.size() - 1;
-
-                show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
-                avail_with_fn = compute_available_height(
+                Length avail_with_fn = compute_available_height(
                     page_config,
                     header_section_height,
                     show_titles_last ? titles_height : Length{0},
@@ -762,53 +750,54 @@ PaginationResult Paginator::paginate(
                     table_header_height,
                     footnotes_height,
                     footer_section_height);
-            }
 
-            // Fill remaining rows into the new last page (if we created one
-            // and there are more rows after the first spilled row)
-            auto& final_page = segment.pages.back();
-            size_t fill_start = final_page.last_row + 1;
-            Length fill_avail = compute_available_height(
-                page_config,
-                header_section_height,
-                (final_page.is_first_page || repeat_titles) ? titles_height : Length{0},
-                subtitles_height,
-                table_header_height,
-                footnotes_height,
-                footer_section_height);
+                while (segment.pages[last_idx].body_height > avail_with_fn
+                       && segment.pages[last_idx].last_row > segment.pages[last_idx].first_row) {
 
-            while (fill_start < rows.size()
-                   && !rows[fill_start].force_page_break
-                   && (final_page.body_height + segment.row_heights[fill_start]) <= fill_avail) {
-                final_page.body_height = final_page.body_height + segment.row_heights[fill_start];
-                final_page.last_row = fill_start;
-                fill_start++;
-            }
+                    Length removed_h = segment.row_heights[segment.pages[last_idx].last_row];
+                    segment.pages[last_idx].body_height = segment.pages[last_idx].body_height - removed_h;
+                    segment.pages[last_idx].last_row--;
 
-            // Mark the true last page
-            final_page.is_last_page = (fill_start >= rows.size());
-            final_page.has_footnotes = final_page.is_last_page;
+                    PageSlice extra;
+                    extra.page_number = segment.pages.size() + 1;
+                    extra.is_first_page = false;
+                    extra.first_row = segment.pages[last_idx].last_row + 1;
+                    extra.last_row = extra.first_row;
+                    extra.is_last_page = false;
+                    extra.has_titles = repeat_titles;
+                    extra.has_subtitles = true;
+                    extra.header_section_height = header_section_height;
+                    extra.titles_height = repeat_titles ? titles_height : Length{0};
+                    extra.subtitles_height = subtitles_height;
+                    extra.table_header_height = table_header_height;
+                    extra.footnotes_height = footnotes_height;
+                    extra.footer_section_height = footer_section_height;
+                    extra.body_height = removed_h;
+                    extra.has_footnotes = false;
 
-            // If there are still unplaced rows, continue paginating
-            // (rare edge case: footnotes are extremely tall)
-            while (fill_start < rows.size()) {
-                PageSlice overflow;
-                overflow.page_number = page_num++;
-                overflow.is_first_page = false;
-                overflow.first_row = fill_start;
-                overflow.has_titles = repeat_titles;
-                overflow.has_subtitles = true;
-                overflow.header_section_height = header_section_height;
-                overflow.titles_height = repeat_titles ? titles_height : Length{0};
-                overflow.subtitles_height = subtitles_height;
-                overflow.table_header_height = table_header_height;
-                overflow.footnotes_height = footnotes_height;
-                overflow.footer_section_height = footer_section_height;
+                    segment.pages[last_idx].is_last_page = false;
+                    segment.pages[last_idx].has_footnotes = false;
 
-                Length ov_avail = compute_available_height(
+                    segment.pages.push_back(std::move(extra));
+                    last_idx = segment.pages.size() - 1;
+
+                    show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
+                    avail_with_fn = compute_available_height(
+                        page_config,
+                        header_section_height,
+                        show_titles_last ? titles_height : Length{0},
+                        subtitles_height,
+                        table_header_height,
+                        footnotes_height,
+                        footer_section_height);
+                }
+
+                auto& final_page = segment.pages.back();
+                size_t fill_start = final_page.last_row + 1;
+                Length fill_avail = compute_available_height(
                     page_config,
                     header_section_height,
-                    repeat_titles ? titles_height : Length{0},
+                    (final_page.is_first_page || repeat_titles) ? titles_height : Length{0},
                     subtitles_height,
                     table_header_height,
                     footnotes_height,
@@ -816,16 +805,51 @@ PaginationResult Paginator::paginate(
 
                 while (fill_start < rows.size()
                        && !rows[fill_start].force_page_break
-                       && (overflow.body_height.emu == 0
-                           || (overflow.body_height + segment.row_heights[fill_start]) <= ov_avail)) {
-                    overflow.body_height = overflow.body_height + segment.row_heights[fill_start];
-                    overflow.last_row = fill_start;
+                       && (final_page.body_height + segment.row_heights[fill_start]) <= fill_avail) {
+                    final_page.body_height = final_page.body_height + segment.row_heights[fill_start];
+                    final_page.last_row = fill_start;
                     fill_start++;
                 }
 
-                overflow.is_last_page = (fill_start >= rows.size());
-                overflow.has_footnotes = overflow.is_last_page;
-                segment.pages.push_back(std::move(overflow));
+                final_page.is_last_page = (fill_start >= rows.size());
+                final_page.has_footnotes = final_page.is_last_page;
+
+                while (fill_start < rows.size()) {
+                    PageSlice overflow;
+                    overflow.page_number = segment.pages.size() + 1;
+                    overflow.is_first_page = false;
+                    overflow.first_row = fill_start;
+                    overflow.has_titles = repeat_titles;
+                    overflow.has_subtitles = true;
+                    overflow.header_section_height = header_section_height;
+                    overflow.titles_height = repeat_titles ? titles_height : Length{0};
+                    overflow.subtitles_height = subtitles_height;
+                    overflow.table_header_height = table_header_height;
+                    overflow.footnotes_height = footnotes_height;
+                    overflow.footer_section_height = footer_section_height;
+
+                    Length ov_avail = compute_available_height(
+                        page_config,
+                        header_section_height,
+                        repeat_titles ? titles_height : Length{0},
+                        subtitles_height,
+                        table_header_height,
+                        footnotes_height,
+                        footer_section_height);
+
+                    while (fill_start < rows.size()
+                           && !rows[fill_start].force_page_break
+                           && (overflow.body_height.emu == 0
+                               || (overflow.body_height + segment.row_heights[fill_start]) <= ov_avail)) {
+                        overflow.body_height = overflow.body_height + segment.row_heights[fill_start];
+                        overflow.last_row = fill_start;
+                        fill_start++;
+                    }
+
+                    overflow.is_last_page = (fill_start >= rows.size());
+                    overflow.has_footnotes = overflow.is_last_page;
+                    segment.pages.push_back(std::move(overflow));
+                }
             }
         }
     }

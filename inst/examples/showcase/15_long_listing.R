@@ -188,11 +188,6 @@ cats <- tibble(cat1=rep(c('Category 1', 'Category 2', 'Category 3', 'Category 4'
 df <- cats %>% bind_cols(df)
 
 ############################################################################################
-
-### ISSUE 1: 
-# The code per the spec generates correct output, but creates a number of the warnings in the R-log like:
-#    [ksTFL] WARNING: Row 109 height (273.194pt) exceeds available page body height (268.018pt). The row will be split across pages by Word.
-# But in reality all the pages are rendered without splitting across pages. (see picture for the one of the pages in question)
 spec_long <- create_table(df) %>% 
   add_title(c("Listing 1.1: ", "Testing of the listing of differnt languages and text lengths"), toclevel = 1) %>% 
   add_title("(random data)") %>% 
@@ -221,10 +216,6 @@ write_doc(r_long_1, "showcases_15_long_listing_1_1")
 
 
 ######################################################################
-### ISSUE 2: 
-# with colBreak enabled (table is horizontally split across pages) the row height is still calculated as if all columns were on the same page,
-# although the relative column widths change when the table is split and the columns become wider.
-# The single row height should be calculated taking into account the columns widths distribution of each part of the split table.
 spec_long <- create_table(df) %>% 
   add_title(c("Listing 1.1: ", "Testing of the listing of differnt languages and text lengths"), toclevel = 1) %>% 
   add_title("(random data)") %>% 
