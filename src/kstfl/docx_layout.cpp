@@ -180,7 +180,7 @@ std::string DocxEmitter::emit_hdr_ftr_xml_part(
     // directly below the table content, then the footer rows underneath.
     if (footnotes && resolver && !footnotes->empty()) {
         StyleDef fn_style = resolver->resolve_footnote_style();
-        emit_text_groups(w, *footnotes, fn_style, *resolver);
+        emit_text_groups(w, *footnotes, fn_style, *resolver, {});
     }
 
     // Always use field codes in header/footer parts (Word resolves them)

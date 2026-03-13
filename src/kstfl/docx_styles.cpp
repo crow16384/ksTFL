@@ -13,7 +13,8 @@ static constexpr const char* R_NS = "http://schemas.openxmlformats.org/officeDoc
 // word/styles.xml
 // ---------------------------------------------------------------------------
 
-std::string DocxEmitter::emit_styles(std::optional<int> toc_tab_pos_twips) const {
+std::string DocxEmitter::emit_styles(std::optional<int> toc_tab_pos_twips,
+                                      const std::vector<TocHeadingEntry>& toc_headings) const {
     XmlWriter w;
     w.write_declaration();
     w.start_element("w:styles");
@@ -104,6 +105,28 @@ std::string DocxEmitter::emit_styles(std::optional<int> toc_tab_pos_twips) const
             emit_run_props(w, *toc_entry_style.font);
         }
 
+        w.end_element();
+    }
+
+    // TOC-heading styles: body title/subtitle appearance + outline level (for TOC \o and PDF bookmarks)
+    for (const auto& entry : toc_headings) {
+        w.start_element("w:style");
+        w.attribute("w:type", "paragraph");
+        w.attribute("w:styleId", entry.style_id);
+        w.element_with_attr("w:name", "w:val", entry.style_id);
+        w.element_with_attr("w:basedOn", "w:val", "Normal");
+        if (entry.style.paragraph.has_value()) {
+            ParagraphProps pp = *entry.style.paragraph;
+            pp.outline_level = entry.toc_level - 1;  // OOXML: 0-8 for levels 1-9
+            emit_para_props(w, pp);
+        } else {
+            w.start_element("w:pPr");
+            w.element_with_attr("w:outlineLvl", "w:val", std::to_string(entry.toc_level - 1));
+            w.end_element();
+        }
+        if (entry.style.font.has_value()) {
+            emit_run_props(w, *entry.style.font);
+        }
         w.end_element();
     }
 

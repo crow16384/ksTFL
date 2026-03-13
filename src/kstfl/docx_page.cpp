@@ -17,7 +17,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
                              const std::vector<LogicalRow>& rows,
                              const HeaderGrid& header_grid,
                              const StyleResolver& resolver,
-                             const std::vector<std::vector<ParsedCell>>& parsed_titles) const {
+                             const std::vector<std::vector<ParsedCell>>& parsed_titles,
+                             const std::vector<TocHeadingEntry>& toc_headings) const {
 
     // NOTE: Document headers/footers are no longer emitted in the page body.
     // They are placed in separate word/headerN.xml and word/footerN.xml parts
@@ -66,20 +67,16 @@ void DocxEmitter::emit_page(XmlWriter& w,
             const auto& parsed_elements = parsed_titles[gi];
 
             w.start_element("w:p");
-            if (style.paragraph.has_value()) {
-                emit_para_props(w, style.paragraph.value());
-            }
-
-            // When toclevel is set, emit TC field in same paragraph as title.
-            // Only emit TC for the first horizontal segment to avoid duplicate
-            // TOC entries when isColBreak splits the table into multiple segments.
+            std::optional<std::string> toc_style_id;
             if (page.is_first_page && segment.segment_index == 0 && group.toc_level > 0) {
-                std::string toc_plain;
-                for (size_t i = 0; i < group.text.size(); ++i) {
-                    if (i > 0) toc_plain += ' ';
-                    toc_plain += get_plain_text(group.text[i]);
-                }
-                emit_tc_field(w, toc_plain, group.toc_level);
+                toc_style_id = find_toc_heading_style_id(toc_headings, style, group.toc_level);
+            }
+            if (toc_style_id.has_value()) {
+                w.start_element("w:pPr");
+                w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+                w.end_element();
+            } else if (style.paragraph.has_value()) {
+                emit_para_props(w, style.paragraph.value());
             }
 
             FontProps base_font = style.font.value_or(FontProps{});
@@ -144,12 +141,8 @@ void DocxEmitter::emit_page(XmlWriter& w,
             }
 
             w.start_element("w:p");
-            if (style.paragraph.has_value()) {
-                emit_para_props(w, style.paragraph.value());
-            }
-
+            std::optional<std::string> sub_toc_style_id;
             if (group.toc_level > 0) {
-                // Determine whether the original (pre-substitution) subtitle is dynamic.
                 bool is_dynamic = false;
                 for (const auto& orig_line : spec.subtitles[gi].text) {
                     if (orig_line.find("#ByGroup") != std::string::npos) {
@@ -157,17 +150,18 @@ void DocxEmitter::emit_page(XmlWriter& w,
                         break;
                     }
                 }
-
-                bool emit_tc = (is_dynamic || page.is_first_page)
-                               && segment.segment_index == 0;
-                if (emit_tc) {
-                    std::string toc_plain;
-                    for (size_t li = 0; li < group.text.size(); ++li) {
-                        if (li > 0) toc_plain += ' ';
-                        toc_plain += get_plain_text(group.text[li]);
-                    }
-                    emit_tc_field(w, toc_plain, group.toc_level);
+                bool use_toc_heading = (is_dynamic || page.is_first_page)
+                                      && segment.segment_index == 0;
+                if (use_toc_heading) {
+                    sub_toc_style_id = find_toc_heading_style_id(toc_headings, style, group.toc_level);
                 }
+            }
+            if (sub_toc_style_id.has_value()) {
+                w.start_element("w:pPr");
+                w.element_with_attr("w:pStyle", "w:val", sub_toc_style_id.value());
+                w.end_element();
+            } else if (style.paragraph.has_value()) {
+                emit_para_props(w, style.paragraph.value());
             }
 
             FontProps base_font = style.font.value_or(FontProps{});
@@ -197,7 +191,7 @@ void DocxEmitter::emit_page(XmlWriter& w,
     // 4. Footnotes (if this page should show them per footnote_place strategy)
     if (page.has_footnotes && !spec.footnotes.empty()) {
         StyleDef fn_style = resolver.resolve_footnote_style();
-        emit_text_groups(w, spec.footnotes, fn_style, resolver);
+        emit_text_groups(w, spec.footnotes, fn_style, resolver, toc_headings);
     }
 }
 

@@ -125,7 +125,8 @@ std::string DocxEmitter::emit_document_xml(
         const std::unordered_map<std::string, PaginationResult>& resolved_pages,
         const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
         const std::unordered_map<std::string, HeaderGrid>& resolved_headers,
-        const std::vector<SpecHdrFtrRefs>& spec_hdr_ftr_refs) const {
+        const std::vector<SpecHdrFtrRefs>& spec_hdr_ftr_refs,
+        const std::vector<TocHeadingEntry>& toc_headings) const {
     XmlWriter doc_w;
     doc_w.write_declaration();
     doc_w.start_element("w:document");
@@ -192,7 +193,7 @@ std::string DocxEmitter::emit_document_xml(
             // Titles
             if (!spec.titles.empty()) {
                 emit_text_groups(doc_w, spec.titles,
-                                 resolver.resolve_title_style(), resolver);
+                                 resolver.resolve_title_style(), resolver, toc_headings);
             }
 
             if (spec.document.doc_type == DocType::Figure &&
@@ -279,7 +280,7 @@ std::string DocxEmitter::emit_document_xml(
                         if (!spec.subtitles.empty()) {
                             emit_text_groups(doc_w, spec.subtitles,
                                              resolver.resolve_figure_caption_style(),
-                                             resolver);
+                                             resolver, toc_headings);
                         }
                     };
 
@@ -297,13 +298,13 @@ std::string DocxEmitter::emit_document_xml(
             } else {
                 // Text (or Figure with no resolved path): emit bodyText
                 StyleDef body_style = resolver.resolve_body_text_style();
-                emit_text_groups(doc_w, spec.body_text, body_style, resolver);
+                emit_text_groups(doc_w, spec.body_text, body_style, resolver, toc_headings);
             }
 
             // Footnotes
             if (!spec.footnotes.empty()) {
                 emit_text_groups(doc_w, spec.footnotes,
-                                 resolver.resolve_footnote_style(), resolver);
+                                 resolver.resolve_footnote_style(), resolver, toc_headings);
             }
 
             continue;
@@ -354,7 +355,7 @@ std::string DocxEmitter::emit_document_xml(
                 first_physical_page = false;
 
                 emit_page(doc_w, spec, page, segment, rows, header_grid,
-                          resolver, parsed_titles);
+                          resolver, parsed_titles, toc_headings);
             }
         }
 

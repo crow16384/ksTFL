@@ -68,81 +68,6 @@ void DocxEmitter::emit_numpages_field(XmlWriter& w) const {
 }
 
 // ---------------------------------------------------------------------------
-// TC (Table of Contents Entry) field runs (no w:p wrapper — caller owns the paragraph).
-//
-// TC fields must NOT use w:vanish on their runs. Word hides TC fields via its own
-// internal mechanism; adding w:vanish causes Word to skip them during TOC generation.
-// Structure: bookmarkStart → begin → instrText → separate → end → bookmarkEnd
-// The 'separate' fldChar is required even though TC fields have no visible result;
-// without it Word treats the field as malformed and renders instrText as visible text.
-//
-// The w:bookmarkStart/End pair (name "_TocXXXXXX") is required for two reasons:
-//   1. When the TOC field uses \h, Word generates internal hyperlinks that point to
-//      these bookmarks — not external file paths — so PDF navigation works correctly.
-//   2. Word's "Generate Bookmarks" option in PDF export becomes active when the
-//      document contains named bookmarks, enabling clickable PDF bookmarks.
-// ---------------------------------------------------------------------------
-
-void DocxEmitter::emit_tc_field(XmlWriter& w, const std::string& entry_text, int level) const {
-    // Allocate a unique bookmark ID and build the _Toc name.
-    int bm_id = ++toc_bookmark_counter_;
-    // Format as _Toc + zero-padded 9-digit number (matches Word's own naming).
-    char bm_name[32];
-    std::snprintf(bm_name, sizeof(bm_name), "_Toc%09d", bm_id);
-
-    // Escape double-quotes for Word field code: " -> ""
-    std::string escaped;
-    escaped.reserve(entry_text.size() + 4);
-    for (char c : entry_text) {
-        if (c == '"') escaped += "\"\"";
-        else escaped += c;
-    }
-    // Leading and trailing spaces required by OOXML field instruction syntax.
-    // No \f type — untyped TC entries are collected by { TOC \f } (no letter).
-    std::string instr = " TC \"" + escaped + "\" \\l " + std::to_string(level) + " ";
-
-    // bookmarkStart — wraps the TC field so the TOC \h switch can target it
-    w.start_element("w:bookmarkStart");
-    w.attribute("w:id", std::to_string(bm_id));
-    w.attribute("w:name", bm_name);
-    w.end_element();
-
-    // begin — no w:rPr, no w:vanish
-    w.start_element("w:r");
-    w.start_element("w:fldChar");
-    w.attribute("w:fldCharType", "begin");
-    w.end_element();
-    w.end_element();
-
-    // instrText
-    w.start_element("w:r");
-    w.start_element("w:instrText");
-    w.attribute("xml:space", "preserve");
-    w.text(instr);
-    w.end_element();
-    w.end_element();
-
-    // separate — required so Word hides the instrText
-    w.start_element("w:r");
-    w.start_element("w:fldChar");
-    w.attribute("w:fldCharType", "separate");
-    w.end_element();
-    w.end_element();
-
-    // end
-    w.start_element("w:r");
-    w.start_element("w:fldChar");
-    w.attribute("w:fldCharType", "end");
-    w.end_element();
-    w.end_element();
-
-    // bookmarkEnd
-    w.start_element("w:bookmarkEnd");
-    w.attribute("w:id", std::to_string(bm_id));
-    w.end_element();
-}
-
-// ---------------------------------------------------------------------------
 // TOC page — a separate Word section prepended before all specs.
 //
 // Structure emitted into w:body:
@@ -173,10 +98,10 @@ void DocxEmitter::emit_toc_page(XmlWriter& w,
         emit_paragraph(w, toc_title, toc_title_style);
     }
 
-    // TOC field paragraph: { TOC \f \z }
-    // \f  — collect all untyped TC fields
-    // \z  — hide tab/page numbers in Web Layout view
-    // No \h — omitting hyperlinks avoids the "fields that may refer to other files" prompt.
+    // TOC field paragraph: { TOC \o "1-9" \h \z }
+    // \o "1-9" — collect paragraphs by outline level (body title/subtitle styles with w:outlineLvl)
+    // \h       — hyperlink each entry to the heading paragraph
+    // \z       — hide tab/page numbers in Web Layout view
     // No fldLock — field must remain unlocked so the user can press F9 to update it.
     // Complex field: begin → instrText → separate → (result placeholder) → end
     w.start_element("w:p");
@@ -188,13 +113,11 @@ void DocxEmitter::emit_toc_page(XmlWriter& w,
     w.end_element();
     w.end_element();
 
-    // instrText — \f \h \z: collect TC fields, make entries hyperlinks, hide in Web view.
-    // \h is safe here because TC field paragraphs carry _Toc bookmarks, so Word
-    // generates internal #anchor links (not file:// paths) — no security prompt.
+    // instrText — \o "1-9" \h \z: collect by outline level, hyperlinks, hide in Web view
     w.start_element("w:r");
     w.start_element("w:instrText");
     w.attribute("xml:space", "preserve");
-    w.text(" TOC \\f \\h \\z ");
+    w.text(" TOC \\o \"1-9\" \\h \\z ");
     w.end_element();
     w.end_element();
 

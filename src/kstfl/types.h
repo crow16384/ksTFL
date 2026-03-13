@@ -98,6 +98,8 @@ struct Color {
     static Color parse(const std::string& s);
 
     [[nodiscard]] bool empty() const { return hex.empty(); }
+    bool operator==(const Color& other) const { return hex == other.hex; }
+    bool operator!=(const Color& other) const { return !(*this == other); }
 };
 
 // ---------------------------------------------------------------------------
@@ -163,6 +165,7 @@ struct FontProps {
 
     FontProps merged_with(const FontProps& other) const;
     void merge_from(const FontProps& other);
+    bool operator==(const FontProps& other) const;
 };
 
 /// Text alignment values.
@@ -185,6 +188,7 @@ struct SpacingProps {
 
     SpacingProps merged_with(const SpacingProps& other) const;
     void merge_from(const SpacingProps& other);
+    bool operator==(const SpacingProps& other) const;
 };
 
 /// Indent properties.
@@ -196,6 +200,7 @@ struct IndentProps {
 
     IndentProps merged_with(const IndentProps& other) const;
     void merge_from(const IndentProps& other);
+    bool operator==(const IndentProps& other) const;
 };
 
 /// Paragraph properties (maps to <w:pPr> in OOXML).
@@ -206,9 +211,12 @@ struct ParagraphProps {
     std::optional<bool> widow_control;
     std::optional<bool> keep_next;
     std::optional<bool> keep_lines;
+    /// Outline level for TOC/headings (0-8). When set, paragraph is included in TOC \o and PDF bookmarks.
+    std::optional<int> outline_level;
 
     ParagraphProps merged_with(const ParagraphProps& other) const;
     void merge_from(const ParagraphProps& other);
+    bool operator==(const ParagraphProps& other) const;
 };
 
 /// Vertical alignment in table cells.
@@ -250,6 +258,8 @@ struct StyleDef {
 
     StyleDef merged_with(const StyleDef& other) const;
     void merge_from(const StyleDef& other);
+    /// Equality for font + paragraph only (used for TOC-heading style deduplication).
+    bool operator==(const StyleDef& other) const;
 };
 
 /// Maps style IDs to style definitions.

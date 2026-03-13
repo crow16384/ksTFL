@@ -101,6 +101,12 @@ void DocxEmitter::emit_run_props(XmlWriter& w,
 void DocxEmitter::emit_para_props(XmlWriter& w, const ParagraphProps& pp) const {
     w.start_element("w:pPr");
 
+    if (pp.outline_level.has_value()) {
+        int lvl = pp.outline_level.value();
+        if (lvl >= 0 && lvl <= 8) {
+            w.element_with_attr("w:outlineLvl", "w:val", std::to_string(lvl));
+        }
+    }
     if (pp.alignment.has_value()) {
         w.element_with_attr("w:jc", "w:val", alignment_to_ooxml(pp.alignment.value()));
     }
@@ -343,7 +349,8 @@ void DocxEmitter::emit_parsed_paragraph_runs(XmlWriter& w,
 void DocxEmitter::emit_text_groups(XmlWriter& w,
                                     const std::vector<TextGroup>& groups,
                                     const StyleDef& base_style,
-                                    const StyleResolver& resolver) const {
+                                    const StyleResolver& resolver,
+                                    const std::vector<TocHeadingEntry>& toc_headings) const {
     for (const auto& group : groups) {
         StyleDef style = base_style;
         for (const auto& ref : group.style_refs) {
@@ -364,17 +371,16 @@ void DocxEmitter::emit_text_groups(XmlWriter& w,
         }
 
         w.start_element("w:p");
-        if (style.paragraph.has_value()) {
-            emit_para_props(w, style.paragraph.value());
-        }
-
+        std::optional<std::string> toc_style_id;
         if (group.toc_level > 0) {
-            std::string toc_plain;
-            for (size_t i = 0; i < group.text.size(); ++i) {
-                if (i > 0) toc_plain += ' ';
-                toc_plain += get_plain_text(group.text[i]);
-            }
-            emit_tc_field(w, toc_plain, group.toc_level);
+            toc_style_id = find_toc_heading_style_id(toc_headings, style, group.toc_level);
+        }
+        if (toc_style_id.has_value()) {
+            w.start_element("w:pPr");
+            w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+            w.end_element();
+        } else if (style.paragraph.has_value()) {
+            emit_para_props(w, style.paragraph.value());
         }
 
         FontProps base_font = style.font.value_or(FontProps{});

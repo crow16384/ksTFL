@@ -10,7 +10,8 @@ void DocxEmitter::emit_package(
         const TFLDocument& doc,
         const std::string& output_path,
         const std::string& document_xml,
-        const std::vector<HdrFtrPartInfo>& all_hdr_ftr_parts) const {
+        const std::vector<HdrFtrPartInfo>& all_hdr_ftr_parts,
+        const std::vector<TocHeadingEntry>& toc_headings) const {
     // TOC 1–9 tab position: use first section's content width so TOC spans full width
     // for whatever page size and orientation the document uses.
     std::optional<int> toc_tab_twips;
@@ -28,7 +29,7 @@ void DocxEmitter::emit_package(
     zip.add_entry("word/_rels/document.xml.rels",
                   emit_document_rels(doc, all_hdr_ftr_parts));
     zip.add_entry("word/document.xml", document_xml);
-    zip.add_entry("word/styles.xml", emit_styles(toc_tab_twips));
+    zip.add_entry("word/styles.xml", emit_styles(toc_tab_twips, toc_headings));
     zip.add_entry("word/settings.xml", emit_settings());
     zip.add_entry("word/fontTable.xml", emit_font_table());
 

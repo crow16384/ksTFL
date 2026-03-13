@@ -13,6 +13,7 @@
 #include "style_resolver.h"
 #include "text_measurer.h"
 #include "zip_writer.h"
+#include <optional>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -27,6 +28,24 @@ struct HdrFtrPartInfo {
     std::string xml;        ///< the XML content
     bool is_header;         ///< true = header, false = footer
 };
+
+/// TOC-heading style entry: body title/subtitle style + outline level, for styles.xml and document body.
+struct TocHeadingEntry {
+    StyleDef style;       ///< resolved title or subtitle style (appearance)
+    int toc_level = 0;    ///< 1-9
+    std::string style_id; ///< e.g. "TOCHead_1_0"
+};
+
+/// Look up TOC-heading style_id from (style, toc_level). Used when emitting title/subtitle paragraphs.
+inline std::optional<std::string> find_toc_heading_style_id(
+        const std::vector<TocHeadingEntry>& toc_headings,
+        const StyleDef& style,
+        int toc_level) {
+    for (const auto& e : toc_headings) {
+        if (e.toc_level == toc_level && e.style == style) return e.style_id;
+    }
+    return std::nullopt;
+}
 
 /// Emits OOXML for a complete TFL document.
 class DocxEmitter {
@@ -69,19 +88,25 @@ private:
     /// @param toc_tab_pos_twips When set, TOC 1–9 styles use this as the right-aligned
     ///   tab position (content width) so the TOC spans the full width of the first section's page.
     ///   When nullopt, a default (15840 twips) is used.
-    std::string emit_styles(std::optional<int> toc_tab_pos_twips = std::nullopt) const;
+    /// @param toc_headings Precomputed TOC-heading styles (body title/subtitle + outline level) for styles.xml.
+    std::string emit_styles(std::optional<int> toc_tab_pos_twips,
+                            const std::vector<TocHeadingEntry>& toc_headings) const;
     std::string emit_settings() const;
     std::string emit_font_table() const;
     void emit_package(const TFLDocument& doc,
                       const std::string& output_path,
                       const std::string& document_xml,
-                      const std::vector<HdrFtrPartInfo>& all_hdr_ftr_parts) const;
+                      const std::vector<HdrFtrPartInfo>& all_hdr_ftr_parts,
+                      const std::vector<TocHeadingEntry>& toc_headings) const;
+    /// Build TOC-heading list from doc (all specs): distinct (resolved title/subtitle style, toclevel) with style_id.
+    std::vector<TocHeadingEntry> build_toc_heading_styles(const TFLDocument& doc) const;
     std::string emit_document_xml(
         const TFLDocument& doc,
         const std::unordered_map<std::string, PaginationResult>& resolved_pages,
         const std::unordered_map<std::string, std::vector<LogicalRow>>& resolved_rows,
         const std::unordered_map<std::string, HeaderGrid>& resolved_headers,
-        const std::vector<SpecHdrFtrRefs>& spec_hdr_ftr_refs) const;
+        const std::vector<SpecHdrFtrRefs>& spec_hdr_ftr_refs,
+        const std::vector<TocHeadingEntry>& toc_headings) const;
 
     /// Returns template for a spec key, falling back to default template.
     const StylesTemplate& template_for_spec(const std::string& spec_key) const;
@@ -95,7 +120,8 @@ private:
                    const std::vector<LogicalRow>& rows,
                    const HeaderGrid& header_grid,
                    const StyleResolver& resolver,
-                   const std::vector<std::vector<ParsedCell>>& parsed_titles) const;
+                   const std::vector<std::vector<ParsedCell>>& parsed_titles,
+                   const std::vector<TocHeadingEntry>& toc_headings) const;
 
     /// Emit a table element.
     void emit_table(XmlWriter& w,
@@ -158,11 +184,12 @@ private:
                          int grid_span = 1,
                          VMergeState v_merge = VMergeState::None) const;
 
-    /// Emit titles/subtitles block.
+    /// Emit titles/subtitles block. When group.toc_level > 0, uses TOC-heading style from toc_headings if found.
     void emit_text_groups(XmlWriter& w,
                           const std::vector<TextGroup>& groups,
                           const StyleDef& base_style,
-                          const StyleResolver& resolver) const;
+                          const StyleResolver& resolver,
+                          const std::vector<TocHeadingEntry>& toc_headings) const;
 
     /// Emit all text groups concatenated in a single paragraph with soft breaks.
     /// Each group retains its own font style; paragraph props come from base_style.
@@ -208,11 +235,6 @@ private:
     void emit_page_field(XmlWriter& w) const;
     /// Emit NUMPAGES field code.
     void emit_numpages_field(XmlWriter& w) const;
-    /// Emit TC (Table of Contents Entry) field runs plus a surrounding w:bookmarkStart/End
-    /// pair (name "_TocXXXXXX") so Word can generate internal hyperlinks and PDF bookmarks.
-    /// Must be called inside an open w:p element. Allocates a unique bookmark ID from
-    /// toc_bookmark_counter_.
-    void emit_tc_field(XmlWriter& w, const std::string& entry_text, int level) const;
     /// Emit a complete TOC page as a separate Word section (nextPage break after it).
     /// @param w         XmlWriter for document.xml (w:body must already be open).
     /// @param toc_title Heading text above the TOC field; empty string omits the heading.
@@ -249,10 +271,6 @@ private:
     const std::unordered_map<std::string, StylesTemplate>* per_spec_templates_;
     const RendererConfig& config_;
     TextMeasurer* measurer_ = nullptr;  ///< set during emit(), cleared after
-
-    /// Monotonically increasing counter for _Toc bookmark IDs.
-    /// Mutable so const emit helpers can allocate unique IDs.
-    mutable int toc_bookmark_counter_ = 0;
 };
 
 }  // namespace kstfl

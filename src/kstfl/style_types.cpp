@@ -95,7 +95,25 @@ Borders Borders::merged_with(const Borders& other) const {
     return result;
 }
 
+// -- Optional equality helper -----------------------------------------------
+
+template <typename T>
+static bool opt_eq(const std::optional<T>& a, const std::optional<T>& b) {
+    if (a.has_value() != b.has_value()) return false;
+    return !a.has_value() || *a == *b;
+}
+
 // -- FontProps --------------------------------------------------------------
+
+bool FontProps::operator==(const FontProps& other) const {
+    return opt_eq(font_name, other.font_name)
+        && opt_eq(font_size, other.font_size)
+        && opt_eq(bold, other.bold)
+        && opt_eq(italic, other.italic)
+        && opt_eq(underline, other.underline)
+        && opt_eq(color, other.color)
+        && opt_eq(highlight, other.highlight);
+}
 
 void FontProps::merge_from(const FontProps& other) {
     merge_opt_into(font_name, other.font_name);
@@ -115,6 +133,13 @@ FontProps FontProps::merged_with(const FontProps& other) const {
 
 // -- SpacingProps ------------------------------------------------------------
 
+bool SpacingProps::operator==(const SpacingProps& other) const {
+    return opt_eq(before, other.before)
+        && opt_eq(after, other.after)
+        && opt_eq(line_spacing_multiplier, other.line_spacing_multiplier)
+        && opt_eq(exact_line_height, other.exact_line_height);
+}
+
 void SpacingProps::merge_from(const SpacingProps& other) {
     merge_opt_into(before, other.before);
     merge_opt_into(after, other.after);
@@ -129,6 +154,13 @@ SpacingProps SpacingProps::merged_with(const SpacingProps& other) const {
 }
 
 // -- IndentProps -------------------------------------------------------------
+
+bool IndentProps::operator==(const IndentProps& other) const {
+    return opt_eq(left, other.left)
+        && opt_eq(right, other.right)
+        && opt_eq(first_line, other.first_line)
+        && opt_eq(hanging, other.hanging);
+}
 
 void IndentProps::merge_from(const IndentProps& other) {
     merge_opt_into(left, other.left);
@@ -145,11 +177,22 @@ IndentProps IndentProps::merged_with(const IndentProps& other) const {
 
 // -- ParagraphProps ----------------------------------------------------------
 
+bool ParagraphProps::operator==(const ParagraphProps& other) const {
+    return opt_eq(alignment, other.alignment)
+        && opt_eq(spacing, other.spacing)
+        && opt_eq(indents, other.indents)
+        && opt_eq(widow_control, other.widow_control)
+        && opt_eq(keep_next, other.keep_next)
+        && opt_eq(keep_lines, other.keep_lines)
+        && opt_eq(outline_level, other.outline_level);
+}
+
 void ParagraphProps::merge_from(const ParagraphProps& other) {
     merge_opt_into(alignment, other.alignment);
     merge_opt_into(widow_control, other.widow_control);
     merge_opt_into(keep_next, other.keep_next);
     merge_opt_into(keep_lines, other.keep_lines);
+    merge_opt_into(outline_level, other.outline_level);
     if (other.spacing.has_value()) {
         if (spacing.has_value()) spacing->merge_from(*other.spacing);
         else spacing = other.spacing;
@@ -190,6 +233,10 @@ TableCellProps TableCellProps::merged_with(const TableCellProps& other) const {
 }
 
 // -- StyleDef ---------------------------------------------------------------
+
+bool StyleDef::operator==(const StyleDef& other) const {
+    return opt_eq(font, other.font) && opt_eq(paragraph, other.paragraph);
+}
 
 void StyleDef::merge_from(const StyleDef& other) {
     if (!other.id.empty()) id = other.id;
