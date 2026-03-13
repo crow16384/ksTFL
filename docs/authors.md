@@ -4,7 +4,7 @@
 
 - **Igor Aleschenkov**. Author, maintainer, copyright holder.
 
-- **Vladimir Larchenko**. Author, maintainer, copyright holder.
+- **Vladimir Larchenko**. Author, copyright holder.
 
 ## Citation
 

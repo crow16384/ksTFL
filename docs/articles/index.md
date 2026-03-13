@@ -18,3 +18,8 @@
 
 - [Advanced StyleRows and Conditional
   Formatting](https://example.com/articles/Advanced_StyleRows.md):
+
+### Internals
+
+- [Rendering Pipeline
+  Diagram](https://example.com/articles/Rendering_Pipeline.md):
