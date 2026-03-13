@@ -417,10 +417,11 @@ This project is licensed under the GNU General Public License v3.0 or later — 
 
 ---
 
-## Author
+## Authors
 
-**Igor Aleschenkov**  
-CRO Example Solutions
+**Igor Aleschenkov**
+**Vladimir Larchenko**
+ksTFL Team(C)
 
 ---
 

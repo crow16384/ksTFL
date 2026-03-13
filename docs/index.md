@@ -44,8 +44,6 @@ equivalent) - HarfBuzz (\>= 2.0) — Unicode text shaping - FreeType (\>=
 2.0) — Font loading and glyph metrics - minizip (zlib) — ZIP archive
 creation for .docx
 
-These are bundled in the Docker development image.
-
 ------------------------------------------------------------------------
 
 ## Quick Start Example

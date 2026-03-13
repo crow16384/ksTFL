@@ -1,0 +1,14 @@
+# This citation is used by utils::citation("ksTFL") and pkgdown's authors page.
+meta <- utils::packageDescription("ksTFL")
+
+utils::bibentry(
+  bibtype = "Manual",
+  title = "ksTFL: Framework for Clinical Tables, Figures, and Listings",
+  author = c(
+    utils::person("Igor", "Aleschenkov"),
+    utils::person("Vladimir", "Larchenko")
+  ),
+  year = format(Sys.Date(), "%Y"),
+  note = sprintf("R package version %s", meta$Version),
+  url = meta$URL
+)

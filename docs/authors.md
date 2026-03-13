@@ -4,18 +4,18 @@
 
 - **Igor Aleschenkov**. Author, maintainer, copyright holder.
 
-- **Vladimir Larchenko**. Author, copyright holder.
+- **Vladimir Larchenko**. Author, maintainer, copyright holder.
 
 ## Citation
 
 Aleschenkov I, Larchenko V (2026). *ksTFL: Framework for Clinical
-Tables, Figures, and Listings*. R package version 0.3.5,
+Tables, Figures, and Listings*. R package version 0.4.2,
 <https://example.com>.
 
     @Manual{,
       title = {ksTFL: Framework for Clinical Tables, Figures, and Listings},
       author = {Igor Aleschenkov and Vladimir Larchenko},
       year = {2026},
-      note = {R package version 0.3.5},
+      note = {R package version 0.4.2},
       url = {https://example.com},
     }
