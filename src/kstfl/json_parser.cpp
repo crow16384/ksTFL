@@ -17,54 +17,69 @@ namespace kstfl {
 // Helpers: safe JSON accessors
 // ---------------------------------------------------------------------------
 
-/// Get string or empty.
-static std::string get_str(const json& j, const std::string& key) {
-    if (j.contains(key) && !j[key].is_null()) {
-        if (j[key].is_string()) return j[key].get<std::string>();
+namespace jutil {
+
+/// Type-strict check — nlohmann has no generic is<T>().
+template<typename T>
+bool is_type(const json& v)
+{
+    if constexpr (std::is_same_v<T, std::string>)  return v.is_string();
+    else if constexpr (std::is_same_v<T, bool>)    return v.is_boolean();
+    else if constexpr (std::is_same_v<T, int>)     return v.is_number_integer();
+    else if constexpr (std::is_same_v<T, double>)  return v.is_number();
+    else static_assert(!sizeof(T), "Unsupported type for jutil");
+}
+
+/// Get JSON value with default (null-safe, type-strict).
+template<typename T>
+T get(const json& j, const std::string& key, const T& def = T{})
+{
+    auto it = j.find(key);
+
+    if (it == j.end() || it->is_null())
+        return def;
+
+    if (!is_type<T>(*it))
+        return def;
+
+    return it->template get<T>();
+}
+
+/// Get optional JSON value (nullopt if missing, null, or wrong type).
+template<typename T>
+std::optional<T> opt(const json& j, const std::string& key)
+{
+    auto it = j.find(key);
+
+    if (it == j.end() || it->is_null())
+        return std::nullopt;
+
+    if (!is_type<T>(*it))
+        return std::nullopt;
+
+    return it->template get<T>();
+}
+
+/// Get array of T (items of wrong type are silently skipped).
+template<typename T>
+std::vector<T> get_array(const json& j, const std::string& key)
+{
+    std::vector<T> result;
+
+    auto it = j.find(key);
+    if (it == j.end() || !it->is_array())
+        return result;
+
+    for (const auto& item : *it)
+    {
+        if (is_type<T>(item))
+            result.push_back(item.template get<T>());
     }
-    return "";
-}
 
-/// Get bool with default.
-static bool get_bool(const json& j, const std::string& key, bool def = false) {
-    if (j.contains(key) && j[key].is_boolean()) return j[key].get<bool>();
-    return def;
-}
-
-/// Get int with default.
-static int get_int(const json& j, const std::string& key, int def = 0) {
-    if (j.contains(key) && j[key].is_number_integer()) return j[key].get<int>();
-    return def;
-}
-
-/// Get optional string (nullopt if missing or null).
-static std::optional<std::string> get_opt_str(const json& j, const std::string& key) {
-    if (j.contains(key) && j[key].is_string()) return j[key].get<std::string>();
-    return std::nullopt;
-}
-
-/// Get optional double.
-static std::optional<double> get_opt_dbl(const json& j, const std::string& key) {
-    if (j.contains(key) && j[key].is_number()) return j[key].get<double>();
-    return std::nullopt;
-}
-
-/// Get optional bool.
-static std::optional<bool> get_opt_bool(const json& j, const std::string& key) {
-    if (j.contains(key) && j[key].is_boolean()) return j[key].get<bool>();
-    return std::nullopt;
-}
-
-/// Get string array.
-static std::vector<std::string> get_str_array(const json& j, const std::string& key) {
-    std::vector<std::string> result;
-    if (j.contains(key) && j[key].is_array()) {
-        for (const auto& item : j[key]) {
-            if (item.is_string()) result.push_back(item.get<std::string>());
-        }
-    }
     return result;
 }
+
+}  // namespace jutil
 
 /// Read a JSON file to nlohmann::json.
 static json read_json_file(const std::string& path) {
@@ -87,13 +102,13 @@ static json read_json_file(const std::string& path) {
 
 static Border parse_border(const json& j) {
     Border b;
-    auto c = get_opt_str(j, "color");
+    auto c = jutil::opt<std::string>(j, "color");
     if (c.has_value()) b.color = Color::parse(*c);
 
-    auto w = get_opt_str(j, "width");
+    auto w = jutil::opt<std::string>(j, "width");
     if (w.has_value()) b.width = Length::parse(*w);
 
-    auto ls = get_opt_str(j, "line_style");
+    auto ls = jutil::opt<std::string>(j, "line_style");
     if (ls.has_value()) {
         const std::string& s = *ls;
         if (s == "none")        b.line_style = BorderLineStyle::None;
@@ -130,10 +145,10 @@ static Borders parse_borders(const json& j) {
 
 static FontProps parse_font_props(const json& j) {
     FontProps fp;
-    fp.font_name = get_opt_str(j, "font_name");
+    fp.font_name = jutil::opt<std::string>(j, "font_name");
 
     // font_size can be "9pt" or just a number
-    auto fs = get_opt_str(j, "font_size");
+    auto fs = jutil::opt<std::string>(j, "font_size");
     if (fs.has_value()) {
         // Strip "pt" and parse as double
         std::string s = *fs;
@@ -155,14 +170,14 @@ static FontProps parse_font_props(const json& j) {
         }
     }
 
-    fp.bold = get_opt_bool(j, "bold");
-    fp.italic = get_opt_bool(j, "italic");
-    fp.underline = get_opt_bool(j, "underline");
+    fp.bold = jutil::opt<bool>(j, "bold");
+    fp.italic = jutil::opt<bool>(j, "italic");
+    fp.underline = jutil::opt<bool>(j, "underline");
 
-    auto c = get_opt_str(j, "color");
+    auto c = jutil::opt<std::string>(j, "color");
     if (c.has_value()) fp.color = Color::parse(*c);
 
-    auto h = get_opt_str(j, "highlight");
+    auto h = jutil::opt<std::string>(j, "highlight");
     if (h.has_value()) fp.highlight = Color::parse(*h);
 
     return fp;
@@ -174,21 +189,21 @@ static FontProps parse_font_props(const json& j) {
 
 static SpacingProps parse_spacing(const json& j) {
     SpacingProps sp;
-    auto b = get_opt_str(j, "before");
+    auto b = jutil::opt<std::string>(j, "before");
     if (b.has_value()) sp.before = Length::parse(*b);
-    auto a = get_opt_str(j, "after");
+    auto a = jutil::opt<std::string>(j, "after");
     if (a.has_value()) sp.after = Length::parse(*a);
-    sp.line_spacing_multiplier = get_opt_dbl(j, "line_spacing");
+    sp.line_spacing_multiplier = jutil::opt<double>(j, "line_spacing");
     return sp;
 }
 
 static IndentProps parse_indents(const json& j) {
     IndentProps ip;
-    auto l = get_opt_str(j, "left");
+    auto l = jutil::opt<std::string>(j, "left");
     if (l.has_value()) ip.left = Length::parse(*l);
-    auto r = get_opt_str(j, "right");
+    auto r = jutil::opt<std::string>(j, "right");
     if (r.has_value()) ip.right = Length::parse(*r);
-    auto fl = get_opt_str(j, "first_line");
+    auto fl = jutil::opt<std::string>(j, "first_line");
     if (fl.has_value()) ip.first_line = Length::parse(*fl);
     return ip;
 }
@@ -203,15 +218,15 @@ static Alignment parse_alignment(const std::string& s) {
 
 static ParagraphProps parse_paragraph_props(const json& j) {
     ParagraphProps pp;
-    auto align = get_opt_str(j, "alignment");
+    auto align = jutil::opt<std::string>(j, "alignment");
     if (align.has_value()) pp.alignment = parse_alignment(*align);
     if (j.contains("spacing") && j["spacing"].is_object())
         pp.spacing = parse_spacing(j["spacing"]);
     if (j.contains("indents") && j["indents"].is_object())
         pp.indents = parse_indents(j["indents"]);
-    pp.widow_control = get_opt_bool(j, "widow_control");
-    pp.keep_next = get_opt_bool(j, "keep_next");
-    pp.keep_lines = get_opt_bool(j, "keep_lines");
+    pp.widow_control = jutil::opt<bool>(j, "widow_control");
+    pp.keep_next = jutil::opt<bool>(j, "keep_next");
+    pp.keep_lines = jutil::opt<bool>(j, "keep_lines");
     return pp;
 }
 
@@ -235,16 +250,16 @@ static TextOrientation parse_text_orient(const std::string& s) {
 
 static TableCellProps parse_table_cell_props(const json& j) {
     TableCellProps tcp;
-    auto bg = get_opt_str(j, "background_color");
+    auto bg = jutil::opt<std::string>(j, "background_color");
     if (bg.has_value()) tcp.background_color = Color::parse(*bg);
 
-    auto rh = get_opt_str(j, "row_height");
+    auto rh = jutil::opt<std::string>(j, "row_height");
     if (rh.has_value() && *rh != "auto") tcp.row_height = Length::parse(*rh);
 
-    auto va = get_opt_str(j, "vertical_alignment");
+    auto va = jutil::opt<std::string>(j, "vertical_alignment");
     if (va.has_value()) tcp.vertical_alignment = parse_valign(*va);
 
-    auto to = get_opt_str(j, "text_orientation");
+    auto to = jutil::opt<std::string>(j, "text_orientation");
     if (to.has_value()) tcp.text_orientation = parse_text_orient(*to);
 
     if (j.contains("borders") && j["borders"].is_object())
@@ -253,13 +268,13 @@ static TableCellProps parse_table_cell_props(const json& j) {
     // Cell margins
     if (j.contains("cell_margins") && j["cell_margins"].is_object()) {
         const auto& cm = j["cell_margins"];
-        auto mt = get_opt_str(cm, "top");
+        auto mt = jutil::opt<std::string>(cm, "top");
         if (mt.has_value()) tcp.cell_margin_top = Length::parse(*mt);
-        auto mb = get_opt_str(cm, "bottom");
+        auto mb = jutil::opt<std::string>(cm, "bottom");
         if (mb.has_value()) tcp.cell_margin_bottom = Length::parse(*mb);
-        auto ml = get_opt_str(cm, "left");
+        auto ml = jutil::opt<std::string>(cm, "left");
         if (ml.has_value()) tcp.cell_margin_left = Length::parse(*ml);
-        auto mr = get_opt_str(cm, "right");
+        auto mr = jutil::opt<std::string>(cm, "right");
         if (mr.has_value()) tcp.cell_margin_right = Length::parse(*mr);
     }
 
@@ -312,43 +327,43 @@ static Orientation parse_orientation(const std::string& s) {
 
 static PageMargins parse_margins(const json& j) {
     PageMargins m;
-    auto top = get_opt_str(j, "top");
+    auto top = jutil::opt<std::string>(j, "top");
     if (top.has_value()) m.top = Length::parse(*top);
-    auto bot = get_opt_str(j, "bottom");
+    auto bot = jutil::opt<std::string>(j, "bottom");
     if (bot.has_value()) m.bottom = Length::parse(*bot);
-    auto left = get_opt_str(j, "left");
+    auto left = jutil::opt<std::string>(j, "left");
     if (left.has_value()) m.left = Length::parse(*left);
-    auto right = get_opt_str(j, "right");
+    auto right = jutil::opt<std::string>(j, "right");
     if (right.has_value()) m.right = Length::parse(*right);
-    auto hdr = get_opt_str(j, "header");
+    auto hdr = jutil::opt<std::string>(j, "header");
     if (hdr.has_value()) m.header_distance = Length::parse(*hdr);
-    auto ftr = get_opt_str(j, "footer");
+    auto ftr = jutil::opt<std::string>(j, "footer");
     if (ftr.has_value()) m.footer_distance = Length::parse(*ftr);
     return m;
 }
 
 static PageMarginsOverride parse_margins_override(const json& j) {
     PageMarginsOverride m;
-    auto top = get_opt_str(j, "top");
+    auto top = jutil::opt<std::string>(j, "top");
     if (top.has_value()) m.top = Length::parse(*top);
-    auto bot = get_opt_str(j, "bottom");
+    auto bot = jutil::opt<std::string>(j, "bottom");
     if (bot.has_value()) m.bottom = Length::parse(*bot);
-    auto left = get_opt_str(j, "left");
+    auto left = jutil::opt<std::string>(j, "left");
     if (left.has_value()) m.left = Length::parse(*left);
-    auto right = get_opt_str(j, "right");
+    auto right = jutil::opt<std::string>(j, "right");
     if (right.has_value()) m.right = Length::parse(*right);
-    auto hdr = get_opt_str(j, "header");
+    auto hdr = jutil::opt<std::string>(j, "header");
     if (hdr.has_value()) m.header_distance = Length::parse(*hdr);
-    auto ftr = get_opt_str(j, "footer");
+    auto ftr = jutil::opt<std::string>(j, "footer");
     if (ftr.has_value()) m.footer_distance = Length::parse(*ftr);
     return m;
 }
 
 static PageConfig parse_page_config(const json& j) {
     PageConfig pc;
-    auto sz = get_opt_str(j, "size");
+    auto sz = jutil::opt<std::string>(j, "size");
     if (sz.has_value()) pc.size = parse_page_size(*sz);
-    auto orient = get_opt_str(j, "orientation");
+    auto orient = jutil::opt<std::string>(j, "orientation");
     if (orient.has_value()) pc.orientation = parse_orientation(*orient);
     if (j.contains("margins") && j["margins"].is_object())
         pc.margins = parse_margins(j["margins"]);
@@ -381,10 +396,10 @@ static std::vector<TextGroup> parse_text_groups(const json& j) {
     for (auto it = j.begin(); it != j.end(); ++it) {
         if (!it->is_object()) continue;
         TextGroup tg;
-        tg.text = get_str_array(*it, "text");
-        tg.order = get_int(*it, "order", 0);
-        tg.style_refs = get_str_array(*it, "styleRef");
-        int toc = get_int(*it, "toclevel", 0);
+        tg.text = jutil::get_array<std::string>(*it, "text");
+        tg.order = jutil::get<int>(*it, "order", 0);
+        tg.style_refs = jutil::get_array<std::string>(*it, "styleRef");
+        int toc = jutil::get<int>(*it, "toclevel", 0);
         if (toc >= 1 && toc <= 9) tg.toc_level = toc;
         groups.push_back(std::move(tg));
     }
@@ -450,9 +465,9 @@ static std::vector<StubColumn> parse_stub_columns(const json& j) {
                 sc.label = combined;
             }
         }
-        sc.stub_order = get_int(*it, "stubOrder", 0);
-        sc.cols = get_str_array(*it, "cols");
-        auto lsr = get_str_array(*it, "labelStyleRef");
+        sc.stub_order = jutil::get<int>(*it, "stubOrder", 0);
+        sc.cols = jutil::get_array<std::string>(*it, "cols");
+        auto lsr = jutil::get_array<std::string>(*it, "labelStyleRef");
         if (!lsr.empty()) sc.label_style_ref = lsr[0];
         stubs.push_back(std::move(sc));
     }
@@ -473,26 +488,26 @@ static std::vector<ColumnSpec> parse_columns(const json& j) {
         if (!it->is_object()) continue;
         ColumnSpec cs;
         cs.id = it.key();
-        cs.col_order = get_int(*it, "colOrder", 0);
-        cs.label = get_str(*it, "label");
-        cs.is_id = get_bool(*it, "isID", false);
-        cs.is_visible = get_bool(*it, "isVisible", true);
-        cs.is_grouping = get_bool(*it, "isGrouping", false);
-        cs.is_col_break = get_bool(*it, "isColBreak", false);
-        cs.dedupe = get_bool(*it, "dedupe", false);
-        cs.is_paging = get_bool(*it, "isPaging", false);
+        cs.col_order = jutil::get<int>(*it, "colOrder", 0);
+        cs.label = jutil::get<std::string>(*it, "label");
+        cs.is_id = jutil::get<bool>(*it, "isID", false);
+        cs.is_visible = jutil::get<bool>(*it, "isVisible", true);
+        cs.is_grouping = jutil::get<bool>(*it, "isGrouping", false);
+        cs.is_col_break = jutil::get<bool>(*it, "isColBreak", false);
+        cs.dedupe = jutil::get<bool>(*it, "dedupe", false);
+        cs.is_paging = jutil::get<bool>(*it, "isPaging", false);
 
-        auto lsr = get_str_array(*it, "labelStyleRef");
+        auto lsr = jutil::get_array<std::string>(*it, "labelStyleRef");
         if (!lsr.empty()) cs.label_style_ref = lsr[0];
 
         // Parse format sub-object
         if (it->contains("format") && (*it)["format"].is_object()) {
             const auto& fmt = (*it)["format"];
-            cs.format.type = get_opt_str(fmt, "type");
-            cs.format.format = get_opt_str(fmt, "format");
-            cs.format.missings = get_opt_str(fmt, "missings");
-            cs.format.col_width_raw = get_opt_str(fmt, "colWidth");
-            auto vsr = get_str_array(fmt, "valueStyleRef");
+            cs.format.type = jutil::opt<std::string>(fmt, "type");
+            cs.format.format = jutil::opt<std::string>(fmt, "format");
+            cs.format.missings = jutil::opt<std::string>(fmt, "missings");
+            cs.format.col_width_raw = jutil::opt<std::string>(fmt, "colWidth");
+            auto vsr = jutil::get_array<std::string>(fmt, "valueStyleRef");
             if (!vsr.empty()) cs.format.value_style_ref = vsr[0];
         }
 
@@ -527,8 +542,8 @@ static RowActionSet parse_row_action_set(const std::string& json_str) {
     if (j.contains("style") && j["style"].is_array()) {
         for (const auto& item : j["style"]) {
             StyleAction sa;
-            sa.cols = get_str_array(item, "cols");
-            sa.style_ref = get_str(item, "styleRef");
+            sa.cols = jutil::get_array<std::string>(item, "cols");
+            sa.style_ref = jutil::get<std::string>(item, "styleRef");
             ras.styles.push_back(std::move(sa));
         }
     }
@@ -537,7 +552,7 @@ static RowActionSet parse_row_action_set(const std::string& json_str) {
     if (j.contains("clear") && j["clear"].is_array()) {
         for (const auto& item : j["clear"]) {
             ClearAction ca;
-            ca.cols = get_str_array(item, "cols");
+            ca.cols = jutil::get_array<std::string>(item, "cols");
             ras.clears.push_back(std::move(ca));
         }
     }
@@ -546,8 +561,8 @@ static RowActionSet parse_row_action_set(const std::string& json_str) {
     if (j.contains("merge") && j["merge"].is_array()) {
         for (const auto& item : j["merge"]) {
             MergeAction ma;
-            ma.cols = get_str_array(item, "cols");
-            ma.style_ref = get_opt_str(item, "styleRef");
+            ma.cols = jutil::get_array<std::string>(item, "cols");
+            ma.style_ref = jutil::opt<std::string>(item, "styleRef");
             ras.merges.push_back(std::move(ma));
         }
     }
@@ -556,10 +571,10 @@ static RowActionSet parse_row_action_set(const std::string& json_str) {
     if (j.contains("add_row") && j["add_row"].is_array()) {
         for (const auto& item : j["add_row"]) {
             AddRowAction ara;
-            auto pos = get_str(item, "pos");
+            auto pos = jutil::get<std::string>(item, "pos");
             ara.pos = (pos == "above") ? AddRowAction::Position::Above : AddRowAction::Position::Below;
-            ara.value_from = get_str(item, "value_from");
-            ara.style_ref = get_opt_str(item, "styleRef");
+            ara.value_from = jutil::get<std::string>(item, "value_from");
+            ara.style_ref = jutil::opt<std::string>(item, "styleRef");
             ras.add_rows.push_back(std::move(ara));
         }
     }
@@ -568,11 +583,11 @@ static RowActionSet parse_row_action_set(const std::string& json_str) {
     if (j.contains("glue") && j["glue"].is_array()) {
         for (const auto& item : j["glue"]) {
             GlueAction ga;
-            ga.cols      = get_str_array(item, "cols");
-            ga.position  = get_str(item, "position");
-            ga.glue_col  = get_opt_str(item, "glue_col");
-            ga.text      = get_opt_str(item, "text");
-            ga.separator = get_str(item, "separator");
+            ga.cols      = jutil::get_array<std::string>(item, "cols");
+            ga.position  = jutil::get<std::string>(item, "position");
+            ga.glue_col  = jutil::opt<std::string>(item, "glue_col");
+            ga.text      = jutil::opt<std::string>(item, "text");
+            ga.separator = jutil::get<std::string>(item, "separator");
             ras.glues.push_back(std::move(ga));
         }
     }
@@ -606,26 +621,26 @@ static std::vector<RowActionSet> parse_style_rows(const json& j) {
 
 static DocumentInfo parse_document_info(const json& j) {
     DocumentInfo di;
-    auto dt = get_str(j, "docType");
+    auto dt = jutil::get<std::string>(j, "docType");
     if (dt == "Table")       di.doc_type = DocType::Table;
     else if (dt == "Figure") di.doc_type = DocType::Figure;
     else if (dt == "Text")   di.doc_type = DocType::Text;
 
-    di.has_data = get_bool(j, "hasData", true);
-    di.glue_num_type = get_bool(j, "glueNumType", false);
+    di.has_data = jutil::get<bool>(j, "hasData", true);
+    di.glue_num_type = jutil::get<bool>(j, "glueNumType", false);
 
-    di.doc_order = get_int(j, "docOrder", 0);
-    di.is_continues = get_bool(j, "isContinues", false);
+    di.doc_order = jutil::get<int>(j, "docOrder", 0);
+    di.is_continues = jutil::get<bool>(j, "isContinues", false);
     // footnotePlace: "doc_footer" | "repeated" | "last_page" (default "repeated")
-    auto fp = get_str(j, "footnotePlace");
+    auto fp = jutil::get<std::string>(j, "footnotePlace");
     if (fp == "doc_footer")       di.footnote_place = FootnotePlace::DocFooter;
     else if (fp == "last_page")   di.footnote_place = FootnotePlace::LastPage;
     else                          di.footnote_place = FootnotePlace::Repeated;
 
-    di.content_width_raw = get_opt_str(j, "contentWidth");
-    auto top_el = get_opt_str(j, "topEmptyLine");
+    di.content_width_raw = jutil::opt<std::string>(j, "contentWidth");
+    auto top_el = jutil::opt<std::string>(j, "topEmptyLine");
     if (top_el.has_value()) di.top_empty_line = Length::parse(*top_el);
-    auto bottom_el = get_opt_str(j, "bottomEmptyLine");
+    auto bottom_el = jutil::opt<std::string>(j, "bottomEmptyLine");
     if (bottom_el.has_value()) di.bottom_empty_line = Length::parse(*bottom_el);
 
     return di;
@@ -633,11 +648,11 @@ static DocumentInfo parse_document_info(const json& j) {
 
 static FigureInfo parse_figure_info(const json& j) {
     FigureInfo fi;
-    fi.width = get_opt_str(j, "width");
-    fi.height = get_opt_str(j, "height");
-    auto sm = get_opt_str(j, "figureScaleMode");
+    fi.width = jutil::opt<std::string>(j, "width");
+    fi.height = jutil::opt<std::string>(j, "height");
+    auto sm = jutil::opt<std::string>(j, "figureScaleMode");
     if (sm.has_value()) fi.scale_mode = *sm;
-    auto dev = get_opt_str(j, "device");
+    auto dev = jutil::opt<std::string>(j, "device");
     if (dev.has_value()) fi.device = *dev;
     return fi;
 }
@@ -704,7 +719,7 @@ static TFLSpec parse_single_spec(const std::string& key, const json& j) {
         spec.body_text = parse_text_groups(j["bodyText"]);
 
     // DataRef
-    auto refs = get_str_array(j, "dataRef");
+    auto refs = jutil::get_array<std::string>(j, "dataRef");
     if (!refs.empty()) spec.data_ref = refs[0];
 
     // Figure properties
@@ -725,11 +740,11 @@ static TFLDocument parse_spec_internal(const json& root) {
     // _metadata
     if (root.contains("_metadata") && root["_metadata"].is_object()) {
         const auto& meta = root["_metadata"];
-        doc.metadata.out_dir       = get_str(meta, "outDir");
-        doc.metadata.doc_file_name = get_str(meta, "docFileName");
-        doc.metadata.datetime      = get_str(meta, "datetime");
-        doc.metadata.insert_toc    = get_bool(meta, "insertTOC", false);
-        auto tt = get_opt_str(meta, "tocTitle");
+        doc.metadata.out_dir       = jutil::get<std::string>(meta, "outDir");
+        doc.metadata.doc_file_name = jutil::get<std::string>(meta, "docFileName");
+        doc.metadata.datetime      = jutil::get<std::string>(meta, "datetime");
+        doc.metadata.insert_toc    = jutil::get<bool>(meta, "insertTOC", false);
+        auto tt = jutil::opt<std::string>(meta, "tocTitle");
         if (tt.has_value()) doc.metadata.toc_title = *tt;
     }
 
@@ -778,7 +793,7 @@ static StylesTemplate parse_template_internal(const json& root) {
         if (doc.contains("page") && doc["page"].is_object())
             tmpl.page = parse_page_config(doc["page"]);
         if (doc.contains("paragraphDefaults") && doc["paragraphDefaults"].is_object()) {
-            tmpl.widow_control = get_opt_bool(doc["paragraphDefaults"], "widow_control");
+            tmpl.widow_control = jutil::opt<bool>(doc["paragraphDefaults"], "widow_control");
         }
     }
 
@@ -805,15 +820,15 @@ static StylesTemplate parse_template_internal(const json& root) {
         // layout
         if (tbl.contains("layout") && tbl["layout"].is_object()) {
             const auto& layout = tbl["layout"];
-            auto ta = get_opt_str(layout, "table_alignment");
+            auto ta = jutil::opt<std::string>(layout, "table_alignment");
             if (ta.has_value()) {
                 if (*ta == "center")      tmpl.table_style.table_alignment = Alignment::Center;
                 else if (*ta == "right")  tmpl.table_style.table_alignment = Alignment::Right;
                 else if (*ta == "left")   tmpl.table_style.table_alignment = Alignment::Left;
             }
-            auto top_el = get_opt_str(layout, "topEmptyLine");
+            auto top_el = jutil::opt<std::string>(layout, "topEmptyLine");
             if (top_el.has_value()) tmpl.table_style.top_empty_line = Length::parse(*top_el);
-            auto bottom_el = get_opt_str(layout, "bottomEmptyLine");
+            auto bottom_el = jutil::opt<std::string>(layout, "bottomEmptyLine");
             if (bottom_el.has_value()) tmpl.table_style.bottom_empty_line = Length::parse(*bottom_el);
             if (layout.contains("table_borders") && layout["table_borders"].is_object())
                 tmpl.table_style.table_borders = parse_borders(layout["table_borders"]);
@@ -869,13 +884,13 @@ static StylesTemplate parse_template_internal(const json& root) {
             const auto& cd = tbl["cellDefaults"];
             if (cd.contains("cell_margins") && cd["cell_margins"].is_object()) {
                 const auto& cm = cd["cell_margins"];
-                auto mt = get_opt_str(cm, "top");
+                auto mt = jutil::opt<std::string>(cm, "top");
                 if (mt.has_value()) tmpl.table_style.default_cell_margin_top = Length::parse(*mt);
-                auto mb = get_opt_str(cm, "bottom");
+                auto mb = jutil::opt<std::string>(cm, "bottom");
                 if (mb.has_value()) tmpl.table_style.default_cell_margin_bottom = Length::parse(*mb);
-                auto ml = get_opt_str(cm, "left");
+                auto ml = jutil::opt<std::string>(cm, "left");
                 if (ml.has_value()) tmpl.table_style.default_cell_margin_left = Length::parse(*ml);
-                auto mr = get_opt_str(cm, "right");
+                auto mr = jutil::opt<std::string>(cm, "right");
                 if (mr.has_value()) tmpl.table_style.default_cell_margin_right = Length::parse(*mr);
             }
         }
@@ -886,24 +901,24 @@ static StylesTemplate parse_template_internal(const json& root) {
 
             if (fig.contains("layout") && fig["layout"].is_object()) {
                 const auto& layout = fig["layout"];
-                auto a = get_opt_str(layout, "alignment");
+                auto a = jutil::opt<std::string>(layout, "alignment");
                 if (a.has_value()) {
                     if (*a == "center") tmpl.figure_style.alignment = Alignment::Center;
                     else if (*a == "right") tmpl.figure_style.alignment = Alignment::Right;
                     else if (*a == "left") tmpl.figure_style.alignment = Alignment::Left;
                 }
 
-                auto sb = get_opt_str(layout, "space_before");
+                auto sb = jutil::opt<std::string>(layout, "space_before");
                 if (sb.has_value()) tmpl.figure_style.space_before = Length::parse(*sb);
-                auto sa = get_opt_str(layout, "space_after");
+                auto sa = jutil::opt<std::string>(layout, "space_after");
                 if (sa.has_value()) tmpl.figure_style.space_after = Length::parse(*sa);
             }
 
             if (fig.contains("caption") && fig["caption"].is_object()) {
                 const auto& cap = fig["caption"];
-                auto p = get_opt_str(cap, "position");
+                auto p = jutil::opt<std::string>(cap, "position");
                 if (p.has_value()) tmpl.figure_style.caption_position = *p;
-                auto sr = get_opt_str(cap, "textStyleRef");
+                auto sr = jutil::opt<std::string>(cap, "textStyleRef");
                 if (sr.has_value()) tmpl.figure_style.caption_text_style_ref = *sr;
             }
         }
