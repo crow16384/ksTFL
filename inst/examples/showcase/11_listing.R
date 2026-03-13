@@ -1,5 +1,5 @@
 source(file.path(getwd(),'inst','examples','showcase','structures','dummy_data.R'))
-source(file.path(getwd(),'inst','examples','showcase','structures','lb_lst_01.r')) 
+source(file.path(getwd(),'inst','examples','showcase','structures','lb_lst_01.R')) 
 
 spec_lbl_01 <- create_table(data) %>% 
   add_title(c("Перечень 16.1", "Лабораторные показатели<sup> Бла бла</sup> ❌"), toclevel = 1) %>% 
@@ -33,7 +33,7 @@ spec_lbl_02 <- spec_lbl_01 %>%
 r_lbl_01 <- create_report(spec_lbl_01)
 r_lbl_02 <- create_report(spec_lbl_02)
 
-write_doc(r_lbl_01, "listing_16_1.1", toc = T)
-write_doc(r_lbl_02, "listing_16_1.2", toc = T)
+write_doc(r_lbl_01, "showcase_11_listing_16_1.1", toc = T)
+write_doc(r_lbl_02, "showcase_11_listing_16_1.2", toc = T)
 
 

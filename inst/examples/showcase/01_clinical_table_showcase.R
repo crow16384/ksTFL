@@ -40,7 +40,7 @@ spec <- create_table(raw) %>%
   ) %>%
   define_cols(c(RPH104, PLCB, TOTAL),
     label = c("RPH-104<br>(N=160)", "Placebo<br>(N=158)", "Total<br>(N=318)"),
-    labelStyleRef = "to_90",
+    #labelStyleRef = "to_90",
     valueStyleRef = "text_center",
     colWidth = "16%"
   ) %>%

@@ -116,7 +116,7 @@ spec <- create_table(tbl) %>%
   ) %>%
   define_cols(SOC_GROUP, isVisible = FALSE) %>%
   define_cols(SOC_PT,
-    label = "MedDRA SOC<br>MedDRA PT",
+    label = "MedDRA SOC",
     isID = TRUE,
     labelStyleRef = "text_left",
     valueStyleRef = f_combine("text_left", "font_small"),
@@ -205,4 +205,4 @@ spec <- create_table(tbl) %>%
   )
 
 create_report(spec) %>%
-  write_doc("showcase_11_ae_template_ru_real_counts", toc = T, metaPath = meta_dir)
+  write_doc("showcase_10_ae_template_ru_real_counts", toc = T, metaPath = meta_dir)

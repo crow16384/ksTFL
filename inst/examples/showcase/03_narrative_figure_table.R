@@ -40,7 +40,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
     ggplot2::theme_bw(base_size = 11) +
     ggplot2::theme(legend.position = "bottom")
 
-  spec_fig <- create_figure(p, width = 6.8, height = 4.2, dpi = 300) %>%
+  spec_fig <- create_figure(p, dpi = 300) %>%
     add_title(c("Figure S3.1", "Mean PK Concentration–Time Profile"), toclevel = 1) %>%
     add_subtitle("PK Analysis Set")
 } else {

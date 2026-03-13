@@ -36,5 +36,5 @@ write_doc(
   name = "showcase_09_multi_spec_global_override",
   toc = TRUE,
   metaPath = meta_dir,
-  template_json = system.file("templates", "Navy_Pro.json", package = "ksTFL", mustWork = TRUE)
+  overrideTemplate = "Navy_Pro"
 )
