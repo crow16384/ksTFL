@@ -93,11 +93,12 @@ tbl <- dplyr::bind_rows(
 
 spec <- create_table(tbl) %>%
   add_style("font_small", s_font(font_size = "8pt")) %>%
+  add_style("spacing_after10", s_paragraph(spacing = s_spacing(after = "10pt"))) %>%
   add_title(c(
     "Таблица 11.32",
     "Частота НЯЛ по классу систем органов и предпочтительному термину и по степени тяжести.",
     "Подпопуляция SS Первичное включение в OLE"
-  ), toclevel = 1) %>%
+  ), toclevel = 1, styleRef = "spacing_after10") %>%
   add_footer("", "Страница {PAGE} из {NUMPAGES}", "") %>%
   set_page_style(
     page = p_page(
@@ -139,6 +140,7 @@ spec <- create_table(tbl) %>%
       GRAND_N, GRAND_E
     ),
     label = rep(c("n (%)", "E"), 7),
+    #labelStyleRef = f_combine("text_center","to_90"),
     labelStyleRef = "text_center",
     valueStyleRef = f_combine("text_center", "font_small"),
     colWidth = "4.3%"
@@ -203,4 +205,4 @@ spec <- create_table(tbl) %>%
   )
 
 create_report(spec) %>%
-  write_doc("showcase_11_ae_template_ru_real_counts", toc = FALSE, metaPath = meta_dir)
+  write_doc("showcase_11_ae_template_ru_real_counts", toc = T, metaPath = meta_dir)

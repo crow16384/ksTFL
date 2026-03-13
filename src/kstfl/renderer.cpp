@@ -329,10 +329,9 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         }
 
         // Measure header grid cells.
-        // First, resolve a representative header style once to extract the
-        // text_orientation that the template applies to all header cells.
-        // Then stamp it onto every HeaderGridCell so the measurer can swap
-        // width/height for rotated labels.
+        // Stamp the template's text_orientation only onto the label row
+        // (the last row of the header grid).  Stub/span header rows must
+        // NOT inherit rotation — their labels are horizontal.
         {
             ColumnSpec dummy_col;
             StyleDef proto_hdr_style = resolver.resolve_header_cell_style(dummy_col);
@@ -340,8 +339,9 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
             if (proto_hdr_style.table_style.has_value()) {
                 hdr_orientation = proto_hdr_style.table_style->text_orientation;
             }
-            for (auto& header_row : header_grid.rows) {
-                for (auto& cell : header_row) {
+            if (!header_grid.rows.empty()) {
+                auto& label_row = header_grid.rows.back();
+                for (auto& cell : label_row) {
                     if (!cell.text_orientation.has_value()) {
                         cell.text_orientation = hdr_orientation;
                     }
@@ -349,9 +349,22 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
             }
         }
 
+        // --- Measure per-row heights ----------------------------------
+        // First pass: compute each row's height from non-vertically-merged
+        // cells only.  vMerge::Restart cells span multiple rows, so their
+        // full measured height must not inflate a single row.
+        // Also record every Restart cell's measured height for the second
+        // pass below.
+        struct VMergeEntry {
+            size_t row_idx;
+            Length measured_height;
+        };
+        std::vector<VMergeEntry> vmerge_entries;
+
         Length total_header_height{0};
         header_grid.row_heights.clear();
-        for (auto& header_row : header_grid.rows) {
+        for (size_t ri = 0; ri < header_grid.rows.size(); ++ri) {
+            auto& header_row = header_grid.rows[ri];
             Length max_row_height{0};
             for (auto& cell : header_row) {
                 // Resolve header cell style (carries text_orientation via table_style)
@@ -371,12 +384,61 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
                 }
 
                 MeasuredText m = measurer.measure_plain(cell.label, hdr_style, cell.width);
-                if (m.height > max_row_height) {
-                    max_row_height = m.height;
+
+
+                if (cell.v_merge == VMergeState::Restart) {
+                    // Defer — height will be distributed in second pass.
+                    vmerge_entries.push_back({ri, m.height});
+                } else if (cell.v_merge == VMergeState::Continue) {
+                    // Skip — empty continuation cell.
+                } else {
+                    if (m.height > max_row_height) {
+                        max_row_height = m.height;
+                    }
                 }
             }
             header_grid.row_heights.push_back(max_row_height);
-            total_header_height = total_header_height + max_row_height;
+        }
+
+        // Second pass: ensure vMerge groups have enough combined height.
+        // A Restart cell at row ri merges down through all consecutive
+        // Continue rows for the same source column.  If the sum of row
+        // heights in the group is less than the cell's measured height,
+        // increase the last row in the group by the deficit.
+        for (const auto& entry : vmerge_entries) {
+            size_t ri = entry.row_idx;
+            // Find the last row in the merge group (consecutive Continue rows).
+            size_t last_ri = ri;
+            for (size_t nri = ri + 1; nri < header_grid.rows.size(); ++nri) {
+                bool found_continue = false;
+                for (const auto& c : header_grid.rows[nri]) {
+                    if (c.v_merge == VMergeState::Continue && c.col_span == 1) {
+                        found_continue = true;
+                        break;
+                    }
+                }
+                if (found_continue) {
+                    last_ri = nri;
+                } else {
+                    break;
+                }
+            }
+            // Sum row heights in the merge group.
+            Length group_height{0};
+            for (size_t gri = ri; gri <= last_ri; ++gri) {
+                group_height = group_height + header_grid.row_heights[gri];
+            }
+            // If deficit exists, add it to the last row of the group.
+            if (entry.measured_height > group_height) {
+                Length deficit{entry.measured_height.emu - group_height.emu};
+                header_grid.row_heights[last_ri] =
+                    header_grid.row_heights[last_ri] + deficit;
+            }
+        }
+
+        // Compute total header height from (possibly adjusted) row heights.
+        for (const auto& rh : header_grid.row_heights) {
+            total_header_height = total_header_height + rh;
         }
         header_grid.total_height = total_header_height;
 

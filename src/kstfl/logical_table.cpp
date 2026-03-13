@@ -304,6 +304,20 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                     }
                     if (!all_gaps) break;
 
+                    // Safety: verify gap count matches the span's
+                    // visible column count before erasing cells.
+                    {
+                        int visible_in_span = 0;
+                        for (size_t si = lo; si <= hi; ++si) {
+                            if (si < spec.columns.size() && spec.columns[si].is_visible) {
+                                visible_in_span++;
+                            }
+                        }
+                        if (static_cast<int>(gap_indices.size()) != visible_in_span) {
+                            break;  // Mismatch — skip promotion
+                        }
+                    }
+
                     // Promote: replace the first gap cell with the span
                     // content and remove the remaining gap cells covered
                     // by the span.
@@ -356,6 +370,166 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec& spec) {
                 }
             }
             next_gap:;
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Post-pass 2: fill remaining empty placeholder cells.
+    //
+    // After promotion, any empty placeholder cells (label.empty(),
+    // v_merge==None, col_span==1) represent columns that sat inside a
+    // parent span but were never covered by a child stub.  Place the
+    // column label at the earliest such gap and mark cells below as
+    // vMerge::Continue so the label merges down to the label row.
+    // -----------------------------------------------------------------------
+    for (size_t ri = 0; ri < grid.rows.size(); ++ri) {
+        for (auto& cell : grid.rows[ri]) {
+            if (!cell.label.empty() || cell.v_merge != VMergeState::None
+                || cell.col_span != 1) {
+                continue;
+            }
+            size_t ci_col = cell.source_col_index;
+            if (ci_col >= spec.columns.size() || !spec.columns[ci_col].is_visible) {
+                continue;
+            }
+            // Fill with column label at this (earliest) row.
+            cell.label = spec.columns[ci_col].label;
+            cell.style_ref = spec.columns[ci_col].label_style_ref;
+            cell.v_merge = VMergeState::Restart;
+
+            // Mark same-column cells in all lower stub rows as Continue.
+            for (size_t lri = ri + 1; lri < grid.rows.size(); ++lri) {
+                for (auto& lcell : grid.rows[lri]) {
+                    if (lcell.source_col_index == ci_col
+                        && lcell.col_span == 1
+                        && lcell.v_merge == VMergeState::None
+                        && lcell.label.empty()) {
+                        lcell.v_merge = VMergeState::Continue;
+                    }
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Post-pass 3: promote individual column cells upward through span
+    // cells by "peeling" them off the span's left or right edge.
+    //
+    // After Post-pass 2 placed column labels at the earliest empty stub
+    // row, those cells may sit below a parent span that covers the same
+    // column.  We iteratively peel edge columns from the parent span:
+    // shrink its col_span, insert the column cell at the parent's row,
+    // and mark the original position as vMerge::Continue.
+    //
+    // Process from the bottom stub row upward so promotions cascade
+    // through multiple nesting levels.
+    // -----------------------------------------------------------------------
+    for (int pp3_ri = static_cast<int>(grid.rows.size()) - 1;
+         pp3_ri >= 1; --pp3_ri) {
+        bool pp3_changed = true;
+        while (pp3_changed) {
+            pp3_changed = false;
+            for (size_t ci = 0; ci < grid.rows[pp3_ri].size(); ++ci) {
+                auto& cell = grid.rows[pp3_ri][ci];
+                if (cell.v_merge != VMergeState::Restart || cell.col_span != 1)
+                    continue;
+                size_t col_idx = cell.source_col_index;
+
+                // Find a span cell in the row above that covers col_idx.
+                for (size_t pi = 0; pi < grid.rows[pp3_ri - 1].size(); ++pi) {
+                    auto& parent = grid.rows[pp3_ri - 1][pi];
+                    if (parent.col_span <= 1) continue;
+                    size_t p_lo = parent.source_col_index;
+                    size_t p_hi = p_lo
+                        + static_cast<size_t>(parent.col_span) - 1;
+                    if (col_idx < p_lo || col_idx > p_hi) continue;
+
+                    // Parent span covers this column.
+                    // Only peel from left or right boundary.
+                    if (col_idx == p_lo) {
+                        // --- Peel from left edge ---
+                        HeaderGridCell promoted;
+                        promoted.label          = cell.label;
+                        promoted.col_span       = 1;
+                        promoted.row_span       = 1;
+                        promoted.width          = cell.width;
+                        promoted.style_ref      = cell.style_ref;
+                        promoted.source_col_index = col_idx;
+                        promoted.v_merge        = VMergeState::Restart;
+                        promoted.text_orientation = cell.text_orientation;
+
+                        // Shrink parent from the left (modify before insert
+                        // invalidates the reference).
+                        parent.source_col_index = col_idx + 1;
+                        parent.col_span -= 1;
+                        {
+                            Length w{0};
+                            size_t s_lo = parent.source_col_index;
+                            size_t s_hi = s_lo
+                                + static_cast<size_t>(parent.col_span) - 1;
+                            for (size_t si = s_lo;
+                                 si <= s_hi && si < spec.columns.size();
+                                 ++si) {
+                                if (spec.columns[si].is_visible)
+                                    w = w + spec.columns[si].resolved_width;
+                            }
+                            parent.width = w;
+                        }
+
+                        grid.rows[pp3_ri - 1].insert(
+                            grid.rows[pp3_ri - 1].begin()
+                                + static_cast<std::ptrdiff_t>(pi),
+                            promoted);
+
+                        // Original cell becomes Continue.
+                        grid.rows[pp3_ri][ci].label = "";
+                        grid.rows[pp3_ri][ci].v_merge = VMergeState::Continue;
+                        pp3_changed = true;
+                        break;
+
+                    } else if (col_idx == p_hi) {
+                        // --- Peel from right edge ---
+                        HeaderGridCell promoted;
+                        promoted.label          = cell.label;
+                        promoted.col_span       = 1;
+                        promoted.row_span       = 1;
+                        promoted.width          = cell.width;
+                        promoted.style_ref      = cell.style_ref;
+                        promoted.source_col_index = col_idx;
+                        promoted.v_merge        = VMergeState::Restart;
+                        promoted.text_orientation = cell.text_orientation;
+
+                        // Shrink parent from the right.
+                        parent.col_span -= 1;
+                        {
+                            Length w{0};
+                            size_t s_lo = parent.source_col_index;
+                            size_t s_hi = s_lo
+                                + static_cast<size_t>(parent.col_span) - 1;
+                            for (size_t si = s_lo;
+                                 si <= s_hi && si < spec.columns.size();
+                                 ++si) {
+                                if (spec.columns[si].is_visible)
+                                    w = w + spec.columns[si].resolved_width;
+                            }
+                            parent.width = w;
+                        }
+
+                        grid.rows[pp3_ri - 1].insert(
+                            grid.rows[pp3_ri - 1].begin()
+                                + static_cast<std::ptrdiff_t>(pi + 1),
+                            promoted);
+
+                        grid.rows[pp3_ri][ci].label = "";
+                        grid.rows[pp3_ri][ci].v_merge = VMergeState::Continue;
+                        pp3_changed = true;
+                        break;
+                    }
+                    // Column is in the middle of the span — cannot peel.
+                    break;
+                }
+                if (pp3_changed) break;  // restart row scan
+            }
         }
     }
 
