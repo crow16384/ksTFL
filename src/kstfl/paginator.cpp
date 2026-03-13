@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <Rcpp.h>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace kstfl {
@@ -178,6 +179,173 @@ std::vector<Length> Paginator::compute_row_heights(
 }
 
 // ---------------------------------------------------------------------------
+// Compute scaled column widths for a horizontal segment.
+// Matches the scaling logic in docx_table.cpp: ID columns keep their
+// original width, non-ID columns are scaled to fill the full table width.
+// ---------------------------------------------------------------------------
+
+std::unordered_map<size_t, int64_t> Paginator::compute_segment_column_widths(
+    const std::vector<ColumnSpec>& columns,
+    const HorizontalSegment& segment) {
+
+    // Compute full table width across all visible columns
+    Length full_table_width{0};
+    size_t visible_col_count = 0;
+    for (const auto& col : columns) {
+        if (!col.is_visible) continue;
+        full_table_width = full_table_width + col.resolved_width;
+        visible_col_count++;
+    }
+
+    bool is_subset = (segment.column_indices.size() < visible_col_count);
+
+    std::unordered_map<size_t, int64_t> col_widths;
+    if (is_subset) {
+        int64_t id_raw = 0, non_id_raw = 0;
+        for (size_t col_idx : segment.column_indices) {
+            if (col_idx < columns.size()) {
+                if (columns[col_idx].is_id) {
+                    id_raw += columns[col_idx].resolved_width.emu;
+                } else {
+                    non_id_raw += columns[col_idx].resolved_width.emu;
+                }
+            }
+        }
+        double non_id_scale = (non_id_raw > 0)
+            ? static_cast<double>(full_table_width.emu - id_raw)
+              / static_cast<double>(non_id_raw)
+            : 1.0;
+        for (size_t col_idx : segment.column_indices) {
+            if (col_idx < columns.size()) {
+                if (columns[col_idx].is_id) {
+                    col_widths[col_idx] = columns[col_idx].resolved_width.emu;
+                } else {
+                    col_widths[col_idx] = static_cast<int64_t>(
+                        columns[col_idx].resolved_width.emu * non_id_scale);
+                }
+            }
+        }
+    } else {
+        for (size_t col_idx : segment.column_indices) {
+            if (col_idx < columns.size()) {
+                col_widths[col_idx] = columns[col_idx].resolved_width.emu;
+            }
+        }
+    }
+
+    return col_widths;
+}
+
+// ---------------------------------------------------------------------------
+// Compute row heights for a specific segment using scaled column widths.
+// When isColBreak splits a table, each segment displays fewer columns at
+// wider widths.  Text wraps differently at these widths, so row heights
+// must be recalculated per segment rather than shared across all segments.
+// ---------------------------------------------------------------------------
+
+std::vector<Length> Paginator::compute_segment_row_heights(
+    const std::vector<LogicalRow>& rows,
+    const std::vector<ColumnSpec>& columns,
+    const HorizontalSegment& segment,
+    const std::unordered_map<size_t, int64_t>& scaled_widths,
+    const TextMeasurer& measurer,
+    const StyleResolver& resolver) {
+
+    std::vector<Length> heights(rows.size());
+
+    // Build set of columns in this segment for quick lookup
+    std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
+                                         segment.column_indices.end());
+
+    for (size_t ri = 0; ri < rows.size(); ++ri) {
+        const auto& row = rows[ri];
+        Length max_height{0};
+
+        for (size_t ci = 0; ci < row.cells.size() && ci < columns.size(); ++ci) {
+            // Only measure columns in this segment
+            if (seg_cols.find(ci) == seg_cols.end()) continue;
+            if (!columns[ci].is_visible) continue;
+            const auto& cell = row.cells[ci];
+            if (cell.is_merged && !cell.is_merge_leader) continue;
+
+            // Use segment-scaled width
+            Length cell_width;
+            if (cell.is_merge_leader) {
+                // Sum scaled widths of merged columns in this segment
+                int64_t merged_emu = 0;
+                for (size_t mi = ci;
+                     mi < ci + static_cast<size_t>(cell.merge_span)
+                     && mi < columns.size(); ++mi) {
+                    auto wit = scaled_widths.find(mi);
+                    if (wit != scaled_widths.end()) {
+                        merged_emu += wit->second;
+                    }
+                }
+                cell_width = Length{merged_emu > 0 ? merged_emu : cell.merged_width.emu};
+            } else {
+                auto wit = scaled_widths.find(ci);
+                cell_width = (wit != scaled_widths.end())
+                    ? Length{wit->second}
+                    : columns[ci].resolved_width;
+            }
+
+            // Resolve effective style (same logic as compute_row_heights)
+            bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
+            StyleDef cell_style = resolver.resolve_body_cell_style(
+                columns[ci],
+                row.row_style_ref,
+                std::nullopt,
+                std::nullopt,
+                is_addrow
+            );
+
+            if (cell.style_ref.has_value()) {
+                const StyleDef* override_style = resolver.find_style(cell.style_ref.value());
+                if (override_style) {
+                    cell_style.merge_from(*override_style);
+                }
+            }
+
+            MeasuredText measured = measurer.measure_plain(cell.text, cell_style, cell_width);
+
+            if (measured.height > max_height) {
+                max_height = measured.height;
+            }
+        }
+
+        // Check explicit row height override (same logic as compute_row_heights)
+        Length explicit_row_height{0};
+
+        if (row.row_style_ref.has_value()) {
+            const StyleDef* rs = resolver.find_style(*row.row_style_ref);
+            if (rs && rs->table_style.has_value() &&
+                rs->table_style->row_height.has_value()) {
+                explicit_row_height = *rs->table_style->row_height;
+            }
+        }
+
+        if (explicit_row_height.emu == 0) {
+            for (const auto& cell : row.cells) {
+                if (cell.style_ref.has_value()) {
+                    const StyleDef* cs = resolver.find_style(*cell.style_ref);
+                    if (cs && cs->table_style.has_value() &&
+                        cs->table_style->row_height.has_value()) {
+                        explicit_row_height = *cs->table_style->row_height;
+                        break;
+                    }
+                }
+            }
+        }
+
+        heights[ri] = (explicit_row_height.emu > 0)
+            ? explicit_row_height
+            : max_height;
+    }
+
+    return heights;
+}
+
+// ---------------------------------------------------------------------------
 // Compute available body height for a page
 // Spec §5.2: subtract all non-body blocks from usable height
 // ---------------------------------------------------------------------------
@@ -265,10 +433,25 @@ PaginationResult Paginator::paginate(
     // 1. Build horizontal segments
     auto segments = build_segments(spec.columns);
 
-    // 2. Compute row heights once (across all columns) and store into rows
+    // 2. Compute row heights
+    // For single-segment tables (no colBreak), compute once across all columns.
+    // For multi-segment tables, compute per-segment using scaled column widths
+    // so that row heights reflect the actual column widths in each segment.
     auto row_heights = compute_row_heights(rows, spec.columns, measurer, resolver);
     for (size_t i = 0; i < rows.size() && i < row_heights.size(); ++i) {
         rows[i].measured_height = row_heights[i];
+    }
+
+    bool has_multiple_segments = (segments.size() > 1);
+    if (has_multiple_segments) {
+        for (auto& seg : segments) {
+            auto scaled_widths = compute_segment_column_widths(spec.columns, seg);
+            seg.row_heights = compute_segment_row_heights(
+                rows, spec.columns, seg, scaled_widths, measurer, resolver);
+        }
+    } else if (!segments.empty()) {
+        // Single segment — reuse global row_heights
+        segments[0].row_heights = row_heights;
     }
 
     // 3. Compute static block heights
@@ -442,19 +625,21 @@ PaginationResult Paginator::paginate(
                     if (rows[row_idx].force_page_break) break;
                 }
 
-                Length rh = row_heights[row_idx];
+                Length rh = segment.row_heights[row_idx];
 
                 // Check if row fits
                 if (used_height.emu > 0 && (used_height + rh) > available) {
                     break;
                 }
 
-                // Warn when a single row is taller than the available page body
-                // height — it will be placed on its own page but may overflow.
-                if (used_height.emu == 0 && rh > available) {
+                // Warn when a single row is taller than the physical page body
+                // height.  Use available + PAGE_SAFETY_MARGIN for the warning
+                // threshold because the safety margin is a pagination buffer,
+                // not indicative of actual overflow.
+                if (used_height.emu == 0 && rh > (available + PAGE_SAFETY_MARGIN)) {
                     Rcpp::Rcerr << "[ksTFL] WARNING: Row " << row_idx
                               << " height (" << rh.to_pt() << "pt) exceeds available"
-                              << " page body height (" << available.to_pt() << "pt)."
+                              << " page body height (" << (available + PAGE_SAFETY_MARGIN).to_pt() << "pt)."
                               << " The row will be split across pages by Word.\n";
                 }
 
@@ -540,7 +725,7 @@ PaginationResult Paginator::paginate(
                    && segment.pages[last_idx].last_row > segment.pages[last_idx].first_row) {
 
                 // Remove the last row from this page
-                Length removed_h = row_heights[segment.pages[last_idx].last_row];
+                Length removed_h = segment.row_heights[segment.pages[last_idx].last_row];
                 segment.pages[last_idx].body_height = segment.pages[last_idx].body_height - removed_h;
                 segment.pages[last_idx].last_row--;
 
@@ -594,8 +779,8 @@ PaginationResult Paginator::paginate(
 
             while (fill_start < rows.size()
                    && !rows[fill_start].force_page_break
-                   && (final_page.body_height + row_heights[fill_start]) <= fill_avail) {
-                final_page.body_height = final_page.body_height + row_heights[fill_start];
+                   && (final_page.body_height + segment.row_heights[fill_start]) <= fill_avail) {
+                final_page.body_height = final_page.body_height + segment.row_heights[fill_start];
                 final_page.last_row = fill_start;
                 fill_start++;
             }
@@ -632,8 +817,8 @@ PaginationResult Paginator::paginate(
                 while (fill_start < rows.size()
                        && !rows[fill_start].force_page_break
                        && (overflow.body_height.emu == 0
-                           || (overflow.body_height + row_heights[fill_start]) <= ov_avail)) {
-                    overflow.body_height = overflow.body_height + row_heights[fill_start];
+                           || (overflow.body_height + segment.row_heights[fill_start]) <= ov_avail)) {
+                    overflow.body_height = overflow.body_height + segment.row_heights[fill_start];
                     overflow.last_row = fill_start;
                     fill_start++;
                 }

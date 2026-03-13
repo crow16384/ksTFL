@@ -5,6 +5,8 @@ suppressPackageStartupMessages({
   library(tidyr)
   library(tibble)
   library(stringr)
+  library(purrr)
+  library(httr2)
 })
 
 out_dir <- file.path(getwd(), "tmp", "showcase_output")

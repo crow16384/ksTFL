@@ -446,8 +446,8 @@ size_t Renderer::render_from_strings(const std::string& spec_json,
         header_grid.total_height = total_header_height;
 
         // --- Phase 3d: Paginate (spec §22.5) ---
-        // Row heights are computed once inside Paginator::paginate() and
-        // stored back into row.measured_height (single source of truth).
+        // Paginator computes baseline row heights and per-segment row heights
+        // (for colBreak segments with scaled column widths).
         if (config_.verbose) {
             Rcpp::Rcerr << "[ksTFL]   Phase 3d: Paginating...\n";
         }

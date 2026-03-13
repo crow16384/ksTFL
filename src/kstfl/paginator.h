@@ -8,6 +8,7 @@
 #include "types.h"
 #include "text_measurer.h"
 #include "style_resolver.h"
+#include <unordered_map>
 #include <vector>
 
 namespace kstfl {
@@ -55,6 +56,24 @@ private:
     static std::vector<Length> compute_row_heights(
         const std::vector<LogicalRow>& rows,
         const std::vector<ColumnSpec>& columns,
+        const TextMeasurer& measurer,
+        const StyleResolver& resolver);
+
+    /// Compute scaled column widths for a horizontal segment.
+    /// ID columns keep their original width; non-ID columns are scaled
+    /// to fill the full table width.
+    static std::unordered_map<size_t, int64_t> compute_segment_column_widths(
+        const std::vector<ColumnSpec>& columns,
+        const HorizontalSegment& segment);
+
+    /// Compute row heights for a specific segment using scaled column widths.
+    /// When isColBreak splits a table, each segment has wider columns, so
+    /// text wraps differently and row heights must be recalculated.
+    static std::vector<Length> compute_segment_row_heights(
+        const std::vector<LogicalRow>& rows,
+        const std::vector<ColumnSpec>& columns,
+        const HorizontalSegment& segment,
+        const std::unordered_map<size_t, int64_t>& scaled_widths,
         const TextMeasurer& measurer,
         const StyleResolver& resolver);
 };

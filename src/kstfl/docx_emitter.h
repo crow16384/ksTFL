@@ -143,10 +143,12 @@ private:
                            const std::unordered_set<size_t>& seg_cols) const;
 
     /// Emit a single table body row.
+    /// @param row_height  Segment-specific row height for trHeight.
     /// @param col_widths  Per-column scaled widths (column index -> EMU).
     /// @param seg_cols    Pre-built set of column indices in this segment.
     void emit_table_row(XmlWriter& w,
                         const LogicalRow& row,
+                        Length row_height,
                         const HorizontalSegment& segment,
                         const TFLSpec& spec,
                         const StyleResolver& resolver,

@@ -120,6 +120,7 @@ void DocxEmitter::emit_table_header(XmlWriter& w,
 
 void DocxEmitter::emit_table_row(XmlWriter& w,
                                   const LogicalRow& row,
+                                  Length row_height,
                                   const HorizontalSegment& segment,
                                   const TFLSpec& spec,
                                   const StyleResolver& resolver,
@@ -132,9 +133,9 @@ void DocxEmitter::emit_table_row(XmlWriter& w,
     // Row properties
     w.start_element("w:trPr");
     w.self_closing_element("w:cantSplit");
-    if (row.measured_height.emu > 0) {
+    if (row_height.emu > 0) {
         w.start_element("w:trHeight");
-        w.attribute("w:val", std::to_string(row.measured_height.to_twips()));
+        w.attribute("w:val", std::to_string(row_height.to_twips()));
         // Use "exact" to force Word to render rows at exactly our calculated
         // height, ensuring deterministic pagination (no overflow).
         w.attribute("w:hRule", "exact");
@@ -463,7 +464,10 @@ void DocxEmitter::emit_table(XmlWriter& w,
     for (size_t ri = page.first_row; ri <= page.last_row && ri < rows.size(); ++ri) {
         if (rows[ri].type == LogicalRowType::GroupBreak) continue;
         bool is_last = (ri == effective_last_row) && !use_bottom_spacer;
-        emit_table_row(w, rows[ri], segment, spec, resolver, is_last, col_widths, seg_cols);
+        Length rh = (ri < segment.row_heights.size())
+            ? segment.row_heights[ri]
+            : rows[ri].measured_height;
+        emit_table_row(w, rows[ri], rh, segment, spec, resolver, is_last, col_widths, seg_cols);
     }
 
     if (use_bottom_spacer) {

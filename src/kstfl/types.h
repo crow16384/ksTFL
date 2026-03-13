@@ -752,6 +752,7 @@ struct HorizontalSegment {
     size_t segment_index = 0;
     std::vector<size_t> column_indices;      // indices into TFLSpec::columns
     std::vector<PageSlice> pages;
+    std::vector<Length> row_heights;         // per-segment row heights (indexed by row)
 };
 
 /// Complete pagination result for one spec.

@@ -21,5 +21,5 @@
 
 ### Internals
 
-- [Rendering Pipeline
-  Diagram](https://example.com/articles/Rendering_Pipeline.md):
+- [Rendering Pipeline and Full C++
+  Architecture](https://example.com/articles/Rendering_Pipeline.md):
