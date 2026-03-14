@@ -282,7 +282,9 @@
                                                         "Arial",
                                                         "Courier New",
                                                         "Times New Roman",
-                                                        "Calibri"
+                                                        "Calibri",
+                                                        "Aptos",
+                                                        "Liberation Sans"
                                                     ]
                                                 },
                                                 "font_size": {
@@ -453,7 +455,11 @@
                         },
                         "footnotePlace": {
                             "type": "string",
-                            "enum": ["doc_footer", "repeated", "last_page"],
+                            "enum": [
+                                "doc_footer",
+                                "repeated",
+                                "last_page"
+                            ],
                             "title": "Footnote placement",
                             "description": "Where to place footnotes: 'doc_footer' = inside the Word footer (below footer rows), 'repeated' = under the table on every page, 'last_page' = under the table on the last page only",
                             "default": "repeated"

@@ -1,0 +1,24 @@
+{
+    "servers": [
+        {
+            "extensions": [
+                "c",
+                "cc",
+                "cpp",
+                "cxx",
+                "h",
+                "hh",
+                "hpp",
+                "hxx"
+            ],
+            "command": [
+                "clangd",
+                "--background-index",
+                "--compile-commands-dir=.",
+                "--query-driver=/usr/bin/g++",
+                "--fallback-style=LLVM"
+            ],
+            "rootDir": "."
+        }
+    ]
+}

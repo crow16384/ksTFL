@@ -62,6 +62,6 @@ spec <- create_table(raw) %>%
     SECTION_ID == 3 & firstOf(SECTION_ID),
     c_pageBreak()
   ) %>%
-  set_document(contentWidth = "75%")
+  set_document(contentWidth = "75%", docTemplate = "Classic_landscape_aptos")
 
 create_report(spec) %>% write_doc("showcase_01_clinical_table", toc = TRUE, metaPath = meta_dir)

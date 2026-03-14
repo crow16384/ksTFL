@@ -44,7 +44,7 @@ NULL
 
 #' Allowed font names
 #' @noRd 
-.const_font_names <- c("Arial", "Courier New", "Times New Roman", "Calibri")
+.const_font_names <- c("Arial", "Courier New", "Times New Roman", "Calibri", "Aptos", "Liberation Sans")
 
 #' Allowed text alignment values
 #' @noRd

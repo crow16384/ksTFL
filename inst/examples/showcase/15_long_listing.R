@@ -1,4 +1,4 @@
-set.seed(5645)
+set.seed(1234)
 generate_multilingual_tibble <- function(n_rows, 
                                          n_cols, 
                                          languages = c("en", "es", "fr", "de", "it", "pt", "ja", "zh", "ar", "ru"),

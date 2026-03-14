@@ -6,6 +6,13 @@
       "args": [
         "${workspaceFolder}"
       ]
+    },
+    "cclsp/clangd": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/tools/start_cclsp.sh",
+      "env": {
+        "CCLSP_CONFIG_PATH": "${workspaceFolder}/cclsp.json"
+      }
     }
   },
   "inputs": []
