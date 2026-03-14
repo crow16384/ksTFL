@@ -41,7 +41,7 @@ Thumbs.db
 # Temporary files
 .tmp/
 *.bak
-tmp
+tmp/
 ._*
 doc
 

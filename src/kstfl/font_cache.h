@@ -6,7 +6,6 @@
 #define KSTFL_FONT_CACHE_H
 
 #include <array>
-#include <filesystem>
 #include <string>
 #include <unordered_map>
 #include <vector>

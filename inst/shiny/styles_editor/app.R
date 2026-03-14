@@ -7,6 +7,56 @@ null_if_empty <- function(x) {
   if (is.null(x) || !nzchar(as.character(x))) NULL else x
 }
 
+# Treat colourpicker transparent encodings as an absent value for JSON export.
+is_transparent_color <- function(x) {
+  if (is.null(x)) return(TRUE)
+  x_chr <- trimws(as.character(x))
+  if (!nzchar(x_chr)) return(TRUE)
+  if (identical(tolower(x_chr), "transparent")) return(TRUE)
+
+  # Accept #RRGGBBAA or RRGGBBAA and treat fully transparent alpha as null.
+  hex8 <- toupper(gsub("^#", "", x_chr))
+  grepl("^[0-9A-F]{8}$", hex8) && substr(hex8, 7, 8) == "00"
+}
+
+normalize_color_hex <- function(x) {
+  if (is_transparent_color(x)) return(NULL)
+  gsub("^#", "", trimws(as.character(x)))
+}
+
+normalize_editor_value <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (!is.character(x)) return(x)
+
+  x_trim <- trimws(x)
+  if (!nzchar(x_trim)) return("")
+  if (is_transparent_color(x_trim)) return("transparent")
+  x_trim
+}
+
+# Compare two snapshot lists, treating NULL / "" / "transparent" / "#00000000"
+# as equivalent so colourpicker async initialisation cannot cause false edits.
+snapshots_equal <- function(a, b) {
+  if (length(a) != length(b)) return(FALSE)
+  if (!identical(names(a), names(b))) return(FALSE)
+  canon <- function(v) {
+    if (is.null(v)) return("")
+    if (is.character(v) && (identical(v, "transparent") || is_transparent_color(v))) return("")
+    v
+  }
+  for (nm in names(a)) {
+    if (!identical(canon(a[[nm]]), canon(b[[nm]]))) return(FALSE)
+  }
+  TRUE
+}
+
+# Post-process JSON text so whole-number line_spacing values keep the .0 suffix
+# (e.g. "line_spacing": 1 -> "line_spacing": 1.0).  JSON 1 and 1.0 are semantically
+# identical, but this preserves roundtrip fidelity with the original template files.
+fix_line_spacing_json <- function(json) {
+  gsub('"line_spacing":\\s*(\\d+)(?![.\\d])', '"line_spacing": \\1.0', json, perl = TRUE)
+}
+
 load_template_file <- function(path) {
   jsonlite::fromJSON(path, simplifyVector = FALSE)
 }
@@ -107,7 +157,7 @@ text_style_from_inputs <- function(input, id_prefix, template_style = NULL) {
 
   color_val <- {
     raw <- get_val("color")
-    if (is.null(raw) || raw == "transparent" || !nzchar(raw)) NULL else sub("^#", "", raw)
+    normalize_color_hex(raw)
   }
 
   paragraph <- list(
@@ -193,11 +243,7 @@ border_from_inputs <- function(input, id_prefix, template_border = NULL) {
   list(
     color = {
       raw <- get_val("color")
-      if (is.null(raw) || raw == "transparent" || !nzchar(raw)) {
-        NULL
-      } else {
-        sub("^#", "", raw)
-      }
+      normalize_color_hex(raw)
     },
     width = {
       raw_w <- get_val("width")
@@ -281,11 +327,7 @@ row_style_from_inputs <- function(input, id_prefix, template_row = NULL) {
   row_result <- list(
     background_color = {
       raw_bg <- get_val("background_color")
-      if (is.null(raw_bg) || raw_bg == "transparent" || !nzchar(raw_bg)) {
-        NULL
-      } else {
-        sub("^#", "", raw_bg)
-      }
+      normalize_color_hex(raw_bg)
     },
     row_height         = local_or_default(get_val("row_height"), "auto"),
     vertical_alignment = null_if_empty(get_val("vertical_alignment")) %||% "center",
@@ -570,12 +612,13 @@ server <- function(input, output, session) {
   snapshot_editor_inputs <- shiny::reactive({
     vals <- lapply(editor_input_ids, function(id) input[[id]])
     names(vals) <- editor_input_ids
+    vals <- lapply(vals, normalize_editor_value)
     vals
   })
 
   shiny::observeEvent(snapshot_editor_inputs(), {
     if (!is_seeding()) {
-      has_user_edits(!identical(snapshot_editor_inputs(), baseline_inputs()))
+      has_user_edits(!snapshots_equal(snapshot_editor_inputs(), baseline_inputs()))
     }
   }, ignoreInit = TRUE)
 
@@ -802,9 +845,13 @@ server <- function(input, output, session) {
     )
 
     session$onFlushed(function() {
-      baseline_inputs(shiny::isolate(snapshot_editor_inputs()))
-      has_user_edits(FALSE)
-      is_seeding(FALSE)
+      # Double-flush: colourpicker sends its initial value after the first
+      # flush cycle, so wait one more cycle before capturing the baseline.
+      session$onFlushed(function() {
+        baseline_inputs(shiny::isolate(snapshot_editor_inputs()))
+        has_user_edits(FALSE)
+        is_seeding(FALSE)
+      }, once = TRUE)
     }, once = TRUE)
   }, ignoreNULL = TRUE)
 
@@ -914,7 +961,9 @@ server <- function(input, output, session) {
     if (!has_user_edits()) {
       original_json_text()
     } else {
-      jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE, null = "null")
+      fix_line_spacing_json(
+        jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE, null = "null")
+      )
     }
   })
 
@@ -927,7 +976,9 @@ server <- function(input, output, session) {
       if (!has_user_edits()) {
         writeLines(original_json_text(), file, useBytes = TRUE)
       } else {
-        json <- jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE, null = "null")
+        json <- fix_line_spacing_json(
+          jsonlite::toJSON(assembled_template(), auto_unbox = TRUE, pretty = TRUE, null = "null")
+        )
         writeLines(json, file, useBytes = TRUE)
       }
     }

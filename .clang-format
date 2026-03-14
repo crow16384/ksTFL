@@ -1,0 +1,15 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 2
+
+# Pointer/reference: attach to variable name (dominant style in kstfl/)
+PointerAlignment: Right
+
+# Only allow inline methods on a single line, not standalone functions
+AllowShortFunctionsOnASingleLine: Inline
+
+# Rcpp.h may need to precede other headers; disable reordering
+SortIncludes: Never
+
+# Ensure files end with a newline
+InsertNewlineAtEOF: true
