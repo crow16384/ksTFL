@@ -5,9 +5,11 @@
 #include "json_parser.h"
 #include <Rcpp.h>
 #include <algorithm>
+#include <charconv>
 #include <cstdio>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <ranges>
 #include <string_view>
 #include <unordered_map>
 
@@ -366,8 +368,10 @@ static Orientation parse_orientation(const std::string &s) {
   return (it != map.end()) ? it->second : Orientation::Landscape;
 }
 
-static PageMargins parse_margins(const json &j) {
-  PageMargins m;
+/// Parse margin fields from JSON into target T (PageMargins or
+/// PageMarginsOverride).
+template <typename T> static T parse_margins_fields(const json &j) {
+  T m;
   auto top = jutil::opt<std::string>(j, "top");
   if (top.has_value())
     m.top = Length::parse(*top);
@@ -389,27 +393,12 @@ static PageMargins parse_margins(const json &j) {
   return m;
 }
 
+static PageMargins parse_margins(const json &j) {
+  return parse_margins_fields<PageMargins>(j);
+}
+
 static PageMarginsOverride parse_margins_override(const json &j) {
-  PageMarginsOverride m;
-  auto top = jutil::opt<std::string>(j, "top");
-  if (top.has_value())
-    m.top = Length::parse(*top);
-  auto bot = jutil::opt<std::string>(j, "bottom");
-  if (bot.has_value())
-    m.bottom = Length::parse(*bot);
-  auto left = jutil::opt<std::string>(j, "left");
-  if (left.has_value())
-    m.left = Length::parse(*left);
-  auto right = jutil::opt<std::string>(j, "right");
-  if (right.has_value())
-    m.right = Length::parse(*right);
-  auto hdr = jutil::opt<std::string>(j, "header");
-  if (hdr.has_value())
-    m.header_distance = Length::parse(*hdr);
-  auto ftr = jutil::opt<std::string>(j, "footer");
-  if (ftr.has_value())
-    m.footer_distance = Length::parse(*ftr);
-  return m;
+  return parse_margins_fields<PageMarginsOverride>(j);
 }
 
 static PageConfig parse_page_config(const json &j) {
@@ -462,9 +451,9 @@ static std::vector<TextGroup> parse_text_groups(const json &j) {
     groups.push_back(std::move(tg));
   }
   // Sort by order
-  std::sort(
-      groups.begin(), groups.end(),
-      [](const TextGroup &a, const TextGroup &b) { return a.order < b.order; });
+  std::ranges::sort(groups, [](const TextGroup &a, const TextGroup &b) {
+    return a.order < b.order;
+  });
   return groups;
 }
 
@@ -542,10 +531,9 @@ static std::vector<StubColumn> parse_stub_columns(const json &j) {
     stubs.push_back(std::move(sc));
   }
   // Sort by stubOrder (descending for depth)
-  std::sort(stubs.begin(), stubs.end(),
-            [](const StubColumn &a, const StubColumn &b) {
-              return a.stub_order > b.stub_order;
-            });
+  std::ranges::sort(stubs, [](const StubColumn &a, const StubColumn &b) {
+    return a.stub_order > b.stub_order;
+  });
   return stubs;
 }
 
@@ -590,10 +578,9 @@ static std::vector<ColumnSpec> parse_columns(const json &j) {
     cols.push_back(std::move(cs));
   }
   // Sort by colOrder
-  std::sort(cols.begin(), cols.end(),
-            [](const ColumnSpec &a, const ColumnSpec &b) {
-              return a.col_order < b.col_order;
-            });
+  std::ranges::sort(cols, [](const ColumnSpec &a, const ColumnSpec &b) {
+    return a.col_order < b.col_order;
+  });
   // Invisible columns are kept in the vector so that grouping/paging
   // columns (isGrouping, isPaging) still participate in #ByGroupX
   // resolution and group-boundary detection even when hidden.
@@ -855,10 +842,9 @@ static TFLDocument parse_spec_internal(const json &root) {
   }
 
   // Sort specs by docOrder
-  std::sort(doc.specs.begin(), doc.specs.end(),
-            [](const TFLSpec &a, const TFLSpec &b) {
-              return a.document.doc_order < b.document.doc_order;
-            });
+  std::ranges::sort(doc.specs, [](const TFLSpec &a, const TFLSpec &b) {
+    return a.document.doc_order < b.document.doc_order;
+  });
 
   return doc;
 }
@@ -933,12 +919,7 @@ static StylesTemplate parse_template_internal(const json &root) {
       const auto &layout = tbl["layout"];
       auto ta = jutil::opt<std::string>(layout, "table_alignment");
       if (ta.has_value()) {
-        if (*ta == "center")
-          tmpl.table_style.table_alignment = Alignment::Center;
-        else if (*ta == "right")
-          tmpl.table_style.table_alignment = Alignment::Right;
-        else if (*ta == "left")
-          tmpl.table_style.table_alignment = Alignment::Left;
+        tmpl.table_style.table_alignment = parse_alignment(*ta);
       }
       auto top_el = jutil::opt<std::string>(layout, "topEmptyLine");
       if (top_el.has_value())
@@ -1036,12 +1017,7 @@ static StylesTemplate parse_template_internal(const json &root) {
         const auto &layout = fig["layout"];
         auto a = jutil::opt<std::string>(layout, "alignment");
         if (a.has_value()) {
-          if (*a == "center")
-            tmpl.figure_style.alignment = Alignment::Center;
-          else if (*a == "right")
-            tmpl.figure_style.alignment = Alignment::Right;
-          else if (*a == "left")
-            tmpl.figure_style.alignment = Alignment::Left;
+          tmpl.figure_style.alignment = parse_alignment(*a);
         }
 
         auto sb = jutil::opt<std::string>(layout, "space_before");
@@ -1106,8 +1082,10 @@ static DataTable parse_data_internal(const json &root) {
           // Use %.17g for full double precision (avoids the
           // limited 6-decimal formatting of std::to_string).
           char buf[64];
-          std::snprintf(buf, sizeof(buf), "%.17g", val.get<double>());
-          values.push_back(buf);
+          auto [ptr, ec] =
+              std::to_chars(buf, buf + sizeof(buf), val.get<double>(),
+                            std::chars_format::general, 17);
+          values.push_back(std::string(buf, ptr));
         }
       } else if (val.is_boolean()) {
         values.push_back(val.get<bool>() ? "TRUE" : "FALSE");

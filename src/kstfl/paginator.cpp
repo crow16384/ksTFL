@@ -9,6 +9,8 @@
 #include <Rcpp.h>
 #include <algorithm>
 #include <cmath>
+#include <functional>
+#include <ranges>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -79,7 +81,7 @@ Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
     }
 
     // Sort by original column order
-    std::sort(seg.column_indices.begin(), seg.column_indices.end());
+    std::ranges::sort(seg.column_indices);
 
     if (!seg.column_indices.empty()) {
       segments.push_back(std::move(seg));
@@ -92,13 +94,15 @@ Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
 }
 
 // ---------------------------------------------------------------------------
-// Compute row heights for all rows using all visible columns (spec §28.3)
-// Row heights are computed once across all columns and shared by segments.
+// Shared row-height computation core.
+// WidthFn: (size_t ci, const LogicalCell& cell, const ColumnSpec& col) ->
+// Length FilterFn: (size_t ci) -> bool  (return true to include column)
 // ---------------------------------------------------------------------------
-
-std::vector<Length> Paginator::compute_row_heights(
+template <typename WidthFn, typename FilterFn>
+static std::vector<Length> compute_row_heights_impl(
     const std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns,
-    const TextMeasurer &measurer, const StyleResolver &resolver) {
+    const TextMeasurer &measurer, const StyleResolver &resolver,
+    WidthFn width_fn, FilterFn filter_fn) {
 
   std::vector<Length> heights(rows.size());
 
@@ -107,15 +111,16 @@ std::vector<Length> Paginator::compute_row_heights(
     Length max_height{0};
 
     for (size_t ci = 0; ci < row.cells.size() && ci < columns.size(); ++ci) {
+      if (!filter_fn(ci))
+        continue;
       if (!columns[ci].is_visible)
         continue;
       const auto &cell = row.cells[ci];
       if (cell.is_merged && !cell.is_merge_leader)
         continue;
 
-      // Determine cell width
-      Length cell_width =
-          cell.is_merge_leader ? cell.merged_width : columns[ci].resolved_width;
+      // Determine cell width via callable
+      Length cell_width = width_fn(ci, cell, columns[ci]);
 
       // Resolve effective style for this cell
       bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
@@ -142,8 +147,6 @@ std::vector<Length> Paginator::compute_row_heights(
     }
 
     // Check explicit row height override from row-level or cell-level style.
-    // If the resolved style contains table_style.row_height, use that value
-    // directly (e.g., separator rows with s_table_style(row_height = "5pt")).
     Length explicit_row_height{0};
 
     // 1) Row-level style (row_style_ref)
@@ -155,8 +158,7 @@ std::vector<Length> Paginator::compute_row_heights(
       }
     }
 
-    // 2) Cell-level style overrides (first match wins — row_height is
-    //    conceptually a row property, so we take the first found)
+    // 2) Cell-level style overrides (first match wins)
     if (explicit_row_height.emu == 0) {
       for (const auto &cell : row.cells) {
         if (cell.style_ref.has_value()) {
@@ -175,6 +177,26 @@ std::vector<Length> Paginator::compute_row_heights(
   }
 
   return heights;
+}
+
+// ---------------------------------------------------------------------------
+// Compute row heights for all rows using all visible columns (spec §28.3)
+// Row heights are computed once across all columns and shared by segments.
+// ---------------------------------------------------------------------------
+
+std::vector<Length> Paginator::compute_row_heights(
+    const std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns,
+    const TextMeasurer &measurer, const StyleResolver &resolver) {
+
+  return compute_row_heights_impl(
+      rows, columns, measurer, resolver,
+      // Width resolver: use original column widths
+      [](size_t /*ci*/, const LogicalCell &cell,
+         const ColumnSpec &col) -> Length {
+        return cell.is_merge_leader ? cell.merged_width : col.resolved_width;
+      },
+      // Filter: include all columns
+      [](size_t /*ci*/) { return true; });
 }
 
 // ---------------------------------------------------------------------------
@@ -249,98 +271,34 @@ std::vector<Length> Paginator::compute_segment_row_heights(
     const std::unordered_map<size_t, int64_t> &scaled_widths,
     const TextMeasurer &measurer, const StyleResolver &resolver) {
 
-  std::vector<Length> heights(rows.size());
-
   // Build set of columns in this segment for quick lookup
   std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
                                       segment.column_indices.end());
 
-  for (size_t ri = 0; ri < rows.size(); ++ri) {
-    const auto &row = rows[ri];
-    Length max_height{0};
-
-    for (size_t ci = 0; ci < row.cells.size() && ci < columns.size(); ++ci) {
-      // Only measure columns in this segment
-      if (seg_cols.find(ci) == seg_cols.end())
-        continue;
-      if (!columns[ci].is_visible)
-        continue;
-      const auto &cell = row.cells[ci];
-      if (cell.is_merged && !cell.is_merge_leader)
-        continue;
-
-      // Use segment-scaled width
-      Length cell_width;
-      if (cell.is_merge_leader) {
-        // Sum scaled widths of merged columns in this segment
-        int64_t merged_emu = 0;
-        for (size_t mi = ci; mi < ci + static_cast<size_t>(cell.merge_span) &&
-                             mi < columns.size();
-             ++mi) {
-          auto wit = scaled_widths.find(mi);
-          if (wit != scaled_widths.end()) {
-            merged_emu += wit->second;
+  return compute_row_heights_impl(
+      rows, columns, measurer, resolver,
+      // Width resolver: use segment-scaled widths
+      [&scaled_widths, &columns](size_t ci, const LogicalCell &cell,
+                                 const ColumnSpec &col) -> Length {
+        if (cell.is_merge_leader) {
+          // Sum scaled widths of merged columns in this segment
+          int64_t merged_emu = 0;
+          for (size_t mi = ci; mi < ci + static_cast<size_t>(cell.merge_span) &&
+                               mi < columns.size();
+               ++mi) {
+            auto wit = scaled_widths.find(mi);
+            if (wit != scaled_widths.end()) {
+              merged_emu += wit->second;
+            }
           }
+          return Length{merged_emu > 0 ? merged_emu : cell.merged_width.emu};
         }
-        cell_width =
-            Length{merged_emu > 0 ? merged_emu : cell.merged_width.emu};
-      } else {
         auto wit = scaled_widths.find(ci);
-        cell_width = (wit != scaled_widths.end()) ? Length{wit->second}
-                                                  : columns[ci].resolved_width;
-      }
-
-      // Resolve effective style (same logic as compute_row_heights)
-      bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
-      StyleDef cell_style = resolver.resolve_body_cell_style(
-          columns[ci], row.row_style_ref, std::nullopt, std::nullopt,
-          is_addrow);
-
-      if (cell.style_ref.has_value()) {
-        const StyleDef *override_style =
-            resolver.find_style(cell.style_ref.value());
-        if (override_style) {
-          cell_style.merge_from(*override_style);
-        }
-      }
-
-      MeasuredText measured =
-          measurer.measure_plain(cell.text, cell_style, cell_width);
-
-      if (measured.height > max_height) {
-        max_height = measured.height;
-      }
-    }
-
-    // Check explicit row height override (same logic as compute_row_heights)
-    Length explicit_row_height{0};
-
-    if (row.row_style_ref.has_value()) {
-      const StyleDef *rs = resolver.find_style(*row.row_style_ref);
-      if (rs && rs->table_style.has_value() &&
-          rs->table_style->row_height.has_value()) {
-        explicit_row_height = *rs->table_style->row_height;
-      }
-    }
-
-    if (explicit_row_height.emu == 0) {
-      for (const auto &cell : row.cells) {
-        if (cell.style_ref.has_value()) {
-          const StyleDef *cs = resolver.find_style(*cell.style_ref);
-          if (cs && cs->table_style.has_value() &&
-              cs->table_style->row_height.has_value()) {
-            explicit_row_height = *cs->table_style->row_height;
-            break;
-          }
-        }
-      }
-    }
-
-    heights[ri] =
-        (explicit_row_height.emu > 0) ? explicit_row_height : max_height;
-  }
-
-  return heights;
+        return (wit != scaled_widths.end()) ? Length{wit->second}
+                                            : col.resolved_width;
+      },
+      // Filter: only columns in this segment
+      [&seg_cols](size_t ci) { return seg_cols.find(ci) != seg_cols.end(); });
 }
 
 // ---------------------------------------------------------------------------
@@ -734,16 +692,17 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
         page.body_height = seg_body;
 
         switch (fn_place) {
-        case FootnotePlace::Repeated:
+          using enum FootnotePlace;
+        case Repeated:
           page.has_footnotes = true;
           page.footnotes_height = footnotes_height;
           break;
-        case FootnotePlace::LastPage:
+        case LastPage:
           page.has_footnotes = pb.is_last_page;
           page.footnotes_height =
               pb.is_last_page ? footnotes_height : Length{0};
           break;
-        case FootnotePlace::DocFooter:
+        case DocFooter:
           page.has_footnotes = false;
           page.footnotes_height = Length{0};
           break;

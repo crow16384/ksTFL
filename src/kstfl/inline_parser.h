@@ -15,14 +15,15 @@ namespace kstfl {
 
 /// Parse a cell value that may contain inline markup.
 /// Returns a ParsedCell with paragraphs and runs.
-ParsedCell parse_inline_markup(const std::string& text);
+[[nodiscard]] ParsedCell parse_inline_markup(const std::string &text);
 
 /// Check if a string contains any inline markup tags.
-bool has_inline_markup(const std::string& text);
+[[nodiscard]] bool has_inline_markup(const std::string &text);
 
-/// Return plain text with all inline markup stripped (for TOC entry text, etc.).
-std::string get_plain_text(const std::string& text);
+/// Return plain text with all inline markup stripped (for TOC entry text,
+/// etc.).
+[[nodiscard]] std::string get_plain_text(const std::string &text);
 
-}  // namespace kstfl
+} // namespace kstfl
 
-#endif  // KSTFL_INLINE_PARSER_H
+#endif // KSTFL_INLINE_PARSER_H

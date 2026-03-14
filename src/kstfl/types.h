@@ -7,6 +7,8 @@
 #ifndef KSTFL_TYPES_H
 #define KSTFL_TYPES_H
 
+#include <compare>
+#include <concepts>
 #include <cstdint>
 #include <optional>
 #include <stdexcept>
@@ -47,7 +49,8 @@ struct Length {
 
   /// Parse a string like "2.54cm", "1in", "72pt", "1440twip", "914400emu",
   /// "50%". For percent, the `reference` EMU is used as the base.
-  static Length parse(const std::string &s, int64_t reference_emu = 0);
+  [[nodiscard]] static Length parse(const std::string &s,
+                                    int64_t reference_emu = 0);
 
   // Convenience constructors
   static constexpr Length from_emu(int64_t e) { return Length{e}; }
@@ -87,12 +90,7 @@ struct Length {
   constexpr Length operator/(double f) const {
     return Length{static_cast<int64_t>(emu / f)};
   }
-  constexpr bool operator<(Length rhs) const { return emu < rhs.emu; }
-  constexpr bool operator<=(Length rhs) const { return emu <= rhs.emu; }
-  constexpr bool operator>(Length rhs) const { return emu > rhs.emu; }
-  constexpr bool operator>=(Length rhs) const { return emu >= rhs.emu; }
-  constexpr bool operator==(Length rhs) const { return emu == rhs.emu; }
-  constexpr bool operator!=(Length rhs) const { return emu != rhs.emu; }
+  constexpr auto operator<=>(const Length &rhs) const = default;
 };
 
 /// Conservative safety margin subtracted from available page height.
@@ -102,6 +100,13 @@ struct Length {
 /// Reduced from 15pt after improving CJK text measurement accuracy.
 constexpr Length PAGE_SAFETY_MARGIN = Length::from_pt(10.0);
 
+/// Concept for types that support style merging.
+template <typename T>
+concept Mergeable = requires(T t, const T &other) {
+  { t.merge_from(other) };
+  { t.merged_with(other) } -> std::same_as<T>;
+};
+
 /// CSS-like color stored as RRGGBB hex string (no leading #).
 struct Color {
   std::string hex; // "000000", "FF0000", etc.
@@ -110,7 +115,7 @@ struct Color {
   explicit Color(std::string h) : hex(std::move(h)) {}
 
   /// Parse "#FF0000" or "FF0000" -> "FF0000"
-  static Color parse(const std::string &s);
+  [[nodiscard]] static Color parse(const std::string &s);
 
   [[nodiscard]] bool empty() const { return hex.empty(); }
   bool operator==(const Color &other) const { return hex == other.hex; }

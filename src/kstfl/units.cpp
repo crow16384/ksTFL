@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <ranges>
 #include <string_view>
 #include <unordered_map>
 
@@ -147,7 +148,7 @@ Color Color::parse(const std::string &s) {
     }
   }
   // Uppercase for consistency
-  std::transform(h.begin(), h.end(), h.begin(), [](unsigned char c) {
+  std::ranges::transform(h, h.begin(), [](unsigned char c) {
     return static_cast<char>(std::toupper(c));
   });
   return Color{h};

@@ -388,3 +388,12 @@ test_that("C++ xml_writer — no failures in full suite", {
   result <- cpp_test_xml_writer()
   .report_cpp_results(result, "xml_writer")
 })
+
+# ==========================================================================
+# Format Validator (is_safe_numeric_format manual parser)
+# ==========================================================================
+
+test_that("C++ format_validator — no failures in full suite", {
+  result <- cpp_test_format_validator()
+  .report_cpp_results(result, "format_validator")
+})

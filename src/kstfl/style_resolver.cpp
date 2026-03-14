@@ -276,34 +276,30 @@ StyleDef StyleResolver::resolve_base_header_style() const {
 // Content style resolvers
 // ---------------------------------------------------------------------------
 
-StyleDef StyleResolver::resolve_title_style(
+StyleDef StyleResolver::resolve_content_style(
+    const StyleDef &region_base,
     const std::vector<std::string> &style_refs) const {
   StyleDef result = tmpl_.text_styles.default_style;
-  result.merge_from(tmpl_.text_styles.titles);
+  result.merge_from(region_base);
   for (const auto &ref : style_refs) {
     result = apply_style_ref(result, ref);
   }
   return result;
+}
+
+StyleDef StyleResolver::resolve_title_style(
+    const std::vector<std::string> &style_refs) const {
+  return resolve_content_style(tmpl_.text_styles.titles, style_refs);
 }
 
 StyleDef StyleResolver::resolve_subtitle_style(
     const std::vector<std::string> &style_refs) const {
-  StyleDef result = tmpl_.text_styles.default_style;
-  result.merge_from(tmpl_.text_styles.subtitles);
-  for (const auto &ref : style_refs) {
-    result = apply_style_ref(result, ref);
-  }
-  return result;
+  return resolve_content_style(tmpl_.text_styles.subtitles, style_refs);
 }
 
 StyleDef StyleResolver::resolve_footnote_style(
     const std::vector<std::string> &style_refs) const {
-  StyleDef result = tmpl_.text_styles.default_style;
-  result.merge_from(tmpl_.text_styles.footnotes);
-  for (const auto &ref : style_refs) {
-    result = apply_style_ref(result, ref);
-  }
-  return result;
+  return resolve_content_style(tmpl_.text_styles.footnotes, style_refs);
 }
 
 StyleDef StyleResolver::resolve_doc_header_style() const {

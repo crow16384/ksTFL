@@ -8,7 +8,8 @@
 #include "types.h"
 #include <array>
 #include <optional>
-#include <unordered_map>
+#include <string_view>
+#include <utility>
 
 namespace kstfl {
 
@@ -17,33 +18,41 @@ namespace kstfl {
 // ---------------------------------------------------------------------------
 
 const char *border_line_style_to_ooxml(BorderLineStyle s) {
-  static const std::unordered_map<BorderLineStyle, const char *> map{
-      {BorderLineStyle::None, "nil"},
-      {BorderLineStyle::Single, "single"},
-      {BorderLineStyle::Double, "double"},
-      {BorderLineStyle::Dashed, "dashed"},
-      {BorderLineStyle::Dotted, "dotted"},
-      {BorderLineStyle::Thick, "thick"},
-      {BorderLineStyle::DashSmallGap, "dashSmallGap"},
-      {BorderLineStyle::DotDash, "dotDash"},
-      {BorderLineStyle::DotDotDash, "dotDotDash"},
-      {BorderLineStyle::Triple, "triple"},
-      {BorderLineStyle::ThinThickSmallGap, "thinThickSmallGap"},
-      {BorderLineStyle::ThickThinSmallGap, "thickThinSmallGap"},
-      {BorderLineStyle::Wave, "wave"}};
-  auto it = map.find(s);
-  return (it != map.end()) ? it->second : "single";
+  using enum BorderLineStyle;
+  static constexpr std::array<std::pair<BorderLineStyle, const char *>, 13>
+      table{{{None, "nil"},
+             {Single, "single"},
+             {Double, "double"},
+             {Dashed, "dashed"},
+             {Dotted, "dotted"},
+             {Thick, "thick"},
+             {DashSmallGap, "dashSmallGap"},
+             {DotDash, "dotDash"},
+             {DotDotDash, "dotDotDash"},
+             {Triple, "triple"},
+             {ThinThickSmallGap, "thinThickSmallGap"},
+             {ThickThinSmallGap, "thickThinSmallGap"},
+             {Wave, "wave"}}};
+  for (const auto &[key, val] : table) {
+    if (key == s)
+      return val;
+  }
+  return "single";
 }
 
 /// Convert Alignment to OOXML w:jc value string.
 const char *alignment_to_ooxml(Alignment a) {
-  static const std::unordered_map<Alignment, const char *> map{
-      {Alignment::Left, "left"},
-      {Alignment::Center, "center"},
-      {Alignment::Right, "right"},
-      {Alignment::Justify, "both"}};
-  auto it = map.find(a);
-  return (it != map.end()) ? it->second : "left";
+  using enum Alignment;
+  static constexpr std::array<std::pair<Alignment, const char *>, 4> table{
+      {{Left, "left"},
+       {Center, "center"},
+       {Right, "right"},
+       {Justify, "both"}}};
+  for (const auto &[key, val] : table) {
+    if (key == a)
+      return val;
+  }
+  return "left";
 }
 
 // ---------------------------------------------------------------------------
@@ -61,7 +70,7 @@ static void merge_opt_into(std::optional<T> &target,
 /// Merge an optional field whose value type itself has a merge_from() method.
 /// If source has a value: merge into existing target, or assign if target is
 /// empty.
-template <typename T>
+template <Mergeable T>
 static void merge_nested_opt(std::optional<T> &target,
                              const std::optional<T> &source) {
   if (source.has_value()) {

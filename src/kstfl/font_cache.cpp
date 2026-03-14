@@ -22,6 +22,7 @@
 #include <array>
 #include <cctype>
 #include <filesystem>
+#include <ranges>
 #include <string>
 #include <unordered_map>
 
@@ -69,6 +70,27 @@ FontCache::~FontCache() {
 void FontCache::add_font_dir(const std::string &dir) {
   if (fs::exists(dir) && fs::is_directory(dir)) {
     font_dirs_.push_back(dir);
+    // Build index: lowercase stem → full path
+    try {
+      for (const auto &entry : fs::recursive_directory_iterator(
+               dir, fs::directory_options::skip_permission_denied)) {
+        if (!entry.is_regular_file())
+          continue;
+        std::string ext = entry.path().extension().string();
+        std::ranges::transform(ext, ext.begin(),
+                               [](unsigned char c) { return std::tolower(c); });
+        if (ext != ".ttf" && ext != ".otf" && ext != ".ttc")
+          continue;
+        std::string stem = entry.path().stem().string();
+        std::string stem_lower;
+        stem_lower.reserve(stem.size());
+        for (unsigned char c : stem)
+          stem_lower.push_back(static_cast<char>(std::tolower(c)));
+        font_index_.try_emplace(std::move(stem_lower), entry.path().string());
+      }
+    } catch (const fs::filesystem_error &) {
+      // Skip inaccessible directories
+    }
   }
 }
 
@@ -99,36 +121,15 @@ static std::string font_name_to_filename_hint(const std::string &name,
 
 std::string FontCache::find_font_file(const FaceKey &key) const {
   std::string hint = font_name_to_filename_hint(key.name, key.bold, key.italic);
-  std::string hint_lower = hint;
-  std::transform(hint_lower.begin(), hint_lower.end(), hint_lower.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
+  std::string hint_lower;
+  hint_lower.reserve(hint.size());
+  for (unsigned char c : hint)
+    hint_lower.push_back(static_cast<char>(std::tolower(c)));
 
-  // Search all font directories recursively
-  for (const auto &dir : font_dirs_) {
-    try {
-      for (const auto &entry : fs::recursive_directory_iterator(
-               dir, fs::directory_options::skip_permission_denied)) {
-        if (!entry.is_regular_file())
-          continue;
-        std::string ext = entry.path().extension().string();
-        std::transform(ext.begin(), ext.end(), ext.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
-        if (ext != ".ttf" && ext != ".otf" && ext != ".ttc")
-          continue;
-
-        std::string stem = entry.path().stem().string();
-        std::string stem_lower = stem;
-        std::transform(stem_lower.begin(), stem_lower.end(), stem_lower.begin(),
-                       [](unsigned char c) { return std::tolower(c); });
-
-        if (stem_lower == hint_lower) {
-          return entry.path().string();
-        }
-      }
-    } catch (const fs::filesystem_error &) {
-      // Skip inaccessible directories
-    }
-  }
+  // O(1) lookup in pre-built index
+  auto it = font_index_.find(hint_lower);
+  if (it != font_index_.end())
+    return it->second;
 
   return ""; // not found
 }

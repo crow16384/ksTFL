@@ -6,6 +6,7 @@
 #define KSTFL_FONT_CACHE_H
 
 #include <array>
+#include <filesystem>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -91,14 +92,14 @@ public:
 
   /// Get or create a FreeType face + HarfBuzz font for the given key.
   /// Searches font directories and falls back to LiberationSans if not found.
-  const CachedFace &get_face(const FaceKey &key);
+  [[nodiscard]] const CachedFace &get_face(const FaceKey &key);
 
   /// Get font metrics for a face at a given size.
   /// Uses OS/2 table (usWinAscent/usWinDescent) to match Word's metrics.
-  FontMetrics get_metrics(const FaceKey &key, double size_pt);
+  [[nodiscard]] FontMetrics get_metrics(const FaceKey &key, double size_pt);
 
   /// Get HarfBuzz font for shaping at a given size.
-  hb_font_t *get_hb_font(const FaceKey &key, double size_pt);
+  [[nodiscard]] hb_font_t *get_hb_font(const FaceKey &key, double size_pt);
 
 private:
   /// Try to find a font file matching the key.
@@ -109,11 +110,13 @@ private:
 
   FT_Library ft_library_ = nullptr;
   std::vector<std::string> font_dirs_;
+  /// Lowercase stem → full path index, built by add_font_dir().
+  std::unordered_map<std::string, std::string> font_index_;
   std::unordered_map<FaceKey, CachedFace, FaceKeyHash> face_cache_;
   std::unordered_map<MetricsKey, FontMetrics, MetricsKeyHash> metrics_cache_;
 };
 
-static const std::unordered_map<std::string, std::array<std::string, 4>>
+inline const std::unordered_map<std::string, std::array<std::string, 4>>
     font_map = {
         {"courier new", {"cour", "courb", "couri", "courbi"}},
         {"arial", {"arial", "arialb", "ariali", "arialbi"}},

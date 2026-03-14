@@ -430,7 +430,7 @@ ksTFL Team(C)
 **ksTFL** integrates metadata generation and document rendering in a single R package:
 
 - The **R layer** generates validated JSON specifications describing document structure, content, column formats, and styles
-- The **C++ rendering engine** (built-in, used by `write_doc()` / `replay_report()`) consumes these specifications and produces styled DOCX documents with deterministic pagination
+- The **C++ rendering engine** (built-in, C++20, used by `write_doc()` / `replay_report()`) consumes these specifications and produces styled DOCX documents with deterministic pagination
 
 This architecture enables:
 - Metadata generation (R) and rendering (C++) are independently optimizable

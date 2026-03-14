@@ -40,6 +40,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_test_format_validator
+Rcpp::List cpp_test_format_validator();
+RcppExport SEXP _ksTFL_cpp_test_format_validator() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(cpp_test_format_validator());
+    return rcpp_result_gen;
+END_RCPP
+}
 // render_docx_impl
 int render_docx_impl(const std::string& spec_json_path, const std::string& template_json_path, const std::string& output_path, Rcpp::Nullable<Rcpp::CharacterVector> font_dirs, const std::string& fallback_font, bool verbose);
 RcppExport SEXP _ksTFL_render_docx_impl(SEXP spec_json_pathSEXP, SEXP template_json_pathSEXP, SEXP output_pathSEXP, SEXP font_dirsSEXP, SEXP fallback_fontSEXP, SEXP verboseSEXP) {

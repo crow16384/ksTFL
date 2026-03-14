@@ -108,19 +108,20 @@ struct ParserState {
     std::stack<TagType> tmp = stk;
     while (!tmp.empty()) {
       switch (tmp.top()) {
-      case TagType::Bold:
+        using enum TagType;
+      case Bold:
         s.bold = true;
         break;
-      case TagType::Italic:
+      case Italic:
         s.italic = true;
         break;
-      case TagType::Underline:
+      case Underline:
         s.underline = true;
         break;
-      case TagType::Sup:
+      case Sup:
         s.superscript = true;
         break;
-      case TagType::Sub:
+      case Sub:
         s.subscript = true;
         break;
       default:
@@ -225,8 +226,8 @@ static void flush_run(const std::string &buffer, const ParserState &state,
 ParsedCell parse_inline_markup(const std::string &text) {
   ParsedCell cell;
 
-  // Quick path: no markup
-  if (!has_inline_markup(text)) {
+  // Quick path: no '<' means no markup possible — skip tag classification
+  if (text.find('<') == std::string::npos || !has_inline_markup(text)) {
     ParsedParagraph para;
     if (!text.empty()) {
       TextRun run;
@@ -259,8 +260,8 @@ ParsedCell parse_inline_markup(const std::string &text) {
         // non-tag char
         size_t recover_start = tag_start;
         size_t recover_end = tag_start + 1;
-        // If after '<' идёт буква, захватить всю последовательность букв
-        // (например, <b, <foo)
+        // If after '<' there is a letter, capture the entire sequence of
+        // letters (e.g. <b, <foo)
         if (tag_start + 1 < text.size() &&
             std::isalpha(static_cast<unsigned char>(text[tag_start + 1]))) {
           recover_end = tag_start + 2;
@@ -345,8 +346,8 @@ ParsedCell parse_inline_markup(const std::string &text) {
   std::erase_if(cell.paragraphs,
                 [](const ParsedParagraph &para) { return para.runs.empty(); });
 
-  // Если после фильтрации ничего не осталось — возвращаем исходную строку как
-  // один run
+  // If nothing remains after filtering — return the original string as a
+  // single run
   if (cell.paragraphs.empty()) {
     if (!text.empty()) {
       ParsedParagraph para;
