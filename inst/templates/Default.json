@@ -225,7 +225,6 @@
     "layout": {
       "allow_row_break_across_pages": false,
       "repeat_header_on_each_page": true,
-      "prevent_header_row_break": true,
       "table_alignment": "center",
       "topEmptyLine": "3pt",
       "bottomEmptyLine": "3pt"

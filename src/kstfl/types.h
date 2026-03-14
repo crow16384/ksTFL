@@ -347,6 +347,8 @@ struct TableStyleConfig {
   std::optional<Length> top_empty_line;    // spacer row after header
   std::optional<Length> bottom_empty_line; // spacer row before bottom border
   std::optional<Borders> table_borders;
+  bool allow_row_break_across_pages = false; // rows can split across pages
+  bool repeat_header_on_each_page = true;    // header repeated on each page
   std::optional<Length> default_cell_margin_top;
   std::optional<Length> default_cell_margin_bottom;
   std::optional<Length> default_cell_margin_left;

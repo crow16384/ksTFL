@@ -571,6 +571,12 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
   // When is_continues=true, titles appear only on the first page.
   bool repeat_titles = !is_continues;
 
+  // Table header repetition: controlled by template layout flag.
+  bool repeat_header =
+      resolver.template_styles().table_style.repeat_header_on_each_page;
+  bool allow_row_break =
+      resolver.template_styles().table_style.allow_row_break_across_pages;
+
   // 4. Paginate
   // When multiple segments exist (isColBreak), compute unified row heights
   // (max across all segments per row) so that every segment uses the same
@@ -614,10 +620,12 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
 
       Length fn_reserve =
           (fn_place == FootnotePlace::Repeated) ? footnotes_height : Length{0};
+      Length hdr_reserve =
+          (is_first || repeat_header) ? table_header_height : Length{0};
       Length available = compute_available_height(
           page_config, header_section_height,
-          show_titles ? titles_height : Length{0}, page_subtitle_h,
-          table_header_height, fn_reserve, footer_section_height);
+          show_titles ? titles_height : Length{0}, page_subtitle_h, hdr_reserve,
+          fn_reserve, footer_section_height);
 
       Length used_height{0};
       size_t first_row = row_idx;
@@ -632,24 +640,24 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
 
         Length rh = pagination_heights[row_idx];
 
-        if (used_height.emu > 0 && (used_height + rh) > available) {
-          break;
-        }
+        // When row breaks are allowed, skip height-based page breaks:
+        // all rows go into a single virtual page and Word handles
+        // natural pagination.  force_page_break is still respected above.
+        if (!allow_row_break) {
+          if (used_height.emu > 0 && (used_height + rh) > available) {
+            break;
+          }
 
-        if (used_height.emu == 0 && rh > (available + PAGE_SAFETY_MARGIN)) {
-          Rcpp::Rcerr << "[ksTFL] WARNING: Row " << row_idx << " height ("
-                      << rh.to_pt() << "pt) exceeds available"
-                      << " page body height ("
-                      << (available + PAGE_SAFETY_MARGIN).to_pt() << "pt)."
-                      << " The row will be clipped to fit the page.\n";
-          rows[row_idx].is_oversized = true;
-          // Cap the display height to `available` (which already has the
-          // safety margin subtracted).  This keeps the margin as a buffer
-          // for Word's layout overhead (borders, spacing) and prevents
-          // footnote paragraphs from being pushed to the next physical
-          // page.
-          rows[row_idx].capped_height = available;
-        }
+          if (used_height.emu == 0 && rh > (available + PAGE_SAFETY_MARGIN)) {
+            Rcpp::Rcerr << "[ksTFL] WARNING: Row " << row_idx << " height ("
+                        << rh.to_pt() << "pt) exceeds available"
+                        << " page body height ("
+                        << (available + PAGE_SAFETY_MARGIN).to_pt() << "pt)."
+                        << " The row will be clipped to fit the page.\n";
+            rows[row_idx].is_oversized = true;
+            rows[row_idx].capped_height = available;
+          }
+        } // !allow_row_break
 
         used_height = used_height + rh;
         last_row = row_idx;
@@ -712,7 +720,9 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
         page.header_section_height = header_section_height;
         page.titles_height = show_titles ? titles_height : Length{0};
         page.subtitles_height = subtitles_height;
-        page.table_header_height = table_header_height;
+        page.table_header_height = (pb.is_first_page || repeat_header)
+                                       ? table_header_height
+                                       : Length{0};
         page.footer_section_height = footer_section_height;
 
         // Recompute body_height using this segment's own row heights
@@ -754,11 +764,15 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
         size_t last_idx = segment.pages.size() - 1;
         bool show_titles_last =
             segment.pages[last_idx].is_first_page || repeat_titles;
+        Length last_hdr_h =
+            (segment.pages[last_idx].is_first_page || repeat_header)
+                ? table_header_height
+                : Length{0};
 
         Length avail_with_fn = compute_available_height(
             page_config, header_section_height,
             show_titles_last ? titles_height : Length{0}, subtitles_height,
-            table_header_height, footnotes_height, footer_section_height);
+            last_hdr_h, footnotes_height, footer_section_height);
 
         while (segment.pages[last_idx].body_height > avail_with_fn &&
                segment.pages[last_idx].last_row >
@@ -781,7 +795,8 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
           extra.header_section_height = header_section_height;
           extra.titles_height = repeat_titles ? titles_height : Length{0};
           extra.subtitles_height = subtitles_height;
-          extra.table_header_height = table_header_height;
+          extra.table_header_height =
+              repeat_header ? table_header_height : Length{0};
           extra.footnotes_height = footnotes_height;
           extra.footer_section_height = footer_section_height;
           extra.body_height = removed_h;
@@ -795,10 +810,13 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
 
           show_titles_last =
               segment.pages[last_idx].is_first_page || repeat_titles;
+          last_hdr_h = (segment.pages[last_idx].is_first_page || repeat_header)
+                           ? table_header_height
+                           : Length{0};
           avail_with_fn = compute_available_height(
               page_config, header_section_height,
               show_titles_last ? titles_height : Length{0}, subtitles_height,
-              table_header_height, footnotes_height, footer_section_height);
+              last_hdr_h, footnotes_height, footer_section_height);
         }
 
         auto &final_page = segment.pages.back();
@@ -807,8 +825,10 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
             page_config, header_section_height,
             (final_page.is_first_page || repeat_titles) ? titles_height
                                                         : Length{0},
-            subtitles_height, table_header_height, footnotes_height,
-            footer_section_height);
+            subtitles_height,
+            (final_page.is_first_page || repeat_header) ? table_header_height
+                                                        : Length{0},
+            footnotes_height, footer_section_height);
 
         while (fill_start < rows.size() && !rows[fill_start].force_page_break &&
                (final_page.body_height + segment.row_heights[fill_start]) <=
@@ -832,14 +852,16 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
           overflow.header_section_height = header_section_height;
           overflow.titles_height = repeat_titles ? titles_height : Length{0};
           overflow.subtitles_height = subtitles_height;
-          overflow.table_header_height = table_header_height;
+          overflow.table_header_height =
+              repeat_header ? table_header_height : Length{0};
           overflow.footnotes_height = footnotes_height;
           overflow.footer_section_height = footer_section_height;
 
           Length ov_avail = compute_available_height(
               page_config, header_section_height,
               repeat_titles ? titles_height : Length{0}, subtitles_height,
-              table_header_height, footnotes_height, footer_section_height);
+              repeat_header ? table_header_height : Length{0}, footnotes_height,
+              footer_section_height);
 
           while (fill_start < rows.size() &&
                  !rows[fill_start].force_page_break &&

@@ -30,7 +30,8 @@ void DocxEmitter::emit_table_header(
 
     // Row properties: header repetition + cantSplit + exact height
     w.start_element("w:trPr");
-    w.self_closing_element("w:tblHeader");
+    if (tmpl.table_style.repeat_header_on_each_page)
+      w.self_closing_element("w:tblHeader");
     w.self_closing_element("w:cantSplit");
     // Set exact row height to match paginator's calculation
     if (row_idx < header_grid.row_heights.size() &&
@@ -130,8 +131,9 @@ void DocxEmitter::emit_table_row(
 
   // Row properties
   w.start_element("w:trPr");
-  w.self_closing_element("w:cantSplit");
-  if (row_height.emu > 0) {
+  if (!tmpl.table_style.allow_row_break_across_pages)
+    w.self_closing_element("w:cantSplit");
+  if (row_height.emu > 0 && !tmpl.table_style.allow_row_break_across_pages) {
     // Use exact height for all rows so Word never expands them beyond
     // what the paginator calculated.  Expansion ("atLeast") can cause
     // cumulative overflow that pushes footnote paragraphs to the next
@@ -473,7 +475,8 @@ void DocxEmitter::emit_table(XmlWriter &w, const TFLSpec &spec,
     w.end_element(); // w:tr
   };
 
-  emit_table_header(w, header_grid, segment, resolver, col_widths, seg_cols);
+  if (page.is_first_page || tmpl.table_style.repeat_header_on_each_page)
+    emit_table_header(w, header_grid, segment, resolver, col_widths, seg_cols);
 
   // Body rows for this page slice
   // Find effective last data row and whether this slice contains body rows.

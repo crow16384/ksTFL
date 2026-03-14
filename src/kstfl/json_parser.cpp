@@ -949,6 +949,12 @@ static StylesTemplate parse_template_internal(const json &root) {
       if (layout.contains("table_borders") &&
           layout["table_borders"].is_object())
         tmpl.table_style.table_borders = parse_borders(layout["table_borders"]);
+      auto arb = jutil::opt<bool>(layout, "allow_row_break_across_pages");
+      if (arb.has_value())
+        tmpl.table_style.allow_row_break_across_pages = *arb;
+      auto rh = jutil::opt<bool>(layout, "repeat_header_on_each_page");
+      if (rh.has_value())
+        tmpl.table_style.repeat_header_on_each_page = *rh;
     }
 
     // structural

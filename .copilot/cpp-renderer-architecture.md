@@ -199,7 +199,6 @@ All values are **pre-formatted strings** — the C++ engine never needs numeric 
     "layout": {
       "allow_row_break_across_pages": false,
       "repeat_header_on_each_page": true,
-      "prevent_header_row_break": true,
       "table_alignment": "center"
     },
     "structural": {

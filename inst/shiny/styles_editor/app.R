@@ -443,7 +443,6 @@ ui <- shiny::fluidPage(
           shiny::h3("Layout"),
           shiny::checkboxInput("tbl_allow_row_break", "Allow row break across pages", value = FALSE),
           shiny::checkboxInput("tbl_repeat_header", "Repeat header on each page", value = TRUE),
-          shiny::checkboxInput("tbl_prevent_header_break", "Prevent header row break", value = TRUE),
           shiny::selectInput(
             "tbl_alignment",
             "Table alignment",
@@ -527,7 +526,7 @@ server <- function(input, output, session) {
     "doc_page_size", "doc_page_orientation",
     "doc_margin_top", "doc_margin_bottom", "doc_margin_left", "doc_margin_right",
     "doc_margin_header", "doc_margin_footer", "doc_widow_control",
-    "tbl_allow_row_break", "tbl_repeat_header", "tbl_prevent_header_break", "tbl_alignment",
+    "tbl_allow_row_break", "tbl_repeat_header", "tbl_alignment",
     "tbl_top_empty_line", "tbl_bottom_empty_line",
     "struct_allheaders_vertical", "struct_tablebody_vertical",
     "cell_default_top", "cell_default_bottom", "cell_default_left", "cell_default_right",
@@ -701,7 +700,6 @@ server <- function(input, output, session) {
     layout <- tmpl$tableStyle$layout
     shiny::updateCheckboxInput(session, "tbl_allow_row_break",       value = isTRUE(layout$allow_row_break_across_pages))
     shiny::updateCheckboxInput(session, "tbl_repeat_header",         value = isTRUE(layout$repeat_header_on_each_page))
-    shiny::updateCheckboxInput(session, "tbl_prevent_header_break",  value = isTRUE(layout$prevent_header_row_break))
     shiny::updateSelectInput(session, "tbl_alignment", selected = local_or_default(layout$table_alignment, "center"))
     shiny::updateTextInput(session, "tbl_top_empty_line", value = local_or_default(layout$topEmptyLine, "0pt"))
     shiny::updateTextInput(session, "tbl_bottom_empty_line", value = local_or_default(layout$bottomEmptyLine, "0pt"))
@@ -854,7 +852,6 @@ server <- function(input, output, session) {
     layout <- list(
       allow_row_break_across_pages = isTRUE(input$tbl_allow_row_break),
       repeat_header_on_each_page   = isTRUE(input$tbl_repeat_header),
-      prevent_header_row_break     = isTRUE(input$tbl_prevent_header_break),
       table_alignment              = null_if_empty(input$tbl_alignment),
       topEmptyLine                 = null_if_empty(input$tbl_top_empty_line),
       bottomEmptyLine              = null_if_empty(input$tbl_bottom_empty_line)
