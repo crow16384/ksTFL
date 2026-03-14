@@ -98,9 +98,9 @@ struct Length {
 /// Conservative safety margin subtracted from available page height.
 /// Accounts for minor rounding differences between our deterministic layout
 /// engine and Word's own line-height / table-row calculations.  Keeping a
-/// small unused reserve (~15 pt) prevents content from overflowing onto an
-/// extra page.
-constexpr Length PAGE_SAFETY_MARGIN = Length::from_pt(15.0);
+/// small unused reserve prevents content from overflowing onto an extra page.
+/// Reduced from 15pt after improving CJK text measurement accuracy.
+constexpr Length PAGE_SAFETY_MARGIN = Length::from_pt(10.0);
 
 /// CSS-like color stored as RRGGBB hex string (no leading #).
 struct Color {
@@ -689,6 +689,8 @@ struct LogicalRow {
   std::optional<std::string> row_style_ref;
   bool force_page_break = false;  // explicit page break before this row
   bool is_group_boundary = false; // grouping value changed
+  bool is_oversized = false;      // row height exceeds available page body
+  Length capped_height;           // for oversized rows: max height within page
   std::unordered_map<std::string, std::string>
       group_values; // current grouping col values
 

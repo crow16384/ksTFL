@@ -187,6 +187,8 @@ cats <- tibble(cat1=rep(c('Category 1', 'Category 2', 'Category 3', 'Category 4'
 
 df <- cats %>% bind_cols(df)
 
+write.csv2(df,file.path(out_dir,"df.csv"))
+
 ############################################################################################
 spec_long <- create_table(df) %>% 
   add_title(c("Listing 1.1: ", "Testing of the listing of differnt languages and text lengths"), toclevel = 1) %>% 
@@ -212,7 +214,7 @@ spec_long <- create_table(df) %>%
   
   
 r_long_1 <- create_report(spec_long)
-write_doc(r_long_1, "showcases_15_long_listing_1_1")
+write_doc(r_long_1, "15_long_listing_1_1")
 
 
 ######################################################################

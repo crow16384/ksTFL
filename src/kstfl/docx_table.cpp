@@ -132,10 +132,17 @@ void DocxEmitter::emit_table_row(
   w.start_element("w:trPr");
   w.self_closing_element("w:cantSplit");
   if (row_height.emu > 0) {
+    // Use exact height for all rows so Word never expands them beyond
+    // what the paginator calculated.  Expansion ("atLeast") can cause
+    // cumulative overflow that pushes footnote paragraphs to the next
+    // physical page, creating empty pages.
+    // For oversized rows the height is capped to the available page body
+    // space so they do not overflow; content is clipped at the bottom.
+    Length effective_height = (row.is_oversized && row.capped_height.emu > 0)
+                                  ? row.capped_height
+                                  : row_height;
     w.start_element("w:trHeight");
-    w.attribute("w:val", std::to_string(row_height.to_twips()));
-    // Use "exact" to force Word to render rows at exactly our calculated
-    // height, ensuring deterministic pagination (no overflow).
+    w.attribute("w:val", std::to_string(effective_height.to_twips()));
     w.attribute("w:hRule", "exact");
     w.end_element();
   }
