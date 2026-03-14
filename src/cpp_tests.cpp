@@ -307,13 +307,13 @@ Rcpp::List cpp_test_units() {
     auto c = Color::parse("A0B1C2");
     t.check_eq(c.hex, std::string("A0B1C2"), "Color::parse mixed alphanumeric");
   }
-  t.check_throw([]() { Color::parse("XYZ"); },
+  t.check_throw([]() { static_cast<void>(Color::parse("XYZ")); },
                 "Color::parse invalid chars throws");
-  t.check_throw([]() { Color::parse("#12345"); },
+  t.check_throw([]() { static_cast<void>(Color::parse("#12345")); },
                 "Color::parse 5-char hex throws");
-  t.check_throw([]() { Color::parse("#1234567"); },
+  t.check_throw([]() { static_cast<void>(Color::parse("#1234567")); },
                 "Color::parse 7-char hex throws");
-  t.check_throw([]() { Color::parse("#GGGGGG"); },
+  t.check_throw([]() { static_cast<void>(Color::parse("#GGGGGG")); },
                 "Color::parse non-hex G throws");
 
   // --- Length arithmetic operators ---
