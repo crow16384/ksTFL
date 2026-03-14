@@ -57,7 +57,7 @@ cat("\nLatest metadata entries:\n")
 lr <- list_reports(meta_dir, sort_by = "datetime")
 print(lr)
 
-qc_rows <- lr[lr$doc_file %in% c("premium_06_qc_run1.docx", "premium_06_qc_run2.docx"), , drop = FALSE]
+qc_rows <- lr[lr$doc_file %in% c("06_qc_run1.docx", "06_qc_run2.docx"), , drop = FALSE]
 if (nrow(qc_rows) >= 2) {
   qc_rows <- qc_rows[order(qc_rows$datetime, decreasing = TRUE), , drop = FALSE]
   same_data_refs <- identical(qc_rows$data_refs[1], qc_rows$data_refs[2])

@@ -103,4 +103,4 @@ create_report(spec_idx, spec_note) %>%
 cat("Submission bundle created:\n")
 cat("- Bundle directory: ", bundle_dir, "\n", sep = "")
 cat("- Documents copied: ", nrow(manifest), "\n", sep = "")
-cat("- Index DOCX: ", file.path(output_dir, "premium_08_submission_index.docx"), "\n", sep = "")
+cat("- Index DOCX: ", file.path(output_dir, "08_submission_index.docx"), "\n", sep = "")

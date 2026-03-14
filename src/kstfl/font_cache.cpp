@@ -19,8 +19,11 @@
 
 #include <Rcpp.h>
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <filesystem>
+#include <string>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 
@@ -74,11 +77,6 @@ void FontCache::add_font_dir(const std::string &dir) {
 // ---------------------------------------------------------------------------
 
 /// Map common font names to typical filenames (case-insensitive).
-#include <array>
-#include <cctype>
-#include <string>
-#include <unordered_map>
-
 static std::string font_name_to_filename_hint(const std::string &name,
                                               bool bold, bool italic) {
   // lowercase conversion

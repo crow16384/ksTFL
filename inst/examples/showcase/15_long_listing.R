@@ -241,4 +241,4 @@ spec_long <- create_table(df) %>%
 
 
 r_long_1 <- create_report(spec_long)
-write_doc(r_long_1, "showcase_15_long_listing_1_2")
+write_doc(r_long_1, "15_long_listing_1_2")

@@ -23,5 +23,5 @@ t.fig.spec <- t.fig.spec %>%
 
 t.fig.report <- create_report(t.fig.spec) 
 
-write_doc(t.fig.report, "showcase_14_minimal_figure_svg", toc = T,
+write_doc(t.fig.report, "14_minimal_figure_svg", toc = T,
           metaPath = meta_dir, prettify = T)

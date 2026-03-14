@@ -61,4 +61,4 @@ spec <- create_table(listing,
   ) %>%
   set_document(contentWidth = "90%")
 
-create_report(spec) %>% write_doc("showcase_02_listing_paging_colbreak", toc = TRUE, metaPath = meta_dir)
+create_report(spec) %>% write_doc("02_listing_paging_colbreak", toc = TRUE, metaPath = meta_dir)

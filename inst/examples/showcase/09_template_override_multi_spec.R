@@ -25,7 +25,7 @@ report <- create_report(spec_table, spec_text)
 # A) Default behavior: each spec keeps its own docTemplate.
 write_doc(
   report = report,
-  name = "showcase_09_multi_spec_per_spec_templates",
+  name = "09_multi_spec_per_spec_templates",
   toc = TRUE,
   metaPath = meta_dir
 )
@@ -33,7 +33,7 @@ write_doc(
 # B) Global override behavior: one template is forced for all specs.
 write_doc(
   report = report,
-  name = "showcase_09_multi_spec_global_override",
+  name = "09_multi_spec_global_override",
   toc = TRUE,
   metaPath = meta_dir,
   overrideTemplate = "Navy_Pro"

@@ -57,4 +57,4 @@ spec_tbl <- create_table(summary_tbl) %>%
   add_footnote("C[max] = maximum concentration; T[max] = time of C[max].")
 
 create_report(spec_txt, spec_fig, spec_tbl) %>%
-  write_doc("showcase_03_narrative_figure_table", toc = TRUE, metaPath = meta_dir)
+  write_doc("03_narrative_figure_table", toc = TRUE, metaPath = meta_dir)

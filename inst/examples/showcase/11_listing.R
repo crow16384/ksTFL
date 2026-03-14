@@ -33,7 +33,7 @@ spec_lbl_02 <- spec_lbl_01 %>%
 r_lbl_01 <- create_report(spec_lbl_01)
 r_lbl_02 <- create_report(spec_lbl_02)
 
-write_doc(r_lbl_01, "showcase_11_listing_16_1.1", toc = T)
-write_doc(r_lbl_02, "showcase_11_listing_16_1.2", toc = T)
+write_doc(r_lbl_01, "11_listing_16_1.1", toc = T)
+write_doc(r_lbl_02, "11_listing_16_1.2", toc = T)
 
 

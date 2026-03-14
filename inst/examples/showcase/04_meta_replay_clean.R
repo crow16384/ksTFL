@@ -30,7 +30,7 @@ dir.create(replay_out, recursive = TRUE, showWarnings = FALSE)
 replay_report(
   meta$spec_file,
   meta_dir = meta_dir,
-  output_path = file.path(replay_out, "showcase_04_meta_replay_clean_replay.docx")
+  output_path = file.path(replay_out, "04_meta_replay_clean_replay.docx")
 )
 
 # Dry-run cleanup preview (keeps last 2 versions)

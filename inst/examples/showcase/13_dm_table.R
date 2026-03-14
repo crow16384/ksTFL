@@ -100,7 +100,7 @@ spec_dm_03 <- spec_dm_01 %>% set_document(docTemplate = "Carbon_Dark")
 # создаем объект репорта из спецификации выше
 r_dm_02 <- create_report(spec_dm_02, spec_dm_03)
 # выводим нашу таблицу в DOCX документ
-write_doc(r_dm_02, "showcase_13_dm_table_navy_pro_carbon_dark", toc = T)
-write_doc(r_dm_02, "showcase_13_dm_table_override_default", toc = T, 
+write_doc(r_dm_02, "13_dm_table_navy_pro_carbon_dark", toc = T)
+write_doc(r_dm_02, "13_dm_table_override_default", toc = T, 
           overrideTemplate = "Default")
 

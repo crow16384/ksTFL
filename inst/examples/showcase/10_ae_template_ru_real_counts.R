@@ -189,7 +189,7 @@ spec <- create_table(tbl) %>%
   add_span_header(
     cols = c(TRT_N, TRT_E, FU_0_6_N, FU_0_6_E, FU_GT6_N, FU_GT6_E, FU_0_8_N, FU_0_8_E, 
              FU_GT8_N, FU_GT8_E, FU_TOTAL_N, FU_TOTAL_E, GRAND_N, GRAND_E),
-    label = c("RPH-104", sprintf("N=%d", N)),
+    label = c("DrugX", sprintf("N=%d", N)),
     stubOrder = 3) %>%
   compute_cols(
     firstOf(SOC_GROUP) & SOC_GROUP != "Любое НЯЛ",
@@ -205,4 +205,4 @@ spec <- create_table(tbl) %>%
   )
 
 create_report(spec) %>%
-  write_doc("showcase_10_ae_template_ru_real_counts", toc = T, metaPath = meta_dir)
+  write_doc("10_ae_template_ru_real_counts", toc = T, metaPath = meta_dir)

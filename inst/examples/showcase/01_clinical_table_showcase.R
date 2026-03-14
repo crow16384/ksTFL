@@ -2,7 +2,7 @@ source(file.path(getwd(), "inst", "examples", "showcase", "init_showcase.R"))
 
 set.seed(20260304)
 
-arms <- c("RPH-104", "Placebo", "Total")
+arms <- c("DrugX", "Placebo", "Total")
 sections <- c("Age (years)", "Sex", "Race")
 
 raw <- tibble(
@@ -16,7 +16,7 @@ raw <- tibble(
     "Female", "Male", "p-value (Fisher)",
     "White", "Asian", "Black", "p-value (Fisher)"
   ),
-  RPH104 = c("160", "55.2 (12.4)", "54.0", "47.0; 64.0", "18; 82", "", "88 (55.0%)", "72 (45.0%)", "", "130 (81.2%)", "18 (11.2%)", "12 (7.5%)", ""),
+  DRUGX = c("160", "55.2 (12.4)", "54.0", "47.0; 64.0", "18; 82", "", "88 (55.0%)", "72 (45.0%)", "", "130 (81.2%)", "18 (11.2%)", "12 (7.5%)", ""),
   PLCB = c("158", "56.0 (11.9)", "55.0", "48.0; 63.0", "20; 81", "", "90 (57.0%)", "68 (43.0%)", "", "124 (78.5%)", "22 (13.9%)", "12 (7.6%)", ""),
   TOTAL = c("318", "55.6 (12.1)", "54.0", "47.5; 63.5", "18; 82", "", "178 (56.0%)", "140 (44.0%)", "", "254 (79.9%)", "40 (12.6%)", "24 (7.5%)", ""),
   MODELVAL = c(NA, NA, NA, NA, NA, "0.041", NA, NA, ">0.999", NA, NA, NA, "0.772")
@@ -38,8 +38,8 @@ spec <- create_table(raw) %>%
     labelStyleRef = "text_left",
     valueStyleRef = "indent_1"
   ) %>%
-  define_cols(c(RPH104, PLCB, TOTAL),
-    label = c("RPH-104<br>(N=160)", "Placebo<br>(N=158)", "Total<br>(N=318)"),
+  define_cols(c(DRUGX, PLCB, TOTAL),
+    label = c("DrugX<br>(N=160)", "Placebo<br>(N=158)", "Total<br>(N=318)"),
     #labelStyleRef = "to_90",
     valueStyleRef = "text_center",
     colWidth = "16%"
@@ -50,9 +50,9 @@ spec <- create_table(raw) %>%
   ) %>%
   compute_cols(
     !is.na(MODELVAL),
-    c_merge(c(RPH104, PLCB), styleRef = f_combine("text_center", "bt_th", "i")),
+    c_merge(c(DRUGX, PLCB), styleRef = f_combine("text_center", "bt_th", "i")),
     c_style(STAT, "i"),
-    c_glue(RPH104, "after", glue_col = MODELVAL)
+    c_glue(DRUGX, "after", glue_col = MODELVAL)
   ) %>%
   compute_cols(
     lastOf(SECTION_ID),
@@ -64,4 +64,4 @@ spec <- create_table(raw) %>%
   ) %>%
   set_document(contentWidth = "75%", docTemplate = "Classic_landscape_aptos")
 
-create_report(spec) %>% write_doc("showcase_01_clinical_table", toc = TRUE, metaPath = meta_dir)
+create_report(spec) %>% write_doc("01_clinical_table", toc = TRUE, metaPath = meta_dir)
