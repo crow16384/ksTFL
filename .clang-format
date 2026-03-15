@@ -13,3 +13,7 @@ SortIncludes: Never
 
 # Ensure files end with a newline
 InsertNewlineAtEOF: true
+
+ColumnLimit: 120
+AllowShortBlocksOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
