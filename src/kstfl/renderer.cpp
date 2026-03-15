@@ -52,7 +52,9 @@ void Renderer::set_fallback_font(const std::string &path) {
   config_.fallback_font_path = path;
 }
 
-void Renderer::set_config(const RendererConfig &config) { config_ = config; }
+void Renderer::set_config(const RendererConfig &config) {
+  config_ = config;
+}
 
 // ---------------------------------------------------------------------------
 // Helper: read file to string
@@ -60,9 +62,7 @@ void Renderer::set_config(const RendererConfig &config) { config_ = config; }
 
 static std::string read_file_to_string(const std::string &path) {
   std::ifstream ifs(path, std::ios::binary | std::ios::ate);
-  if (!ifs) {
-    throw RenderError("Cannot read file: " + path);
-  }
+  if (!ifs) { throw RenderError("Cannot read file: " + path); }
   auto size = ifs.tellg();
   ifs.seekg(0);
   std::string content(static_cast<size_t>(size), '\0');
@@ -87,11 +87,9 @@ static TemplateBundle parse_template_bundle(const std::string &template_json) {
     return bundle;
   }
 
-  bool is_multi_payload =
-      root.is_object() && root.contains("_ksTFL_multi_template") &&
-      root["_ksTFL_multi_template"].is_boolean() &&
-      root["_ksTFL_multi_template"].get<bool>() && root.contains("default") &&
-      root.contains("per_spec") && root["per_spec"].is_object();
+  bool is_multi_payload = root.is_object() && root.contains("_ksTFL_multi_template") &&
+                          root["_ksTFL_multi_template"].is_boolean() && root["_ksTFL_multi_template"].get<bool>() &&
+                          root.contains("default") && root.contains("per_spec") && root["per_spec"].is_object();
 
   if (!is_multi_payload) {
     bundle.default_template = parse_template_json_string(template_json);
@@ -101,10 +99,7 @@ static TemplateBundle parse_template_bundle(const std::string &template_json) {
   bundle.default_template = parse_template_json_string(root["default"].dump());
 
   for (auto it = root["per_spec"].begin(); it != root["per_spec"].end(); ++it) {
-    if (it.value().is_object()) {
-      bundle.per_spec_templates[it.key()] =
-          parse_template_json_string(it.value().dump());
-    }
+    if (it.value().is_object()) { bundle.per_spec_templates[it.key()] = parse_template_json_string(it.value().dump()); }
   }
 
   return bundle;
@@ -113,18 +108,14 @@ static TemplateBundle parse_template_bundle(const std::string &template_json) {
 // ---------------------------------------------------------------------------
 // Helper: restore deduped values at page boundaries
 // ---------------------------------------------------------------------------
-static void restore_dedupe_at_page_boundaries(
-    const TFLSpec &spec, std::vector<LogicalRow> &rows,
-    const PaginationResult &pagination, bool verbose) {
+static void restore_dedupe_at_page_boundaries(const TFLSpec &spec, std::vector<LogicalRow> &rows,
+                                              const PaginationResult &pagination, bool verbose) {
 
   std::vector<size_t> dedupe_indices;
   for (size_t i = 0; i < spec.columns.size(); ++i) {
-    if (spec.columns[i].dedupe) {
-      dedupe_indices.push_back(i);
-    }
+    if (spec.columns[i].dedupe) { dedupe_indices.push_back(i); }
   }
-  if (dedupe_indices.empty())
-    return;
+  if (dedupe_indices.empty()) return;
 
   if (verbose) {
     Rcpp::Rcerr << "[ksTFL]   Dedupe columns: ";
@@ -135,49 +126,36 @@ static void restore_dedupe_at_page_boundaries(
   }
   size_t restorations = 0;
   for (const auto &seg : pagination.segments) {
-    if (verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Segment " << seg.segment_index << ": "
-                  << seg.pages.size() << " pages\n";
-    }
+    if (verbose) { Rcpp::Rcerr << "[ksTFL]   Segment " << seg.segment_index << ": " << seg.pages.size() << " pages\n"; }
     for (size_t pi = 1; pi < seg.pages.size(); ++pi) {
       const auto &pg = seg.pages[pi];
       if (verbose) {
-        Rcpp::Rcerr << "[ksTFL]     Page " << pi << ": rows [" << pg.first_row
-                    << ".." << pg.last_row << "]\n";
+        Rcpp::Rcerr << "[ksTFL]     Page " << pi << ": rows [" << pg.first_row << ".." << pg.last_row << "]\n";
       }
       // Find the first DataRow on this page
-      for (size_t ri = pg.first_row; ri <= pg.last_row && ri < rows.size();
-           ++ri) {
-        if (rows[ri].type != LogicalRowType::DataRow)
-          continue;
+      for (size_t ri = pg.first_row; ri <= pg.last_row && ri < rows.size(); ++ri) {
+        if (rows[ri].type != LogicalRowType::DataRow) continue;
         auto &row = rows[ri];
         if (verbose) {
-          Rcpp::Rcerr << "[ksTFL]     First DataRow at " << ri
-                      << ", cells=" << row.cells.size() << ":";
+          Rcpp::Rcerr << "[ksTFL]     First DataRow at " << ri << ", cells=" << row.cells.size() << ":";
           for (size_t ci = 0; ci < row.cells.size() && ci < 4; ++ci) {
-            Rcpp::Rcerr << " [" << ci << "]='"
-                        << row.cells[ci].text.substr(0, 20) << "'";
+            Rcpp::Rcerr << " [" << ci << "]='" << row.cells[ci].text.substr(0, 20) << "'";
           }
           Rcpp::Rcerr << "\n";
         }
         for (size_t col_idx : dedupe_indices) {
-          if (col_idx >= row.cells.size())
-            continue;
-          if (!row.cells[col_idx].text.empty())
-            continue;
+          if (col_idx >= row.cells.size()) continue;
+          if (!row.cells[col_idx].text.empty()) continue;
           // Scan backward for last non-blank value
           for (size_t bk = ri; bk > 0; --bk) {
             const auto &prev = rows[bk - 1];
-            if (prev.type != LogicalRowType::DataRow)
-              continue;
-            if (col_idx >= prev.cells.size())
-              continue;
+            if (prev.type != LogicalRowType::DataRow) continue;
+            if (col_idx >= prev.cells.size()) continue;
             if (!prev.cells[col_idx].text.empty()) {
               row.cells[col_idx].text = prev.cells[col_idx].text;
               restorations++;
               if (verbose) {
-                Rcpp::Rcerr << "[ksTFL]       Restored col " << col_idx
-                            << " = '" << prev.cells[col_idx].text << "'\n";
+                Rcpp::Rcerr << "[ksTFL]       Restored col " << col_idx << " = '" << prev.cells[col_idx].text << "'\n";
               }
               break;
             }
@@ -187,18 +165,14 @@ static void restore_dedupe_at_page_boundaries(
       }
     }
   }
-  if (verbose) {
-    Rcpp::Rcerr << "[ksTFL]   Dedupe: " << restorations
-                << " values restored at page boundaries\n";
-  }
+  if (verbose) { Rcpp::Rcerr << "[ksTFL]   Dedupe: " << restorations << " values restored at page boundaries\n"; }
 }
 
 // ---------------------------------------------------------------------------
 // render: from file paths
 // ---------------------------------------------------------------------------
 
-size_t Renderer::render(const std::string &spec_json_path,
-                        const std::string &template_json_path,
+size_t Renderer::render(const std::string &spec_json_path, const std::string &template_json_path,
                         const std::string &output_path) {
   std::string spec_json = read_file_to_string(spec_json_path);
   std::string template_json = read_file_to_string(template_json_path);
@@ -213,31 +187,22 @@ size_t Renderer::render(const std::string &spec_json_path,
 // render_from_strings: main pipeline
 // ---------------------------------------------------------------------------
 
-size_t Renderer::render_from_strings(const std::string &spec_json,
-                                     const std::string &template_json,
-                                     const std::string &output_path,
-                                     const std::string &data_dir) {
-  if (config_.verbose) {
-    Rcpp::Rcerr << "[ksTFL] Starting render pipeline...\n";
-  }
+size_t Renderer::render_from_strings(const std::string &spec_json, const std::string &template_json,
+                                     const std::string &output_path, const std::string &data_dir) {
+  if (config_.verbose) { Rcpp::Rcerr << "[ksTFL] Starting render pipeline...\n"; }
 
   // -----------------------------------------------------------------------
   // Phase 1: Parse JSON inputs (spec §22.1)
   // -----------------------------------------------------------------------
 
-  if (config_.verbose) {
-    Rcpp::Rcerr << "[ksTFL] Phase 1: Parsing JSON inputs...\n";
-  }
+  if (config_.verbose) { Rcpp::Rcerr << "[ksTFL] Phase 1: Parsing JSON inputs...\n"; }
 
   // Parse template (single-template or multi-template payload)
   TemplateBundle template_bundle = parse_template_bundle(template_json);
 
-  auto template_for_spec =
-      [&](const std::string &spec_key) -> const StylesTemplate & {
+  auto template_for_spec = [&](const std::string &spec_key) -> const StylesTemplate & {
     auto it = template_bundle.per_spec_templates.find(spec_key);
-    if (it != template_bundle.per_spec_templates.end()) {
-      return it->second;
-    }
+    if (it != template_bundle.per_spec_templates.end()) { return it->second; }
     return template_bundle.default_template;
   };
 
@@ -247,10 +212,8 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
   // Load data JSON files
   std::unordered_map<std::string, DataTable> data_tables;
   for (const auto &spec : doc.specs) {
-    if (spec.data_ref.empty())
-      continue;
-    if (data_tables.count(spec.data_ref))
-      continue; // already loaded
+    if (spec.data_ref.empty()) continue;
+    if (data_tables.count(spec.data_ref)) continue; // already loaded
 
     // Resolve data file path — try bare name first, then with .json suffix
     std::string data_path;
@@ -259,32 +222,25 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
     } else {
       data_path = spec.data_ref;
     }
-    if (!fs::exists(data_path) && fs::exists(data_path + ".json")) {
-      data_path += ".json";
-    }
+    if (!fs::exists(data_path) && fs::exists(data_path + ".json")) { data_path += ".json"; }
 
     if (fs::exists(data_path)) {
       std::string data_json = read_file_to_string(data_path);
       data_tables[spec.data_ref] = parse_data_json_string(data_json);
       if (config_.verbose) {
-        Rcpp::Rcerr << "[ksTFL]   Loaded data: " << spec.data_ref << " ("
-                    << data_tables[spec.data_ref].n_rows << " rows)\n";
+        Rcpp::Rcerr << "[ksTFL]   Loaded data: " << spec.data_ref << " (" << data_tables[spec.data_ref].n_rows
+                    << " rows)\n";
       }
     } else {
-      if (config_.verbose) {
-        Rcpp::Rcerr << "[ksTFL]   WARNING: Data file not found: " << data_path
-                    << "\n";
-      }
+      if (config_.verbose) { Rcpp::Rcerr << "[ksTFL]   WARNING: Data file not found: " << data_path << "\n"; }
     }
   }
 
   // Resolve figure file paths for Figure specs (data_ref ->
   // <data_dir>/<data_ref>.<ext>)
   for (auto &spec : doc.specs) {
-    if (spec.document.doc_type != DocType::Figure)
-      continue;
-    if (spec.data_ref.empty())
-      continue;
+    if (spec.document.doc_type != DocType::Figure) continue;
+    if (spec.data_ref.empty()) continue;
 
     const std::vector<std::string> img_exts = {"png", "jpg", "jpeg", "svg"};
     for (const auto &ext : img_exts) {
@@ -297,15 +253,48 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
       if (fs::exists(candidate)) {
         spec.figure_path = candidate;
         if (config_.verbose) {
-          Rcpp::Rcerr << "[ksTFL]   Loaded figure: " << spec.data_ref << " -> "
-                      << candidate << "\n";
+          Rcpp::Rcerr << "[ksTFL]   Loaded figure: " << spec.data_ref << " -> " << candidate << "\n";
         }
         break;
       }
     }
     if (spec.figure_path.empty() && config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   WARNING: Figure file not found for dataRef: "
-                  << spec.data_ref << "\n";
+      Rcpp::Rcerr << "[ksTFL]   WARNING: Figure file not found for dataRef: " << spec.data_ref << "\n";
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // Phase 1b: Enforce layout constraints for isColBreak specs
+  // When any column uses isColBreak, row breaks across pages must be
+  // disabled and header repetition must be enabled to ensure correct
+  // pagination of horizontal segments.
+  // -----------------------------------------------------------------------
+
+  for (const auto &spec : doc.specs) {
+    bool has_col_break =
+        std::any_of(spec.columns.begin(), spec.columns.end(), [](const ColumnSpec &c) { return c.is_col_break; });
+    if (!has_col_break) continue;
+
+    // Look up (or create) a per-spec template so we don't mutate the
+    // shared default template for specs that don't use col breaks.
+    auto &tmpl_map = template_bundle.per_spec_templates;
+    if (tmpl_map.find(spec.key) == tmpl_map.end()) { tmpl_map[spec.key] = template_bundle.default_template; }
+
+    auto &ts = tmpl_map[spec.key].table_style;
+    bool needs_override = ts.allow_row_break_across_pages || !ts.repeat_header_on_each_page;
+
+    if (needs_override) {
+      ts.allow_row_break_across_pages = false;
+      ts.repeat_header_on_each_page = true;
+      Rcpp::warning("Spec '%s': isColBreak is active — forcing "
+                    "allow_row_break_across_pages=false and "
+                    "repeat_header_on_each_page=true for correct pagination.",
+                    spec.key.c_str());
+    }
+
+    if (config_.verbose) {
+      Rcpp::Rcerr << "[ksTFL]   Spec " << spec.key << ": isColBreak detected, layout constraints enforced"
+                  << (needs_override ? " (values overridden)" : " (already compliant)") << "\n";
     }
   }
 
@@ -313,9 +302,7 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
   // Phase 2: Initialize font cache + text measurer (spec §22.4)
   // -----------------------------------------------------------------------
 
-  if (config_.verbose) {
-    Rcpp::Rcerr << "[ksTFL] Phase 2: Initializing font cache...\n";
-  }
+  if (config_.verbose) { Rcpp::Rcerr << "[ksTFL] Phase 2: Initializing font cache...\n"; }
 
   FontCache font_cache;
   for (const auto &dir : config_.font_dirs) {
@@ -324,11 +311,8 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
 
   // Add fallback font path if specified
   if (!config_.fallback_font_path.empty()) {
-    std::string parent =
-        fs::path(config_.fallback_font_path).parent_path().string();
-    if (!parent.empty()) {
-      font_cache.add_font_dir(parent);
-    }
+    std::string parent = fs::path(config_.fallback_font_path).parent_path().string();
+    if (!parent.empty()) { font_cache.add_font_dir(parent); }
   }
 
   TextMeasurer measurer(font_cache);
@@ -342,40 +326,30 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
   std::unordered_map<std::string, HeaderGrid> all_headers;
 
   for (auto &spec : doc.specs) {
-    if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL] Processing spec: " << spec.key << "\n";
-    }
+    if (config_.verbose) { Rcpp::Rcerr << "[ksTFL] Processing spec: " << spec.key << "\n"; }
 
     // --- Phase 3a: Resolve styles and page config (spec §22.2) ---
-    if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Phase 3a: Resolving styles...\n";
-    }
+    if (config_.verbose) { Rcpp::Rcerr << "[ksTFL]   Phase 3a: Resolving styles...\n"; }
     const StylesTemplate &spec_tmpl = template_for_spec(spec.key);
     StyleResolver resolver(spec_tmpl, spec.spec_styles);
 
     PageConfig page_config = resolver.resolve_page_config(spec);
     if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Page config resolved, usable_width="
-                  << page_config.usable_width().emu << " emu\n";
+      Rcpp::Rcerr << "[ksTFL]   Page config resolved, usable_width=" << page_config.usable_width().emu << " emu\n";
     }
     Length usable_width = page_config.usable_width();
     Length table_width = resolver.resolve_table_width(spec, usable_width);
     if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Table width=" << table_width.emu
-                  << " emu, columns=" << spec.columns.size() << "\n";
+      Rcpp::Rcerr << "[ksTFL]   Table width=" << table_width.emu << " emu, columns=" << spec.columns.size() << "\n";
     }
 
     // Resolve column widths
     resolver.resolve_column_widths(spec.columns, table_width);
-    if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Column widths resolved\n";
-    }
+    if (config_.verbose) { Rcpp::Rcerr << "[ksTFL]   Column widths resolved\n"; }
 
     if (spec.document.doc_type != DocType::Table || !spec.document.has_data) {
       // No table to paginate (Text or Figure)
-      if (config_.verbose) {
-        Rcpp::Rcerr << "[ksTFL]   Non-table spec, skipping model/paginate\n";
-      }
+      if (config_.verbose) { Rcpp::Rcerr << "[ksTFL]   Non-table spec, skipping model/paginate\n"; }
       continue;
     }
 
@@ -386,36 +360,28 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
     }
     DataTable *data = nullptr;
     auto dt_it = data_tables.find(spec.data_ref);
-    if (dt_it != data_tables.end()) {
-      data = &dt_it->second;
-    }
+    if (dt_it != data_tables.end()) { data = &dt_it->second; }
 
     if (!data) {
-      if (config_.verbose) {
-        Rcpp::Rcerr << "[ksTFL]   WARNING: No data for spec " << spec.key
-                    << "\n";
-      }
+      if (config_.verbose) { Rcpp::Rcerr << "[ksTFL]   WARNING: No data for spec " << spec.key << "\n"; }
       continue;
     }
 
     if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Data loaded: " << data->n_rows << " rows, "
-                  << data->columns.size() << " data columns\n";
+      Rcpp::Rcerr << "[ksTFL]   Data loaded: " << data->n_rows << " rows, " << data->columns.size()
+                  << " data columns\n";
       Rcpp::Rcerr << "[ksTFL]   Calling LogicalTableBuilder::build...\n";
     }
     auto table_result = LogicalTableBuilder::build(spec, *data);
     if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Logical table built: "
-                  << table_result.rows.size() << " rows, "
+      Rcpp::Rcerr << "[ksTFL]   Logical table built: " << table_result.rows.size() << " rows, "
                   << table_result.header_grid.rows.size() << " header rows\n";
     }
     auto &rows = table_result.rows;
     auto &header_grid = table_result.header_grid;
 
     // --- Phase 3c: Measure (spec §22.4) ---
-    if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Phase 3c: Measuring...\n";
-    }
+    if (config_.verbose) { Rcpp::Rcerr << "[ksTFL]   Phase 3c: Measuring...\n"; }
 
     // Measure header grid cells.
     // Stamp the template's text_orientation only onto the label row
@@ -425,15 +391,11 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
       ColumnSpec dummy_col;
       StyleDef proto_hdr_style = resolver.resolve_header_cell_style(dummy_col);
       std::optional<TextOrientation> hdr_orientation;
-      if (proto_hdr_style.table_style.has_value()) {
-        hdr_orientation = proto_hdr_style.table_style->text_orientation;
-      }
+      if (proto_hdr_style.table_style.has_value()) { hdr_orientation = proto_hdr_style.table_style->text_orientation; }
       if (!header_grid.rows.empty()) {
         auto &label_row = header_grid.rows.back();
         for (auto &cell : label_row) {
-          if (!cell.text_orientation.has_value()) {
-            cell.text_orientation = hdr_orientation;
-          }
+          if (!cell.text_orientation.has_value()) { cell.text_orientation = hdr_orientation; }
         }
       }
     }
@@ -465,16 +427,13 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
         // Ensure the resolved style carries the cell's orientation so
         // the measurer performs the correct width/height swap.
         if (cell.text_orientation.has_value()) {
-          if (!hdr_style.table_style.has_value()) {
-            hdr_style.table_style = TableCellProps{};
-          }
+          if (!hdr_style.table_style.has_value()) { hdr_style.table_style = TableCellProps{}; }
           if (!hdr_style.table_style->text_orientation.has_value()) {
             hdr_style.table_style->text_orientation = cell.text_orientation;
           }
         }
 
-        MeasuredText m =
-            measurer.measure_plain(cell.label, hdr_style, cell.width);
+        MeasuredText m = measurer.measure_plain(cell.label, hdr_style, cell.width);
 
         if (cell.v_merge == VMergeState::Restart) {
           // Defer — height will be distributed in second pass.
@@ -482,9 +441,7 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
         } else if (cell.v_merge == VMergeState::Continue) {
           // Skip — empty continuation cell.
         } else {
-          if (m.height > max_row_height) {
-            max_row_height = m.height;
-          }
+          if (m.height > max_row_height) { max_row_height = m.height; }
         }
       }
       header_grid.row_heights.push_back(max_row_height);
@@ -503,8 +460,7 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
       for (size_t nri = ri + 1; nri < header_grid.rows.size(); ++nri) {
         bool found_continue = false;
         for (const auto &c : header_grid.rows[nri]) {
-          if (c.v_merge == VMergeState::Continue &&
-              c.source_col_index == entry.source_col_index) {
+          if (c.v_merge == VMergeState::Continue && c.source_col_index == entry.source_col_index) {
             found_continue = true;
             break;
           }
@@ -523,8 +479,7 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
       // If deficit exists, add it to the last row of the group.
       if (entry.measured_height > group_height) {
         Length deficit{entry.measured_height.emu - group_height.emu};
-        header_grid.row_heights[last_ri] =
-            header_grid.row_heights[last_ri] + deficit;
+        header_grid.row_heights[last_ri] = header_grid.row_heights[last_ri] + deficit;
       }
     }
 
@@ -537,16 +492,13 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
     // --- Phase 3d: Paginate (spec §22.5) ---
     // Paginator computes baseline row heights and per-segment row heights
     // (for colBreak segments with scaled column widths).
-    if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Phase 3d: Paginating...\n";
-    }
-    PaginationResult pagination = Paginator::paginate(
-        spec, rows, header_grid, page_config, table_width, measurer, resolver);
+    if (config_.verbose) { Rcpp::Rcerr << "[ksTFL]   Phase 3d: Paginating...\n"; }
+    PaginationResult pagination =
+        Paginator::paginate(spec, rows, header_grid, page_config, table_width, measurer, resolver);
 
     if (config_.verbose) {
-      Rcpp::Rcerr << "[ksTFL]   Paginated: " << pagination.total_pages
-                  << " total pages across " << pagination.segments.size()
-                  << " segments\n";
+      Rcpp::Rcerr << "[ksTFL]   Paginated: " << pagination.total_pages << " total pages across "
+                  << pagination.segments.size() << " segments\n";
 
       // Detailed page geometry diagnostics
       Rcpp::Rcerr << "[ksTFL]   Page geometry: "
@@ -555,20 +507,17 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
                   << " bot=" << page_config.margins.bottom.to_pt() << "pt"
                   << " usable_h=" << page_config.usable_height().to_pt() << "pt"
                   << "\n";
-      Rcpp::Rcerr << "[ksTFL]   Header grid: total_h="
-                  << header_grid.total_height.to_pt() << "pt"
+      Rcpp::Rcerr << "[ksTFL]   Header grid: total_h=" << header_grid.total_height.to_pt() << "pt"
                   << " rows=" << header_grid.rows.size();
       for (size_t i = 0; i < header_grid.row_heights.size(); ++i) {
-        Rcpp::Rcerr << " rh[" << i << "]=" << header_grid.row_heights[i].to_pt()
-                    << "pt";
+        Rcpp::Rcerr << " rh[" << i << "]=" << header_grid.row_heights[i].to_pt() << "pt";
       }
       Rcpp::Rcerr << "\n";
 
       // Show first 5 body row heights
       Rcpp::Rcerr << "[ksTFL]   Body row heights (first 5): ";
       for (size_t i = 0; i < 5 && i < rows.size(); ++i) {
-        Rcpp::Rcerr << "[" << i << "]=" << rows[i].measured_height.to_pt()
-                    << "pt ";
+        Rcpp::Rcerr << "[" << i << "]=" << rows[i].measured_height.to_pt() << "pt ";
       }
       Rcpp::Rcerr << "\n";
 
@@ -577,38 +526,25 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
         for (size_t pi = 0; pi < seg.pages.size() && pi < 3; ++pi) {
           const auto &p = seg.pages[pi];
           Length body_h{0};
-          for (size_t ri = p.first_row; ri <= p.last_row && ri < rows.size();
-               ++ri) {
+          for (size_t ri = p.first_row; ri <= p.last_row && ri < rows.size(); ++ri) {
             body_h = body_h + rows[ri].measured_height;
           }
-          Length total_content =
-              p.titles_height + p.subtitles_height + p.table_header_height +
-              body_h + p.header_section_height + p.footer_section_height;
-          if (p.has_footnotes) {
-            total_content = total_content + p.footnotes_height;
-          }
-          Rcpp::Rcerr << "[ksTFL]   Page " << p.page_number << ": rows["
-                      << p.first_row << ".." << p.last_row << "]"
-                      << " nrows=" << (p.last_row - p.first_row + 1)
-                      << " body_h=" << body_h.to_pt() << "pt"
+          Length total_content = p.titles_height + p.subtitles_height + p.table_header_height + body_h +
+                                 p.header_section_height + p.footer_section_height;
+          if (p.has_footnotes) { total_content = total_content + p.footnotes_height; }
+          Rcpp::Rcerr << "[ksTFL]   Page " << p.page_number << ": rows[" << p.first_row << ".." << p.last_row << "]"
+                      << " nrows=" << (p.last_row - p.first_row + 1) << " body_h=" << body_h.to_pt() << "pt"
                       << " titles=" << p.has_titles << "\n";
-          Rcpp::Rcerr << "[ksTFL]     titles_h=" << p.titles_height.to_pt()
-                      << "pt"
+          Rcpp::Rcerr << "[ksTFL]     titles_h=" << p.titles_height.to_pt() << "pt"
                       << " sub_h=" << p.subtitles_height.to_pt() << "pt"
                       << " hdr_tbl_h=" << p.table_header_height.to_pt() << "pt"
-                      << " hdr_sec_h=" << p.header_section_height.to_pt()
-                      << "pt"
-                      << " ftr_sec_h=" << p.footer_section_height.to_pt()
-                      << "pt"
+                      << " hdr_sec_h=" << p.header_section_height.to_pt() << "pt"
+                      << " ftr_sec_h=" << p.footer_section_height.to_pt() << "pt"
                       << " fn_h=" << p.footnotes_height.to_pt() << "pt"
                       << "\n";
-          Rcpp::Rcerr << "[ksTFL]     total_content=" << total_content.to_pt()
-                      << "pt"
-                      << " usable=" << page_config.usable_height().to_pt()
-                      << "pt"
-                      << " slack="
-                      << (page_config.usable_height() - total_content).to_pt()
-                      << "pt"
+          Rcpp::Rcerr << "[ksTFL]     total_content=" << total_content.to_pt() << "pt"
+                      << " usable=" << page_config.usable_height().to_pt() << "pt"
+                      << " slack=" << (page_config.usable_height() - total_content).to_pt() << "pt"
                       << "\n";
         }
       }
@@ -626,17 +562,12 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
   // Phase 4: Emit DOCX (spec §22.6)
   // -----------------------------------------------------------------------
 
-  if (config_.verbose) {
-    Rcpp::Rcerr << "[ksTFL] Phase 4: Emitting DOCX...\n";
-  }
+  if (config_.verbose) { Rcpp::Rcerr << "[ksTFL] Phase 4: Emitting DOCX...\n"; }
 
   DocxEmitter emitter(template_bundle.default_template,
-                      template_bundle.per_spec_templates.empty()
-                          ? nullptr
-                          : &template_bundle.per_spec_templates,
+                      template_bundle.per_spec_templates.empty() ? nullptr : &template_bundle.per_spec_templates,
                       config_);
-  emitter.emit(doc, data_tables, output_path, all_pages, all_rows, all_headers,
-               &measurer);
+  emitter.emit(doc, data_tables, output_path, all_pages, all_rows, all_headers, &measurer);
 
   // Compute total page count across all specs.
   // Table specs use paginator counts; Text/Figure specs always emit one
@@ -656,12 +587,8 @@ size_t Renderer::render_from_strings(const std::string &spec_json,
     }
   }
 
-  if (config_.verbose) {
-    Rcpp::Rcerr << "[ksTFL] Render complete: " << output_path << "\n";
-  }
-  if (config_.verbose) {
-    Rcpp::Rcerr << "[ksTFL] Pages produced: " << total_pages << "\n";
-  }
+  if (config_.verbose) { Rcpp::Rcerr << "[ksTFL] Render complete: " << output_path << "\n"; }
+  if (config_.verbose) { Rcpp::Rcerr << "[ksTFL] Pages produced: " << total_pages << "\n"; }
 
   return total_pages;
 }

@@ -88,6 +88,10 @@ The combined execution order must follow renderer_notes §17 + architecture pipe
 
 ### 3.1 Full execution sequence (authoritative)
 1. Parse JSON inputs (spec JSON + template JSON)
+1b. Enforce `isColBreak` layout constraints:
+   - for each spec with any `isColBreak` column, force
+     `allow_row_break_across_pages=false` and `repeat_header_on_each_page=true`
+     on the per-spec template (warn if values were overridden)
 2. Resolve styles dictionary:
    - parse template `textStyles` and `tableStyle`
    - parse spec `attribs.styles`
@@ -283,6 +287,9 @@ Placement:
   - splits table horizontally into page segments
   - height/row-count calculations must account for all columns so parts fit equally
   - multiple columns may have `isColBreak=true`
+  - **layout constraint enforcement**: when active, the renderer forces
+    `allow_row_break_across_pages=false` and `repeat_header_on_each_page=true`
+    on the per-spec template (with R warning if values are overridden)
 - `dedupe`: suppress consecutive repeats
 - `blankAfter` deprecated (use rowstyles/add_row instead)
 - `format`: includes `colWidth`, `missings`, `valueStyleRef`, etc.
@@ -631,6 +638,15 @@ Use the architecture draft’s component plan, but ensure behaviour parity with 
     - `DocumentInfo`, `attribs.styles`, headers/footers, stubColumns, columns, titles/subtitles/footnotes/bodyText
     - parse styleRows strings to `RowActionSet`
   - load data JSON(s) into `DataTable`
+
+#### Phase 1b: isColBreak Layout Constraints
+- For each spec, check if any column has `is_col_break == true`
+- If so, ensure the per-spec template has:
+  - `allow_row_break_across_pages = false`
+  - `repeat_header_on_each_page = true`
+- Creates a per-spec template copy from default if no override exists
+- Emits `Rcpp::warning()` if values were actually changed
+- Verbose log via `Rcpp::Rcerr` when `config_.verbose` is true
 
 ### 22.2 Phase 2: Resolve
 - `StyleResolver`

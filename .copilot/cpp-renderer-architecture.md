@@ -715,6 +715,9 @@ Each sub-struct (`FontProps`, `ParagraphProps`, `TableCellProps`) uses the same 
                     │  ● Load styles template JSON          │
                     │  ● Load data JSON(s) → DataTable      │
                     │  ● Parse styleRows JSON strings       │
+                    │  ● Phase 1b: Enforce isColBreak       │
+                    │    layout constraints (warn + force   │
+                    │    allow_row_break=F, repeat_header=T)│
                     └──────────┬──────────────────────────┘
                                │
                     ┌──────────▼──────────────────────────┐
@@ -771,7 +774,7 @@ Each sub-struct (`FontProps`, `ParagraphProps`, `TableCellProps`) uses the same 
                     └─────────────────────────────────────┘
 ```
 
-### 4.2 Phase 1: Parse
+### 4.2 Phase 1: Parse + Layout Constraint Enforcement
 
 ```cpp
 namespace kstfl {
@@ -804,6 +807,23 @@ private:
 
 } // namespace kstfl
 ```
+
+#### Phase 1b: isColBreak Layout Constraints
+
+After parsing, the renderer inspects every spec for `is_col_break` columns.
+When any column uses `isColBreak`, horizontal segmentation requires:
+- `allow_row_break_across_pages = false` — rows must not split across pages
+  because each segment may have different row heights.
+- `repeat_header_on_each_page = true` — headers must repeat so every segment
+  page is self-contained.
+
+If the current template has incompatible values, the renderer:
+1. Creates a per-spec template copy (avoids mutating the shared default).
+2. Forces both flags to the required values.
+3. Emits an R warning via `Rcpp::warning()` identifying the spec key and the
+   overridden options.
+
+Specs without `isColBreak` columns are unaffected.
 
 ### 4.3 Phase 2: Resolve
 
