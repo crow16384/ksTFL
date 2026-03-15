@@ -42,19 +42,14 @@ static const std::string FALLBACK_FONT_NAME = "Liberation Sans";
 
 FontCache::FontCache() {
   FT_Error err = FT_Init_FreeType(&ft_library_);
-  if (err) {
-    throw RenderError("Failed to initialize FreeType library (error " +
-                      std::to_string(err) + ")");
-  }
+  if (err) { throw RenderError("Failed to initialize FreeType library (error " + std::to_string(err) + ")"); }
 }
 
 FontCache::~FontCache() {
   // Destroy HarfBuzz fonts and FreeType faces
   for (auto &[key, face] : face_cache_) {
-    if (face.hb_font)
-      hb_font_destroy(face.hb_font);
-    if (face.ft_face)
-      FT_Done_Face(face.ft_face);
+    if (face.hb_font) hb_font_destroy(face.hb_font);
+    if (face.ft_face) FT_Done_Face(face.ft_face);
   }
   face_cache_.clear();
   if (ft_library_) {
@@ -72,15 +67,11 @@ void FontCache::add_font_dir(const std::string &dir) {
     font_dirs_.push_back(dir);
     // Build index: lowercase stem → full path
     try {
-      for (const auto &entry : fs::recursive_directory_iterator(
-               dir, fs::directory_options::skip_permission_denied)) {
-        if (!entry.is_regular_file())
-          continue;
+      for (const auto &entry : fs::recursive_directory_iterator(dir, fs::directory_options::skip_permission_denied)) {
+        if (!entry.is_regular_file()) continue;
         std::string ext = entry.path().extension().string();
-        std::ranges::transform(ext, ext.begin(),
-                               [](unsigned char c) { return std::tolower(c); });
-        if (ext != ".ttf" && ext != ".otf" && ext != ".ttc")
-          continue;
+        std::ranges::transform(ext, ext.begin(), [](unsigned char c) { return std::tolower(c); });
+        if (ext != ".ttf" && ext != ".otf" && ext != ".ttc") continue;
         std::string stem = entry.path().stem().string();
         std::string stem_lower;
         stem_lower.reserve(stem.size());
@@ -99,8 +90,7 @@ void FontCache::add_font_dir(const std::string &dir) {
 // ---------------------------------------------------------------------------
 
 /// Map common font names to typical filenames (case-insensitive).
-static std::string font_name_to_filename_hint(const std::string &name,
-                                              bool bold, bool italic) {
+static std::string font_name_to_filename_hint(const std::string &name, bool bold, bool italic) {
   // lowercase conversion
   std::string lower;
   lower.reserve(name.size());
@@ -111,8 +101,7 @@ static std::string font_name_to_filename_hint(const std::string &name,
   int idx = (bold ? 1 : 0) | (italic ? 2 : 0);
 
   auto it = font_map.find(lower);
-  if (it != font_map.end())
-    return it->second[idx];
+  if (it != font_map.end()) return it->second[idx];
 
   // Fallback: construct name + style suffix indexed by bold|italic bits
   static constexpr std::array<const char *, 4> suffixes = {"", "bd", "i", "bi"};
@@ -128,8 +117,7 @@ std::string FontCache::find_font_file(const FaceKey &key) const {
 
   // O(1) lookup in pre-built index
   auto it = font_index_.find(hint_lower);
-  if (it != font_index_.end())
-    return it->second;
+  if (it != font_index_.end()) return it->second;
 
   return ""; // not found
 }
@@ -144,8 +132,7 @@ CachedFace FontCache::load_face(const std::string &path) const {
 
   FT_Error err = FT_New_Face(ft_library_, path.c_str(), 0, &face.ft_face);
   if (err) {
-    throw RenderError("Failed to load font face from '" + path +
-                      "' (FreeType error " + std::to_string(err) + ")");
+    throw RenderError("Failed to load font face from '" + path + "' (FreeType error " + std::to_string(err) + ")");
   }
 
   // Create HarfBuzz font from FreeType face
@@ -165,8 +152,7 @@ CachedFace FontCache::load_face(const std::string &path) const {
 const CachedFace &FontCache::get_face(const FaceKey &key) {
   // Check cache
   auto it = face_cache_.find(key);
-  if (it != face_cache_.end())
-    return it->second;
+  if (it != face_cache_.end()) return it->second;
 
   // Try to find the exact font
   std::string path = find_font_file(key);
@@ -179,8 +165,7 @@ const CachedFace &FontCache::get_face(const FaceKey &key) {
 
   if (path.empty() && key.name != FALLBACK_FONT_NAME) {
     // Fallback to LiberationSans with matching style
-    Rcpp::Rcerr << "[ksTFL] WARNING: Font '" << key.name
-                << "' not found in inst/fonts/. Falling back to "
+    Rcpp::Rcerr << "[ksTFL] WARNING: Font '" << key.name << "' not found in inst/fonts/. Falling back to "
                 << FALLBACK_FONT_NAME << ".\n";
     FaceKey fallback_key{FALLBACK_FONT_NAME, key.bold, key.italic};
     path = find_font_file(fallback_key);
@@ -193,8 +178,7 @@ const CachedFace &FontCache::get_face(const FaceKey &key) {
   }
 
   if (path.empty()) {
-    throw RenderError("Font not found: '" + key.name +
-                      "' (bold=" + (key.bold ? "true" : "false") +
+    throw RenderError("Font not found: '" + key.name + "' (bold=" + (key.bold ? "true" : "false") +
                       ", italic=" + (key.italic ? "true" : "false") +
                       "). "
                       "No matching font in inst/fonts/ and LiberationSans "
@@ -213,18 +197,14 @@ const CachedFace &FontCache::get_face(const FaceKey &key) {
 FontMetrics FontCache::get_metrics(const FaceKey &key, double size_pt) {
   MetricsKey mk{key, size_pt};
   auto it = metrics_cache_.find(mk);
-  if (it != metrics_cache_.end())
-    return it->second;
+  if (it != metrics_cache_.end()) return it->second;
 
   const CachedFace &face = get_face(key);
 
   // Set FreeType char size (size in 1/64 points)
-  FT_Error ft_err =
-      FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0),
-                       72, 72); // 72 DPI
+  FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72); // 72 DPI
   if (ft_err) {
-    throw RenderError("FT_Set_Char_Size failed for font '" + key.name +
-                      "' at size " + std::to_string(size_pt) + "pt");
+    throw RenderError("FT_Set_Char_Size failed for font '" + key.name + "' at size " + std::to_string(size_pt) + "pt");
   }
 
   FontMetrics m;
@@ -235,8 +215,7 @@ FontMetrics FontCache::get_metrics(const FaceKey &key, double size_pt) {
   // Microsoft Word's line height calculation. Word uses these values
   // for single-spaced text layout, not the hhea table metrics that
   // FreeType's face->ascender / face->descender provide.
-  TT_OS2 *os2 =
-      static_cast<TT_OS2 *>(FT_Get_Sfnt_Table(face.ft_face, FT_SFNT_OS2));
+  TT_OS2 *os2 = static_cast<TT_OS2 *>(FT_Get_Sfnt_Table(face.ft_face, FT_SFNT_OS2));
   if (os2) {
     m.ascent = static_cast<double>(os2->usWinAscent) * scale;
     m.descent = static_cast<double>(os2->usWinDescent) * scale;
@@ -258,11 +237,9 @@ FontMetrics FontCache::get_metrics(const FaceKey &key, double size_pt) {
 hb_font_t *FontCache::get_hb_font(const FaceKey &key, double size_pt) {
   const CachedFace &face = get_face(key);
   // Set size for proper shaping
-  FT_Error ft_err = FT_Set_Char_Size(
-      face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72);
+  FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72);
   if (ft_err) {
-    throw RenderError("FT_Set_Char_Size failed for font '" + key.name +
-                      "' at size " + std::to_string(size_pt) + "pt");
+    throw RenderError("FT_Set_Char_Size failed for font '" + key.name + "' at size " + std::to_string(size_pt) + "pt");
   }
   hb_ft_font_changed(face.hb_font);
   return face.hb_font;

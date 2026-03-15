@@ -468,7 +468,7 @@ single R package:
 
 - The **R layer** generates validated JSON specifications describing
   document structure, content, column formats, and styles
-- The **C++ rendering engine** (built-in, used by
+- The **C++ rendering engine** (built-in, C++20, used by
   [`write_doc()`](https://example.com/reference/write_doc.md) /
   [`replay_report()`](https://example.com/reference/replay_report.md))
   consumes these specifications and produces styled DOCX documents with

@@ -19,23 +19,22 @@ namespace kstfl {
 
 const char *border_line_style_to_ooxml(BorderLineStyle s) {
   using enum BorderLineStyle;
-  static constexpr std::array<std::pair<BorderLineStyle, const char *>, 13>
-      table{{{None, "nil"},
-             {Single, "single"},
-             {Double, "double"},
-             {Dashed, "dashed"},
-             {Dotted, "dotted"},
-             {Thick, "thick"},
-             {DashSmallGap, "dashSmallGap"},
-             {DotDash, "dotDash"},
-             {DotDotDash, "dotDotDash"},
-             {Triple, "triple"},
-             {ThinThickSmallGap, "thinThickSmallGap"},
-             {ThickThinSmallGap, "thickThinSmallGap"},
-             {Wave, "wave"}}};
+  static constexpr std::array<std::pair<BorderLineStyle, const char *>, 13> table{
+      {{None, "nil"},
+       {Single, "single"},
+       {Double, "double"},
+       {Dashed, "dashed"},
+       {Dotted, "dotted"},
+       {Thick, "thick"},
+       {DashSmallGap, "dashSmallGap"},
+       {DotDash, "dotDash"},
+       {DotDotDash, "dotDotDash"},
+       {Triple, "triple"},
+       {ThinThickSmallGap, "thinThickSmallGap"},
+       {ThickThinSmallGap, "thickThinSmallGap"},
+       {Wave, "wave"}}};
   for (const auto &[key, val] : table) {
-    if (key == s)
-      return val;
+    if (key == s) return val;
   }
   return "single";
 }
@@ -44,13 +43,9 @@ const char *border_line_style_to_ooxml(BorderLineStyle s) {
 const char *alignment_to_ooxml(Alignment a) {
   using enum Alignment;
   static constexpr std::array<std::pair<Alignment, const char *>, 4> table{
-      {{Left, "left"},
-       {Center, "center"},
-       {Right, "right"},
-       {Justify, "both"}}};
+      {{Left, "left"}, {Center, "center"}, {Right, "right"}, {Justify, "both"}}};
   for (const auto &[key, val] : table) {
-    if (key == a)
-      return val;
+    if (key == a) return val;
   }
   return "left";
 }
@@ -60,19 +55,14 @@ const char *alignment_to_ooxml(Alignment a) {
 // ---------------------------------------------------------------------------
 
 /// Helper: in-place merge — overwrite target only if source has value.
-template <typename T>
-static void merge_opt_into(std::optional<T> &target,
-                           const std::optional<T> &source) {
-  if (source.has_value())
-    target = source;
+template <typename T> static void merge_opt_into(std::optional<T> &target, const std::optional<T> &source) {
+  if (source.has_value()) target = source;
 }
 
 /// Merge an optional field whose value type itself has a merge_from() method.
 /// If source has a value: merge into existing target, or assign if target is
 /// empty.
-template <Mergeable T>
-static void merge_nested_opt(std::optional<T> &target,
-                             const std::optional<T> &source) {
+template <Mergeable T> static void merge_nested_opt(std::optional<T> &target, const std::optional<T> &source) {
   if (source.has_value()) {
     if (target.has_value())
       target->merge_from(*source);
@@ -99,8 +89,7 @@ Border Border::merged_with(const Border &other) const {
 
 void Borders::merge_from(const Borders &other) {
   static constexpr std::array<std::optional<Border> Borders::*, 6> sides = {
-      &Borders::top,   &Borders::bottom,  &Borders::left,
-      &Borders::right, &Borders::insideH, &Borders::insideV};
+      &Borders::top, &Borders::bottom, &Borders::left, &Borders::right, &Borders::insideH, &Borders::insideV};
   for (auto member : sides) {
     merge_nested_opt(this->*member, other.*member);
   }
@@ -114,20 +103,17 @@ Borders Borders::merged_with(const Borders &other) const {
 
 // -- Optional equality helper -----------------------------------------------
 
-template <typename T>
-static bool opt_eq(const std::optional<T> &a, const std::optional<T> &b) {
-  if (a.has_value() != b.has_value())
-    return false;
+template <typename T> static bool opt_eq(const std::optional<T> &a, const std::optional<T> &b) {
+  if (a.has_value() != b.has_value()) return false;
   return !a.has_value() || *a == *b;
 }
 
 // -- FontProps --------------------------------------------------------------
 
 bool FontProps::operator==(const FontProps &other) const {
-  return opt_eq(font_name, other.font_name) &&
-         opt_eq(font_size, other.font_size) && opt_eq(bold, other.bold) &&
-         opt_eq(italic, other.italic) && opt_eq(underline, other.underline) &&
-         opt_eq(color, other.color) && opt_eq(highlight, other.highlight);
+  return opt_eq(font_name, other.font_name) && opt_eq(font_size, other.font_size) && opt_eq(bold, other.bold) &&
+         opt_eq(italic, other.italic) && opt_eq(underline, other.underline) && opt_eq(color, other.color) &&
+         opt_eq(highlight, other.highlight);
 }
 
 void FontProps::merge_from(const FontProps &other) {
@@ -170,8 +156,8 @@ SpacingProps SpacingProps::merged_with(const SpacingProps &other) const {
 // -- IndentProps -------------------------------------------------------------
 
 bool IndentProps::operator==(const IndentProps &other) const {
-  return opt_eq(left, other.left) && opt_eq(right, other.right) &&
-         opt_eq(first_line, other.first_line) && opt_eq(hanging, other.hanging);
+  return opt_eq(left, other.left) && opt_eq(right, other.right) && opt_eq(first_line, other.first_line) &&
+         opt_eq(hanging, other.hanging);
 }
 
 void IndentProps::merge_from(const IndentProps &other) {
@@ -190,12 +176,9 @@ IndentProps IndentProps::merged_with(const IndentProps &other) const {
 // -- ParagraphProps ----------------------------------------------------------
 
 bool ParagraphProps::operator==(const ParagraphProps &other) const {
-  return opt_eq(alignment, other.alignment) && opt_eq(spacing, other.spacing) &&
-         opt_eq(indents, other.indents) &&
-         opt_eq(widow_control, other.widow_control) &&
-         opt_eq(keep_next, other.keep_next) &&
-         opt_eq(keep_lines, other.keep_lines) &&
-         opt_eq(outline_level, other.outline_level);
+  return opt_eq(alignment, other.alignment) && opt_eq(spacing, other.spacing) && opt_eq(indents, other.indents) &&
+         opt_eq(widow_control, other.widow_control) && opt_eq(keep_next, other.keep_next) &&
+         opt_eq(keep_lines, other.keep_lines) && opt_eq(outline_level, other.outline_level);
 }
 
 void ParagraphProps::merge_from(const ParagraphProps &other) {
@@ -241,8 +224,7 @@ bool StyleDef::operator==(const StyleDef &other) const {
 }
 
 void StyleDef::merge_from(const StyleDef &other) {
-  if (!other.id.empty())
-    id = other.id;
+  if (!other.id.empty()) id = other.id;
   merge_nested_opt(font, other.font);
   merge_nested_opt(paragraph, other.paragraph);
   merge_nested_opt(table_style, other.table_style);
@@ -260,9 +242,7 @@ StyleDef StyleDef::merged_with(const StyleDef &other) const {
 
 const std::vector<std::string> &DataTable::col(const std::string &name) const {
   auto it = columns.find(name);
-  if (it == columns.end()) {
-    throw RenderError("Column '" + name + "' not found in data table");
-  }
+  if (it == columns.end()) { throw RenderError("Column '" + name + "' not found in data table"); }
   return it->second;
 }
 

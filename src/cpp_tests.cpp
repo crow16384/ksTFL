@@ -33,9 +33,7 @@ struct TestResult {
 
   void ok(const std::string &name) { passed.push_back(name); }
 
-  void fail(const std::string &name, const std::string &msg) {
-    failed.push_back(name + ": " + msg);
-  }
+  void fail(const std::string &name, const std::string &msg) { failed.push_back(name + ": " + msg); }
 
   void check(bool cond, const std::string &name, const std::string &msg = "") {
     cond ? ok(name) : fail(name, msg.empty() ? "false" : msg);
@@ -45,28 +43,24 @@ struct TestResult {
     if (actual == expected)
       ok(name);
     else
-      fail(name, "expected " + std::to_string(expected) + ", got " +
-                     std::to_string(actual));
+      fail(name, "expected " + std::to_string(expected) + ", got " + std::to_string(actual));
   }
 
   void check_eq(int actual, int expected, const std::string &name) {
     if (actual == expected)
       ok(name);
     else
-      fail(name, "expected " + std::to_string(expected) + ", got " +
-                     std::to_string(actual));
+      fail(name, "expected " + std::to_string(expected) + ", got " + std::to_string(actual));
   }
 
   void check_eq(size_t actual, size_t expected, const std::string &name) {
     if (actual == expected)
       ok(name);
     else
-      fail(name, "expected " + std::to_string(expected) + ", got " +
-                     std::to_string(actual));
+      fail(name, "expected " + std::to_string(expected) + ", got " + std::to_string(actual));
   }
 
-  void check_eq(const std::string &actual, const std::string &expected,
-                const std::string &name) {
+  void check_eq(const std::string &actual, const std::string &expected, const std::string &name) {
     if (actual == expected)
       ok(name);
     else
@@ -77,23 +71,18 @@ struct TestResult {
     try {
       fn();
       fail(name, "expected exception but none was thrown");
-    } catch (...) {
-      ok(name);
-    }
+    } catch (...) { ok(name); }
   }
 
   void check_no_throw(std::function<void()> fn, const std::string &name) {
     try {
       fn();
       ok(name);
-    } catch (const std::exception &e) {
-      fail(name, std::string("unexpected exception: ") + e.what());
-    }
+    } catch (const std::exception &e) { fail(name, std::string("unexpected exception: ") + e.what()); }
   }
 
   Rcpp::List to_list() const {
-    return Rcpp::List::create(Rcpp::Named("passed") = Rcpp::wrap(passed),
-                              Rcpp::Named("failed") = Rcpp::wrap(failed));
+    return Rcpp::List::create(Rcpp::Named("passed") = Rcpp::wrap(passed), Rcpp::Named("failed") = Rcpp::wrap(failed));
   }
 };
 
@@ -152,8 +141,7 @@ Rcpp::List cpp_test_units() {
       [&]() {
         auto len = parse_length("2.54cm");
         int64_t diff = std::abs(len.emu - int64_t(914400));
-        t.check(diff <= 200, "parse_length 2.54cm ≈ 1in",
-                "got " + std::to_string(len.emu) + " expected ~914400");
+        t.check(diff <= 200, "parse_length 2.54cm ≈ 1in", "got " + std::to_string(len.emu) + " expected ~914400");
       },
       "parse_length 2.54cm no throw");
 
@@ -201,8 +189,7 @@ Rcpp::List cpp_test_units() {
   t.check_no_throw(
       [&]() {
         auto len = parse_length("  1in  ");
-        t.check_eq(len.emu, int64_t(914400),
-                   "parse_length whitespace trimming");
+        t.check_eq(len.emu, int64_t(914400), "parse_length whitespace trimming");
       },
       "parse_length whitespace trim no throw");
 
@@ -217,32 +204,25 @@ Rcpp::List cpp_test_units() {
   // --- parse_length: error cases ---
   t.check_throw([]() { parse_length(""); }, "parse_length empty string throws");
   t.check_throw([]() { parse_length("abc"); }, "parse_length no number throws");
-  t.check_throw([]() { parse_length("50%"); },
-                "parse_length % without reference throws");
-  t.check_throw([]() { parse_length("1xyz"); },
-                "parse_length unknown unit throws");
+  t.check_throw([]() { parse_length("50%"); }, "parse_length % without reference throws");
+  t.check_throw([]() { parse_length("1xyz"); }, "parse_length unknown unit throws");
 
   // --- emu_to_twips ---
   // 1 in = 914400 EMU = 1440 twips
-  t.check_eq(emu_to_twips(int64_t(914400)), int64_t(1440),
-             "emu_to_twips 1in = 1440t");
+  t.check_eq(emu_to_twips(int64_t(914400)), int64_t(1440), "emu_to_twips 1in = 1440t");
   t.check_eq(emu_to_twips(int64_t(0)), int64_t(0), "emu_to_twips 0");
-  t.check_eq(emu_to_twips(int64_t(635)), int64_t(1),
-             "emu_to_twips 1 twip = 635 EMU");
+  t.check_eq(emu_to_twips(int64_t(635)), int64_t(1), "emu_to_twips 1 twip = 635 EMU");
   // 1pt = 12700 EMU = 20 twips
-  t.check_eq(emu_to_twips(int64_t(12700)), int64_t(20),
-             "emu_to_twips 1pt = 20t");
+  t.check_eq(emu_to_twips(int64_t(12700)), int64_t(20), "emu_to_twips 1pt = 20t");
 
   // --- emu_to_half_points ---
   // 1pt = 12700 EMU → 2 half-points
   t.check_eq(emu_to_half_points(int64_t(12700)), 2, "emu_to_half_points 1pt");
   // 12pt → 24 half-points
-  t.check_eq(emu_to_half_points(int64_t(12700 * 12)), 24,
-             "emu_to_half_points 12pt");
+  t.check_eq(emu_to_half_points(int64_t(12700 * 12)), 24, "emu_to_half_points 12pt");
   t.check_eq(emu_to_half_points(int64_t(0)), 0, "emu_to_half_points 0");
   // 9pt → 18 half-points
-  t.check_eq(emu_to_half_points(int64_t(12700 * 9)), 18,
-             "emu_to_half_points 9pt");
+  t.check_eq(emu_to_half_points(int64_t(12700 * 9)), 18, "emu_to_half_points 9pt");
 
   // --- pt_to_half_points ---
   t.check_eq(pt_to_half_points(12.0), 24, "pt_to_half_points 12pt");
@@ -292,8 +272,7 @@ Rcpp::List cpp_test_units() {
   {
     // lowercase input → uppercase output
     auto c = Color::parse("ff0000");
-    t.check_eq(c.hex, std::string("FF0000"),
-               "Color::parse lowercase → uppercase");
+    t.check_eq(c.hex, std::string("FF0000"), "Color::parse lowercase → uppercase");
   }
   {
     auto c = Color::parse("#000000");
@@ -307,14 +286,10 @@ Rcpp::List cpp_test_units() {
     auto c = Color::parse("A0B1C2");
     t.check_eq(c.hex, std::string("A0B1C2"), "Color::parse mixed alphanumeric");
   }
-  t.check_throw([]() { static_cast<void>(Color::parse("XYZ")); },
-                "Color::parse invalid chars throws");
-  t.check_throw([]() { static_cast<void>(Color::parse("#12345")); },
-                "Color::parse 5-char hex throws");
-  t.check_throw([]() { static_cast<void>(Color::parse("#1234567")); },
-                "Color::parse 7-char hex throws");
-  t.check_throw([]() { static_cast<void>(Color::parse("#GGGGGG")); },
-                "Color::parse non-hex G throws");
+  t.check_throw([]() { static_cast<void>(Color::parse("XYZ")); }, "Color::parse invalid chars throws");
+  t.check_throw([]() { static_cast<void>(Color::parse("#12345")); }, "Color::parse 5-char hex throws");
+  t.check_throw([]() { static_cast<void>(Color::parse("#1234567")); }, "Color::parse 7-char hex throws");
+  t.check_throw([]() { static_cast<void>(Color::parse("#GGGGGG")); }, "Color::parse non-hex G throws");
 
   // --- Length arithmetic operators ---
   {
@@ -333,12 +308,9 @@ Rcpp::List cpp_test_units() {
     t.check(Length::from_pt(5.0) < Length::from_pt(10.0), "Length operator<");
     t.check(Length::from_pt(5.0) == Length::from_pt(5.0), "Length operator==");
     t.check(Length::from_pt(5.0) != Length::from_pt(10.0), "Length operator!=");
-    t.check(Length::from_pt(5.0) <= Length::from_pt(5.0),
-            "Length operator<= equal");
-    t.check(Length::from_pt(5.0) <= Length::from_pt(6.0),
-            "Length operator<= less");
-    t.check(Length::from_pt(6.0) >= Length::from_pt(6.0),
-            "Length operator>= equal");
+    t.check(Length::from_pt(5.0) <= Length::from_pt(5.0), "Length operator<= equal");
+    t.check(Length::from_pt(5.0) <= Length::from_pt(6.0), "Length operator<= less");
+    t.check(Length::from_pt(6.0) >= Length::from_pt(6.0), "Length operator>= equal");
   }
 
   // --- Length conversion methods ---
@@ -351,35 +323,29 @@ Rcpp::List cpp_test_units() {
 
   // --- border_line_style_to_ooxml ---
   {
-    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::None)),
-               std::string("nil"), "OOXML border None");
-    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Single)),
-               std::string("single"), "OOXML border Single");
-    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Double)),
-               std::string("double"), "OOXML border Double");
-    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Dashed)),
-               std::string("dashed"), "OOXML border Dashed");
-    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Dotted)),
-               std::string("dotted"), "OOXML border Dotted");
-    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Thick)),
-               std::string("thick"), "OOXML border Thick");
-    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Wave)),
-               std::string("wave"), "OOXML border Wave");
-    t.check_eq(
-        std::string(border_line_style_to_ooxml(BorderLineStyle::DashSmallGap)),
-        std::string("dashSmallGap"), "OOXML border DashSmallGap");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::None)), std::string("nil"), "OOXML border None");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Single)), std::string("single"),
+               "OOXML border Single");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Double)), std::string("double"),
+               "OOXML border Double");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Dashed)), std::string("dashed"),
+               "OOXML border Dashed");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Dotted)), std::string("dotted"),
+               "OOXML border Dotted");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Thick)), std::string("thick"),
+               "OOXML border Thick");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::Wave)), std::string("wave"),
+               "OOXML border Wave");
+    t.check_eq(std::string(border_line_style_to_ooxml(BorderLineStyle::DashSmallGap)), std::string("dashSmallGap"),
+               "OOXML border DashSmallGap");
   }
 
   // --- alignment_to_ooxml ---
   {
-    t.check_eq(std::string(alignment_to_ooxml(Alignment::Left)),
-               std::string("left"), "OOXML alignment Left");
-    t.check_eq(std::string(alignment_to_ooxml(Alignment::Center)),
-               std::string("center"), "OOXML alignment Center");
-    t.check_eq(std::string(alignment_to_ooxml(Alignment::Right)),
-               std::string("right"), "OOXML alignment Right");
-    t.check_eq(std::string(alignment_to_ooxml(Alignment::Justify)),
-               std::string("both"), "OOXML alignment Justify");
+    t.check_eq(std::string(alignment_to_ooxml(Alignment::Left)), std::string("left"), "OOXML alignment Left");
+    t.check_eq(std::string(alignment_to_ooxml(Alignment::Center)), std::string("center"), "OOXML alignment Center");
+    t.check_eq(std::string(alignment_to_ooxml(Alignment::Right)), std::string("right"), "OOXML alignment Right");
+    t.check_eq(std::string(alignment_to_ooxml(Alignment::Justify)), std::string("both"), "OOXML alignment Justify");
   }
 
   return t.to_list();
@@ -407,17 +373,12 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("hello");
     t.check_eq(cell.paragraphs.size(), size_t(1), "plain: 1 paragraph");
     t.check_eq(cell.paragraphs[0].runs.size(), size_t(1), "plain: 1 run");
-    t.check_eq(cell.paragraphs[0].runs[0].text, std::string("hello"),
-               "plain: text content");
+    t.check_eq(cell.paragraphs[0].runs[0].text, std::string("hello"), "plain: text content");
     t.check(!cell.paragraphs[0].runs[0].style.bold_override, "plain: not bold");
-    t.check(!cell.paragraphs[0].runs[0].style.italic_override,
-            "plain: not italic");
-    t.check(!cell.paragraphs[0].runs[0].style.underline_override,
-            "plain: not underline");
-    t.check(!cell.paragraphs[0].runs[0].style.superscript,
-            "plain: not superscript");
-    t.check(!cell.paragraphs[0].runs[0].style.subscript,
-            "plain: not subscript");
+    t.check(!cell.paragraphs[0].runs[0].style.italic_override, "plain: not italic");
+    t.check(!cell.paragraphs[0].runs[0].style.underline_override, "plain: not underline");
+    t.check(!cell.paragraphs[0].runs[0].style.superscript, "plain: not superscript");
+    t.check(!cell.paragraphs[0].runs[0].style.subscript, "plain: not subscript");
   }
 
   // --- Empty string ---
@@ -433,8 +394,7 @@ Rcpp::List cpp_test_inline_parser() {
     t.check_eq(cell.paragraphs.size(), size_t(1), "bold: 1 paragraph");
     bool found_bold = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "bold text" && run.style.bold_override)
-        found_bold = true;
+      if (run.text == "bold text" && run.style.bold_override) found_bold = true;
     }
     t.check(found_bold, "bold: run has bold_override=true and correct text");
   }
@@ -444,8 +404,7 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("<i>italic text</i>");
     bool found = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "italic text" && run.style.italic_override)
-        found = true;
+      if (run.text == "italic text" && run.style.italic_override) found = true;
     }
     t.check(found, "italic: run has italic_override=true");
   }
@@ -455,8 +414,7 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("<u>underlined</u>");
     bool found = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "underlined" && run.style.underline_override)
-        found = true;
+      if (run.text == "underlined" && run.style.underline_override) found = true;
     }
     t.check(found, "underline: run has underline_override=true");
   }
@@ -467,10 +425,8 @@ Rcpp::List cpp_test_inline_parser() {
     bool found_sup = false;
     bool false_sub = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "1" && run.style.superscript)
-        found_sup = true;
-      if (run.text == "1" && run.style.subscript)
-        false_sub = true;
+      if (run.text == "1" && run.style.superscript) found_sup = true;
+      if (run.text == "1" && run.style.subscript) false_sub = true;
     }
     t.check(found_sup, "superscript: superscript=true");
     t.check(!false_sub, "superscript: subscript=false");
@@ -482,10 +438,8 @@ Rcpp::List cpp_test_inline_parser() {
     bool found_sub = false;
     bool false_sup = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "2" && run.style.subscript)
-        found_sub = true;
-      if (run.text == "2" && run.style.superscript)
-        false_sup = true;
+      if (run.text == "2" && run.style.subscript) found_sub = true;
+      if (run.text == "2" && run.style.superscript) false_sup = true;
     }
     t.check(found_sub, "subscript: subscript=true");
     t.check(!false_sup, "subscript: superscript=false");
@@ -495,16 +449,12 @@ Rcpp::List cpp_test_inline_parser() {
   {
     auto cell = parse_inline_markup("<b>bold</b> and plain");
     t.check_eq(cell.paragraphs.size(), size_t(1), "mixed b+plain: 1 paragraph");
-    t.check(cell.paragraphs[0].runs.size() >= size_t(2),
-            "mixed b+plain: >= 2 runs");
+    t.check(cell.paragraphs[0].runs.size() >= size_t(2), "mixed b+plain: >= 2 runs");
     bool has_bold = false;
     bool has_plain = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.style.bold_override && run.text.find("bold") != std::string::npos)
-        has_bold = true;
-      if (!run.style.bold_override &&
-          run.text.find("plain") != std::string::npos)
-        has_plain = true;
+      if (run.style.bold_override && run.text.find("bold") != std::string::npos) has_bold = true;
+      if (!run.style.bold_override && run.text.find("plain") != std::string::npos) has_plain = true;
     }
     t.check(has_bold, "mixed b+plain: bold run found");
     t.check(has_plain, "mixed b+plain: plain run found");
@@ -516,11 +466,8 @@ Rcpp::List cpp_test_inline_parser() {
     bool has_bold = false;
     bool has_italic = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.style.bold_override && run.text.find("bold") != std::string::npos)
-        has_bold = true;
-      if (run.style.italic_override &&
-          run.text.find("italic") != std::string::npos)
-        has_italic = true;
+      if (run.style.bold_override && run.text.find("bold") != std::string::npos) has_bold = true;
+      if (run.style.italic_override && run.text.find("italic") != std::string::npos) has_italic = true;
     }
     t.check(has_bold, "mixed b+i: bold run found");
     t.check(has_italic, "mixed b+i: italic run found");
@@ -531,27 +478,20 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("<b><i>both</i></b>");
     bool found = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "both" && run.style.bold_override &&
-          run.style.italic_override)
-        found = true;
+      if (run.text == "both" && run.style.bold_override && run.style.italic_override) found = true;
     }
-    t.check(found,
-            "nested b+i: run has both bold_override and italic_override");
+    t.check(found, "nested b+i: run has both bold_override and italic_override");
   }
 
   // --- Line break <br/> creates soft break (\\n run) within one paragraph ---
   {
     auto cell = parse_inline_markup("line1<br/>line2");
-    t.check_eq(cell.paragraphs.size(), size_t(1),
-               "br/: 1 paragraph (soft break)");
+    t.check_eq(cell.paragraphs.size(), size_t(1), "br/: 1 paragraph (soft break)");
     bool found_line1 = false, found_br = false, found_line2 = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "line1")
-        found_line1 = true;
-      if (run.text == "\n")
-        found_br = true;
-      if (run.text == "line2")
-        found_line2 = true;
+      if (run.text == "line1") found_line1 = true;
+      if (run.text == "\n") found_br = true;
+      if (run.text == "line2") found_line2 = true;
     }
     t.check(found_line1, "br/: line1 text present");
     t.check(found_br, "br/: \\n run present");
@@ -564,8 +504,7 @@ Rcpp::List cpp_test_inline_parser() {
     t.check_eq(cell.paragraphs.size(), size_t(1), "br no slash: 1 paragraph");
     bool has_br = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "\n")
-        has_br = true;
+      if (run.text == "\n") has_br = true;
     }
     t.check(has_br, "br no slash: \\n run present");
   }
@@ -582,8 +521,7 @@ Rcpp::List cpp_test_inline_parser() {
     t.check_eq(cell.paragraphs.size(), size_t(1), "multi br/: 1 paragraph");
     size_t br_count = 0;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "\n")
-        ++br_count;
+      if (run.text == "\n") ++br_count;
     }
     t.check_eq(br_count, size_t(2), "multi br/: 2 \\n runs");
   }
@@ -593,8 +531,7 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("<B>BOLD</B>");
     bool found = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "BOLD" && run.style.bold_override)
-        found = true;
+      if (run.text == "BOLD" && run.style.bold_override) found = true;
     }
     t.check(found, "case-insensitive: <B> treated as bold");
   }
@@ -602,8 +539,7 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("<I>ITALIC</I>");
     bool found = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "ITALIC" && run.style.italic_override)
-        found = true;
+      if (run.text == "ITALIC" && run.style.italic_override) found = true;
     }
     t.check(found, "case-insensitive: <I> treated as italic");
   }
@@ -611,8 +547,7 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("<SUP>x</SUP>");
     bool found = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text == "x" && run.style.superscript)
-        found = true;
+      if (run.text == "x" && run.style.superscript) found = true;
     }
     t.check(found, "case-insensitive: <SUP> treated as superscript");
   }
@@ -623,8 +558,7 @@ Rcpp::List cpp_test_inline_parser() {
     t.check_eq(cell.paragraphs.size(), size_t(1), "unknown tag: 1 paragraph");
     bool found_text = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text.find("text") != std::string::npos)
-        found_text = true;
+      if (run.text.find("text") != std::string::npos) found_text = true;
     }
     t.check(found_text, "unknown tag: text content preserved");
   }
@@ -634,24 +568,19 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("value = 42");
     t.check_eq(cell.paragraphs.size(), size_t(1), "no tags: 1 paragraph");
     t.check_eq(cell.paragraphs[0].runs.size(), size_t(1), "no tags: 1 run");
-    t.check_eq(cell.paragraphs[0].runs[0].text, std::string("value = 42"),
-               "no tags: text intact");
+    t.check_eq(cell.paragraphs[0].runs[0].text, std::string("value = 42"), "no tags: text intact");
   }
 
   // --- BUG-B: Same-type nesting preserves outer tag ---
   {
     auto cell = parse_inline_markup("<b>outer <b>inner</b> still bold</b>");
-    t.check_eq(cell.paragraphs.size(), size_t(1),
-               "same-type nesting: 1 paragraph");
+    t.check_eq(cell.paragraphs.size(), size_t(1), "same-type nesting: 1 paragraph");
     // "still bold" must still have bold_override = true
     bool found_still_bold = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text.find("still bold") != std::string::npos) {
-        found_still_bold = run.style.bold_override;
-      }
+      if (run.text.find("still bold") != std::string::npos) { found_still_bold = run.style.bold_override; }
     }
-    t.check(found_still_bold,
-            "same-type nesting: 'still bold' has bold_override");
+    t.check(found_still_bold, "same-type nesting: 'still bold' has bold_override");
   }
 
   // --- BUG-B: Same-type nesting with italic ---
@@ -659,9 +588,7 @@ Rcpp::List cpp_test_inline_parser() {
     auto cell = parse_inline_markup("<i>a <i>b</i> c</i>");
     bool c_italic = false;
     for (const auto &run : cell.paragraphs[0].runs) {
-      if (run.text.find("c") != std::string::npos) {
-        c_italic = run.style.italic_override;
-      }
+      if (run.text.find("c") != std::string::npos) { c_italic = run.style.italic_override; }
     }
     t.check(c_italic, "same-type nesting italic: 'c' has italic_override");
   }
@@ -701,12 +628,9 @@ Rcpp::List cpp_test_xml_writer() {
     XmlWriter w;
     w.write_declaration();
     const std::string &xml = w.str();
-    t.check(xml.find("<?xml") != std::string::npos,
-            "declaration: ?xml present");
-    t.check(xml.find("UTF-8") != std::string::npos,
-            "declaration: UTF-8 encoding");
-    t.check(xml.find("standalone=\"yes\"") != std::string::npos,
-            "declaration: standalone=yes");
+    t.check(xml.find("<?xml") != std::string::npos, "declaration: ?xml present");
+    t.check(xml.find("UTF-8") != std::string::npos, "declaration: UTF-8 encoding");
+    t.check(xml.find("standalone=\"yes\"") != std::string::npos, "declaration: standalone=yes");
   }
 
   // --- Self-closing element (no content) ---
@@ -714,8 +638,7 @@ Rcpp::List cpp_test_xml_writer() {
     XmlWriter w;
     w.start_element("w:p");
     w.end_element();
-    t.check_eq(w.str(), std::string("<w:p/>"),
-               "self-close via end_element: <w:p/>");
+    t.check_eq(w.str(), std::string("<w:p/>"), "self-close via end_element: <w:p/>");
   }
 
   // --- Element with text content ---
@@ -724,8 +647,7 @@ Rcpp::List cpp_test_xml_writer() {
     w.start_element("w:t");
     w.text("Hello");
     w.end_element();
-    t.check_eq(w.str(), std::string("<w:t>Hello</w:t>"),
-               "element_with_text: <w:t>Hello</w:t>");
+    t.check_eq(w.str(), std::string("<w:t>Hello</w:t>"), "element_with_text: <w:t>Hello</w:t>");
   }
 
   // --- String attribute ---
@@ -734,8 +656,7 @@ Rcpp::List cpp_test_xml_writer() {
     w.start_element("w:jc");
     w.attribute("w:val", std::string("center"));
     w.end_element();
-    t.check_eq(w.str(), std::string("<w:jc w:val=\"center\"/>"),
-               "string attribute");
+    t.check_eq(w.str(), std::string("<w:jc w:val=\"center\"/>"), "string attribute");
   }
 
   // --- Integer attribute ---
@@ -763,8 +684,7 @@ Rcpp::List cpp_test_xml_writer() {
   {
     XmlWriter w;
     w.self_closing_element("w:br");
-    t.check_eq(w.str(), std::string("<w:br/>"),
-               "self_closing_element: <w:br/>");
+    t.check_eq(w.str(), std::string("<w:br/>"), "self_closing_element: <w:br/>");
   }
 
   // --- Nested elements ---
@@ -777,8 +697,7 @@ Rcpp::List cpp_test_xml_writer() {
     w.end_element(); // w:t
     w.end_element(); // w:r
     w.end_element(); // w:p
-    t.check_eq(w.str(), std::string("<w:p><w:r><w:t>text</w:t></w:r></w:p>"),
-               "nested 3-level elements");
+    t.check_eq(w.str(), std::string("<w:p><w:r><w:t>text</w:t></w:r></w:p>"), "nested 3-level elements");
   }
 
   // --- Text escaping: & ---
@@ -787,8 +706,7 @@ Rcpp::List cpp_test_xml_writer() {
     w.start_element("w:t");
     w.text("a & b");
     w.end_element();
-    t.check(w.str().find("&amp;") != std::string::npos,
-            "text escape: & → &amp;");
+    t.check(w.str().find("&amp;") != std::string::npos, "text escape: & → &amp;");
   }
 
   // --- Text escaping: < ---
@@ -815,8 +733,7 @@ Rcpp::List cpp_test_xml_writer() {
     w.start_element("w:t");
     w.attribute("val", std::string("say \"hi\""));
     w.end_element();
-    t.check(w.str().find("&quot;") != std::string::npos,
-            "attr escape: \" → &quot;");
+    t.check(w.str().find("&quot;") != std::string::npos, "attr escape: \" → &quot;");
   }
 
   // --- element_with_text convenience method ---
@@ -824,10 +741,8 @@ Rcpp::List cpp_test_xml_writer() {
     XmlWriter w;
     w.element_with_text("w:t", "content");
     const std::string &xml = w.str();
-    t.check(xml.find("<w:t") != std::string::npos,
-            "element_with_text: tag present");
-    t.check(xml.find("content") != std::string::npos,
-            "element_with_text: content present");
+    t.check(xml.find("<w:t") != std::string::npos, "element_with_text: tag present");
+    t.check(xml.find("content") != std::string::npos, "element_with_text: content present");
   }
 
   // --- element_with_attr convenience: string overload ---
@@ -835,18 +750,15 @@ Rcpp::List cpp_test_xml_writer() {
     XmlWriter w;
     w.element_with_attr("w:jc", "w:val", std::string("center"));
     const std::string &xml = w.str();
-    t.check(xml.find("<w:jc") != std::string::npos,
-            "element_with_attr str: tag");
-    t.check(xml.find("w:val=\"center\"") != std::string::npos,
-            "element_with_attr str: attr");
+    t.check(xml.find("<w:jc") != std::string::npos, "element_with_attr str: tag");
+    t.check(xml.find("w:val=\"center\"") != std::string::npos, "element_with_attr str: attr");
   }
 
   // --- element_with_attr convenience: int overload ---
   {
     XmlWriter w;
     w.element_with_attr("w:sz", "w:val", int64_t(18));
-    t.check(w.str().find("w:val=\"18\"") != std::string::npos,
-            "element_with_attr int: attr=18");
+    t.check(w.str().find("w:val=\"18\"") != std::string::npos, "element_with_attr int: attr=18");
   }
 
   // --- raw() writes unescaped XML fragment ---
@@ -855,8 +767,7 @@ Rcpp::List cpp_test_xml_writer() {
     w.start_element("w:p");
     w.raw("<w:pPr/>");
     w.end_element();
-    t.check(w.str().find("<w:pPr/>") != std::string::npos,
-            "raw: unescaped fragment");
+    t.check(w.str().find("<w:pPr/>") != std::string::npos, "raw: unescaped fragment");
   }
 
   // --- comment() ---
@@ -866,8 +777,7 @@ Rcpp::List cpp_test_xml_writer() {
     const std::string &xml = w.str();
     t.check(xml.find("<!--") != std::string::npos, "comment: opening <!--");
     t.check(xml.find("-->") != std::string::npos, "comment: closing -->");
-    t.check(xml.find("test comment") != std::string::npos,
-            "comment: text content");
+    t.check(xml.find("test comment") != std::string::npos, "comment: text content");
   }
 
   // --- clear() resets buffer and tag stack ---
@@ -898,11 +808,9 @@ Rcpp::List cpp_test_xml_writer() {
   {
     XmlWriter w;
     w.start_element("w:document");
-    w.namespace_decl(
-        "w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
+    w.namespace_decl("w", "http://schemas.openxmlformats.org/wordprocessingml/2006/main");
     w.end_element();
-    t.check(w.str().find("xmlns:w=") != std::string::npos,
-            "namespace_decl: xmlns:w present");
+    t.check(w.str().find("xmlns:w=") != std::string::npos, "namespace_decl: xmlns:w present");
   }
 
   // --- take() moves buffer out and leaves writer empty ---
@@ -920,15 +828,13 @@ Rcpp::List cpp_test_xml_writer() {
     XmlWriter w;
     w.start_element("w:p");
     w.text("x"); // closes the start tag → start_tag_open_ = false
-    t.check_throw([&w]() { w.attribute("a", std::string("b")); },
-                  "error: attribute() after text throws");
+    t.check_throw([&w]() { w.attribute("a", std::string("b")); }, "error: attribute() after text throws");
   }
 
   // --- Error: end_element() with empty stack ---
   {
     XmlWriter w;
-    t.check_throw([&w]() { w.end_element(); },
-                  "error: end_element() on empty stack throws");
+    t.check_throw([&w]() { w.end_element(); }, "error: end_element() on empty stack throws");
   }
 
   return t.to_list();

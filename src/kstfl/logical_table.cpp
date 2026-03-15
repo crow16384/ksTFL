@@ -27,13 +27,11 @@ bool is_safe_numeric_format(const std::string &fmt) {
   // Skip optional literal prefix (everything before '%')
   while (*p && *p != '%')
     ++p;
-  if (*p != '%')
-    return false; // no conversion specifier
-  ++p;            // skip '%'
+  if (*p != '%') return false; // no conversion specifier
+  ++p;                         // skip '%'
 
   // Reject "%%" (literal percent — not a conversion)
-  if (*p == '%')
-    return false;
+  if (*p == '%') return false;
 
   // Flags: any of [-+ 0#]
   while (*p == '-' || *p == '+' || *p == ' ' || *p == '0' || *p == '#')
@@ -59,14 +57,12 @@ bool is_safe_numeric_format(const std::string &fmt) {
       break;
     }
   }
-  if (!found_spec)
-    return false;
+  if (!found_spec) return false;
   ++p; // skip the specifier
 
   // Remainder must be literal suffix (no more '%' allowed)
   while (*p) {
-    if (*p == '%')
-      return false;
+    if (*p == '%') return false;
     ++p;
   }
   return true;
@@ -77,31 +73,22 @@ bool is_safe_numeric_format(const std::string &fmt) {
 // Format strings: "%s" (passthrough), "%.Nf" (N decimal places), "%d" (integer)
 // If the value can't be parsed as a number, return it unchanged.
 // ---------------------------------------------------------------------------
-static std::string apply_column_format(const std::string &value,
-                                       const ColumnFormat &fmt) {
+static std::string apply_column_format(const std::string &value, const ColumnFormat &fmt) {
   // No format specified or empty value — return as-is
-  if (!fmt.format.has_value() || fmt.format->empty() || value.empty()) {
-    return value;
-  }
+  if (!fmt.format.has_value() || fmt.format->empty() || value.empty()) { return value; }
 
   const std::string &format_str = *fmt.format;
 
   // "%s" — passthrough for strings
-  if (format_str == "%s") {
-    return value;
-  }
+  if (format_str == "%s") { return value; }
 
-  if (!is_safe_numeric_format(format_str)) {
-    return value;
-  }
+  if (!is_safe_numeric_format(format_str)) { return value; }
 
   // Numeric formats: try to parse value as double
   char *end = nullptr;
   errno = 0;
   double dval = std::strtod(value.c_str(), &end);
-  if (end == value.c_str() || errno == ERANGE) {
-    return value;
-  }
+  if (end == value.c_str() || errno == ERANGE) { return value; }
 
   // Determine whether the specifier is integer or floating-point by
   // finding the actual conversion character (last char matched by the regex).
@@ -115,16 +102,13 @@ static std::string apply_column_format(const std::string &value,
 
   char buf[128];
   int n;
-  if (spec_char == 'd' || spec_char == 'i' || spec_char == 'u' ||
-      spec_char == 'o' || spec_char == 'x' || spec_char == 'X') {
-    n = std::snprintf(buf, sizeof(buf), format_str.c_str(),
-                      static_cast<int>(dval));
+  if (spec_char == 'd' || spec_char == 'i' || spec_char == 'u' || spec_char == 'o' || spec_char == 'x' ||
+      spec_char == 'X') {
+    n = std::snprintf(buf, sizeof(buf), format_str.c_str(), static_cast<int>(dval));
   } else {
     n = std::snprintf(buf, sizeof(buf), format_str.c_str(), dval);
   }
-  if (n > 0 && n < static_cast<int>(sizeof(buf))) {
-    return std::string(buf, static_cast<size_t>(n));
-  }
+  if (n > 0 && n < static_cast<int>(sizeof(buf))) { return std::string(buf, static_cast<size_t>(n)); }
 
   return value;
 }
@@ -134,19 +118,14 @@ static std::string apply_column_format(const std::string &value,
 // labels Spec §9: sort by stubOrder descending, build spanning header grid
 // ---------------------------------------------------------------------------
 
-HeaderGrid
-LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
-                                       const ColIdxMap &col_id_to_idx) {
+HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec &spec, const ColIdxMap &col_id_to_idx) {
   HeaderGrid grid;
 
-  if (spec.columns.empty())
-    return grid;
+  if (spec.columns.empty()) return grid;
 
   // Sort stub columns by stubOrder descending (higher = top)
   std::vector<StubColumn> stubs = spec.stub_columns;
-  std::ranges::sort(stubs, [](const StubColumn &a, const StubColumn &b) {
-    return a.stub_order > b.stub_order;
-  });
+  std::ranges::sort(stubs, [](const StubColumn &a, const StubColumn &b) { return a.stub_order > b.stub_order; });
 
   // Determine stub depth (number of header rows above the column-label row)
   size_t stub_depth = stubs.empty() ? 0 : 1;
@@ -154,9 +133,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
     // Group stubs by stubOrder level
     std::vector<int> levels;
     for (const auto &s : stubs) {
-      if (levels.empty() || levels.back() != s.stub_order) {
-        levels.push_back(s.stub_order);
-      }
+      if (levels.empty() || levels.back() != s.stub_order) { levels.push_back(s.stub_order); }
     }
     stub_depth = levels.size();
   }
@@ -178,9 +155,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
     // Get distinct levels
     std::vector<int> levels;
     for (const auto &s : stubs) {
-      if (levels.empty() || levels.back() != s.stub_order) {
-        levels.push_back(s.stub_order);
-      }
+      if (levels.empty() || levels.back() != s.stub_order) { levels.push_back(s.stub_order); }
     }
 
     for (int level : levels) {
@@ -188,30 +163,25 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
       // Collect stubs at this level
       std::vector<const StubColumn *> level_stubs;
       for (const auto &s : stubs) {
-        if (s.stub_order == level) {
-          level_stubs.push_back(&s);
-        }
+        if (s.stub_order == level) { level_stubs.push_back(&s); }
       }
 
       // Track which column indices are covered by stubs at this level
       std::vector<bool> covered(spec.columns.size(), false);
 
       // Sort level_stubs by the minimum column index in their cols
-      std::ranges::sort(
-          level_stubs, [&](const StubColumn *a, const StubColumn *b) {
-            size_t min_a = spec.columns.size(), min_b = spec.columns.size();
-            for (const auto &c : a->cols) {
-              auto it = col_id_to_idx.find(c);
-              if (it != col_id_to_idx.end())
-                min_a = std::min(min_a, it->second);
-            }
-            for (const auto &c : b->cols) {
-              auto it = col_id_to_idx.find(c);
-              if (it != col_id_to_idx.end())
-                min_b = std::min(min_b, it->second);
-            }
-            return min_a < min_b;
-          });
+      std::ranges::sort(level_stubs, [&](const StubColumn *a, const StubColumn *b) {
+        size_t min_a = spec.columns.size(), min_b = spec.columns.size();
+        for (const auto &c : a->cols) {
+          auto it = col_id_to_idx.find(c);
+          if (it != col_id_to_idx.end()) min_a = std::min(min_a, it->second);
+        }
+        for (const auto &c : b->cols) {
+          auto it = col_id_to_idx.find(c);
+          if (it != col_id_to_idx.end()) min_b = std::min(min_b, it->second);
+        }
+        return min_a < min_b;
+      });
 
       // Fill the row: iterate visible columns left to right
       size_t col_idx = 0;
@@ -231,8 +201,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
               break;
             }
           }
-          if (matching_stub)
-            break;
+          if (matching_stub) break;
         }
 
         if (matching_stub) {
@@ -241,24 +210,20 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
           size_t min_idx = spec.columns.size(), max_idx = 0;
           for (const auto &c : matching_stub->cols) {
             auto it = col_id_to_idx.find(c);
-            if (it != col_id_to_idx.end() &&
-                spec.columns[it->second].is_visible) {
+            if (it != col_id_to_idx.end() && spec.columns[it->second].is_visible) {
               covered[it->second] = true;
               covered_by_span[it->second] = true;
               // Do NOT reset has_vmerge_restart here — a column that
               // started a vertical merge at a higher level must keep
               // its Restart lineage so that lower rows and the label
               // row emit Continue markers.
-              total_width =
-                  total_width + spec.columns[it->second].resolved_width;
+              total_width = total_width + spec.columns[it->second].resolved_width;
               min_idx = std::min(min_idx, it->second);
               max_idx = std::max(max_idx, it->second);
             }
           }
           // col_span in original index space so emitter can iterate the range
-          int span_orig = (min_idx <= max_idx)
-                              ? static_cast<int>(max_idx - min_idx + 1)
-                              : 1;
+          int span_orig = (min_idx <= max_idx) ? static_cast<int>(max_idx - min_idx + 1) : 1;
 
           HeaderGridCell cell;
           cell.label = matching_stub->label;
@@ -272,8 +237,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
           // Advance col_idx past the spanned range
           col_idx = max_idx + 1;
           // Skip any trailing invisible columns
-          while (col_idx < spec.columns.size() &&
-                 !spec.columns[col_idx].is_visible) {
+          while (col_idx < spec.columns.size() && !spec.columns[col_idx].is_visible) {
             col_idx++;
           }
         } else {
@@ -324,22 +288,17 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
     for (size_t ci = 0; ci < grid.rows[ri].size(); ++ci) {
       auto &gap = grid.rows[ri][ci];
       // Only consider empty placeholder cells (no vMerge state).
-      if (!gap.label.empty() || gap.v_merge != VMergeState::None ||
-          gap.col_span != 1) {
-        continue;
-      }
+      if (!gap.label.empty() || gap.v_merge != VMergeState::None || gap.col_span != 1) { continue; }
       size_t src = gap.source_col_index;
 
       // Look for a span cell at a lower row whose range covers src.
       for (size_t lri = ri + 1; lri < grid.rows.size(); ++lri) {
         for (size_t lci = 0; lci < grid.rows[lri].size(); ++lci) {
           auto &lower = grid.rows[lri][lci];
-          if (lower.label.empty() || lower.col_span <= 1)
-            continue;
+          if (lower.label.empty() || lower.col_span <= 1) continue;
           size_t lo = lower.source_col_index;
           size_t hi = lo + static_cast<size_t>(lower.col_span) - 1;
-          if (src < lo || src > hi)
-            continue;
+          if (src < lo || src > hi) continue;
 
           // Found a span [lo..hi] that covers src.
           // Verify every physical column of the span is a gap at
@@ -349,25 +308,21 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
           for (size_t gi = 0; gi < grid.rows[ri].size(); ++gi) {
             auto &g = grid.rows[ri][gi];
             if (g.source_col_index >= lo && g.source_col_index <= hi) {
-              if (!g.label.empty() || g.v_merge != VMergeState::None ||
-                  g.col_span != 1) {
+              if (!g.label.empty() || g.v_merge != VMergeState::None || g.col_span != 1) {
                 all_gaps = false;
                 break;
               }
               gap_indices.push_back(gi);
             }
           }
-          if (!all_gaps)
-            break;
+          if (!all_gaps) break;
 
           // Safety: verify gap count matches the span's
           // visible column count before erasing cells.
           {
             int visible_in_span = 0;
             for (size_t si = lo; si <= hi; ++si) {
-              if (si < spec.columns.size() && spec.columns[si].is_visible) {
-                visible_in_span++;
-              }
+              if (si < spec.columns.size() && spec.columns[si].is_visible) { visible_in_span++; }
             }
             if (static_cast<int>(gap_indices.size()) != visible_in_span) {
               break; // Mismatch — skip promotion
@@ -393,8 +348,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
           // promoted span (iterate in reverse to keep indices
           // stable).
           for (size_t k = gap_indices.size() - 1; k >= 1; --k) {
-            grid.rows[ri].erase(grid.rows[ri].begin() +
-                                static_cast<std::ptrdiff_t>(gap_indices[k]));
+            grid.rows[ri].erase(grid.rows[ri].begin() + static_cast<std::ptrdiff_t>(gap_indices[k]));
           }
 
           // Mark the original span cell (and any intermediates
@@ -402,8 +356,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
           for (size_t mri = ri + 1; mri <= lri; ++mri) {
             for (auto &mc : grid.rows[mri]) {
               if (mc.source_col_index >= lo && mc.source_col_index <= hi) {
-                if (mc.source_col_index == lo &&
-                    mc.col_span == lower.col_span) {
+                if (mc.source_col_index == lo && mc.col_span == lower.col_span) {
                   // The promoted span's original position
                   // — replace with individual Continue
                   // cells (one per visible column).
@@ -437,14 +390,9 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
   // -----------------------------------------------------------------------
   for (size_t ri = 0; ri < grid.rows.size(); ++ri) {
     for (auto &cell : grid.rows[ri]) {
-      if (!cell.label.empty() || cell.v_merge != VMergeState::None ||
-          cell.col_span != 1) {
-        continue;
-      }
+      if (!cell.label.empty() || cell.v_merge != VMergeState::None || cell.col_span != 1) { continue; }
       size_t ci_col = cell.source_col_index;
-      if (ci_col >= spec.columns.size() || !spec.columns[ci_col].is_visible) {
-        continue;
-      }
+      if (ci_col >= spec.columns.size() || !spec.columns[ci_col].is_visible) { continue; }
       // Fill with column label at this (earliest) row.
       cell.label = spec.columns[ci_col].label;
       cell.style_ref = spec.columns[ci_col].label_style_ref;
@@ -453,8 +401,8 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
       // Mark same-column cells in all lower stub rows as Continue.
       for (size_t lri = ri + 1; lri < grid.rows.size(); ++lri) {
         for (auto &lcell : grid.rows[lri]) {
-          if (lcell.source_col_index == ci_col && lcell.col_span == 1 &&
-              lcell.v_merge == VMergeState::None && lcell.label.empty()) {
+          if (lcell.source_col_index == ci_col && lcell.col_span == 1 && lcell.v_merge == VMergeState::None &&
+              lcell.label.empty()) {
             lcell.v_merge = VMergeState::Continue;
           }
         }
@@ -475,26 +423,22 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
   // Process from the bottom stub row upward so promotions cascade
   // through multiple nesting levels.
   // -----------------------------------------------------------------------
-  for (int pp3_ri = static_cast<int>(grid.rows.size()) - 1; pp3_ri >= 1;
-       --pp3_ri) {
+  for (int pp3_ri = static_cast<int>(grid.rows.size()) - 1; pp3_ri >= 1; --pp3_ri) {
     bool pp3_changed = true;
     while (pp3_changed) {
       pp3_changed = false;
       for (size_t ci = 0; ci < grid.rows[pp3_ri].size(); ++ci) {
         auto &cell = grid.rows[pp3_ri][ci];
-        if (cell.v_merge != VMergeState::Restart || cell.col_span != 1)
-          continue;
+        if (cell.v_merge != VMergeState::Restart || cell.col_span != 1) continue;
         size_t col_idx = cell.source_col_index;
 
         // Find a span cell in the row above that covers col_idx.
         for (size_t pi = 0; pi < grid.rows[pp3_ri - 1].size(); ++pi) {
           auto &parent = grid.rows[pp3_ri - 1][pi];
-          if (parent.col_span <= 1)
-            continue;
+          if (parent.col_span <= 1) continue;
           size_t p_lo = parent.source_col_index;
           size_t p_hi = p_lo + static_cast<size_t>(parent.col_span) - 1;
-          if (col_idx < p_lo || col_idx > p_hi)
-            continue;
+          if (col_idx < p_lo || col_idx > p_hi) continue;
 
           // Parent span covers this column.
           // Only peel from left or right boundary.
@@ -518,17 +462,13 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
               Length w{0};
               size_t s_lo = parent.source_col_index;
               size_t s_hi = s_lo + static_cast<size_t>(parent.col_span) - 1;
-              for (size_t si = s_lo; si <= s_hi && si < spec.columns.size();
-                   ++si) {
-                if (spec.columns[si].is_visible)
-                  w = w + spec.columns[si].resolved_width;
+              for (size_t si = s_lo; si <= s_hi && si < spec.columns.size(); ++si) {
+                if (spec.columns[si].is_visible) w = w + spec.columns[si].resolved_width;
               }
               parent.width = w;
             }
 
-            grid.rows[pp3_ri - 1].insert(grid.rows[pp3_ri - 1].begin() +
-                                             static_cast<std::ptrdiff_t>(pi),
-                                         promoted);
+            grid.rows[pp3_ri - 1].insert(grid.rows[pp3_ri - 1].begin() + static_cast<std::ptrdiff_t>(pi), promoted);
 
             // Original cell becomes Continue.
             grid.rows[pp3_ri][ci].label = "";
@@ -554,18 +494,13 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
               Length w{0};
               size_t s_lo = parent.source_col_index;
               size_t s_hi = s_lo + static_cast<size_t>(parent.col_span) - 1;
-              for (size_t si = s_lo; si <= s_hi && si < spec.columns.size();
-                   ++si) {
-                if (spec.columns[si].is_visible)
-                  w = w + spec.columns[si].resolved_width;
+              for (size_t si = s_lo; si <= s_hi && si < spec.columns.size(); ++si) {
+                if (spec.columns[si].is_visible) w = w + spec.columns[si].resolved_width;
               }
               parent.width = w;
             }
 
-            grid.rows[pp3_ri - 1].insert(
-                grid.rows[pp3_ri - 1].begin() +
-                    static_cast<std::ptrdiff_t>(pi + 1),
-                promoted);
+            grid.rows[pp3_ri - 1].insert(grid.rows[pp3_ri - 1].begin() + static_cast<std::ptrdiff_t>(pi + 1), promoted);
 
             grid.rows[pp3_ri][ci].label = "";
             grid.rows[pp3_ri][ci].v_merge = VMergeState::Continue;
@@ -575,8 +510,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
           // Column is in the middle of the span — cannot peel.
           break;
         }
-        if (pp3_changed)
-          break; // restart row scan
+        if (pp3_changed) break; // restart row scan
       }
     }
   }
@@ -600,8 +534,7 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
   // mark its label-row cell as vMerge::Continue (empty continuation cell).
   std::vector<HeaderGridCell> label_row;
   for (size_t ci = 0; ci < spec.columns.size(); ++ci) {
-    if (!spec.columns[ci].is_visible)
-      continue;
+    if (!spec.columns[ci].is_visible) continue;
 
     HeaderGridCell cell;
     cell.col_span = 1;
@@ -628,12 +561,9 @@ LogicalTableBuilder::build_header_grid(const TFLSpec &spec,
 // build_data_rows: create initial LogicalRow stream from DataTable
 // ---------------------------------------------------------------------------
 
-std::vector<LogicalRow>
-LogicalTableBuilder::build_data_rows(const TFLSpec &spec,
-                                     const DataTable &data) {
+std::vector<LogicalRow> LogicalTableBuilder::build_data_rows(const TFLSpec &spec, const DataTable &data) {
   std::vector<LogicalRow> rows;
-  if (data.n_rows == 0)
-    return rows;
+  if (data.n_rows == 0) return rows;
 
   rows.reserve(data.n_rows);
 
@@ -677,30 +607,23 @@ LogicalTableBuilder::build_data_rows(const TFLSpec &spec,
 // apply_dedupe: suppress consecutive duplicate values in deduped columns
 // ---------------------------------------------------------------------------
 
-void LogicalTableBuilder::apply_dedupe(std::vector<LogicalRow> &rows,
-                                       const std::vector<ColumnSpec> &columns) {
-  if (rows.empty())
-    return;
+void LogicalTableBuilder::apply_dedupe(std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns) {
+  if (rows.empty()) return;
 
   // Find columns with dedupe=true
   std::vector<size_t> dedupe_indices;
   for (size_t i = 0; i < columns.size(); ++i) {
-    if (columns[i].dedupe) {
-      dedupe_indices.push_back(i);
-    }
+    if (columns[i].dedupe) { dedupe_indices.push_back(i); }
   }
 
-  if (dedupe_indices.empty())
-    return;
+  if (dedupe_indices.empty()) return;
 
   // For each dedupe column, blank out consecutive duplicate values
   for (size_t col_idx : dedupe_indices) {
     std::string prev_value;
     for (size_t ri = 0; ri < rows.size(); ++ri) {
-      if (rows[ri].type != LogicalRowType::DataRow)
-        continue;
-      if (col_idx >= rows[ri].cells.size())
-        continue;
+      if (rows[ri].type != LogicalRowType::DataRow) continue;
+      if (col_idx >= rows[ri].cells.size()) continue;
 
       auto &cell = rows[ri].cells[col_idx];
       if (ri == 0) {
@@ -722,33 +645,28 @@ void LogicalTableBuilder::apply_dedupe(std::vector<LogicalRow> &rows,
 // Spec §12: style, merge, add_row, page_break
 // ---------------------------------------------------------------------------
 
-std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
-    std::vector<LogicalRow> &rows, const std::vector<RowActionSet> &style_rows,
-    const std::vector<ColumnSpec> &columns, const DataTable &data,
-    const ColIdxMap &col_id_to_idx) {
+std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<LogicalRow> &rows,
+                                                              const std::vector<RowActionSet> &style_rows,
+                                                              const std::vector<ColumnSpec> &columns,
+                                                              const DataTable &data, const ColIdxMap &col_id_to_idx) {
 
-  if (style_rows.empty())
-    return std::move(rows);
+  if (style_rows.empty()) return std::move(rows);
 
   // Use pre-computed col_id_to_idx (alias for local use)
   const auto &col_to_idx = col_id_to_idx;
 
   // Helper: get a value from the DataTable for a given column and row index.
   // This works for both visible and invisible columns.
-  auto get_data_value = [&](const std::string &col_id,
-                            size_t row_index) -> std::string {
+  auto get_data_value = [&](const std::string &col_id, size_t row_index) -> std::string {
     auto it = data.columns.find(col_id);
-    if (it != data.columns.end() && row_index < it->second.size()) {
-      return it->second[row_index];
-    }
+    if (it != data.columns.end() && row_index < it->second.size()) { return it->second[row_index]; }
     return "";
   };
 
   // Helper: build a full-width merged synthetic row.
   // The first visible column becomes the merge leader spanning all visible
   // columns.
-  auto build_addrow_synthetic = [&](size_t src_idx,
-                                    const AddRowAction &ar) -> LogicalRow {
+  auto build_addrow_synthetic = [&](size_t src_idx, const AddRowAction &ar) -> LogicalRow {
     LogicalRow synthetic;
     synthetic.type = LogicalRowType::SyntheticRow;
     synthetic.source_index = src_idx;
@@ -779,9 +697,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
         cell.is_merge_leader = true;
         cell.merge_span = visible_count;
         cell.merged_width = total_width;
-        if (ar.style_ref.has_value()) {
-          cell.style_ref = ar.style_ref;
-        }
+        if (ar.style_ref.has_value()) { cell.style_ref = ar.style_ref; }
         leader_placed = true;
       } else {
         cell.is_merged = true;
@@ -804,9 +720,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
     // Get the action set for this source row
     size_t src_idx = row.source_index;
     const RowActionSet *actions = nullptr;
-    if (src_idx < style_rows.size()) {
-      actions = &style_rows[src_idx];
-    }
+    if (src_idx < style_rows.size()) { actions = &style_rows[src_idx]; }
 
     if (!actions || actions->empty()) {
       result.push_back(std::move(row));
@@ -855,9 +769,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
     for (const auto &ca : actions->clears) {
       for (const auto &col_id : ca.cols) {
         auto it = col_to_idx.find(col_id);
-        if (it != col_to_idx.end() && it->second < row.cells.size()) {
-          row.cells[it->second].text = "";
-        }
+        if (it != col_to_idx.end() && it->second < row.cells.size()) { row.cells[it->second].text = ""; }
       }
     }
 
@@ -865,16 +777,13 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
     for (const auto &sa : actions->styles) {
       for (const auto &col_id : sa.cols) {
         auto it = col_to_idx.find(col_id);
-        if (it != col_to_idx.end() && it->second < row.cells.size()) {
-          row.cells[it->second].style_ref = sa.style_ref;
-        }
+        if (it != col_to_idx.end() && it->second < row.cells.size()) { row.cells[it->second].style_ref = sa.style_ref; }
       }
     }
 
     // --- merge actions ---
     for (const auto &ma : actions->merges) {
-      if (ma.cols.empty())
-        continue;
+      if (ma.cols.empty()) continue;
 
       // Find the visible column indices for this merge.
       // Hidden (is_visible=false) columns are excluded from the merge
@@ -883,16 +792,13 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
       std::vector<size_t> merge_indices;
       for (const auto &col_id : ma.cols) {
         auto it = col_to_idx.find(col_id);
-        if (it != col_to_idx.end() && columns[it->second].is_visible) {
-          merge_indices.push_back(it->second);
-        }
+        if (it != col_to_idx.end() && columns[it->second].is_visible) { merge_indices.push_back(it->second); }
       }
 
       // Even with 1 visible column, we may need to apply value_from logic:
       // if the first column in the merge list is invisible, bring its value
       // to the first visible column.
-      if (merge_indices.empty())
-        continue;
+      if (merge_indices.empty()) continue;
 
       // Sort indices
       std::ranges::sort(merge_indices);
@@ -904,17 +810,13 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
       bool first_is_invisible = false;
       {
         auto it = col_to_idx.find(first_merge_col);
-        if (it == col_to_idx.end() || !columns[it->second].is_visible) {
-          first_is_invisible = true;
-        }
+        if (it == col_to_idx.end() || !columns[it->second].is_visible) { first_is_invisible = true; }
       }
       if (first_is_invisible) {
         // Get value from the invisible column via DataTable
         std::string invisible_val = get_data_value(first_merge_col, src_idx);
         size_t leader_idx = merge_indices[0];
-        if (leader_idx < row.cells.size() && !invisible_val.empty()) {
-          row.cells[leader_idx].text = invisible_val;
-        }
+        if (leader_idx < row.cells.size() && !invisible_val.empty()) { row.cells[leader_idx].text = invisible_val; }
       }
 
       // Apply merge if 2+ visible columns
@@ -922,29 +824,22 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
         size_t leader_idx = merge_indices[0];
         if (leader_idx < row.cells.size()) {
           row.cells[leader_idx].is_merge_leader = true;
-          row.cells[leader_idx].merge_span =
-              static_cast<int>(merge_indices.size());
+          row.cells[leader_idx].merge_span = static_cast<int>(merge_indices.size());
 
           // Compute combined width
           Length combined{0};
           for (size_t idx : merge_indices) {
-            if (idx < columns.size()) {
-              combined = combined + columns[idx].resolved_width;
-            }
+            if (idx < columns.size()) { combined = combined + columns[idx].resolved_width; }
           }
           row.cells[leader_idx].merged_width = combined;
 
-          if (ma.style_ref.has_value()) {
-            row.cells[leader_idx].style_ref = ma.style_ref;
-          }
+          if (ma.style_ref.has_value()) { row.cells[leader_idx].style_ref = ma.style_ref; }
         }
 
         // Mark remaining cells as merged (suppressed)
         for (size_t k = 1; k < merge_indices.size(); ++k) {
           size_t idx = merge_indices[k];
-          if (idx < row.cells.size()) {
-            row.cells[idx].is_merged = true;
-          }
+          if (idx < row.cells.size()) { row.cells[idx].is_merged = true; }
         }
       } else if (merge_indices.size() == 1) {
         // Only 1 visible column in merge — just apply style if provided
@@ -966,33 +861,25 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
       }
 
       // Nothing to glue (empty source value)
-      if (glue_text.empty())
-        continue;
+      if (glue_text.empty()) continue;
 
       for (const auto &col_id : ga.cols) {
         auto it = col_to_idx.find(col_id);
-        if (it == col_to_idx.end())
-          continue;
+        if (it == col_to_idx.end()) continue;
 
         size_t cell_idx = it->second;
-        if (cell_idx >= row.cells.size())
-          continue;
+        if (cell_idx >= row.cells.size()) continue;
 
         auto &cell = row.cells[cell_idx];
 
         // Skip cells suppressed by merge or by dedupe (preserve blank)
-        if (cell.is_merged || cell.is_deduped)
-          continue;
+        if (cell.is_merged || cell.is_deduped) continue;
 
         // Concatenate — separator only inserted when both sides are non-empty
         if (ga.position == "before") {
-          cell.text = cell.text.empty()
-                          ? glue_text
-                          : (glue_text + ga.separator + cell.text);
+          cell.text = cell.text.empty() ? glue_text : (glue_text + ga.separator + cell.text);
         } else { // "after"
-          cell.text = cell.text.empty()
-                          ? glue_text
-                          : (cell.text + ga.separator + glue_text);
+          cell.text = cell.text.empty() ? glue_text : (cell.text + ga.separator + glue_text);
         }
       }
     }
@@ -1002,9 +889,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
     // --- add_row "below" insertions ---
     if (actions) {
       for (const auto &ar : actions->add_rows) {
-        if (ar.pos == AddRowAction::Position::Below) {
-          result.push_back(build_addrow_synthetic(src_idx, ar));
-        }
+        if (ar.pos == AddRowAction::Position::Below) { result.push_back(build_addrow_synthetic(src_idx, ar)); }
       }
     }
   }
@@ -1016,33 +901,27 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(
 // detect_grouping_boundaries: mark rows where grouping column values change
 // ---------------------------------------------------------------------------
 
-void LogicalTableBuilder::detect_grouping_boundaries(
-    std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns) {
+void LogicalTableBuilder::detect_grouping_boundaries(std::vector<LogicalRow> &rows,
+                                                     const std::vector<ColumnSpec> &columns) {
 
   // Find grouping/paging columns — both trigger page breaks on value change.
   std::vector<size_t> grouping_indices;
   for (size_t i = 0; i < columns.size(); ++i) {
-    if (columns[i].is_grouping || columns[i].is_paging) {
-      grouping_indices.push_back(i);
-    }
+    if (columns[i].is_grouping || columns[i].is_paging) { grouping_indices.push_back(i); }
   }
 
-  if (grouping_indices.empty())
-    return;
+  if (grouping_indices.empty()) return;
 
   // Track previous grouping values
   std::unordered_map<std::string, std::string> prev_group_values;
 
   for (auto &row : rows) {
-    if (row.type == LogicalRowType::SyntheticRow)
-      continue;
+    if (row.type == LogicalRowType::SyntheticRow) continue;
 
     // Read current grouping column values
     std::unordered_map<std::string, std::string> current_values;
     for (size_t gi : grouping_indices) {
-      if (gi < row.cells.size()) {
-        current_values[columns[gi].id] = row.cells[gi].text;
-      }
+      if (gi < row.cells.size()) { current_values[columns[gi].id] = row.cells[gi].text; }
     }
 
     // Check for changes
@@ -1072,8 +951,7 @@ void LogicalTableBuilder::detect_grouping_boundaries(
 // build: main entry point
 // ---------------------------------------------------------------------------
 
-LogicalTableBuilder::Result LogicalTableBuilder::build(const TFLSpec &spec,
-                                                       const DataTable &data) {
+LogicalTableBuilder::Result LogicalTableBuilder::build(const TFLSpec &spec, const DataTable &data) {
   Result result;
 
   // 1. Build column id -> index map (used by header grid + style rows)
@@ -1095,14 +973,11 @@ LogicalTableBuilder::Result LogicalTableBuilder::build(const TFLSpec &spec,
   apply_dedupe(rows, spec.columns);
 
   // 6. Apply styleRows actions (expands row stream with synthetic rows)
-  rows = apply_style_rows(rows, spec.style_rows, spec.columns, data,
-                          col_id_to_idx);
+  rows = apply_style_rows(rows, spec.style_rows, spec.columns, data, col_id_to_idx);
 
   // 7. Collect grouping column indices (isGrouping or isPaging)
   for (size_t i = 0; i < spec.columns.size(); ++i) {
-    if (spec.columns[i].is_grouping || spec.columns[i].is_paging) {
-      result.grouping_col_indices.push_back(i);
-    }
+    if (spec.columns[i].is_grouping || spec.columns[i].is_paging) { result.grouping_col_indices.push_back(i); }
   }
 
   result.rows = std::move(rows);

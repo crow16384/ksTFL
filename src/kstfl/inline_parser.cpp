@@ -31,9 +31,8 @@ enum class TagType {
 
 static TagType classify_tag(const std::string &name) {
   static const std::unordered_map<std::string_view, TagType> tag_map{
-      {"sup", TagType::Sup},  {"sub", TagType::Sub},     {"b", TagType::Bold},
-      {"i", TagType::Italic}, {"u", TagType::Underline}, {"br", TagType::Br},
-      {"p", TagType::Para}};
+      {"sup", TagType::Sup},     {"sub", TagType::Sub}, {"b", TagType::Bold}, {"i", TagType::Italic},
+      {"u", TagType::Underline}, {"br", TagType::Br},   {"p", TagType::Para}};
   std::string lower;
   lower.reserve(name.size());
   for (char c : name)
@@ -50,27 +49,23 @@ bool has_inline_markup(const std::string &text) {
   size_t pos = 0;
   while ((pos = text.find('<', pos)) != std::string::npos) {
     size_t start = pos + 1;
-    if (start >= text.size())
-      return false;
+    if (start >= text.size()) return false;
     // Skip optional '/'
-    if (text[start] == '/')
-      start++;
+    if (text[start] == '/') start++;
     if (start >= text.size()) {
       pos++;
       continue;
     }
     // Extract tag name (sequence of alpha chars)
     size_t name_start = start;
-    while (start < text.size() &&
-           std::isalpha(static_cast<unsigned char>(text[start])))
+    while (start < text.size() && std::isalpha(static_cast<unsigned char>(text[start])))
       start++;
     if (start == name_start) {
       pos++;
       continue;
     }
     std::string tag_name = text.substr(name_start, start - name_start);
-    if (classify_tag(tag_name) != TagType::Unknown)
-      return true;
+    if (classify_tag(tag_name) != TagType::Unknown) return true;
     pos++;
   }
   return false;
@@ -154,18 +149,15 @@ struct ParserState {
 /// Extract tag name from position after '<'. Returns tag name (lowered) and
 /// advances `pos` past the closing '>'. Sets `is_closing` if it's a </tag>.
 /// Sets `is_self_closing` if it ends with />.
-static std::string extract_tag(const std::string &text, size_t &pos,
-                               bool &is_closing, bool &is_self_closing) {
+static std::string extract_tag(const std::string &text, size_t &pos, bool &is_closing, bool &is_self_closing) {
   is_closing = false;
   is_self_closing = false;
 
-  if (pos >= text.size())
-    return "";
+  if (pos >= text.size()) return "";
 
   // Skip '<'
   // size_t start = pos;
-  if (text[pos] == '<')
-    ++pos;
+  if (text[pos] == '<') ++pos;
 
   // Check closing tag
   if (pos < text.size() && text[pos] == '/') {
@@ -173,8 +165,7 @@ static std::string extract_tag(const std::string &text, size_t &pos,
     ++pos;
   } else {
     // If not closing, must start with alpha for valid tag
-    if (pos >= text.size() ||
-        !std::isalpha(static_cast<unsigned char>(text[pos]))) {
+    if (pos >= text.size() || !std::isalpha(static_cast<unsigned char>(text[pos]))) {
       // Not a tag, let caller treat as literal '<'
       --pos; // step back so main loop sees '<' as normal char
       return "";
@@ -184,15 +175,13 @@ static std::string extract_tag(const std::string &text, size_t &pos,
   // Extract tag name (alphanumeric)
   std::string name;
   size_t name_start = pos;
-  while (pos < text.size() &&
-         std::isalpha(static_cast<unsigned char>(text[pos]))) {
+  while (pos < text.size() && std::isalpha(static_cast<unsigned char>(text[pos]))) {
     name += text[pos++];
   }
 
   // Only allow tags with no attributes/whitespace after name
   // Next char must be '>' or '/' (for self-closing)
-  if (name.empty() || pos >= text.size() ||
-      (text[pos] != '>' && text[pos] != '/')) {
+  if (name.empty() || pos >= text.size() || (text[pos] != '>' && text[pos] != '/')) {
     // Not a valid tag, roll back to before '<'
     pos = name_start - (is_closing ? 2 : 1); // back to '<' or '</'
     return "";
@@ -206,17 +195,14 @@ static std::string extract_tag(const std::string &text, size_t &pos,
   }
 
   // Skip '>'
-  if (text[pos] == '>')
-    ++pos;
+  if (text[pos] == '>') ++pos;
 
   return name;
 }
 
 /// Flush accumulated text into a run and add to current paragraph.
-static void flush_run(const std::string &buffer, const ParserState &state,
-                      ParsedParagraph &para) {
-  if (buffer.empty())
-    return;
+static void flush_run(const std::string &buffer, const ParserState &state, ParsedParagraph &para) {
+  if (buffer.empty()) return;
   TextRun run;
   run.text = buffer;
   run.style = state.to_run_style();
@@ -250,8 +236,7 @@ ParsedCell parse_inline_markup(const std::string &text) {
       size_t tag_start = pos;
       bool is_closing = false;
       bool is_self_closing = false;
-      std::string tag_name =
-          extract_tag(text, pos, is_closing, is_self_closing);
+      std::string tag_name = extract_tag(text, pos, is_closing, is_self_closing);
       TagType type = classify_tag(tag_name);
 
       if (type == TagType::Unknown) {
@@ -262,11 +247,9 @@ ParsedCell parse_inline_markup(const std::string &text) {
         size_t recover_end = tag_start + 1;
         // If after '<' there is a letter, capture the entire sequence of
         // letters (e.g. <b, <foo)
-        if (tag_start + 1 < text.size() &&
-            std::isalpha(static_cast<unsigned char>(text[tag_start + 1]))) {
+        if (tag_start + 1 < text.size() && std::isalpha(static_cast<unsigned char>(text[tag_start + 1]))) {
           recover_end = tag_start + 2;
-          while (recover_end < text.size() &&
-                 std::isalpha(static_cast<unsigned char>(text[recover_end]))) {
+          while (recover_end < text.size() && std::isalpha(static_cast<unsigned char>(text[recover_end]))) {
             ++recover_end;
           }
         }
@@ -338,13 +321,10 @@ ParsedCell parse_inline_markup(const std::string &text) {
 
   // Flush remaining buffer
   flush_run(buffer, state, current_para);
-  if (!current_para.runs.empty()) {
-    cell.paragraphs.push_back(std::move(current_para));
-  }
+  if (!current_para.runs.empty()) { cell.paragraphs.push_back(std::move(current_para)); }
 
   // Remove empty paragraphs (no runs)
-  std::erase_if(cell.paragraphs,
-                [](const ParsedParagraph &para) { return para.runs.empty(); });
+  std::erase_if(cell.paragraphs, [](const ParsedParagraph &para) { return para.runs.empty(); });
 
   // If nothing remains after filtering — return the original string as a
   // single run

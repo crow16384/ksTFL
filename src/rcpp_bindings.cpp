@@ -9,66 +9,56 @@
 #include "kstfl/renderer.h"
 
 // [[Rcpp::export]]
-int render_docx_impl(const std::string& spec_json_path,
-                      const std::string& template_json_path,
-                      const std::string& output_path,
-                      Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
-                      const std::string& fallback_font = "",
-                      bool verbose = false) {
-    try {
-        kstfl::Renderer renderer;
-        kstfl::RendererConfig config;
-        config.verbose = verbose;
-        config.fallback_font_path = fallback_font;
+int render_docx_impl(const std::string &spec_json_path, const std::string &template_json_path,
+                     const std::string &output_path, Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
+                     const std::string &fallback_font = "", bool verbose = false) {
+  try {
+    kstfl::Renderer renderer;
+    kstfl::RendererConfig config;
+    config.verbose = verbose;
+    config.fallback_font_path = fallback_font;
 
-        // Process font directories (only explicit dirs — no system fonts)
-        if (font_dirs.isNotNull()) {
-            Rcpp::CharacterVector dirs(font_dirs);
-            for (int i = 0; i < dirs.size(); ++i) {
-                config.font_dirs.push_back(Rcpp::as<std::string>(dirs[i]));
-            }
-        }
-
-        renderer.set_config(config);
-        return static_cast<int>(renderer.render(spec_json_path, template_json_path, output_path));
-
-    } catch (const kstfl::RenderError& e) {
-        Rcpp::stop(std::string("ksTFL render error: ") + e.what());
-    } catch (const std::exception& e) {
-        Rcpp::stop(std::string("ksTFL internal error: ") + e.what());
+    // Process font directories (only explicit dirs — no system fonts)
+    if (font_dirs.isNotNull()) {
+      Rcpp::CharacterVector dirs(font_dirs);
+      for (int i = 0; i < dirs.size(); ++i) {
+        config.font_dirs.push_back(Rcpp::as<std::string>(dirs[i]));
+      }
     }
-    return 0;
+
+    renderer.set_config(config);
+    return static_cast<int>(renderer.render(spec_json_path, template_json_path, output_path));
+
+  } catch (const kstfl::RenderError &e) {
+    Rcpp::stop(std::string("ksTFL render error: ") + e.what());
+  } catch (const std::exception &e) { Rcpp::stop(std::string("ksTFL internal error: ") + e.what()); }
+  return 0;
 }
 
 // [[Rcpp::export]]
-int render_docx_from_strings_impl(const std::string& spec_json,
-                                   const std::string& template_json,
-                                   const std::string& output_path,
-                                   const std::string& data_dir = "",
-                                   Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
-                                   const std::string& fallback_font = "",
-                                   bool verbose = false) {
-    try {
-        kstfl::Renderer renderer;
-        kstfl::RendererConfig config;
-        config.verbose = verbose;
-        config.fallback_font_path = fallback_font;
+int render_docx_from_strings_impl(const std::string &spec_json, const std::string &template_json,
+                                  const std::string &output_path, const std::string &data_dir = "",
+                                  Rcpp::Nullable<Rcpp::CharacterVector> font_dirs = R_NilValue,
+                                  const std::string &fallback_font = "", bool verbose = false) {
+  try {
+    kstfl::Renderer renderer;
+    kstfl::RendererConfig config;
+    config.verbose = verbose;
+    config.fallback_font_path = fallback_font;
 
-        // Process font directories (only explicit dirs — no system fonts)
-        if (font_dirs.isNotNull()) {
-            Rcpp::CharacterVector dirs(font_dirs);
-            for (int i = 0; i < dirs.size(); ++i) {
-                config.font_dirs.push_back(Rcpp::as<std::string>(dirs[i]));
-            }
-        }
-
-        renderer.set_config(config);
-        return static_cast<int>(renderer.render_from_strings(spec_json, template_json, output_path, data_dir));
-
-    } catch (const kstfl::RenderError& e) {
-        Rcpp::stop(std::string("ksTFL render error: ") + e.what());
-    } catch (const std::exception& e) {
-        Rcpp::stop(std::string("ksTFL internal error: ") + e.what());
+    // Process font directories (only explicit dirs — no system fonts)
+    if (font_dirs.isNotNull()) {
+      Rcpp::CharacterVector dirs(font_dirs);
+      for (int i = 0; i < dirs.size(); ++i) {
+        config.font_dirs.push_back(Rcpp::as<std::string>(dirs[i]));
+      }
     }
-    return 0;
+
+    renderer.set_config(config);
+    return static_cast<int>(renderer.render_from_strings(spec_json, template_json, output_path, data_dir));
+
+  } catch (const kstfl::RenderError &e) {
+    Rcpp::stop(std::string("ksTFL render error: ") + e.what());
+  } catch (const std::exception &e) { Rcpp::stop(std::string("ksTFL internal error: ") + e.what()); }
+  return 0;
 }

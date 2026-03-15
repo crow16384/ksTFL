@@ -26,8 +26,7 @@ std::pair<int64_t, int64_t> page_size_dimensions(PageSize size) {
       {PageSize::Legal, {LEGAL_WIDTH_EMU, LEGAL_HEIGHT_EMU}},
       {PageSize::Executive, {EXECUTIVE_WIDTH_EMU, EXECUTIVE_HEIGHT_EMU}}};
   auto it = map.find(size);
-  if (it != map.end())
-    return it->second;
+  if (it != map.end()) return it->second;
   throw RenderError("Unknown page size");
 }
 
@@ -49,8 +48,7 @@ static std::string_view trim(std::string_view sv) {
 static double extract_number(std::string_view sv, size_t &pos) {
   pos = 0;
   // Allow optional leading sign
-  if (pos < sv.size() && (sv[pos] == '+' || sv[pos] == '-'))
-    ++pos;
+  if (pos < sv.size() && (sv[pos] == '+' || sv[pos] == '-')) ++pos;
   // Integer part
   while (pos < sv.size() && std::isdigit(static_cast<unsigned char>(sv[pos])))
     ++pos;
@@ -60,10 +58,7 @@ static double extract_number(std::string_view sv, size_t &pos) {
     while (pos < sv.size() && std::isdigit(static_cast<unsigned char>(sv[pos])))
       ++pos;
   }
-  if (pos == 0) {
-    throw RenderError("Invalid length value: no number found in '" +
-                      std::string(sv) + "'");
-  }
+  if (pos == 0) { throw RenderError("Invalid length value: no number found in '" + std::string(sv) + "'"); }
   // Parse the number
   std::string num_str(sv.substr(0, pos));
   return std::stod(num_str);
@@ -71,9 +66,7 @@ static double extract_number(std::string_view sv, size_t &pos) {
 
 Length parse_length(const std::string &s, int64_t reference_emu) {
   auto sv = trim(std::string_view(s));
-  if (sv.empty()) {
-    throw RenderError("Empty length string");
-  }
+  if (sv.empty()) { throw RenderError("Empty length string"); }
 
   size_t num_end = 0;
   double value = extract_number(sv, num_end);
@@ -82,38 +75,28 @@ Length parse_length(const std::string &s, int64_t reference_emu) {
   std::string unit;
   for (size_t i = num_end; i < sv.size(); ++i) {
     char c = static_cast<char>(std::tolower(static_cast<unsigned char>(sv[i])));
-    if (!std::isspace(static_cast<unsigned char>(c))) {
-      unit += c;
-    }
+    if (!std::isspace(static_cast<unsigned char>(c))) { unit += c; }
   }
 
   // Percent needs reference_emu — handle separately
   if (unit == "%") {
-    if (reference_emu == 0) {
-      throw RenderError("Percent length requires a reference value, got '" + s +
-                        "'");
-    }
+    if (reference_emu == 0) { throw RenderError("Percent length requires a reference value, got '" + s + "'"); }
     return Length{static_cast<int64_t>(reference_emu * value / 100.0)};
   }
 
   using UnitFn = Length (*)(double);
   static const std::unordered_map<std::string_view, UnitFn> unit_map{
       {"", +[](double v) { return Length::from_emu(static_cast<int64_t>(v)); }},
-      {"emu",
-       +[](double v) { return Length::from_emu(static_cast<int64_t>(v)); }},
+      {"emu", +[](double v) { return Length::from_emu(static_cast<int64_t>(v)); }},
       {"cm", +[](double v) { return Length::from_cm(v); }},
-      {"mm",
-       +[](double v) { return Length{static_cast<int64_t>(v * 36000.0)}; }},
+      {"mm", +[](double v) { return Length{static_cast<int64_t>(v * 36000.0)}; }},
       {"in", +[](double v) { return Length::from_in(v); }},
       {"pt", +[](double v) { return Length::from_pt(v); }},
-      {"twip",
-       +[](double v) { return Length::from_twips(static_cast<int64_t>(v)); }},
-      {"twips",
-       +[](double v) { return Length::from_twips(static_cast<int64_t>(v)); }}};
+      {"twip", +[](double v) { return Length::from_twips(static_cast<int64_t>(v)); }},
+      {"twips", +[](double v) { return Length::from_twips(static_cast<int64_t>(v)); }}};
 
   auto it = unit_map.find(std::string_view{unit});
-  if (it != unit_map.end())
-    return it->second(value);
+  if (it != unit_map.end()) return it->second(value);
   throw RenderError("Unknown unit '" + unit + "' in length string '" + s + "'");
 }
 
@@ -130,27 +113,19 @@ Length Length::parse(const std::string &s, int64_t reference_emu) {
 // ---------------------------------------------------------------------------
 
 Color Color::parse(const std::string &s) {
-  if (s.empty())
-    return Color{};
+  if (s.empty()) return Color{};
   std::string h = s;
   // Strip leading '#'
-  if (!h.empty() && h[0] == '#') {
-    h = h.substr(1);
-  }
+  if (!h.empty() && h[0] == '#') { h = h.substr(1); }
   // Validate hex
-  if (h.size() != 6) {
-    throw RenderError("Invalid color hex string: '" + s +
-                      "' (expected 6 hex digits)");
-  }
+  if (h.size() != 6) { throw RenderError("Invalid color hex string: '" + s + "' (expected 6 hex digits)"); }
   for (char c : h) {
     if (!std::isxdigit(static_cast<unsigned char>(c))) {
       throw RenderError("Invalid hex character in color: '" + s + "'");
     }
   }
   // Uppercase for consistency
-  std::ranges::transform(h, h.begin(), [](unsigned char c) {
-    return static_cast<char>(std::toupper(c));
-  });
+  std::ranges::transform(h, h.begin(), [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
   return Color{h};
 }
 
@@ -158,7 +133,9 @@ Color Color::parse(const std::string &s) {
 // Conversion helpers
 // ---------------------------------------------------------------------------
 
-int64_t emu_to_twips(int64_t emu) { return emu / EMU_PER_TWIP; }
+int64_t emu_to_twips(int64_t emu) {
+  return emu / EMU_PER_TWIP;
+}
 
 int emu_to_half_points(int64_t emu) {
   double pt = static_cast<double>(emu) / EMU_PER_PT;

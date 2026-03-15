@@ -16,19 +16,15 @@ namespace kstfl {
 // Constructor
 // ---------------------------------------------------------------------------
 
-DocxEmitter::DocxEmitter(
-    const StylesTemplate &tmpl,
-    const std::unordered_map<std::string, StylesTemplate> *per_spec_templates,
-    const RendererConfig &config)
+DocxEmitter::DocxEmitter(const StylesTemplate &tmpl,
+                         const std::unordered_map<std::string, StylesTemplate> *per_spec_templates,
+                         const RendererConfig &config)
     : tmpl_(tmpl), per_spec_templates_(per_spec_templates), config_(config) {}
 
-const StylesTemplate &
-DocxEmitter::template_for_spec(const std::string &spec_key) const {
+const StylesTemplate &DocxEmitter::template_for_spec(const std::string &spec_key) const {
   if (per_spec_templates_) {
     auto it = per_spec_templates_->find(spec_key);
-    if (it != per_spec_templates_->end()) {
-      return it->second;
-    }
+    if (it != per_spec_templates_->end()) { return it->second; }
   }
   return tmpl_;
 }
@@ -37,8 +33,7 @@ DocxEmitter::template_for_spec(const std::string &spec_key) const {
 // Build TOC-heading styles for body titles/subtitles (outline-level styles)
 // ---------------------------------------------------------------------------
 
-std::vector<TocHeadingEntry>
-DocxEmitter::build_toc_heading_styles(const TFLDocument &doc) const {
+std::vector<TocHeadingEntry> DocxEmitter::build_toc_heading_styles(const TFLDocument &doc) const {
   std::vector<TocHeadingEntry> result;
   int level_index[10] = {0}; // 1-9 used for toclevel
 
@@ -47,40 +42,34 @@ DocxEmitter::build_toc_heading_styles(const TFLDocument &doc) const {
     StyleResolver resolver(t, spec.spec_styles);
 
     for (const auto &group : spec.titles) {
-      if (group.toc_level < 1 || group.toc_level > 9)
-        continue;
+      if (group.toc_level < 1 || group.toc_level > 9) continue;
       StyleDef style = resolver.resolve_title_style(group.style_refs);
       stamp_exact_line_height(style);
-      bool found = std::ranges::any_of(result, [&](const TocHeadingEntry &e) {
-        return e.toc_level == group.toc_level && e.style == style;
-      });
+      bool found = std::ranges::any_of(
+          result, [&](const TocHeadingEntry &e) { return e.toc_level == group.toc_level && e.style == style; });
       if (!found) {
         TocHeadingEntry entry;
         entry.style = style;
         entry.toc_level = group.toc_level;
         char buf[64];
-        std::snprintf(buf, sizeof(buf), "TOCHead_%d_%d", group.toc_level,
-                      level_index[group.toc_level]++);
+        std::snprintf(buf, sizeof(buf), "TOCHead_%d_%d", group.toc_level, level_index[group.toc_level]++);
         entry.style_id = buf;
         result.push_back(entry);
       }
     }
 
     for (const auto &group : spec.subtitles) {
-      if (group.toc_level < 1 || group.toc_level > 9)
-        continue;
+      if (group.toc_level < 1 || group.toc_level > 9) continue;
       StyleDef style = resolver.resolve_subtitle_style(group.style_refs);
       stamp_exact_line_height(style);
-      bool found = std::ranges::any_of(result, [&](const TocHeadingEntry &e) {
-        return e.toc_level == group.toc_level && e.style == style;
-      });
+      bool found = std::ranges::any_of(
+          result, [&](const TocHeadingEntry &e) { return e.toc_level == group.toc_level && e.style == style; });
       if (!found) {
         TocHeadingEntry entry;
         entry.style = style;
         entry.toc_level = group.toc_level;
         char buf[64];
-        std::snprintf(buf, sizeof(buf), "TOCHead_%d_%d", group.toc_level,
-                      level_index[group.toc_level]++);
+        std::snprintf(buf, sizeof(buf), "TOCHead_%d_%d", group.toc_level, level_index[group.toc_level]++);
         entry.style_id = buf;
         result.push_back(entry);
       }
@@ -120,15 +109,11 @@ DocxEmitter::build_toc_heading_styles(const TFLDocument &doc) const {
 // emit: main entry — assemble complete .docx
 // ---------------------------------------------------------------------------
 
-void DocxEmitter::emit(
-    const TFLDocument &doc,
-    const std::unordered_map<std::string, DataTable> &data_tables,
-    const std::string &output_path,
-    const std::unordered_map<std::string, PaginationResult> &resolved_pages,
-    const std::unordered_map<std::string, std::vector<LogicalRow>>
-        &resolved_rows,
-    const std::unordered_map<std::string, HeaderGrid> &resolved_headers,
-    TextMeasurer *measurer) {
+void DocxEmitter::emit(const TFLDocument &doc, const std::unordered_map<std::string, DataTable> &data_tables,
+                       const std::string &output_path,
+                       const std::unordered_map<std::string, PaginationResult> &resolved_pages,
+                       const std::unordered_map<std::string, std::vector<LogicalRow>> &resolved_rows,
+                       const std::unordered_map<std::string, HeaderGrid> &resolved_headers, TextMeasurer *measurer) {
 
   (void)data_tables; // reserved for API compatibility; not needed at emit stage
 
@@ -159,8 +144,7 @@ void DocxEmitter::emit(
   // Phase 2: Generate document.xml
   // ======================================================================
   std::string document_xml =
-      emit_document_xml(doc, resolved_pages, resolved_rows, resolved_headers,
-                        spec_hdr_ftr_refs, toc_headings);
+      emit_document_xml(doc, resolved_pages, resolved_rows, resolved_headers, spec_hdr_ftr_refs, toc_headings);
 
   // Package all emitted XML parts and media into final DOCX archive.
   emit_package(doc, output_path, document_xml, all_hdr_ftr_parts, toc_headings);

@@ -35,31 +35,25 @@ private:
   using ColIdxMap = std::unordered_map<std::string, size_t>;
 
   /// Build header grid from stubColumns + column labels.
-  static HeaderGrid build_header_grid(const TFLSpec &spec,
-                                      const ColIdxMap &col_id_to_idx);
+  static HeaderGrid build_header_grid(const TFLSpec &spec, const ColIdxMap &col_id_to_idx);
 
   /// Build initial row list from data.
-  static std::vector<LogicalRow> build_data_rows(const TFLSpec &spec,
-                                                 const DataTable &data);
+  static std::vector<LogicalRow> build_data_rows(const TFLSpec &spec, const DataTable &data);
 
   /// Apply dedupe to rows.
-  static void apply_dedupe(std::vector<LogicalRow> &rows,
-                           const std::vector<ColumnSpec> &columns);
+  static void apply_dedupe(std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns);
 
   /// Apply styleRows actions (style, merge, add_row, page_break).
   /// Expands the row stream with synthetic rows.
   /// @param data  The full data table (needed for value_from on invisible
   /// columns).
-  static std::vector<LogicalRow>
-  apply_style_rows(std::vector<LogicalRow> &rows,
-                   const std::vector<RowActionSet> &style_rows,
-                   const std::vector<ColumnSpec> &columns,
-                   const DataTable &data, const ColIdxMap &col_id_to_idx);
+  static std::vector<LogicalRow> apply_style_rows(std::vector<LogicalRow> &rows,
+                                                  const std::vector<RowActionSet> &style_rows,
+                                                  const std::vector<ColumnSpec> &columns, const DataTable &data,
+                                                  const ColIdxMap &col_id_to_idx);
 
   /// Detect grouping boundaries.
-  static void
-  detect_grouping_boundaries(std::vector<LogicalRow> &rows,
-                             const std::vector<ColumnSpec> &columns);
+  static void detect_grouping_boundaries(std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns);
 };
 
 } // namespace kstfl

@@ -34,31 +34,24 @@ public:
   /// @param parsed  Parsed cell content (paragraphs + runs).
   /// @param style   Effective style for the cell.
   /// @param max_width  Available cell width (column width minus cell margins).
-  [[nodiscard]] MeasuredText measure_cell(const ParsedCell &parsed,
-                                          const StyleDef &style,
-                                          Length max_width) const;
+  [[nodiscard]] MeasuredText measure_cell(const ParsedCell &parsed, const StyleDef &style, Length max_width) const;
 
   /// Measure a plain text string (no inline markup).
-  [[nodiscard]] MeasuredText measure_plain(const std::string &text,
-                                           const StyleDef &style,
-                                           Length max_width) const;
+  [[nodiscard]] MeasuredText measure_plain(const std::string &text, const StyleDef &style, Length max_width) const;
 
   /// Measure the width of a single text run (no wrapping).
-  [[nodiscard]] Length
-  measure_run_width(std::string_view text, const FontProps &font,
-                    const InlineRunStyle &run_style = {}) const;
+  [[nodiscard]] Length measure_run_width(std::string_view text, const FontProps &font,
+                                         const InlineRunStyle &run_style = {}) const;
 
   /// Get the line height for a given font + size.
-  Length line_height(const FontProps &font,
-                     double line_spacing_mult = 1.0) const;
+  Length line_height(const FontProps &font, double line_spacing_mult = 1.0) const;
 
 private:
   FontCache &cache_;
   mutable hb_buffer_t *hb_buf_;
 
   /// Get effective font size (handling superscript/subscript scaling).
-  double effective_font_size(const FontProps &font,
-                             const InlineRunStyle &run_style) const;
+  double effective_font_size(const FontProps &font, const InlineRunStyle &run_style) const;
 };
 
 } // namespace kstfl

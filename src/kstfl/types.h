@@ -49,47 +49,30 @@ struct Length {
 
   /// Parse a string like "2.54cm", "1in", "72pt", "1440twip", "914400emu",
   /// "50%". For percent, the `reference` EMU is used as the base.
-  [[nodiscard]] static Length parse(const std::string &s,
-                                    int64_t reference_emu = 0);
+  [[nodiscard]] static Length parse(const std::string &s, int64_t reference_emu = 0);
 
   // Convenience constructors
   static constexpr Length from_emu(int64_t e) { return Length{e}; }
   static constexpr Length from_twips(int64_t t) { return Length{t * 635}; }
-  static constexpr Length from_pt(double p) {
-    return Length{static_cast<int64_t>(p * 12700.0)};
-  }
-  static constexpr Length from_cm(double c) {
-    return Length{static_cast<int64_t>(c * 360000.0)};
-  }
-  static constexpr Length from_in(double i) {
-    return Length{static_cast<int64_t>(i * 914400.0)};
-  }
+  static constexpr Length from_pt(double p) { return Length{static_cast<int64_t>(p * 12700.0)}; }
+  static constexpr Length from_cm(double c) { return Length{static_cast<int64_t>(c * 360000.0)}; }
+  static constexpr Length from_in(double i) { return Length{static_cast<int64_t>(i * 914400.0)}; }
 
   // Conversions
   [[nodiscard]] constexpr int64_t to_twips() const {
     // Round to nearest twip instead of truncating, to minimize systematic error
     return (emu >= 0) ? (emu + 317) / 635 : (emu - 317) / 635;
   }
-  [[nodiscard]] constexpr double to_pt() const {
-    return static_cast<double>(emu) / 12700.0;
-  }
-  [[nodiscard]] constexpr double to_cm() const {
-    return static_cast<double>(emu) / 360000.0;
-  }
-  [[nodiscard]] constexpr double to_in() const {
-    return static_cast<double>(emu) / 914400.0;
-  }
+  [[nodiscard]] constexpr double to_pt() const { return static_cast<double>(emu) / 12700.0; }
+  [[nodiscard]] constexpr double to_cm() const { return static_cast<double>(emu) / 360000.0; }
+  [[nodiscard]] constexpr double to_in() const { return static_cast<double>(emu) / 914400.0; }
   [[nodiscard]] constexpr int64_t to_emu() const { return emu; }
 
   // Arithmetic
   constexpr Length operator+(Length rhs) const { return Length{emu + rhs.emu}; }
   constexpr Length operator-(Length rhs) const { return Length{emu - rhs.emu}; }
-  constexpr Length operator*(double f) const {
-    return Length{static_cast<int64_t>(emu * f)};
-  }
-  constexpr Length operator/(double f) const {
-    return Length{static_cast<int64_t>(emu / f)};
-  }
+  constexpr Length operator*(double f) const { return Length{static_cast<int64_t>(emu * f)}; }
+  constexpr Length operator/(double f) const { return Length{static_cast<int64_t>(emu / f)}; }
   constexpr auto operator<=>(const Length &rhs) const = default;
 };
 
@@ -201,8 +184,7 @@ struct SpacingProps {
   std::optional<Length> before;
   std::optional<Length> after;
   std::optional<double> line_spacing_multiplier; // e.g. 1.0, 1.15, 1.5
-  std::optional<Length>
-      exact_line_height; // if set, emitter uses w:lineRule="exact"
+  std::optional<Length> exact_line_height;       // if set, emitter uses w:lineRule="exact"
 
   SpacingProps merged_with(const SpacingProps &other) const;
   void merge_from(const SpacingProps &other);
@@ -347,10 +329,9 @@ struct TableStyleConfig {
   std::optional<StyleDef> body_row;
 
   // Layout
-  std::optional<Alignment>
-      table_alignment; // table alignment on page (left/center/right)
-  std::optional<Length> top_empty_line;    // spacer row after header
-  std::optional<Length> bottom_empty_line; // spacer row before bottom border
+  std::optional<Alignment> table_alignment; // table alignment on page (left/center/right)
+  std::optional<Length> top_empty_line;     // spacer row after header
+  std::optional<Length> bottom_empty_line;  // spacer row before bottom border
   std::optional<Borders> table_borders;
   bool allow_row_break_across_pages = false; // rows can split across pages
   bool repeat_header_on_each_page = true;    // header repeated on each page
@@ -401,12 +382,10 @@ struct StylesTemplate {
 
 /// Column format specification.
 struct ColumnFormat {
-  std::optional<std::string>
-      type; // "character", "numeric", "integer", "date", "logical"
-  std::optional<std::string> format;   // e.g. "0.00", "%Y-%m-%d"
-  std::optional<std::string> missings; // replacement text for NA/missing
-  std::optional<std::string>
-      col_width_raw; // raw width string (e.g. "15%", "2in") — resolved later
+  std::optional<std::string> type;            // "character", "numeric", "integer", "date", "logical"
+  std::optional<std::string> format;          // e.g. "0.00", "%Y-%m-%d"
+  std::optional<std::string> missings;        // replacement text for NA/missing
+  std::optional<std::string> col_width_raw;   // raw width string (e.g. "15%", "2in") — resolved later
   std::optional<std::string> value_style_ref; // styleRef for body values
 };
 
@@ -451,11 +430,9 @@ struct StubColumn {
 struct TextGroup {
   std::vector<std::string> text; // lines within the group
   int order = 0;
-  std::vector<std::string>
-      style_refs; // style refs merged in order (R side may pass multiple)
+  std::vector<std::string> style_refs; // style refs merged in order (R side may pass multiple)
   // Placement flags
-  bool body_placement =
-      false; // true = render in body area, false = header/footer section
+  bool body_placement = false; // true = render in body area, false = header/footer section
   // TOC: when > 0, first occurrence of this title is marked as TC field at this
   // level (1-9)
   int toc_level = 0;
@@ -511,10 +488,9 @@ struct GlueAction {
   std::vector<std::string> cols;       // target visible column ids
   std::string position;                // "before" or "after"
   std::optional<std::string> glue_col; // source data column (visible or hidden)
-  std::optional<std::string>
-      text;              // literal text (mutually exclusive with glue_col)
-  std::string separator; // inserted between existing text and glued value
-                         // when both sides are non-empty; "" = direct concat
+  std::optional<std::string> text;     // literal text (mutually exclusive with glue_col)
+  std::string separator;               // inserted between existing text and glued value
+                                       // when both sides are non-empty; "" = direct concat
 };
 
 /// Complete set of actions for a single data row.
@@ -527,8 +503,8 @@ struct RowActionSet {
   std::vector<PageBreakAction> page_breaks;
 
   [[nodiscard]] bool empty() const {
-    return styles.empty() && clears.empty() && merges.empty() &&
-           glues.empty() && add_rows.empty() && page_breaks.empty();
+    return styles.empty() && clears.empty() && merges.empty() && glues.empty() && add_rows.empty() &&
+           page_breaks.empty();
   }
 };
 
@@ -543,8 +519,7 @@ struct DataTable {
   std::unordered_map<std::string, std::vector<std::string>> columns;
   size_t n_rows = 0;
 
-  [[nodiscard]] const std::vector<std::string> &
-  col(const std::string &name) const;
+  [[nodiscard]] const std::vector<std::string> &col(const std::string &name) const;
 };
 
 // ---------------------------------------------------------------------------
@@ -568,12 +543,11 @@ struct DocumentInfo {
   bool has_data = true;
   bool glue_num_type = false; // informational: number type was auto-generated
   int doc_order = 0;
-  bool is_continues = false; // if true, titles don't repeat on subsequent pages
+  bool is_continues = false;                    // if true, titles don't repeat on subsequent pages
   std::optional<std::string> content_width_raw; // e.g. "100%", "16cm", "6.5in"
   FootnotePlace footnote_place = FootnotePlace::Repeated;
-  std::optional<Length> top_empty_line; // spacer row after table header
-  std::optional<Length>
-      bottom_empty_line; // spacer row before table bottom border
+  std::optional<Length> top_empty_line;    // spacer row after table header
+  std::optional<Length> bottom_empty_line; // spacer row before table bottom border
 };
 
 /// Figure-specific rendering options.
@@ -596,9 +570,8 @@ struct TFLSpec {
   // Attributes
   PageConfig page_override; // overrides from attribs.documentStyle.page
   bool has_page_override = false;
-  PageMarginsOverride
-      margin_overrides; // explicit margin overrides (optional per field)
-  StyleMap spec_styles; // per-spec style definitions
+  PageMarginsOverride margin_overrides; // explicit margin overrides (optional per field)
+  StyleMap spec_styles;                 // per-spec style definitions
 
   // Content sections
   std::vector<HeaderFooterRow> headers;
@@ -606,9 +579,8 @@ struct TFLSpec {
 
   // Table structure
   std::vector<StubColumn> stub_columns;
-  std::vector<ColumnSpec> columns; // ordered by colOrder, filtered by isVisible
-  std::vector<RowActionSet>
-      style_rows; // one per data row (parsed JSON strings)
+  std::vector<ColumnSpec> columns;      // ordered by colOrder, filtered by isVisible
+  std::vector<RowActionSet> style_rows; // one per data row (parsed JSON strings)
 
   // Text
   std::vector<TextGroup> titles;
@@ -677,29 +649,27 @@ enum class LogicalRowType {
 
 /// A single cell in the logical row.
 struct LogicalCell {
-  std::string text;             // display text
-  std::string col_id;           // which column this cell belongs to
-  bool is_merged = false;       // part of a horizontal merge
-  bool is_merge_leader = false; // first cell in a merge group
-  int merge_span = 1;           // number of columns spanned (1 = no merge)
-  Length merged_width;          // combined width if merge_leader
+  std::string text;                     // display text
+  std::string col_id;                   // which column this cell belongs to
+  bool is_merged = false;               // part of a horizontal merge
+  bool is_merge_leader = false;         // first cell in a merge group
+  int merge_span = 1;                   // number of columns spanned (1 = no merge)
+  Length merged_width;                  // combined width if merge_leader
   std::optional<std::string> style_ref; // cell-level style override
-  bool is_deduped = false; // blanked by apply_dedupe() — glue skips these
+  bool is_deduped = false;              // blanked by apply_dedupe() — glue skips these
 };
 
 /// A row in the logical row stream (after styleRows processing).
 struct LogicalRow {
   LogicalRowType type = LogicalRowType::DataRow;
-  size_t source_index =
-      0; // original data row index (or parent index if synthetic)
+  size_t source_index = 0; // original data row index (or parent index if synthetic)
   std::vector<LogicalCell> cells;
   std::optional<std::string> row_style_ref;
-  bool force_page_break = false;  // explicit page break before this row
-  bool is_group_boundary = false; // grouping value changed
-  bool is_oversized = false;      // row height exceeds available page body
-  Length capped_height;           // for oversized rows: max height within page
-  std::unordered_map<std::string, std::string>
-      group_values; // current grouping col values
+  bool force_page_break = false;                             // explicit page break before this row
+  bool is_group_boundary = false;                            // grouping value changed
+  bool is_oversized = false;                                 // row height exceeds available page body
+  Length capped_height;                                      // for oversized rows: max height within page
+  std::unordered_map<std::string, std::string> group_values; // current grouping col values
 
   // Measured height (populated by TextMeasurer)
   Length measured_height;
@@ -755,7 +725,7 @@ struct PageSlice {
   // What content appears on this page
   bool has_titles = true;
   bool has_subtitles = true;
-  bool has_footnotes = false; // whether footnotes render on this page
+  bool has_footnotes = false;                       // whether footnotes render on this page
   std::vector<std::string> dynamic_subtitle_values; // resolved #ByGroupX values
 
   // Heights reserved

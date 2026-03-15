@@ -22,8 +22,7 @@ namespace kstfl {
 // with ID columns repeated in every segment.
 // ---------------------------------------------------------------------------
 
-std::vector<HorizontalSegment>
-Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
+std::vector<HorizontalSegment> Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
 
   std::vector<HorizontalSegment> segments;
 
@@ -33,11 +32,8 @@ Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
   std::vector<size_t> break_after;
 
   for (size_t i = 0; i < columns.size(); ++i) {
-    if (!columns[i].is_visible)
-      continue;
-    if (columns[i].is_id) {
-      id_indices.push_back(i);
-    }
+    if (!columns[i].is_visible) continue;
+    if (columns[i].is_id) { id_indices.push_back(i); }
     if (columns[i].is_col_break && i > 0) {
       // isColBreak marks the start of a new segment
       break_after.push_back(i);
@@ -49,8 +45,7 @@ Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
     HorizontalSegment seg;
     seg.segment_index = 0;
     for (size_t i = 0; i < columns.size(); ++i) {
-      if (columns[i].is_visible)
-        seg.column_indices.push_back(i);
+      if (columns[i].is_visible) seg.column_indices.push_back(i);
     }
     segments.push_back(std::move(seg));
     return segments;
@@ -75,17 +70,13 @@ Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
 
     // Add visible columns in this segment range
     for (size_t i = seg_start; i < seg_end; ++i) {
-      if (columns[i].is_visible && included.find(i) == included.end()) {
-        seg.column_indices.push_back(i);
-      }
+      if (columns[i].is_visible && included.find(i) == included.end()) { seg.column_indices.push_back(i); }
     }
 
     // Sort by original column order
     std::ranges::sort(seg.column_indices);
 
-    if (!seg.column_indices.empty()) {
-      segments.push_back(std::move(seg));
-    }
+    if (!seg.column_indices.empty()) { segments.push_back(std::move(seg)); }
 
     seg_start = seg_end;
   }
@@ -99,10 +90,10 @@ Paginator::build_segments(const std::vector<ColumnSpec> &columns) {
 // Length FilterFn: (size_t ci) -> bool  (return true to include column)
 // ---------------------------------------------------------------------------
 template <typename WidthFn, typename FilterFn>
-static std::vector<Length> compute_row_heights_impl(
-    const std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns,
-    const TextMeasurer &measurer, const StyleResolver &resolver,
-    WidthFn width_fn, FilterFn filter_fn) {
+static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow> &rows,
+                                                    const std::vector<ColumnSpec> &columns,
+                                                    const TextMeasurer &measurer, const StyleResolver &resolver,
+                                                    WidthFn width_fn, FilterFn filter_fn) {
 
   std::vector<Length> heights(rows.size());
 
@@ -111,39 +102,29 @@ static std::vector<Length> compute_row_heights_impl(
     Length max_height{0};
 
     for (size_t ci = 0; ci < row.cells.size() && ci < columns.size(); ++ci) {
-      if (!filter_fn(ci))
-        continue;
-      if (!columns[ci].is_visible)
-        continue;
+      if (!filter_fn(ci)) continue;
+      if (!columns[ci].is_visible) continue;
       const auto &cell = row.cells[ci];
-      if (cell.is_merged && !cell.is_merge_leader)
-        continue;
+      if (cell.is_merged && !cell.is_merge_leader) continue;
 
       // Determine cell width via callable
       Length cell_width = width_fn(ci, cell, columns[ci]);
 
       // Resolve effective style for this cell
       bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
-      StyleDef cell_style = resolver.resolve_body_cell_style(
-          columns[ci], row.row_style_ref, std::nullopt, std::nullopt,
-          is_addrow);
+      StyleDef cell_style =
+          resolver.resolve_body_cell_style(columns[ci], row.row_style_ref, std::nullopt, std::nullopt, is_addrow);
 
       // Override with cell-level style if present
       if (cell.style_ref.has_value()) {
-        const StyleDef *override_style =
-            resolver.find_style(cell.style_ref.value());
-        if (override_style) {
-          cell_style.merge_from(*override_style);
-        }
+        const StyleDef *override_style = resolver.find_style(cell.style_ref.value());
+        if (override_style) { cell_style.merge_from(*override_style); }
       }
 
       // Measure cell text
-      MeasuredText measured =
-          measurer.measure_plain(cell.text, cell_style, cell_width);
+      MeasuredText measured = measurer.measure_plain(cell.text, cell_style, cell_width);
 
-      if (measured.height > max_height) {
-        max_height = measured.height;
-      }
+      if (measured.height > max_height) { max_height = measured.height; }
     }
 
     // Check explicit row height override from row-level or cell-level style.
@@ -152,8 +133,7 @@ static std::vector<Length> compute_row_heights_impl(
     // 1) Row-level style (row_style_ref)
     if (row.row_style_ref.has_value()) {
       const StyleDef *rs = resolver.find_style(*row.row_style_ref);
-      if (rs && rs->table_style.has_value() &&
-          rs->table_style->row_height.has_value()) {
+      if (rs && rs->table_style.has_value() && rs->table_style->row_height.has_value()) {
         explicit_row_height = *rs->table_style->row_height;
       }
     }
@@ -163,8 +143,7 @@ static std::vector<Length> compute_row_heights_impl(
       for (const auto &cell : row.cells) {
         if (cell.style_ref.has_value()) {
           const StyleDef *cs = resolver.find_style(*cell.style_ref);
-          if (cs && cs->table_style.has_value() &&
-              cs->table_style->row_height.has_value()) {
+          if (cs && cs->table_style.has_value() && cs->table_style->row_height.has_value()) {
             explicit_row_height = *cs->table_style->row_height;
             break;
           }
@@ -172,8 +151,7 @@ static std::vector<Length> compute_row_heights_impl(
       }
     }
 
-    heights[ri] =
-        (explicit_row_height.emu > 0) ? explicit_row_height : max_height;
+    heights[ri] = (explicit_row_height.emu > 0) ? explicit_row_height : max_height;
   }
 
   return heights;
@@ -184,15 +162,14 @@ static std::vector<Length> compute_row_heights_impl(
 // Row heights are computed once across all columns and shared by segments.
 // ---------------------------------------------------------------------------
 
-std::vector<Length> Paginator::compute_row_heights(
-    const std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns,
-    const TextMeasurer &measurer, const StyleResolver &resolver) {
+std::vector<Length> Paginator::compute_row_heights(const std::vector<LogicalRow> &rows,
+                                                   const std::vector<ColumnSpec> &columns, const TextMeasurer &measurer,
+                                                   const StyleResolver &resolver) {
 
   return compute_row_heights_impl(
       rows, columns, measurer, resolver,
       // Width resolver: use original column widths
-      [](size_t /*ci*/, const LogicalCell &cell,
-         const ColumnSpec &col) -> Length {
+      [](size_t /*ci*/, const LogicalCell &cell, const ColumnSpec &col) -> Length {
         return cell.is_merge_leader ? cell.merged_width : col.resolved_width;
       },
       // Filter: include all columns
@@ -205,16 +182,14 @@ std::vector<Length> Paginator::compute_row_heights(
 // original width, non-ID columns are scaled to fill the full table width.
 // ---------------------------------------------------------------------------
 
-std::unordered_map<size_t, int64_t>
-Paginator::compute_segment_column_widths(const std::vector<ColumnSpec> &columns,
-                                         const HorizontalSegment &segment) {
+std::unordered_map<size_t, int64_t> Paginator::compute_segment_column_widths(const std::vector<ColumnSpec> &columns,
+                                                                             const HorizontalSegment &segment) {
 
   // Compute full table width across all visible columns
   Length full_table_width{0};
   size_t visible_col_count = 0;
   for (const auto &col : columns) {
-    if (!col.is_visible)
-      continue;
+    if (!col.is_visible) continue;
     full_table_width = full_table_width + col.resolved_width;
     visible_col_count++;
   }
@@ -234,24 +209,19 @@ Paginator::compute_segment_column_widths(const std::vector<ColumnSpec> &columns,
       }
     }
     double non_id_scale =
-        (non_id_raw > 0) ? static_cast<double>(full_table_width.emu - id_raw) /
-                               static_cast<double>(non_id_raw)
-                         : 1.0;
+        (non_id_raw > 0) ? static_cast<double>(full_table_width.emu - id_raw) / static_cast<double>(non_id_raw) : 1.0;
     for (size_t col_idx : segment.column_indices) {
       if (col_idx < columns.size()) {
         if (columns[col_idx].is_id) {
           col_widths[col_idx] = columns[col_idx].resolved_width.emu;
         } else {
-          col_widths[col_idx] = static_cast<int64_t>(
-              columns[col_idx].resolved_width.emu * non_id_scale);
+          col_widths[col_idx] = static_cast<int64_t>(columns[col_idx].resolved_width.emu * non_id_scale);
         }
       }
     }
   } else {
     for (size_t col_idx : segment.column_indices) {
-      if (col_idx < columns.size()) {
-        col_widths[col_idx] = columns[col_idx].resolved_width.emu;
-      }
+      if (col_idx < columns.size()) { col_widths[col_idx] = columns[col_idx].resolved_width.emu; }
     }
   }
 
@@ -265,37 +235,31 @@ Paginator::compute_segment_column_widths(const std::vector<ColumnSpec> &columns,
 // must be recalculated per segment rather than shared across all segments.
 // ---------------------------------------------------------------------------
 
-std::vector<Length> Paginator::compute_segment_row_heights(
-    const std::vector<LogicalRow> &rows, const std::vector<ColumnSpec> &columns,
-    const HorizontalSegment &segment,
-    const std::unordered_map<size_t, int64_t> &scaled_widths,
-    const TextMeasurer &measurer, const StyleResolver &resolver) {
+std::vector<Length> Paginator::compute_segment_row_heights(const std::vector<LogicalRow> &rows,
+                                                           const std::vector<ColumnSpec> &columns,
+                                                           const HorizontalSegment &segment,
+                                                           const std::unordered_map<size_t, int64_t> &scaled_widths,
+                                                           const TextMeasurer &measurer,
+                                                           const StyleResolver &resolver) {
 
   // Build set of columns in this segment for quick lookup
-  std::unordered_set<size_t> seg_cols(segment.column_indices.begin(),
-                                      segment.column_indices.end());
+  std::unordered_set<size_t> seg_cols(segment.column_indices.begin(), segment.column_indices.end());
 
   return compute_row_heights_impl(
       rows, columns, measurer, resolver,
       // Width resolver: use segment-scaled widths
-      [&scaled_widths, &columns](size_t ci, const LogicalCell &cell,
-                                 const ColumnSpec &col) -> Length {
+      [&scaled_widths, &columns](size_t ci, const LogicalCell &cell, const ColumnSpec &col) -> Length {
         if (cell.is_merge_leader) {
           // Sum scaled widths of merged columns in this segment
           int64_t merged_emu = 0;
-          for (size_t mi = ci; mi < ci + static_cast<size_t>(cell.merge_span) &&
-                               mi < columns.size();
-               ++mi) {
+          for (size_t mi = ci; mi < ci + static_cast<size_t>(cell.merge_span) && mi < columns.size(); ++mi) {
             auto wit = scaled_widths.find(mi);
-            if (wit != scaled_widths.end()) {
-              merged_emu += wit->second;
-            }
+            if (wit != scaled_widths.end()) { merged_emu += wit->second; }
           }
           return Length{merged_emu > 0 ? merged_emu : cell.merged_width.emu};
         }
         auto wit = scaled_widths.find(ci);
-        return (wit != scaled_widths.end()) ? Length{wit->second}
-                                            : col.resolved_width;
+        return (wit != scaled_widths.end()) ? Length{wit->second} : col.resolved_width;
       },
       // Filter: only columns in this segment
       [&seg_cols](size_t ci) { return seg_cols.find(ci) != seg_cols.end(); });
@@ -306,10 +270,9 @@ std::vector<Length> Paginator::compute_segment_row_heights(
 // Spec §5.2: subtract all non-body blocks from usable height
 // ---------------------------------------------------------------------------
 
-Length Paginator::compute_available_height(
-    const PageConfig &page, Length header_section_height, Length titles_height,
-    Length subtitles_height, Length table_header_height,
-    Length footnotes_height, Length footer_section_height) {
+Length Paginator::compute_available_height(const PageConfig &page, Length header_section_height, Length titles_height,
+                                           Length subtitles_height, Length table_header_height, Length footnotes_height,
+                                           Length footer_section_height) {
 
   Length available = page.usable_height();
 
@@ -331,18 +294,12 @@ Length Paginator::compute_available_height(
   // Available space for footer content: bottom_margin - footer_distance
   {
     Length hdr_space = page.margins.top - page.margins.header_distance;
-    if (hdr_space.emu < 0)
-      hdr_space.emu = 0;
-    if (header_section_height > hdr_space) {
-      available = available - (header_section_height - hdr_space);
-    }
+    if (hdr_space.emu < 0) hdr_space.emu = 0;
+    if (header_section_height > hdr_space) { available = available - (header_section_height - hdr_space); }
 
     Length ftr_space = page.margins.bottom - page.margins.footer_distance;
-    if (ftr_space.emu < 0)
-      ftr_space.emu = 0;
-    if (footer_section_height > ftr_space) {
-      available = available - (footer_section_height - ftr_space);
-    }
+    if (ftr_space.emu < 0) ftr_space.emu = 0;
+    if (footer_section_height > ftr_space) { available = available - (footer_section_height - ftr_space); }
   }
 
   // Titles: callers pass titles_height=0 for pages that don't show titles
@@ -359,8 +316,7 @@ Length Paginator::compute_available_height(
   // is simply a small extra whitespace at the bottom — acceptable.
   available = available - footnotes_height;
 
-  if (available.emu < 0)
-    available.emu = 0;
+  if (available.emu < 0) available.emu = 0;
   return available;
 }
 
@@ -369,12 +325,8 @@ Length Paginator::compute_available_height(
 // Spec §13: deterministic vertical pagination
 // ---------------------------------------------------------------------------
 
-PaginationResult Paginator::paginate(const TFLSpec &spec,
-                                     std::vector<LogicalRow> &rows,
-                                     const HeaderGrid &header_grid,
-                                     const PageConfig &page_config,
-                                     Length table_width,
-                                     const TextMeasurer &measurer,
+PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow> &rows, const HeaderGrid &header_grid,
+                                     const PageConfig &page_config, Length table_width, const TextMeasurer &measurer,
                                      const StyleResolver &resolver) {
 
   PaginationResult result;
@@ -391,8 +343,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
   // For single-segment tables (no colBreak), compute once across all columns.
   // For multi-segment tables, compute per-segment using scaled column widths
   // so that row heights reflect the actual column widths in each segment.
-  auto row_heights =
-      compute_row_heights(rows, spec.columns, measurer, resolver);
+  auto row_heights = compute_row_heights(rows, spec.columns, measurer, resolver);
   for (size_t i = 0; i < rows.size() && i < row_heights.size(); ++i) {
     rows[i].measured_height = row_heights[i];
   }
@@ -401,8 +352,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
   if (has_multiple_segments) {
     for (auto &seg : segments) {
       auto scaled_widths = compute_segment_column_widths(spec.columns, seg);
-      seg.row_heights = compute_segment_row_heights(
-          rows, spec.columns, seg, scaled_widths, measurer, resolver);
+      seg.row_heights = compute_segment_row_heights(rows, spec.columns, seg, scaled_widths, measurer, resolver);
     }
   } else if (!segments.empty()) {
     // Single segment — reuse global row_heights
@@ -423,8 +373,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
     for (const auto &section : {hdr.left, hdr.center, hdr.right}) {
       if (!section.empty()) {
         MeasuredText m = measurer.measure_plain(section, style, third_width);
-        if (m.height > max_section_height)
-          max_section_height = m.height;
+        if (m.height > max_section_height) max_section_height = m.height;
       }
     }
     header_section_height = header_section_height + max_section_height;
@@ -439,8 +388,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
     for (const auto &section : {ftr.left, ftr.center, ftr.right}) {
       if (!section.empty()) {
         MeasuredText m = measurer.measure_plain(section, style, third_width);
-        if (m.height > max_section_height)
-          max_section_height = m.height;
+        if (m.height > max_section_height) max_section_height = m.height;
       }
     }
     footer_section_height = footer_section_height + max_section_height;
@@ -457,13 +405,11 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
       StyleDef style = resolver.resolve_title_style(tg.style_refs);
       std::string combined;
       for (const auto &line : tg.text) {
-        if (!combined.empty())
-          combined += "<br>";
+        if (!combined.empty()) combined += "<br>";
         combined += line;
       }
       if (!combined.empty()) {
-        MeasuredText m =
-            measurer.measure_plain(combined, style, page_config.usable_width());
+        MeasuredText m = measurer.measure_plain(combined, style, page_config.usable_width());
         titles_height = titles_height + m.height;
       }
     }
@@ -477,13 +423,11 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
     StyleDef style = resolver.resolve_subtitle_style(tg.style_refs);
     std::string combined;
     for (size_t i = 0; i < tg.text.size(); ++i) {
-      if (i > 0)
-        combined += "<br>";
+      if (i > 0) combined += "<br>";
       combined += tg.text[i];
     }
     if (!combined.empty()) {
-      MeasuredText m =
-          measurer.measure_plain(combined, style, page_config.usable_width());
+      MeasuredText m = measurer.measure_plain(combined, style, page_config.usable_width());
       subtitles_height = subtitles_height + m.height;
     }
   }
@@ -492,8 +436,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
   Length table_header_height = header_grid.total_height;
   if (table_header_height.emu == 0 && !header_grid.rows.empty()) {
     // Estimate if not pre-measured
-    StyleDef hdr_style = resolver.resolve_header_cell_style(
-        spec.columns.empty() ? ColumnSpec{} : spec.columns[0]);
+    StyleDef hdr_style = resolver.resolve_header_cell_style(spec.columns.empty() ? ColumnSpec{} : spec.columns[0]);
     Length line_h = measurer.line_height(hdr_style.font.value_or(FontProps{}));
     table_header_height = line_h * static_cast<double>(header_grid.rows.size());
   }
@@ -504,13 +447,11 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
     StyleDef style = resolver.resolve_footnote_style(tg.style_refs);
     std::string combined;
     for (size_t i = 0; i < tg.text.size(); ++i) {
-      if (i > 0)
-        combined += "<br>";
+      if (i > 0) combined += "<br>";
       combined += tg.text[i];
     }
     if (!combined.empty()) {
-      MeasuredText m =
-          measurer.measure_plain(combined, style, page_config.usable_width());
+      MeasuredText m = measurer.measure_plain(combined, style, page_config.usable_width());
       footnotes_height = footnotes_height + m.height;
     }
   }
@@ -519,9 +460,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
 
   // When footnotes go into the Word footer part, add their height to the
   // footer section so pagination reserves the correct total footer space.
-  if (fn_place == FootnotePlace::DocFooter) {
-    footer_section_height = footer_section_height + footnotes_height;
-  }
+  if (fn_place == FootnotePlace::DocFooter) { footer_section_height = footer_section_height + footnotes_height; }
 
   bool is_continues = spec.document.is_continues;
 
@@ -530,10 +469,8 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
   bool repeat_titles = !is_continues;
 
   // Table header repetition: controlled by template layout flag.
-  bool repeat_header =
-      resolver.template_styles().table_style.repeat_header_on_each_page;
-  bool allow_row_break =
-      resolver.template_styles().table_style.allow_row_break_across_pages;
+  bool repeat_header = resolver.template_styles().table_style.repeat_header_on_each_page;
+  bool allow_row_break = resolver.template_styles().table_style.allow_row_break_across_pages;
 
   // 4. Paginate
   // When multiple segments exist (isColBreak), compute unified row heights
@@ -546,8 +483,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
     for (size_t ri = 0; ri < rows.size(); ++ri) {
       Length max_h{0};
       for (const auto &seg : segments) {
-        if (ri < seg.row_heights.size() && seg.row_heights[ri] > max_h)
-          max_h = seg.row_heights[ri];
+        if (ri < seg.row_heights.size() && seg.row_heights[ri] > max_h) max_h = seg.row_heights[ri];
       }
       pagination_heights[ri] = max_h;
     }
@@ -576,14 +512,11 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
       Length page_subtitle_h = subtitles_height;
       bool show_titles = is_first || repeat_titles;
 
-      Length fn_reserve =
-          (fn_place == FootnotePlace::Repeated) ? footnotes_height : Length{0};
-      Length hdr_reserve =
-          (is_first || repeat_header) ? table_header_height : Length{0};
-      Length available = compute_available_height(
-          page_config, header_section_height,
-          show_titles ? titles_height : Length{0}, page_subtitle_h, hdr_reserve,
-          fn_reserve, footer_section_height);
+      Length fn_reserve = (fn_place == FootnotePlace::Repeated) ? footnotes_height : Length{0};
+      Length hdr_reserve = (is_first || repeat_header) ? table_header_height : Length{0};
+      Length available =
+          compute_available_height(page_config, header_section_height, show_titles ? titles_height : Length{0},
+                                   page_subtitle_h, hdr_reserve, fn_reserve, footer_section_height);
 
       Length used_height{0};
       size_t first_row = row_idx;
@@ -592,8 +525,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
 
       while (row_idx < rows.size()) {
         if (row_idx > last_row || row_idx > first_row) {
-          if (rows[row_idx].force_page_break)
-            break;
+          if (rows[row_idx].force_page_break) break;
         }
 
         Length rh = pagination_heights[row_idx];
@@ -602,15 +534,11 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
         // all rows go into a single virtual page and Word handles
         // natural pagination.  force_page_break is still respected above.
         if (!allow_row_break) {
-          if (used_height.emu > 0 && (used_height + rh) > available) {
-            break;
-          }
+          if (used_height.emu > 0 && (used_height + rh) > available) { break; }
 
           if (used_height.emu == 0 && rh > (available + PAGE_SAFETY_MARGIN)) {
-            Rcpp::Rcerr << "[ksTFL] WARNING: Row " << row_idx << " height ("
-                        << rh.to_pt() << "pt) exceeds available"
-                        << " page body height ("
-                        << (available + PAGE_SAFETY_MARGIN).to_pt() << "pt)."
+            Rcpp::Rcerr << "[ksTFL] WARNING: Row " << row_idx << " height (" << rh.to_pt() << "pt) exceeds available"
+                        << " page body height (" << (available + PAGE_SAFETY_MARGIN).to_pt() << "pt)."
                         << " The row will be clipped to fit the page.\n";
             rows[row_idx].is_oversized = true;
             rows[row_idx].capped_height = available;
@@ -635,9 +563,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
             for (const auto &col : spec.columns) {
               if (col.is_grouping || col.is_paging) {
                 auto it = gv->find(col.id);
-                if (it != gv->end()) {
-                  dyn_sub_vals.push_back(it->second);
-                }
+                if (it != gv->end()) { dyn_sub_vals.push_back(it->second); }
               }
             }
           }
@@ -678,15 +604,12 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
         page.header_section_height = header_section_height;
         page.titles_height = show_titles ? titles_height : Length{0};
         page.subtitles_height = subtitles_height;
-        page.table_header_height = (pb.is_first_page || repeat_header)
-                                       ? table_header_height
-                                       : Length{0};
+        page.table_header_height = (pb.is_first_page || repeat_header) ? table_header_height : Length{0};
         page.footer_section_height = footer_section_height;
 
         // Recompute body_height using this segment's own row heights
         Length seg_body{0};
-        for (size_t ri = pb.first_row;
-             ri <= pb.last_row && ri < segment.row_heights.size(); ++ri) {
+        for (size_t ri = pb.first_row; ri <= pb.last_row && ri < segment.row_heights.size(); ++ri) {
           seg_body = seg_body + segment.row_heights[ri];
         }
         page.body_height = seg_body;
@@ -699,8 +622,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
           break;
         case LastPage:
           page.has_footnotes = pb.is_last_page;
-          page.footnotes_height =
-              pb.is_last_page ? footnotes_height : Length{0};
+          page.footnotes_height = pb.is_last_page ? footnotes_height : Length{0};
           break;
         case DocFooter:
           page.has_footnotes = false;
@@ -717,30 +639,21 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
     // unified.
     if (fn_place == FootnotePlace::LastPage && footnotes_height.emu > 0) {
       for (auto &segment : segments) {
-        if (segment.pages.empty())
-          continue;
+        if (segment.pages.empty()) continue;
 
         size_t last_idx = segment.pages.size() - 1;
-        bool show_titles_last =
-            segment.pages[last_idx].is_first_page || repeat_titles;
-        Length last_hdr_h =
-            (segment.pages[last_idx].is_first_page || repeat_header)
-                ? table_header_height
-                : Length{0};
+        bool show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
+        Length last_hdr_h = (segment.pages[last_idx].is_first_page || repeat_header) ? table_header_height : Length{0};
 
-        Length avail_with_fn = compute_available_height(
-            page_config, header_section_height,
-            show_titles_last ? titles_height : Length{0}, subtitles_height,
-            last_hdr_h, footnotes_height, footer_section_height);
+        Length avail_with_fn =
+            compute_available_height(page_config, header_section_height, show_titles_last ? titles_height : Length{0},
+                                     subtitles_height, last_hdr_h, footnotes_height, footer_section_height);
 
         while (segment.pages[last_idx].body_height > avail_with_fn &&
-               segment.pages[last_idx].last_row >
-                   segment.pages[last_idx].first_row) {
+               segment.pages[last_idx].last_row > segment.pages[last_idx].first_row) {
 
-          Length removed_h =
-              segment.row_heights[segment.pages[last_idx].last_row];
-          segment.pages[last_idx].body_height =
-              segment.pages[last_idx].body_height - removed_h;
+          Length removed_h = segment.row_heights[segment.pages[last_idx].last_row];
+          segment.pages[last_idx].body_height = segment.pages[last_idx].body_height - removed_h;
           segment.pages[last_idx].last_row--;
 
           PageSlice extra;
@@ -754,8 +667,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
           extra.header_section_height = header_section_height;
           extra.titles_height = repeat_titles ? titles_height : Length{0};
           extra.subtitles_height = subtitles_height;
-          extra.table_header_height =
-              repeat_header ? table_header_height : Length{0};
+          extra.table_header_height = repeat_header ? table_header_height : Length{0};
           extra.footnotes_height = footnotes_height;
           extra.footer_section_height = footer_section_height;
           extra.body_height = removed_h;
@@ -767,33 +679,23 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
           segment.pages.push_back(std::move(extra));
           last_idx = segment.pages.size() - 1;
 
-          show_titles_last =
-              segment.pages[last_idx].is_first_page || repeat_titles;
-          last_hdr_h = (segment.pages[last_idx].is_first_page || repeat_header)
-                           ? table_header_height
-                           : Length{0};
-          avail_with_fn = compute_available_height(
-              page_config, header_section_height,
-              show_titles_last ? titles_height : Length{0}, subtitles_height,
-              last_hdr_h, footnotes_height, footer_section_height);
+          show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
+          last_hdr_h = (segment.pages[last_idx].is_first_page || repeat_header) ? table_header_height : Length{0};
+          avail_with_fn =
+              compute_available_height(page_config, header_section_height, show_titles_last ? titles_height : Length{0},
+                                       subtitles_height, last_hdr_h, footnotes_height, footer_section_height);
         }
 
         auto &final_page = segment.pages.back();
         size_t fill_start = final_page.last_row + 1;
         Length fill_avail = compute_available_height(
-            page_config, header_section_height,
-            (final_page.is_first_page || repeat_titles) ? titles_height
-                                                        : Length{0},
-            subtitles_height,
-            (final_page.is_first_page || repeat_header) ? table_header_height
-                                                        : Length{0},
+            page_config, header_section_height, (final_page.is_first_page || repeat_titles) ? titles_height : Length{0},
+            subtitles_height, (final_page.is_first_page || repeat_header) ? table_header_height : Length{0},
             footnotes_height, footer_section_height);
 
         while (fill_start < rows.size() && !rows[fill_start].force_page_break &&
-               (final_page.body_height + segment.row_heights[fill_start]) <=
-                   fill_avail) {
-          final_page.body_height =
-              final_page.body_height + segment.row_heights[fill_start];
+               (final_page.body_height + segment.row_heights[fill_start]) <= fill_avail) {
+          final_page.body_height = final_page.body_height + segment.row_heights[fill_start];
           final_page.last_row = fill_start;
           fill_start++;
         }
@@ -811,24 +713,18 @@ PaginationResult Paginator::paginate(const TFLSpec &spec,
           overflow.header_section_height = header_section_height;
           overflow.titles_height = repeat_titles ? titles_height : Length{0};
           overflow.subtitles_height = subtitles_height;
-          overflow.table_header_height =
-              repeat_header ? table_header_height : Length{0};
+          overflow.table_header_height = repeat_header ? table_header_height : Length{0};
           overflow.footnotes_height = footnotes_height;
           overflow.footer_section_height = footer_section_height;
 
           Length ov_avail = compute_available_height(
-              page_config, header_section_height,
-              repeat_titles ? titles_height : Length{0}, subtitles_height,
-              repeat_header ? table_header_height : Length{0}, footnotes_height,
-              footer_section_height);
+              page_config, header_section_height, repeat_titles ? titles_height : Length{0}, subtitles_height,
+              repeat_header ? table_header_height : Length{0}, footnotes_height, footer_section_height);
 
-          while (fill_start < rows.size() &&
-                 !rows[fill_start].force_page_break &&
-                 (overflow.body_height.emu == 0 ||
-                  (overflow.body_height + segment.row_heights[fill_start]) <=
-                      ov_avail)) {
-            overflow.body_height =
-                overflow.body_height + segment.row_heights[fill_start];
+          while (
+              fill_start < rows.size() && !rows[fill_start].force_page_break &&
+              (overflow.body_height.emu == 0 || (overflow.body_height + segment.row_heights[fill_start]) <= ov_avail)) {
+            overflow.body_height = overflow.body_height + segment.row_heights[fill_start];
             overflow.last_row = fill_start;
             fill_start++;
           }

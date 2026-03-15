@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,7 +53,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-03-14</h4>
+            <h4 data-toc-skip class="date">2026-03-15</h4>
       
 
       <div class="d-none name"><code>Rendering_Pipeline.Rmd</code></div>
@@ -192,6 +192,11 @@ docx_toc.cpp</li>
 │   parse_spec_json_string() -&gt; TFLDocument                             │
 │   parse_data_json_string()  -&gt; DataTable                              │
 │   resolve figure media paths for Figure specs                         │
+│                                                                       │
+│ Phase 1b: Enforce isColBreak layout constraints                       │
+│   for specs with isColBreak columns: force                            │
+│   allow_row_break_across_pages=false, repeat_header_on_each_page=true │
+│   (warn if template values were overridden)                           │
 └───────────────────────────────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────┐
@@ -314,6 +319,10 @@ minus:
 <li>isColBreak starts a new segment</li>
 <li>isID columns are repeated in each segment</li>
 <li>non-ID columns are scaled to fill available segment width</li>
+<li>when isColBreak is active, the renderer enforces
+allow_row_break_across_pages=false and repeat_header_on_each_page=true
+(Phase 1b constraint enforcement, with R warning if values are
+overridden)</li>
 </ul>
 </li>
 <li>Row height model:
@@ -369,6 +378,30 @@ footnotes)</li>
 </h2>
 <ul>
 <li>Language standard: C++20</li>
+<li>C++20 features used:
+<ul>
+<li>
+<code>operator&lt;=&gt;</code> (three-way comparison) for
+<code>Length</code>
+</li>
+<li>Concepts (<code>Mergeable</code>) constraining style merge
+templates</li>
+<li>
+<code>constexpr std::array</code> lookup tables for OOXML enum
+conversions</li>
+<li>
+<code>std::ranges::sort</code>, <code>std::ranges::any_of</code>,
+<code>std::ranges::transform</code>
+</li>
+<li>
+<code>using enum</code> in switch statements</li>
+<li>
+<code>std::to_chars</code> for double formatting</li>
+<li>
+<code>[[nodiscard]]</code> on all pure/value-returning
+functions</li>
+</ul>
+</li>
 <li>Core dependencies:
 <ul>
 <li>HarfBuzz</li>

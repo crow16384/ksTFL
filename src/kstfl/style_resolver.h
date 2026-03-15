@@ -22,20 +22,16 @@ public:
   [[nodiscard]] PageConfig resolve_page_config(const TFLSpec &spec) const;
 
   /// Resolve table width (from contentWidth + usable_width).
-  [[nodiscard]] Length resolve_table_width(const TFLSpec &spec,
-                                           Length usable_width) const;
+  [[nodiscard]] Length resolve_table_width(const TFLSpec &spec, Length usable_width) const;
 
   /// Resolve column widths: absolute, percent, and distribute remaining.
   /// Modifies columns in-place setting `resolved_width`.
-  void resolve_column_widths(std::vector<ColumnSpec> &columns,
-                             Length table_width) const;
+  void resolve_column_widths(std::vector<ColumnSpec> &columns, Length table_width) const;
 
   /// Resolve the effective style for a **table header** cell.
   /// Cascade: default -> tableHeader textStyle -> structural.allHeaders ->
   ///          header_row -> column labelStyleRef -> stub labelStyleRef.
-  [[nodiscard]] StyleDef
-  resolve_header_cell_style(const ColumnSpec &col,
-                            const StubColumn *stub = nullptr) const;
+  [[nodiscard]] StyleDef resolve_header_cell_style(const ColumnSpec &col, const StubColumn *stub = nullptr) const;
 
   /// Resolve the effective style for a **table body** cell.
   /// Cascade: default -> tableBody textStyle -> body_row ->
@@ -44,24 +40,20 @@ public:
   ///          styleRef.
   /// @param is_addrow If true, skip column valueStyleRef (step 5) so that
   ///        virtual addrow cells don't inherit column-specific formatting.
-  [[nodiscard]] StyleDef resolve_body_cell_style(
-      const ColumnSpec &col,
-      const std::optional<std::string> &row_style_ref = std::nullopt,
-      const std::optional<std::string> &merge_style_ref = std::nullopt,
-      const std::optional<std::string> &addrow_style_ref = std::nullopt,
-      bool is_addrow = false) const;
+  [[nodiscard]] StyleDef resolve_body_cell_style(const ColumnSpec &col,
+                                                 const std::optional<std::string> &row_style_ref = std::nullopt,
+                                                 const std::optional<std::string> &merge_style_ref = std::nullopt,
+                                                 const std::optional<std::string> &addrow_style_ref = std::nullopt,
+                                                 bool is_addrow = false) const;
 
   /// Resolve a style for titles (style_refs merged in order).
-  [[nodiscard]] StyleDef
-  resolve_title_style(const std::vector<std::string> &style_refs = {}) const;
+  [[nodiscard]] StyleDef resolve_title_style(const std::vector<std::string> &style_refs = {}) const;
 
   /// Resolve a style for subtitles (style_refs merged in order).
-  [[nodiscard]] StyleDef
-  resolve_subtitle_style(const std::vector<std::string> &style_refs = {}) const;
+  [[nodiscard]] StyleDef resolve_subtitle_style(const std::vector<std::string> &style_refs = {}) const;
 
   /// Resolve a style for footnotes (style_refs merged in order).
-  [[nodiscard]] StyleDef
-  resolve_footnote_style(const std::vector<std::string> &style_refs = {}) const;
+  [[nodiscard]] StyleDef resolve_footnote_style(const std::vector<std::string> &style_refs = {}) const;
 
   /// Resolve the base table header style (template cascade only, no column/stub
   /// refs). Cascade: default -> tableHeader textStyle -> header_row ->
@@ -75,8 +67,7 @@ public:
   [[nodiscard]] StyleDef resolve_doc_footer_style() const;
 
   /// Resolve a style for body text (hasData=false).
-  [[nodiscard]] StyleDef resolve_body_text_style(
-      const std::optional<std::string> &custom_ref = std::nullopt) const;
+  [[nodiscard]] StyleDef resolve_body_text_style(const std::optional<std::string> &custom_ref = std::nullopt) const;
 
   /// Resolve style for TOC title paragraph.
   [[nodiscard]] StyleDef resolve_toc_title_style() const;
@@ -85,8 +76,7 @@ public:
   [[nodiscard]] StyleDef resolve_toc_entry_style() const;
 
   /// Resolve style for figure captions.
-  [[nodiscard]] StyleDef resolve_figure_caption_style(
-      const std::vector<std::string> &style_refs = {}) const;
+  [[nodiscard]] StyleDef resolve_figure_caption_style(const std::vector<std::string> &style_refs = {}) const;
 
   /// Lookup a named style by ID from the spec's custom styles map.
   /// Template styles (default, tableHeader, etc.) are struct fields accessed
@@ -110,9 +100,7 @@ private:
   StyleDef apply_style_ref(const StyleDef &base, const std::string &ref) const;
 
   /// Internal: resolve a content style from a region base + style refs.
-  StyleDef
-  resolve_content_style(const StyleDef &region_base,
-                        const std::vector<std::string> &style_refs) const;
+  StyleDef resolve_content_style(const StyleDef &region_base, const std::vector<std::string> &style_refs) const;
 };
 
 } // namespace kstfl

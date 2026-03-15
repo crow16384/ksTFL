@@ -15,27 +15,27 @@ namespace kstfl {
 /// Parse a complete spec JSON file (containing _metadata + N spec entries).
 /// @param json_path Path to the spec JSON file.
 /// @return Parsed TFLDocument with all specs.
-TFLDocument parse_spec_json(const std::string& json_path);
+TFLDocument parse_spec_json(const std::string &json_path);
 
 /// Parse a complete spec JSON from a string (for testing / Rcpp).
-TFLDocument parse_spec_json_string(const std::string& json_str);
+TFLDocument parse_spec_json_string(const std::string &json_str);
 
 /// Parse a styles template JSON file.
 /// @param json_path Path to the template JSON file.
 /// @return Parsed StylesTemplate.
-StylesTemplate parse_template_json(const std::string& json_path);
+StylesTemplate parse_template_json(const std::string &json_path);
 
 /// Parse a styles template JSON from a string.
-StylesTemplate parse_template_json_string(const std::string& json_str);
+StylesTemplate parse_template_json_string(const std::string &json_str);
 
 /// Parse a data JSON file (column-oriented { "col": [values...] }).
 /// @param json_path Path to the data JSON file.
 /// @return Parsed DataTable.
-DataTable parse_data_json(const std::string& json_path);
+DataTable parse_data_json(const std::string &json_path);
 
 /// Parse a data JSON from a string.
-DataTable parse_data_json_string(const std::string& json_str);
+DataTable parse_data_json_string(const std::string &json_str);
 
-}  // namespace kstfl
+} // namespace kstfl
 
-#endif  // KSTFL_JSON_PARSER_H
+#endif // KSTFL_JSON_PARSER_H

@@ -32,24 +32,24 @@ constexpr int64_t TWIPS_PER_INCH = 1440;
 // ---------------------------------------------------------------------------
 
 /// A4: 210 × 297 mm
-constexpr int64_t A4_WIDTH_EMU  = 210 * 360000 / 10;   // 7560000
-constexpr int64_t A4_HEIGHT_EMU = 297 * 360000 / 10;   // 10692000
+constexpr int64_t A4_WIDTH_EMU = 210 * 360000 / 10;  // 7560000
+constexpr int64_t A4_HEIGHT_EMU = 297 * 360000 / 10; // 10692000
 
 /// A3: 297 × 420 mm
-constexpr int64_t A3_WIDTH_EMU  = 297 * 360000 / 10;   // 10692000
-constexpr int64_t A3_HEIGHT_EMU = 420 * 360000 / 10;   // 15120000
+constexpr int64_t A3_WIDTH_EMU = 297 * 360000 / 10;  // 10692000
+constexpr int64_t A3_HEIGHT_EMU = 420 * 360000 / 10; // 15120000
 
 /// US Letter: 8.5 × 11 in
-constexpr int64_t LETTER_WIDTH_EMU  = static_cast<int64_t>(8.5 * 914400);   // 7772400
-constexpr int64_t LETTER_HEIGHT_EMU = static_cast<int64_t>(11.0 * 914400);  // 10058400
+constexpr int64_t LETTER_WIDTH_EMU = static_cast<int64_t>(8.5 * 914400);   // 7772400
+constexpr int64_t LETTER_HEIGHT_EMU = static_cast<int64_t>(11.0 * 914400); // 10058400
 
 /// US Legal: 8.5 × 14 in
-constexpr int64_t LEGAL_WIDTH_EMU  = static_cast<int64_t>(8.5 * 914400);    // 7772400
-constexpr int64_t LEGAL_HEIGHT_EMU = static_cast<int64_t>(14.0 * 914400);   // 12801600
+constexpr int64_t LEGAL_WIDTH_EMU = static_cast<int64_t>(8.5 * 914400);   // 7772400
+constexpr int64_t LEGAL_HEIGHT_EMU = static_cast<int64_t>(14.0 * 914400); // 12801600
 
 /// Executive: 7.25 × 10.5 in
-constexpr int64_t EXECUTIVE_WIDTH_EMU  = static_cast<int64_t>(7.25 * 914400);  // 6629400
-constexpr int64_t EXECUTIVE_HEIGHT_EMU = static_cast<int64_t>(10.5 * 914400);  // 9601200
+constexpr int64_t EXECUTIVE_WIDTH_EMU = static_cast<int64_t>(7.25 * 914400);  // 6629400
+constexpr int64_t EXECUTIVE_HEIGHT_EMU = static_cast<int64_t>(10.5 * 914400); // 9601200
 
 // ---------------------------------------------------------------------------
 // Functions
@@ -62,7 +62,7 @@ std::pair<int64_t, int64_t> page_size_dimensions(PageSize size);
 /// Parse a unit-bearing string like "2.54cm", "1in", "72pt", "50%".
 /// For percent, `reference_emu` is the base.
 /// Throws RenderError on invalid input.
-Length parse_length(const std::string& s, int64_t reference_emu = 0);
+Length parse_length(const std::string &s, int64_t reference_emu = 0);
 
 /// Convert EMU to OOXML twips (dxa) for table widths, margins, etc.
 int64_t emu_to_twips(int64_t emu);
@@ -76,6 +76,6 @@ int pt_to_half_points(double pt);
 /// Convert pt to OOXML eighth-points (for border widths; 1 pt = 8 eighth-pts).
 int pt_to_eighth_points(double pt);
 
-}  // namespace kstfl
+} // namespace kstfl
 
-#endif  // KSTFL_UNITS_H
+#endif // KSTFL_UNITS_H

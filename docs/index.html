@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.4.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -811,7 +811,7 @@
 <p><strong>ksTFL</strong> integrates metadata generation and document rendering in a single R package:</p>
 <ul>
 <li>The <strong>R layer</strong> generates validated JSON specifications describing document structure, content, column formats, and styles</li>
-<li>The <strong>C++ rendering engine</strong> (built-in, used by <code><a href="reference/write_doc.html">write_doc()</a></code> / <code><a href="reference/replay_report.html">replay_report()</a></code>) consumes these specifications and produces styled DOCX documents with deterministic pagination</li>
+<li>The <strong>C++ rendering engine</strong> (built-in, C++20, used by <code><a href="reference/write_doc.html">write_doc()</a></code> / <code><a href="reference/replay_report.html">replay_report()</a></code>) consumes these specifications and produces styled DOCX documents with deterministic pagination</li>
 </ul>
 <p>This architecture enables: - Metadata generation (R) and rendering (C++) are independently optimizable - Specifications are reusable, serializable, and version-controllable - The complete pipeline runs within a single R session — no external tools required - End-to-end auditability from data to final document</p>
 </div>

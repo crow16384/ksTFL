@@ -10,6 +10,7 @@
 <url><loc>https://example.com/articles/index.html</loc></url>
 <url><loc>https://example.com/authors.html</loc></url>
 <url><loc>https://example.com/index.html</loc></url>
+<url><loc>https://example.com/news/index.html</loc></url>
 <url><loc>https://example.com/reference/add_body_text.TFL_options.html</loc></url>
 <url><loc>https://example.com/reference/add_body_text.TFL_spec.html</loc></url>
 <url><loc>https://example.com/reference/add_body_text.default.html</loc></url>

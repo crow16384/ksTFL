@@ -84,6 +84,11 @@ output.
     │   parse_spec_json_string() -> TFLDocument                             │
     │   parse_data_json_string()  -> DataTable                              │
     │   resolve figure media paths for Figure specs                         │
+    │                                                                       │
+    │ Phase 1b: Enforce isColBreak layout constraints                       │
+    │   for specs with isColBreak columns: force                            │
+    │   allow_row_break_across_pages=false, repeat_header_on_each_page=true │
+    │   (warn if template values were overridden)                           │
     └───────────────────────────────────────────────────────────────────────┘
 
     ┌───────────────────────────────────────────────────────────────────────┐
@@ -179,6 +184,10 @@ Defined primarily in src/kstfl/types.h.
   - isColBreak starts a new segment
   - isID columns are repeated in each segment
   - non-ID columns are scaled to fill available segment width
+  - when isColBreak is active, the renderer enforces
+    allow_row_break_across_pages=false and
+    repeat_header_on_each_page=true (Phase 1b constraint enforcement,
+    with R warning if values are overridden)
 - Row height model:
   - baseline full-table row height is retained on LogicalRow
   - segment-specific row heights are computed and stored on each segment
@@ -213,6 +222,14 @@ override earlier ones unless marked structural/non-overridable):
 ## 9. Build and Dependencies
 
 - Language standard: C++20
+- C++20 features used:
+  - `operator<=>` (three-way comparison) for `Length`
+  - Concepts (`Mergeable`) constraining style merge templates
+  - `constexpr std::array` lookup tables for OOXML enum conversions
+  - `std::ranges::sort`, `std::ranges::any_of`, `std::ranges::transform`
+  - `using enum` in switch statements
+  - `std::to_chars` for double formatting
+  - `[[nodiscard]]` on all pure/value-returning functions
 - Core dependencies:
   - HarfBuzz
   - FreeType2
