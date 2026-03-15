@@ -109,36 +109,36 @@ output.
     │   3b) Model                                                           │
     │      LogicalTableBuilder::build()                                     │
     │      - header grid + vMerge metadata                                  │
-    │      - logical data rows                                               │
+    │      - logical data rows                                              │
     │      - styleRows actions (c_style, c_clear, c_merge, c_glue,          │
     │        c_addrow, c_pageBreak)                                         │
     │                                                                       │
     │   3c) Measure                                                         │
     │      Header rows: vMerge-aware 2-pass height balancing                │
     │      Body cells: TextMeasurer::measure_plain()                        │
-    │      - inline markup parsing                                           │
-    │      - HarfBuzz shaping                                                │
+    │      - inline markup parsing                                          │
+    │      - HarfBuzz shaping                                               │
     │      - deterministic wrapping and line-height math                    │
     │                                                                       │
     │   3d) Paginate                                                        │
     │      Paginator::paginate()                                            │
     │      - build_segments(): split by isColBreak, repeat isID columns     │
     │      - compute_row_heights(): baseline full-table heights             │
-    │      - compute_segment_column_widths(): segment width scaling          │
+    │      - compute_segment_column_widths(): segment width scaling         │
     │      - compute_segment_row_heights(): per-segment row heights         │
     │      - compute static blocks: titles/subtitles/header/footer/notes    │
     │      - vertical fill + LastPage footnote spill post-pass              │
     │                                                                       │
-    │   3e) Dedupe restoration                                               │
+    │   3e) Dedupe restoration                                              │
     │      Restore deduped values at page boundaries                        │
     └───────────────────────────────────────────────────────────────────────┘
 
     ┌───────────────────────────────────────────────────────────────────────┐
     │ Phase 4: Emit and package DOCX                                        │
-    │   DocxEmitter::emit()                                                  │
+    │   DocxEmitter::emit()                                                 │
     │   - document.xml, styles.xml, rels, header/footer parts               │
-    │   - page/section assembly, table/header/body emission                  │
-    │   - optional TOC                                                       │
+    │   - page/section assembly, table/header/body emission                 │
+    │   - optional TOC                                                      │
     │   ZipWriter: package all OOXML parts into .docx                       │
     └───────────────────────────────────────────────────────────────────────┘
 

@@ -141,15 +141,15 @@ calculation) - A `TFL_spec` object is returned ready for customization
 ### Figure spec (from image file)
 
 ``` r
-# From a file path — any image format your renderer supports (PNG, JPEG, etc.)
-spec_fig <- create_figure("path/to/plot.png")
+# From a file path — any image format your renderer supports (SVG, PNG, JPEG, etc.)
+spec_fig <- create_figure("path/to/plot.svg")
 
 # From a ggplot2 object — rendered automatically to a temporary PNG
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
-spec_fig <- create_figure(p)                         # default 6x4in, 300 dpi
-spec_fig <- create_figure(p, width = 8, height = 5) # custom dimensions
-spec_fig <- create_figure(p, device = "jpeg")        # JPEG output
+spec_fig <- create_figure(p)                         # default 300 dpi
+spec_fig <- create_figure(p, dpi=75)                 # custom dpi
+spec_fig <- create_figure(p, device = "png")         # PNG output
 ```
 
 **What happens**: - If a **file path** is given: it is validated (must
@@ -157,10 +157,12 @@ exist and be readable); the file is used as-is - If a **ggplot2 object**
 is given: rendered via
 [`ggplot2::ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html)
 to [`tempdir()`](https://rdrr.io/r/base/tempfile.html) using the
-specified `device` (default `"png"`); the resulting path is stored in
-the spec - The `width`, `height`, and `dpi` parameters only apply when a
-ggplot2 object is passed; they are ignored for file paths - The image
+specified `device` (default `"svg"`); the resulting path is stored in
+the spec - The `dpi` parameter only apply when a
+ggplot2 object is passed; it is ignored for file path - The image
 file is copied to `metaPath` when the report is saved
+
+**Note**: Use default `SVG` device if you have no strong reason for other!
 
 ### Text spec (narrative content)
 
@@ -775,7 +777,7 @@ You now understand ksTFL’s core workflow. Next steps:
   explanations](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
 - **Styling Guide**: [Comprehensive style
   reference](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd)
-- **GitHub**: [ksTFL repository](https://example.com)
+- **GitHub**: Not shared
 
 ------------------------------------------------------------------------
 
