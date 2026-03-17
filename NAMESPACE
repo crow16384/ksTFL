@@ -78,15 +78,16 @@ export(
   replay_report,
   clean_reports,
 
+  # Shiny apps
+  run_styles_editor,
+  run_replay_app,
+
   # Package options and template listing
   tfl_get_options,
   tfl_get_option,
   tfl_set_options,
   tfl_reset_options,
-  tfl_list_templates,
-
-  # Styles editor (Shiny app)
-  run_styles_editor
+  tfl_list_templates
 )
 
 # S3 method registrations for add_style

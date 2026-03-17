@@ -9,26 +9,43 @@ replay_report(
   meta_dir = NULL,
   output_path = NULL,
   template_json = NULL,
+  insertTOC = NULL,
+  tocTitle = NULL,
   verbose = FALSE
 )
 }
 \arguments{
-\item{spec_json}{Character string. Either:
+\item{spec_json}{Character string or character vector. Either:
 \itemize{
 \item A full path to a spec JSON file, or
 \item A \code{doc_file} name (e.g. \code{"test_01.docx"}) - the most
 recent spec for that document is used.
-}}
+}
+Multiple entries are allowed for merging several documents into one.}
 
-\item{meta_dir}{Character string. Path to the meta folder.  Required when
-\code{spec_json} is a \code{doc_file} name rather than a full path.}
+\item{meta_dir}{Character string or character vector. Path(s) to the meta
+folder(s).
+\itemize{
+\item A single string is recycled for every element of \code{spec_json}.
+\item A vector of the same length as \code{spec_json} provides a
+per-document meta folder.
+}
+Required when any \code{spec_json} entry is a \code{doc_file} name
+rather than a full path.}
 
 \item{output_path}{Character string. Override the output DOCX path.  If
 \code{NULL} (default), the path stored in the spec's \code{_metadata}
-(\code{outDir/docFileName}) is used.}
+(\code{outDir/docFileName}) is used.  \strong{Required} when
+\code{length(spec_json) > 1}.}
 
 \item{template_json}{Character string. Override the template JSON path.
 If \code{NULL}, resolved automatically from the spec.}
+
+\item{insertTOC}{Logical. Insert a Table of Contents.  \code{NULL}
+(default) inherits the value from the first document's metadata.}
+
+\item{tocTitle}{Character string.  TOC heading text.  \code{NULL}
+(default) inherits from the first document.}
 
 \item{verbose}{Logical. Print C++ pipeline diagnostics. Default \code{FALSE}.}
 }
@@ -39,6 +56,13 @@ Invisibly returns the path to the rendered DOCX file.
 Re-renders a DOCX document entirely from JSON files stored in the meta
 folder - no R spec objects or data frames required.  Useful for
 reproducing outputs after code changes or on a different machine.
+}
+\details{
+When a single \code{spec_json} is provided the function behaves exactly
+as before.
+When a character vector of length > 1 is given, the specs from every
+document are merged into one combined JSON and rendered into a single
+DOCX file.  \code{output_path} is required in this case.
 }
 \examples{
 \dontrun{
@@ -51,5 +75,18 @@ replay_report("abc123def456.json", meta_dir = "path/to/meta")
 # Override output location
 replay_report("test_01.docx", meta_dir = "path/to/meta",
               output_path = "~/Desktop/test_01_replay.docx")
+
+# Merge two documents from the same meta folder
+replay_report(
+  c("tables_01.docx", "listings_01.docx"),
+  meta_dir    = "path/to/meta",
+  output_path = "output/combined.docx"
+)
+
+# Merge documents from different meta folders
+replay_report(
+  c("path/to/meta_a/abc123.json", "path/to/meta_b/def456.json"),
+  output_path = "output/combined.docx"
+)
 }
 }

@@ -115,8 +115,16 @@
 #'   for fonts. The package's bundled fonts (inst/fonts/) are always included
 #'   automatically. Only fonts from these directories are used — no system
 #'   fonts are searched.
+#' @param font_dirs Character vector (optional). Additional directories to search
+#'   for fonts. The package's bundled fonts (inst/fonts/) are always included
+#'   automatically. Only fonts from these directories are used — no system
+#'   fonts are searched.
 #' @param fallback_font Character string (optional). Path to a fallback font file
 #'   (e.g., Liberation Sans). If not specified, the embedded fallback font is used.
+#' @param data_dir Character string (optional). Directory for resolving
+#'   \code{dataRef} paths. When \code{NULL} (default), the directory is
+#'   auto-computed from \code{dirname(spec_json)}. Set to \code{""} to
+#'   treat \code{dataRef} values as absolute paths.
 #' @param verbose Logical. If \code{TRUE}, print progress messages to stderr.
 #'   Default: \code{FALSE}.
 #'
@@ -178,6 +186,7 @@ render_docx <- function(spec_json,
                          output_path,
                          font_dirs = NULL,
                          fallback_font = NULL,
+                         data_dir = NULL,
                          verbose = FALSE) {
   # ---- Input validation ----
   checkmate::assert_string(spec_json)
@@ -228,8 +237,14 @@ render_docx <- function(spec_json,
     font_dirs <- c(pkg_fonts_dir, font_dirs)
   }
 
+  # ---- Determine data_dir strategy ----
+  use_custom_data_dir <- !is.null(data_dir)
+  if (!use_custom_data_dir) {
+    data_dir <- normalizePath(dirname(spec_json), mustWork = TRUE)
+  }
+
   # ---- Call C++ renderer ----
-  if (!is.null(template_json)) {
+  if (!is.null(template_json) && !use_custom_data_dir) {
     # Backward-compatible global override: one template for all specs.
     n_pages <- render_docx_impl(
       spec_json_path = spec_json,
@@ -240,36 +255,48 @@ render_docx <- function(spec_json,
       verbose = verbose
     )
   } else {
-    # Per-spec template resolution from each spec's docTemplate.
-    paths_by_spec <- .resolve_template_paths_by_spec(spec_json)
-    unique_paths <- unique(unname(unlist(paths_by_spec, use.names = FALSE)))
+    spec_json_str <- paste(readLines(spec_json, warn = FALSE), collapse = "\n")
 
-    if (length(unique_paths) == 1L) {
-      # Fast path: all specs use same template.
-      n_pages <- render_docx_impl(
-        spec_json_path = spec_json,
-        template_json_path = unique_paths[[1L]],
-        output_path = output_path,
-        font_dirs = font_dirs,
-        fallback_font = fallback_font,
-        verbose = verbose
-      )
+    if (!is.null(template_json)) {
+      # Global template override with custom data_dir.
+      template_payload <- paste(readLines(template_json, warn = FALSE), collapse = "\n")
     } else {
-      # Multi-template path: embed per-spec templates in payload.
-      spec_json_str <- paste(readLines(spec_json, warn = FALSE), collapse = "\n")
-      template_payload <- .build_multi_template_payload(paths_by_spec)
-      data_dir <- normalizePath(dirname(spec_json), mustWork = TRUE)
+      # Per-spec template resolution from each spec's docTemplate.
+      paths_by_spec <- .resolve_template_paths_by_spec(spec_json)
+      unique_paths <- unique(unname(unlist(paths_by_spec, use.names = FALSE)))
 
-      n_pages <- render_docx_from_strings_impl(
-        spec_json = spec_json_str,
-        template_json = template_payload,
-        output_path = output_path,
-        data_dir = data_dir,
-        font_dirs = font_dirs,
-        fallback_font = fallback_font,
-        verbose = verbose
-      )
+      if (length(unique_paths) == 1L && !use_custom_data_dir) {
+        # Fast path: single template, default data_dir → use file-based impl.
+        n_pages <- render_docx_impl(
+          spec_json_path = spec_json,
+          template_json_path = unique_paths[[1L]],
+          output_path = output_path,
+          font_dirs = font_dirs,
+          fallback_font = fallback_font,
+          verbose = verbose
+        )
+
+        page_label <- if (!is.null(n_pages) && length(n_pages) == 1L && n_pages != 1L) "pages" else "page"
+        cli::cli_alert_success("DOCX rendered: {.path {output_path}} ({n_pages} {page_label})")
+        return(invisible(output_path))
+      }
+
+      if (length(unique_paths) == 1L) {
+        template_payload <- paste(readLines(unique_paths[[1L]], warn = FALSE), collapse = "\n")
+      } else {
+        template_payload <- .build_multi_template_payload(paths_by_spec)
+      }
     }
+
+    n_pages <- render_docx_from_strings_impl(
+      spec_json = spec_json_str,
+      template_json = template_payload,
+      output_path = output_path,
+      data_dir = data_dir,
+      font_dirs = font_dirs,
+      fallback_font = fallback_font,
+      verbose = verbose
+    )
   }
 
   page_label <- if (!is.null(n_pages) && length(n_pages) == 1L && n_pages != 1L) "pages" else "page"

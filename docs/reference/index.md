@@ -79,6 +79,8 @@
   settings
 - [`replay_report()`](https://example.com/reference/replay_report.md) :
   Re-render a DOCX from Stored JSON
+- [`run_replay_app()`](https://example.com/reference/run_replay_app.md)
+  : Launch the Combined Replay Shiny App
 - [`run_styles_editor()`](https://example.com/reference/run_styles_editor.md)
   : Launch the styles template editor Shiny app
 - [`s_border()`](https://example.com/reference/s_border.md) : Define

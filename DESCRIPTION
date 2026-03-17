@@ -1,7 +1,7 @@
 Package: ksTFL
 Type: Package
 Title: Framework for Clinical Tables, Figures, and Listings
-Version: 0.5.2
+Version: 0.5.3
 Authors@R:
     c(
     person("Igor", "Aleschenkov",
@@ -46,7 +46,9 @@ Suggests:
     rmarkdown,
     ggplot2,
     shiny,
-    colourpicker
+    colourpicker,
+    sortable,
+    shinyFiles
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3

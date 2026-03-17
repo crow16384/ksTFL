@@ -11,7 +11,7 @@ reproducing outputs after code changes or on a different machine."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,6 +49,8 @@ reproducing outputs after code changes or on a different machine.</p>
 <span>  meta_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  output_path <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  template_json <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  insertTOC <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tocTitle <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -58,26 +60,41 @@ reproducing outputs after code changes or on a different machine.</p>
 
 
 <dl><dt id="arg-spec-json">spec_json<a class="anchor" aria-label="anchor" href="#arg-spec-json"></a></dt>
-<dd><p>Character string. Either:</p><ul><li><p>A full path to a spec JSON file, or</p></li>
+<dd><p>Character string or character vector. Either:</p><ul><li><p>A full path to a spec JSON file, or</p></li>
 <li><p>A <code>doc_file</code> name (e.g. <code>"test_01.docx"</code>) - the most
 recent spec for that document is used.</p></li>
-</ul></dd>
+</ul><p>Multiple entries are allowed for merging several documents into one.</p></dd>
 
 
 <dt id="arg-meta-dir">meta_dir<a class="anchor" aria-label="anchor" href="#arg-meta-dir"></a></dt>
-<dd><p>Character string. Path to the meta folder.  Required when
-<code>spec_json</code> is a <code>doc_file</code> name rather than a full path.</p></dd>
+<dd><p>Character string or character vector. Path(s) to the meta
+folder(s).</p><ul><li><p>A single string is recycled for every element of <code>spec_json</code>.</p></li>
+<li><p>A vector of the same length as <code>spec_json</code> provides a
+per-document meta folder.</p></li>
+</ul><p>Required when any <code>spec_json</code> entry is a <code>doc_file</code> name
+rather than a full path.</p></dd>
 
 
 <dt id="arg-output-path">output_path<a class="anchor" aria-label="anchor" href="#arg-output-path"></a></dt>
 <dd><p>Character string. Override the output DOCX path.  If
 <code>NULL</code> (default), the path stored in the spec's <code>_metadata</code>
-(<code>outDir/docFileName</code>) is used.</p></dd>
+(<code>outDir/docFileName</code>) is used.  <strong>Required</strong> when
+<code>length(spec_json) &gt; 1</code>.</p></dd>
 
 
 <dt id="arg-template-json">template_json<a class="anchor" aria-label="anchor" href="#arg-template-json"></a></dt>
 <dd><p>Character string. Override the template JSON path.
 If <code>NULL</code>, resolved automatically from the spec.</p></dd>
+
+
+<dt id="arg-inserttoc">insertTOC<a class="anchor" aria-label="anchor" href="#arg-inserttoc"></a></dt>
+<dd><p>Logical. Insert a Table of Contents.  <code>NULL</code>
+(default) inherits the value from the first document's metadata.</p></dd>
+
+
+<dt id="arg-toctitle">tocTitle<a class="anchor" aria-label="anchor" href="#arg-toctitle"></a></dt>
+<dd><p>Character string.  TOC heading text.  <code>NULL</code>
+(default) inherits from the first document.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -87,6 +104,14 @@ If <code>NULL</code>, resolved automatically from the spec.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Invisibly returns the path to the rendered DOCX file.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>When a single <code>spec_json</code> is provided the function behaves exactly
+as before.
+When a character vector of length &gt; 1 is given, the specs from every
+document are merged into one combined JSON and rendered into a single
+DOCX file.  <code>output_path</code> is required in this case.</p>
     </div>
 
     <div class="section level2">
@@ -101,6 +126,19 @@ If <code>NULL</code>, resolved automatically from the spec.</p></dd>
 <span class="r-in"><span><span class="co"># Override output location</span></span></span>
 <span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span><span class="st">"test_01.docx"</span>, meta_dir <span class="op">=</span> <span class="st">"path/to/meta"</span>,</span></span>
 <span class="r-in"><span>              output_path <span class="op">=</span> <span class="st">"~/Desktop/test_01_replay.docx"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Merge two documents from the same meta folder</span></span></span>
+<span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tables_01.docx"</span>, <span class="st">"listings_01.docx"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  meta_dir    <span class="op">=</span> <span class="st">"path/to/meta"</span>,</span></span>
+<span class="r-in"><span>  output_path <span class="op">=</span> <span class="st">"output/combined.docx"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Merge documents from different meta folders</span></span></span>
+<span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"path/to/meta_a/abc123.json"</span>, <span class="st">"path/to/meta_b/def456.json"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  output_path <span class="op">=</span> <span class="st">"output/combined.docx"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

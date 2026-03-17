@@ -12,6 +12,8 @@ replay_report(
   meta_dir = NULL,
   output_path = NULL,
   template_json = NULL,
+  insertTOC = NULL,
+  tocTitle = NULL,
   verbose = FALSE
 )
 ```
@@ -20,28 +22,47 @@ replay_report(
 
 - spec_json:
 
-  Character string. Either:
+  Character string or character vector. Either:
 
   - A full path to a spec JSON file, or
 
   - A `doc_file` name (e.g. `"test_01.docx"`) - the most recent spec for
     that document is used.
 
+  Multiple entries are allowed for merging several documents into one.
+
 - meta_dir:
 
-  Character string. Path to the meta folder. Required when `spec_json`
-  is a `doc_file` name rather than a full path.
+  Character string or character vector. Path(s) to the meta folder(s).
+
+  - A single string is recycled for every element of `spec_json`.
+
+  - A vector of the same length as `spec_json` provides a per-document
+    meta folder.
+
+  Required when any `spec_json` entry is a `doc_file` name rather than a
+  full path.
 
 - output_path:
 
   Character string. Override the output DOCX path. If `NULL` (default),
   the path stored in the spec's `_metadata` (`outDir/docFileName`) is
-  used.
+  used. **Required** when `length(spec_json) > 1`.
 
 - template_json:
 
   Character string. Override the template JSON path. If `NULL`, resolved
   automatically from the spec.
+
+- insertTOC:
+
+  Logical. Insert a Table of Contents. `NULL` (default) inherits the
+  value from the first document's metadata.
+
+- tocTitle:
+
+  Character string. TOC heading text. `NULL` (default) inherits from the
+  first document.
 
 - verbose:
 
@@ -50,6 +71,13 @@ replay_report(
 ## Value
 
 Invisibly returns the path to the rendered DOCX file.
+
+## Details
+
+When a single `spec_json` is provided the function behaves exactly as
+before. When a character vector of length \> 1 is given, the specs from
+every document are merged into one combined JSON and rendered into a
+single DOCX file. `output_path` is required in this case.
 
 ## Examples
 
@@ -64,5 +92,18 @@ replay_report("abc123def456.json", meta_dir = "path/to/meta")
 # Override output location
 replay_report("test_01.docx", meta_dir = "path/to/meta",
               output_path = "~/Desktop/test_01_replay.docx")
+
+# Merge two documents from the same meta folder
+replay_report(
+  c("tables_01.docx", "listings_01.docx"),
+  meta_dir    = "path/to/meta",
+  output_path = "output/combined.docx"
+)
+
+# Merge documents from different meta folders
+replay_report(
+  c("path/to/meta_a/abc123.json", "path/to/meta_b/def456.json"),
+  output_path = "output/combined.docx"
+)
 } # }
 ```

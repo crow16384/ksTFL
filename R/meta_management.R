@@ -333,19 +333,38 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
 #' folder - no R spec objects or data frames required.  Useful for
 #' reproducing outputs after code changes or on a different machine.
 #'
-#' @param spec_json Character string. Either:
+#' When a single \code{spec_json} is provided the function behaves exactly
+#' as before.
+#' When a character vector of length > 1 is given, the specs from every
+#' document are merged into one combined JSON and rendered into a single
+#' DOCX file.  \code{output_path} is required in this case.
+#'
+#' @param spec_json Character string or character vector. Either:
 #'   \itemize{
 #'     \item A full path to a spec JSON file, or
 #'     \item A \code{doc_file} name (e.g. \code{"test_01.docx"}) - the most
 #'       recent spec for that document is used.
 #'   }
-#' @param meta_dir Character string. Path to the meta folder.  Required when
-#'   \code{spec_json} is a \code{doc_file} name rather than a full path.
+#'   Multiple entries are allowed for merging several documents into one.
+#' @param meta_dir Character string or character vector. Path(s) to the meta
+#'   folder(s).
+#'   \itemize{
+#'     \item A single string is recycled for every element of \code{spec_json}.
+#'     \item A vector of the same length as \code{spec_json} provides a
+#'       per-document meta folder.
+#'   }
+#'   Required when any \code{spec_json} entry is a \code{doc_file} name
+#'   rather than a full path.
 #' @param output_path Character string. Override the output DOCX path.  If
 #'   \code{NULL} (default), the path stored in the spec's \code{_metadata}
-#'   (\code{outDir/docFileName}) is used.
+#'   (\code{outDir/docFileName}) is used.  \strong{Required} when
+#'   \code{length(spec_json) > 1}.
 #' @param template_json Character string. Override the template JSON path.
 #'   If \code{NULL}, resolved automatically from the spec.
+#' @param insertTOC Logical. Insert a Table of Contents.  \code{NULL}
+#'   (default) inherits the value from the first document's metadata.
+#' @param tocTitle Character string.  TOC heading text.  \code{NULL}
+#'   (default) inherits from the first document.
 #' @param verbose Logical. Print C++ pipeline diagnostics. Default \code{FALSE}.
 #'
 #' @return Invisibly returns the path to the rendered DOCX file.
@@ -361,42 +380,186 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
 #' # Override output location
 #' replay_report("test_01.docx", meta_dir = "path/to/meta",
 #'               output_path = "~/Desktop/test_01_replay.docx")
+#'
+#' # Merge two documents from the same meta folder
+#' replay_report(
+#'   c("tables_01.docx", "listings_01.docx"),
+#'   meta_dir    = "path/to/meta",
+#'   output_path = "output/combined.docx"
+#' )
+#'
+#' # Merge documents from different meta folders
+#' replay_report(
+#'   c("path/to/meta_a/abc123.json", "path/to/meta_b/def456.json"),
+#'   output_path = "output/combined.docx"
+#' )
 #' }
 replay_report <- function(spec_json,
                            meta_dir   = NULL,
                            output_path  = NULL,
                            template_json = NULL,
+                           insertTOC  = NULL,
+                           tocTitle   = NULL,
                            verbose = FALSE) {
-  checkmate::assert_string(spec_json)
+  checkmate::assert_character(spec_json, min.len = 1L, any.missing = FALSE)
 
-  # --- Resolve spec JSON path ---
-  spec_path <- .resolve_spec_path(spec_json, meta_dir)
-
-  # --- Read _metadata for default output path ---
-  meta <- tryCatch(.collect_spec_meta(spec_path), error = function(e) NULL)
-  if (is.null(meta)) {
-    cli::cli_abort(c(
-      "{.path {spec_path}} does not appear to be a spec JSON.",
-      i = "Expected a JSON with a {.field _metadata} key."
-    ))
+  # --- Recycle / validate meta_dir ---
+  if (!is.null(meta_dir)) {
+    checkmate::assert_character(meta_dir, min.len = 1L, any.missing = FALSE)
+    if (length(meta_dir) == 1L) {
+      meta_dir <- rep(meta_dir, length(spec_json))
+    }
+    if (length(meta_dir) != length(spec_json)) {
+      cli::cli_abort(
+        "{.arg meta_dir} must be length 1 (recycled) or the same length as {.arg spec_json}."
+      )
+    }
   }
 
-  # --- Resolve output path ---
+  # ----- Single-document path (original behaviour) ------
+  if (length(spec_json) == 1L) {
+    md <- if (!is.null(meta_dir)) meta_dir[[1L]] else NULL
+    spec_path <- .resolve_spec_path(spec_json, md)
+
+    meta <- tryCatch(.collect_spec_meta(spec_path), error = function(e) NULL)
+    if (is.null(meta)) {
+      cli::cli_abort(c(
+        "{.path {spec_path}} does not appear to be a spec JSON.",
+        i = "Expected a JSON with a {.field _metadata} key."
+      ))
+    }
+
+    if (is.null(output_path)) {
+      output_path <- file.path(meta$out_dir, meta$doc_file)
+    }
+    checkmate::assert_string(output_path)
+
+    cli::cli_alert_info("Replaying {.val {meta$doc_file}} from {.path {spec_path}}")
+
+    render_docx(
+      spec_json     = spec_path,
+      template_json = template_json,
+      output_path   = output_path,
+      verbose       = verbose
+    )
+
+    return(invisible(output_path))
+  }
+
+  # ----- Multi-document merge path -----
   if (is.null(output_path)) {
-    output_path <- file.path(meta$out_dir, meta$doc_file)
+    cli::cli_abort(
+      "{.arg output_path} is required when merging multiple documents."
+    )
   }
   checkmate::assert_string(output_path)
 
-  cli::cli_alert_info("Replaying {.val {meta$doc_file}} from {.path {spec_path}}")
+  # Build a per-element meta_dir vector (NULLs where not needed)
+  md_vec <- if (!is.null(meta_dir)) meta_dir else rep(list(NULL), length(spec_json))
+
+  combined_json <- .merge_spec_jsons(
+    spec_jsons = spec_json,
+    meta_dirs  = md_vec,
+    insertTOC  = insertTOC,
+    tocTitle   = tocTitle,
+    output_path = output_path
+  )
+  on.exit(unlink(combined_json), add = TRUE)
+
+  n_inputs <- length(spec_json)
+  cli::cli_alert_info(
+    "Merging {n_inputs} document{?s} into {.path {output_path}}"
+  )
 
   render_docx(
-    spec_json     = spec_path,
+    spec_json     = combined_json,
     template_json = template_json,
     output_path   = output_path,
+    data_dir      = "",
     verbose       = verbose
   )
 
   invisible(output_path)
+}
+
+
+#' Merge multiple spec JSONs into a single combined JSON
+#'
+#' Reads each spec JSON, makes dataRef paths absolute, renumbers docOrder
+#' sequentially, and writes one combined JSON to a temp file.
+#' @keywords internal
+#' @noRd
+.merge_spec_jsons <- function(spec_jsons, meta_dirs, insertTOC, tocTitle,
+                              output_path) {
+  all_specs    <- list()
+  first_meta   <- NULL
+
+  for (i in seq_along(spec_jsons)) {
+    md <- if (is.character(meta_dirs)) meta_dirs[[i]] else meta_dirs[[i]]
+    spec_path <- .resolve_spec_path(spec_jsons[[i]], md)
+
+    d <- jsonlite::fromJSON(spec_path, simplifyVector = FALSE)
+    if (is.null(d[["_metadata"]])) {
+      cli::cli_abort(c(
+        "{.path {spec_path}} does not appear to be a spec JSON.",
+        i = "Expected a JSON with a {.field _metadata} key."
+      ))
+    }
+
+    if (is.null(first_meta)) first_meta <- d[["_metadata"]]
+    spec_data_dir <- dirname(spec_path)
+    spec_keys <- setdiff(names(d), "_metadata")
+
+    for (k in spec_keys) {
+      entry <- d[[k]]
+
+      # Make dataRef absolute so the C++ renderer finds files
+      # regardless of which meta folder they came from.
+      # Keep as list so jsonlite serializes as JSON array (not scalar).
+      if (!is.null(entry[["dataRef"]])) {
+        entry[["dataRef"]] <- lapply(entry[["dataRef"]], function(ref) {
+          abs_path <- file.path(spec_data_dir, ref)
+          # Check base name, .json suffix, and common image extensions
+          candidates <- c(abs_path, paste0(abs_path, ".json"),
+                          paste0(abs_path, c(".png", ".jpg", ".jpeg", ".svg")))
+          if (any(file.exists(candidates))) {
+            normalizePath(abs_path, mustWork = FALSE)
+          } else {
+            ref
+          }
+        })
+      }
+
+      # Ensure unique key across reports
+      final_key <- k
+      if (final_key %in% names(all_specs)) {
+        final_key <- paste0(final_key, "_r", i)
+      }
+      all_specs[[final_key]] <- entry
+    }
+  }
+
+  # Renumber docOrder sequentially (C++ sorts by this field)
+  for (j in seq_along(all_specs)) {
+    all_specs[[j]][["document"]][["docOrder"]] <- j
+  }
+
+  # Build combined _metadata
+  combined_meta <- first_meta
+  combined_meta[["docFileName"]] <- basename(output_path)
+  combined_meta[["outDir"]]      <- normalizePath(dirname(output_path),
+                                                   mustWork = FALSE)
+  combined_meta[["datetime"]]    <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S")
+  if (!is.null(insertTOC)) combined_meta[["insertTOC"]] <- insertTOC
+  if (!is.null(tocTitle))  combined_meta[["tocTitle"]]  <- tocTitle
+
+  final <- c(list(`_metadata` = combined_meta), all_specs)
+
+  tmp <- tempfile(fileext = ".json")
+  json_out <- jsonlite::toJSON(final, auto_unbox = TRUE, digits = NA,
+                               null = "null")
+  writeLines(json_out, con = tmp)
+  tmp
 }
 
 #' Resolve a spec JSON path from a name or path
@@ -430,8 +593,8 @@ replay_report <- function(spec_json,
       i = "Use {.fn list_reports} to see available documents."
     ))
   }
-  # Pick the most recent
-  latest <- matches[which.max(matches$datetime), ]
+  # Pick the most recent (datetime is ISO-8601, lexicographic order works)
+  latest <- matches[order(matches$datetime, decreasing = TRUE)[1L], ]
   normalizePath(file.path(meta_dir, latest$spec_file))
 }
 

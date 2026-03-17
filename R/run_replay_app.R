@@ -1,0 +1,50 @@
+#' Launch the Combined Replay Shiny App
+#'
+#' Opens an interactive Shiny application for selecting, reordering, and
+#' replaying multiple saved reports into a single combined DOCX document.
+#' Reports can be loaded from one or more meta folders, reordered via
+#' drag-and-drop, and rendered with optional TOC settings.
+#'
+#' This function requires the \code{shiny}, \code{sortable}, and
+#' \code{shinyFiles} packages.
+#'
+#' @param meta_dir Character string (optional). Default meta folder path
+#'   to pre-populate in the app.  If \code{NULL}, the user must enter a
+#'   path manually.
+#' @param ... Additional arguments passed to [shiny::runApp()], such as
+#'   \code{launch.browser = TRUE}.
+#'
+#' @return Invisibly returns the result of [shiny::runApp()].
+#'
+#' @examples
+#' \dontrun{
+#' run_replay_app()
+#' run_replay_app(meta_dir = "path/to/meta")
+#' }
+#'
+#' @export
+run_replay_app <- function(meta_dir = NULL, ...) {
+  if (!requireNamespace("shiny", quietly = TRUE)) {
+    stop("The 'shiny' package is required. Please install it.", call. = FALSE)
+  }
+  if (!requireNamespace("sortable", quietly = TRUE)) {
+    stop("The 'sortable' package is required for drag-and-drop reordering. Please install it.",
+         call. = FALSE)
+  }
+  if (!requireNamespace("shinyFiles", quietly = TRUE)) {
+    stop("The 'shinyFiles' package is required for directory choosers. Please install it.",
+         call. = FALSE)
+  }
+
+  app_dir <- system.file("shiny", "replay_app", package = "ksTFL")
+  if (!nzchar(app_dir)) {
+    stop("Cannot find the replay app directory inside the ksTFL package.",
+         call. = FALSE)
+  }
+
+  old_opt <- getOption("ksTFL.replay_app.meta_dir")
+  options(ksTFL.replay_app.meta_dir = meta_dir)
+  on.exit(options(ksTFL.replay_app.meta_dir = old_opt), add = TRUE)
+
+  shiny::runApp(app_dir, ...)
+}

@@ -1,3 +1,22 @@
+# ksTFL 0.5.3
+
+## New Features
+
+* `replay_report()` now supports replaying multiple reports into one combined DOCX.
+* Added `run_replay_app()` and a new replay Shiny app for selecting reports across multiple meta folders, drag-and-drop reordering, and combined rendering.
+* Added an RStudio addin entry for the replay app.
+
+## Improvements
+
+* Added optional `data_dir` handling in `render_docx()` to support robust replay of specs from different meta directories.
+* Replay app now supports folder browsing for both input meta directories and output directory selection.
+
+## Bug Fixes
+
+* Fixed latest-spec selection logic in `.resolve_spec_path()` when datetimes are character values.
+* Fixed merged replay `dataRef` serialization so C++ receives JSON arrays (restores table data loading in combined replay).
+* Improved replay resource resolution for figure assets (`.png`, `.jpg`, `.jpeg`, `.svg`).
+
 # ksTFL 0.5.0
 
 ## C++20 Modernization
