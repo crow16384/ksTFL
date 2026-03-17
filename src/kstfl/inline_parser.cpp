@@ -1,6 +1,6 @@
 // kstfl/inline_parser.cpp — Stack-based inline markup parser
 //
-// Supported tags: <sup>, <sub>, <b>, <i>, <u>, <br>, <p>
+// Supported tags: <sup>, <sub>, <b>, <i>, <u>, <s>, <br>, <p>
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
@@ -20,19 +20,20 @@ namespace kstfl {
 /// Recognized inline tag names.
 enum class TagType {
   Unknown,
-  Sup,       // <sup>
-  Sub,       // <sub>
-  Bold,      // <b>
-  Italic,    // <i>
-  Underline, // <u>
-  Br,        // <br> or <br/>
-  Para       // <p>
+  Sup,           // <sup>
+  Sub,           // <sub>
+  Bold,          // <b>
+  Italic,        // <i>
+  Underline,     // <u>
+  Strikethrough, // <s>
+  Br,            // <br> or <br/>
+  Para           // <p>
 };
 
 static TagType classify_tag(const std::string &name) {
   static const std::unordered_map<std::string_view, TagType> tag_map{
-      {"sup", TagType::Sup},     {"sub", TagType::Sub}, {"b", TagType::Bold}, {"i", TagType::Italic},
-      {"u", TagType::Underline}, {"br", TagType::Br},   {"p", TagType::Para}};
+      {"sup", TagType::Sup},     {"sub", TagType::Sub},         {"b", TagType::Bold}, {"i", TagType::Italic},
+      {"u", TagType::Underline}, {"s", TagType::Strikethrough}, {"br", TagType::Br},  {"p", TagType::Para}};
   std::string lower;
   lower.reserve(name.size());
   for (char c : name)
@@ -83,6 +84,7 @@ struct ParserState {
   bool bold = false;
   bool italic = false;
   bool underline = false;
+  bool strikethrough = false;
   bool superscript = false;
   bool subscript = false;
 
@@ -91,6 +93,7 @@ struct ParserState {
     rs.bold_override = bold;
     rs.italic_override = italic;
     rs.underline_override = underline;
+    rs.strikethrough_override = strikethrough;
     rs.superscript = superscript;
     rs.subscript = subscript;
     return rs;
@@ -112,6 +115,9 @@ struct ParserState {
         break;
       case Underline:
         s.underline = true;
+        break;
+      case Strikethrough:
+        s.strikethrough = true;
         break;
       case Sup:
         s.superscript = true;

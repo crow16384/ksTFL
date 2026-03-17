@@ -162,6 +162,7 @@ static FontProps parse_font_props(const json &j) {
   fp.bold = jutil::opt<bool>(j, "bold");
   fp.italic = jutil::opt<bool>(j, "italic");
   fp.underline = jutil::opt<bool>(j, "underline");
+  fp.strikethrough = jutil::opt<bool>(j, "strikethrough");
 
   auto c = jutil::opt<std::string>(j, "color");
   if (c.has_value()) fp.color = Color::parse(*c);

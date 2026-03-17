@@ -494,6 +494,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param bold Logical. Whether text should be bold
 #' @param italic Logical. Whether text should be italic
 #' @param underline Logical. Whether text should be underlined
+#' @param strikethrough Logical. Whether text should have strikethrough
 #' @param color Character. Text color as hex code (e.g., "#000000") or color name (e.g., "red", "blue")
 #' @param highlight Character. Background highlight color as hex code or color name
 #'
@@ -502,8 +503,8 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @keywords internal
 #' @noRd
 .font_spec <- function(font_name = NULL, font_size = NULL, bold = NULL, 
-                       italic = NULL, underline = NULL, color = NULL, 
-                       highlight = NULL) {
+                       italic = NULL, underline = NULL, strikethrough = NULL,
+                       color = NULL, highlight = NULL) {
   params <- as.list(environment())
   params <- params[!sapply(params, is.null)]
   
@@ -540,6 +541,9 @@ assign("stack", character(0), envir = .context_marker_env)
   }
   if (!is.null(underline) && !is.logical(underline)) {
     cli_abort("{.arg underline} must be logical (TRUE/FALSE) in {.fn .font_spec}")
+  }
+  if (!is.null(strikethrough) && !is.logical(strikethrough)) {
+    cli_abort("{.arg strikethrough} must be logical (TRUE/FALSE) in {.fn .font_spec}")
   }
   
   params
@@ -879,6 +883,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @param bold Logical, whether text is bold
 #' @param italic Logical, whether text is italic
 #' @param underline Logical, whether text is underlined
+#' @param strikethrough Logical, whether text has strikethrough
 #' @param color Text color as hex (e.g., "#000000") or color name (e.g., "red", "blue")
 #' @param highlight Background highlight color as hex (e.g., "#FFFF00") or color name (e.g., "yellow")
 #' 
@@ -895,8 +900,8 @@ assign("stack", character(0), envir = .context_marker_env)
 #'   )
 #' }
 s_font <- function(font_name = NULL, font_size = NULL, bold = NULL, 
-                   italic = NULL, underline = NULL, color = NULL, 
-                   highlight = NULL) {
+                   italic = NULL, underline = NULL, strikethrough = NULL,
+                   color = NULL, highlight = NULL) {
   .assert_context(c("add_style"), "s_font")
   
   spec <- .font_spec(
@@ -905,6 +910,7 @@ s_font <- function(font_name = NULL, font_size = NULL, bold = NULL,
     bold = bold,
     italic = italic,
     underline = underline,
+    strikethrough = strikethrough,
     color = color,
     highlight = highlight
   )

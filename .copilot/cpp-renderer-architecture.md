@@ -45,7 +45,7 @@
 | **R-callable via Rcpp** | `render_docx(spec_json, data_dir, template_json, output_path)` |
 | **HarfBuzz-based text measurement** | Accurate glyph-level widths for table layout and pagination |
 | **Font cache** | Amortize FreeType face loading across the entire report |
-| **Inline markup** | Support `<sup>`, `<sub>`, `<br>`, `<p>`, `<b>`, `<i>` in cell values |
+| **Inline markup** | Support `<sup>`, `<sub>`, `<br>`, `<p>`, `<b>`, `<i>`, `<u>`, `<s>` in cell values |
 | **Streaming OOXML** | Memory-efficient XML generation; no DOM tree in memory |
 | **Thread-safe** | Stateless rendering; parallel spec processing possible |
 
@@ -679,7 +679,7 @@ When rendering a cell, styles cascade in this order (later wins):
 4. StylesTemplate.table_style.structural.tableBody ── non-overridable structural
 5. spec.styles[column.format.valueStyleRef]       ── column-level style
 6. spec.styles[rowAction.style.styleRef]          ── row-level conditional style
-7. (inline markup)                                ── cell-level inline <b>, <i>, <sup>, <sub>
+7. (inline markup)                                ── cell-level inline <b>, <i>, <u>, <s>, <sup>, <sub>
 ```
 
 Merge algorithm for `StyleDef`:
@@ -1191,6 +1191,7 @@ Cell text values may contain simple HTML-like markup for mixed-style runs:
 | `<b>text</b>` | Bold | `<w:b/>` |
 | `<i>text</i>` | Italic | `<w:i/>` |
 | `<u>text</u>` | Underline | `<w:u w:val="single"/>` |
+| `<s>text</s>` | Strikethrough | `<w:strike/>` |
 | `<br>` or `<br/>` | Line break | `<w:br/>` |
 | `<p>text</p>` | Separate paragraph | New `<w:p>` element |
 
@@ -1207,6 +1208,7 @@ struct TextRun {
     std::optional<bool> bold_override;
     std::optional<bool> italic_override;
     std::optional<bool> underline_override;
+    std::optional<bool> strikethrough_override;
     
     bool is_line_break = false;      // <br>
     bool is_paragraph_break = false; // <p>

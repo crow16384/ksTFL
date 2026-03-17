@@ -7,8 +7,8 @@ sections <- c("Age (years)", "Sex", "Race")
 
 raw <- tibble(
   SECTION = c(
-    rep("Age (years)", 6),
-    rep("Sex", 3),
+    rep("Age (<s>years</s>)", 6),
+    rep("<u>Sex</u>", 3),
     rep("Race", 4)
   ),
   STAT = c(
@@ -64,4 +64,6 @@ spec <- create_table(raw) %>%
   ) %>%
   set_document(contentWidth = "75%", docTemplate = "Classic_landscape_aptos")
 
-create_report(spec) %>% write_doc("01_clinical_table", toc = TRUE, metaPath = meta_dir)
+list_reports()
+
+create_report(spec) %>% write_doc("01_clinical_table", toc = TRUE)

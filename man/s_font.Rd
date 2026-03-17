@@ -10,6 +10,7 @@ s_font(
   bold = NULL,
   italic = NULL,
   underline = NULL,
+  strikethrough = NULL,
   color = NULL,
   highlight = NULL
 )
@@ -25,6 +26,8 @@ s_font(
 \item{italic}{Logical, whether text is italic}
 
 \item{underline}{Logical, whether text is underlined}
+
+\item{strikethrough}{Logical, whether text has strikethrough}
 
 \item{color}{Text color as hex (e.g., "#000000") or color name (e.g., "red", "blue")}
 

@@ -1,6 +1,6 @@
 suppressPackageStartupMessages({
-  library(ksTFL)
-  #devtools::load_all()
+  #library(ksTFL)
+  devtools::load_all()
   library(dplyr)
   library(tidyr)
   library(tibble)
@@ -20,7 +20,8 @@ tfl_set_options(
   add_header("Study: Miracle Drug 001"),
   add_footer(c("Showcase examples", "Program: inst/examples/showcase")),
   output_directory = out_dir,
-  footnotePlace = "repeated"
+  footnotePlace = "repeated",
+  meta_directory = file.path(out_dir, "meta")
 )
 
 cat("Showcase output:", out_dir, "\n")

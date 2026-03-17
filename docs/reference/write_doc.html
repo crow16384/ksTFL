@@ -11,7 +11,7 @@ immediately renders it to a DOCX file in a single call."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,7 +48,7 @@ immediately renders it to a DOCX file in a single call.</p>
 <span>  <span class="va">report</span>,</span>
 <span>  <span class="va">name</span>,</span>
 <span>  outDir <span class="op">=</span> <span class="fu"><a href="tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"output_directory"</span><span class="op">)</span>,</span>
-<span>  metaPath <span class="op">=</span> <span class="fu"><a href="tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"meta_directory"</span><span class="op">)</span>,</span>
+<span>  metaPath <span class="op">=</span> <span class="fu"><a href="tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"meta_directory"</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Control.html" class="external-link">%||%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  prettify <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  toc <span class="op">=</span> <span class="fu"><a href="tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"insertTOC"</span><span class="op">)</span>,</span>
 <span>  tocTitle <span class="op">=</span> <span class="fu"><a href="tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"tocTitle"</span><span class="op">)</span>,</span>

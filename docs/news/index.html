@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,28 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.4" id="kstfl-054">ksTFL 0.5.4<a class="anchor" aria-label="anchor" href="#kstfl-054"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-5-4">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-4"></a></h3>
+<ul><li>Added inline strikethrough support via <code>&lt;s&gt;...&lt;/s&gt;</code> in the C++ renderer, including OOXML emission (<code>&lt;w:strike/&gt;</code>), JSON parsing, and style API support (<code>s_font(strikethrough = ...)</code>).</li>
+<li>
+<code><a href="../reference/replay_report.html">replay_report()</a></code> now supports <code>overrideTemplate</code> (bundled template name or custom JSON path), matching <code><a href="../reference/write_doc.html">write_doc()</a></code> behavior.</li>
+<li>Combined replay Shiny app now supports both predefined template selection and custom template JSON paths.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="improvements-0-5-4">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-4"></a></h3>
+<ul><li>
+<code><a href="../reference/list_reports.html">list_reports()</a></code>, <code><a href="../reference/replay_report.html">replay_report()</a></code>, and <code><a href="../reference/clean_reports.html">clean_reports()</a></code> now default <code>meta_dir</code> to <code>tfl_get_option("meta_directory")</code>.</li>
+<li>
+<code><a href="../reference/write_doc.html">write_doc()</a></code> now safely falls back to <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> when <code>meta_directory</code> is not configured.</li>
+<li>Improved Aptos font resolution in the font cache (<code>Aptos.ttf</code> regular face lookup).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-0-5-4">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-4"></a></h3>
+<ul><li>Functions that rely on meta artifacts now raise a clear error when neither <code>meta_dir</code> argument nor <code>meta_directory</code> option is set.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.3" id="kstfl-053">ksTFL 0.5.3<a class="anchor" aria-label="anchor" href="#kstfl-053"></a></h2>
 <div class="section level3">

@@ -165,7 +165,7 @@ bridge into the standard testthat runner via `tests/testthat/test-18-cpp-units.R
 | Rcpp export | Module tested | Main assertions |
 |---|---|---|
 | `cpp_test_units()` | `units.cpp` | `parse_length` (all units + errors), `Color::parse`, conversions (`emu_to_twips` etc.), `page_size_dimensions`, `Length` arithmetic, `border_line_style_to_ooxml`, `alignment_to_ooxml` |
-| `cpp_test_inline_parser()` | `inline_parser.cpp` | `has_inline_markup`, plain text, `<b>/<i>/<u>/<sup>/<sub>`, nesting, `<br/>/<p>`, case-insensitivity, unknown tags |
+| `cpp_test_inline_parser()` | `inline_parser.cpp` | `has_inline_markup`, plain text, `<b>/<i>/<u>/<s>/<sup>/<sub>`, nesting, `<br/>/<p>`, case-insensitivity, unknown tags |
 | `cpp_test_xml_writer()` | `xml_writer.cpp` | XML declaration, self-close, attributes, escaping (`&<>"`), `raw()`, `comment()`, `clear()/take()/depth()`, `namespace_decl()`, error conditions |
 
 **Pattern for new C++ tests:**

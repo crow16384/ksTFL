@@ -165,6 +165,7 @@ struct FontProps {
   std::optional<bool> bold;
   std::optional<bool> italic;
   std::optional<bool> underline;
+  std::optional<bool> strikethrough;
   std::optional<Color> color;
   std::optional<Color> highlight;
 
@@ -761,6 +762,7 @@ struct InlineRunStyle {
   bool bold_override = false;
   bool italic_override = false;
   bool underline_override = false;
+  bool strikethrough_override = false;
   bool superscript = false;
   bool subscript = false;
 };

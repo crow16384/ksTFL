@@ -245,7 +245,9 @@
 #' summary data frame with one row per spec JSON file.  Uses \code{_index.json}
 #' when available (fast); falls back to scanning every JSON file otherwise.
 #'
-#' @param meta_dir Character string. Path to the meta folder.
+#' @param meta_dir Character string. Path to the meta folder.  Defaults to
+#'   \code{tfl_get_option("meta_directory")}.  An error is raised when neither
+#'   the argument nor the option is set.
 #' @param sort_by Character string. Column to sort by: \code{"datetime"}
 #'   (default, newest first), \code{"doc_file"}, or \code{"spec_file"}.
 #'
@@ -269,7 +271,14 @@
 #' df <- list_reports("path/to/meta")
 #' print(df[df$is_latest, c("doc_file", "datetime", "spec_file")])
 #' }
-list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_file")) {
+list_reports <- function(meta_dir = tfl_get_option("meta_directory"),
+                         sort_by = c("datetime", "doc_file", "spec_file")) {
+  if (is.null(meta_dir)) {
+    cli::cli_abort(c(
+      "{.arg meta_dir} is required.",
+      i = "Provide the path directly or set it via {.fn tfl_set_options} with {.arg meta_directory}."
+    ))
+  }
   checkmate::assert_directory_exists(meta_dir)
   sort_by <- match.arg(sort_by)
 
@@ -347,7 +356,8 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
 #'   }
 #'   Multiple entries are allowed for merging several documents into one.
 #' @param meta_dir Character string or character vector. Path(s) to the meta
-#'   folder(s).
+#'   folder(s).  Defaults to \code{tfl_get_option("meta_directory")}.
+#'   An error is raised when neither the argument nor the option is set.
 #'   \itemize{
 #'     \item A single string is recycled for every element of \code{spec_json}.
 #'     \item A vector of the same length as \code{spec_json} provides a
@@ -361,6 +371,10 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
 #'   \code{length(spec_json) > 1}.
 #' @param template_json Character string. Override the template JSON path.
 #'   If \code{NULL}, resolved automatically from the spec.
+#' @param overrideTemplate Character string.  A bundled template name
+#'   (e.g. \code{"Navy_Pro"}) or file path to a custom styles JSON.
+#'   When non-\code{NULL}, this takes precedence over \code{template_json}.
+#'   See \code{\link{tfl_list_templates}()} for available names.
 #' @param insertTOC Logical. Insert a Table of Contents.  \code{NULL}
 #'   (default) inherits the value from the first document's metadata.
 #' @param tocTitle Character string.  TOC heading text.  \code{NULL}
@@ -395,13 +409,29 @@ list_reports <- function(meta_dir, sort_by = c("datetime", "doc_file", "spec_fil
 #' )
 #' }
 replay_report <- function(spec_json,
-                           meta_dir   = NULL,
+                           meta_dir   = tfl_get_option("meta_directory"),
                            output_path  = NULL,
                            template_json = NULL,
+                           overrideTemplate = NULL,
                            insertTOC  = NULL,
                            tocTitle   = NULL,
                            verbose = FALSE) {
   checkmate::assert_character(spec_json, min.len = 1L, any.missing = FALSE)
+
+  # --- Resolve overrideTemplate (bundled name or path) ---
+  if (!is.null(overrideTemplate)) {
+    checkmate::assert_string(overrideTemplate)
+    template_json <- .resolve_template_value(overrideTemplate,
+                                             spec_key = "replay_report")
+  }
+
+  # --- Validate meta_dir ---
+  if (is.null(meta_dir)) {
+    cli::cli_abort(c(
+      "{.arg meta_dir} is required.",
+      i = "Provide the path directly or set it via {.fn tfl_set_options} with {.arg meta_directory}."
+    ))
+  }
 
   # --- Recycle / validate meta_dir ---
   if (!is.null(meta_dir)) {
@@ -613,7 +643,9 @@ replay_report <- function(spec_json,
 #' By default the function runs in \strong{dry-run} mode and only reports what
 #' would be deleted.  Pass \code{dry_run = FALSE} to actually delete files.
 #'
-#' @param meta_dir Character string. Path to the meta folder.
+#' @param meta_dir Character string. Path to the meta folder.  Defaults to
+#'   \code{tfl_get_option("meta_directory")}.  An error is raised when neither
+#'   the argument nor the option is set.
 #' @param keep_versions Integer. Number of most-recent spec versions to keep
 #'   per document. Default \code{1} (keep only the latest).  Set to \code{2}
 #'   to keep the latest and one previous version for rollback.
@@ -634,9 +666,15 @@ replay_report <- function(spec_json,
 #' # Keep 2 versions per document (latest + one rollback)
 #' clean_reports("path/to/meta", keep_versions = 2, dry_run = FALSE)
 #' }
-clean_reports <- function(meta_dir,
+clean_reports <- function(meta_dir = tfl_get_option("meta_directory"),
                            keep_versions = 1L,
                            dry_run = TRUE) {
+  if (is.null(meta_dir)) {
+    cli::cli_abort(c(
+      "{.arg meta_dir} is required.",
+      i = "Provide the path directly or set it via {.fn tfl_set_options} with {.arg meta_directory}."
+    ))
+  }
   checkmate::assert_directory_exists(meta_dir)
   checkmate::assert_int(keep_versions, lower = 1L)
   checkmate::assert_flag(dry_run)

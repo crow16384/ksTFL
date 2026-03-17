@@ -12,6 +12,7 @@ s_font(
   bold = NULL,
   italic = NULL,
   underline = NULL,
+  strikethrough = NULL,
   color = NULL,
   highlight = NULL
 )
@@ -39,6 +40,10 @@ s_font(
 - underline:
 
   Logical, whether text is underlined
+
+- strikethrough:
+
+  Logical, whether text has strikethrough
 
 - color:
 

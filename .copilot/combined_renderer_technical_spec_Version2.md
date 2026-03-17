@@ -28,7 +28,7 @@ R (ksTFL save_report) → spec.json + data JSON(s)[link to SVG or PNG file to re
 - **R-callable via Rcpp**
 - **HarfBuzz-based measurement**
 - **Font cache** (amortize face loading)
-- **Inline markup** in cell values: `<sup> <sub> <br> <p> <b> <i> <u>`
+- **Inline markup** in cell values: `<sup> <sub> <br> <p> <b> <i> <u> <s>`
 - **Streaming OOXML** (no in-memory DOM)
 - **Thread-safe** where feasible (stateless rendering; future parallelism)
 
@@ -230,7 +230,7 @@ For a **body cell**, compute effective style in layers (later wins):
 6. RowAction `style` refs for that cell
 7. Merge styleRef for merged cell (if any)
 8. Add-row styleRef if the row is synthetic (applied at row build time)
-9. Inline markup modifies run properties (`<b>`, `<i>`, `<sup>`, `<sub>`)
+9. Inline markup modifies run properties (`<b>`, `<i>`, `<u>`, `<s>`, `<sup>`, `<sub>`)
 
 **Note:** This merges both precedence lists: renderer_notes covers table-specific sources; html adds template baseline layers. Implementation must include both.
 
@@ -595,7 +595,7 @@ Emit OOXML properties to ensure:
 From html §6 + renderer_notes §4:
 
 ### 20.1 Supported tags
-- `<sup>`, `<sub>`, `<b>`, `<i>`, `<u>`, `<br>`, `<p>`
+- `<sup>`, `<sub>`, `<b>`, `<i>`, `<u>`, `<s>`, `<br>`, `<p>`
 
 ### 20.2 Inline parser design (html §6.2)
 - Produce:
@@ -603,7 +603,7 @@ From html §6 + renderer_notes §4:
 - Use stack-based state machine (no regex required)
 - Runs carry overrides on base style:
   - superscript/subscript flags
-  - bold/italic/underline override
+  - bold/italic/underline/strikethrough override
   - paragraph breaks and line breaks
 
 ### 20.3 OOXML mapping (html §6.1)

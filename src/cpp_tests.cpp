@@ -367,6 +367,7 @@ Rcpp::List cpp_test_inline_parser() {
   t.check(has_inline_markup("<sup>1</sup>"), "has markup: sup");
   t.check(has_inline_markup("x<br/>y"), "has markup: br");
   t.check(has_inline_markup("<u>under</u>"), "has markup: u");
+  t.check(has_inline_markup("<s>struck</s>"), "has markup: s");
 
   // --- Plain text (no markup) ---
   {
@@ -377,6 +378,7 @@ Rcpp::List cpp_test_inline_parser() {
     t.check(!cell.paragraphs[0].runs[0].style.bold_override, "plain: not bold");
     t.check(!cell.paragraphs[0].runs[0].style.italic_override, "plain: not italic");
     t.check(!cell.paragraphs[0].runs[0].style.underline_override, "plain: not underline");
+    t.check(!cell.paragraphs[0].runs[0].style.strikethrough_override, "plain: not strikethrough");
     t.check(!cell.paragraphs[0].runs[0].style.superscript, "plain: not superscript");
     t.check(!cell.paragraphs[0].runs[0].style.subscript, "plain: not subscript");
   }
@@ -417,6 +419,16 @@ Rcpp::List cpp_test_inline_parser() {
       if (run.text == "underlined" && run.style.underline_override) found = true;
     }
     t.check(found, "underline: run has underline_override=true");
+  }
+
+  // --- Strikethrough (<s>...</s>) ---
+  {
+    auto cell = parse_inline_markup("<s>struck</s>");
+    bool found = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "struck" && run.style.strikethrough_override) found = true;
+    }
+    t.check(found, "strikethrough: run has strikethrough_override=true");
   }
 
   // --- Superscript (<sup>...</sup>) ---
@@ -551,6 +563,14 @@ Rcpp::List cpp_test_inline_parser() {
     }
     t.check(found, "case-insensitive: <SUP> treated as superscript");
   }
+  {
+    auto cell = parse_inline_markup("<S>STRUCK</S>");
+    bool found = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "STRUCK" && run.style.strikethrough_override) found = true;
+    }
+    t.check(found, "case-insensitive: <S> treated as strikethrough");
+  }
 
   // --- Unknown tags are ignored, text content preserved ---
   {
@@ -569,6 +589,16 @@ Rcpp::List cpp_test_inline_parser() {
     t.check_eq(cell.paragraphs.size(), size_t(1), "no tags: 1 paragraph");
     t.check_eq(cell.paragraphs[0].runs.size(), size_t(1), "no tags: 1 run");
     t.check_eq(cell.paragraphs[0].runs[0].text, std::string("value = 42"), "no tags: text intact");
+  }
+
+  // --- Nested: <b><s>both</s></b> → bold AND strikethrough ---
+  {
+    auto cell = parse_inline_markup("<b><s>bold struck</s></b>");
+    bool found = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "bold struck" && run.style.bold_override && run.style.strikethrough_override) found = true;
+    }
+    t.check(found, "nested b+s: run has both bold_override and strikethrough_override");
   }
 
   // --- BUG-B: Same-type nesting preserves outer tag ---

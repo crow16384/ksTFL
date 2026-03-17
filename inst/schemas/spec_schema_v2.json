@@ -304,6 +304,9 @@
                                                 "underline": {
                                                     "type": "boolean"
                                                 },
+                                                "strikethrough": {
+                                                    "type": "boolean"
+                                                },
                                                 "color": {
                                                     "type": [
                                                         "null",

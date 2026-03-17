@@ -221,12 +221,12 @@ Configure document-level settings:
 
 Combine specifications into reports and render to DOCX:
 
-| Function                                                                                         | Purpose                                  | Returns                                       |
-|--------------------------------------------------------------------------------------------------|------------------------------------------|-----------------------------------------------|
-| `create_report(...)`                                                                             | Combine specs/reports into single report | `TFL_report`                                  |
-| `save_report(report, docFileName, outDir, metaPath, prettify)`                                   | Serialize and export report              | List with `spec_file`, `datetime`, `metaPath` |
-| `write_doc(report, name, outDir, metaPath, overrideTemplate, font_dirs, fallback_font, verbose)` | Save and render DOCX in one call         | Output file path (invisibly)                  |
-| `replay_report(spec_json, meta_dir, output_path, template_json, verbose)`                        | Re-render DOCX from stored JSON metadata | Output file path (invisibly)                  |
+| Function                                                                                                         | Purpose                                  | Returns                                       |
+|------------------------------------------------------------------------------------------------------------------|------------------------------------------|-----------------------------------------------|
+| `create_report(...)`                                                                                             | Combine specs/reports into single report | `TFL_report`                                  |
+| `save_report(report, docFileName, outDir, metaPath, prettify)`                                                   | Serialize and export report              | List with `spec_file`, `datetime`, `metaPath` |
+| `write_doc(report, name, outDir, metaPath, overrideTemplate, font_dirs, fallback_font, verbose)`                 | Save and render DOCX in one call         | Output file path (invisibly)                  |
+| `replay_report(spec_json, meta_dir, output_path, template_json, overrideTemplate, insertTOC, tocTitle, verbose)` | Re-render DOCX from stored JSON metadata | Output file path (invisibly)                  |
 
 **create_report() Features**:
 

@@ -6,9 +6,10 @@
 \usage{
 replay_report(
   spec_json,
-  meta_dir = NULL,
+  meta_dir = tfl_get_option("meta_directory"),
   output_path = NULL,
   template_json = NULL,
+  overrideTemplate = NULL,
   insertTOC = NULL,
   tocTitle = NULL,
   verbose = FALSE
@@ -24,7 +25,8 @@ recent spec for that document is used.
 Multiple entries are allowed for merging several documents into one.}
 
 \item{meta_dir}{Character string or character vector. Path(s) to the meta
-folder(s).
+folder(s).  Defaults to \code{tfl_get_option("meta_directory")}.
+An error is raised when neither the argument nor the option is set.
 \itemize{
 \item A single string is recycled for every element of \code{spec_json}.
 \item A vector of the same length as \code{spec_json} provides a
@@ -40,6 +42,11 @@ rather than a full path.}
 
 \item{template_json}{Character string. Override the template JSON path.
 If \code{NULL}, resolved automatically from the spec.}
+
+\item{overrideTemplate}{Character string.  A bundled template name
+(e.g. \code{"Navy_Pro"}) or file path to a custom styles JSON.
+When non-\code{NULL}, this takes precedence over \code{template_json}.
+See \code{\link{tfl_list_templates}()} for available names.}
 
 \item{insertTOC}{Logical. Insert a Table of Contents.  \code{NULL}
 (default) inherits the value from the first document's metadata.}

@@ -4,10 +4,15 @@
 \alias{list_reports}
 \title{List Saved Reports in a Meta Folder}
 \usage{
-list_reports(meta_dir, sort_by = c("datetime", "doc_file", "spec_file"))
+list_reports(
+  meta_dir = tfl_get_option("meta_directory"),
+  sort_by = c("datetime", "doc_file", "spec_file")
+)
 }
 \arguments{
-\item{meta_dir}{Character string. Path to the meta folder.}
+\item{meta_dir}{Character string. Path to the meta folder.  Defaults to
+\code{tfl_get_option("meta_directory")}.  An error is raised when neither
+the argument nor the option is set.}
 
 \item{sort_by}{Character string. Column to sort by: \code{"datetime"}
 (default, newest first), \code{"doc_file"}, or \code{"spec_file"}.}

@@ -40,7 +40,7 @@
 
     # Metadata/Output
     output_directory    = ".",
-    meta_directory      = tempdir()
+    meta_directory      = NULL
 ), class = "TFL_options")
 
 

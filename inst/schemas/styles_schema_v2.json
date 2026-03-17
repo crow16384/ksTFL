@@ -677,6 +677,10 @@
               "type": "boolean",
               "description": "Underlined text."
             },
+            "strikethrough": {
+              "type": "boolean",
+              "description": "Strikethrough text."
+            },
             "color": {
               "type": [
                 "null",

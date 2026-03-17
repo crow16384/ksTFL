@@ -112,8 +112,8 @@ template <typename T> static bool opt_eq(const std::optional<T> &a, const std::o
 
 bool FontProps::operator==(const FontProps &other) const {
   return opt_eq(font_name, other.font_name) && opt_eq(font_size, other.font_size) && opt_eq(bold, other.bold) &&
-         opt_eq(italic, other.italic) && opt_eq(underline, other.underline) && opt_eq(color, other.color) &&
-         opt_eq(highlight, other.highlight);
+         opt_eq(italic, other.italic) && opt_eq(underline, other.underline) &&
+         opt_eq(strikethrough, other.strikethrough) && opt_eq(color, other.color) && opt_eq(highlight, other.highlight);
 }
 
 void FontProps::merge_from(const FontProps &other) {
@@ -122,6 +122,7 @@ void FontProps::merge_from(const FontProps &other) {
   merge_opt_into(bold, other.bold);
   merge_opt_into(italic, other.italic);
   merge_opt_into(underline, other.underline);
+  merge_opt_into(strikethrough, other.strikethrough);
   merge_opt_into(color, other.color);
   merge_opt_into(highlight, other.highlight);
 }

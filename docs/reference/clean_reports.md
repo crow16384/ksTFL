@@ -12,14 +12,20 @@ Removes two categories of stale files from a meta folder:
 ## Usage
 
 ``` r
-clean_reports(meta_dir, keep_versions = 1L, dry_run = TRUE)
+clean_reports(
+  meta_dir = tfl_get_option("meta_directory"),
+  keep_versions = 1L,
+  dry_run = TRUE
+)
 ```
 
 ## Arguments
 
 - meta_dir:
 
-  Character string. Path to the meta folder.
+  Character string. Path to the meta folder. Defaults to
+  `tfl_get_option("meta_directory")`. An error is raised when neither
+  the argument nor the option is set.
 
 - keep_versions:
 

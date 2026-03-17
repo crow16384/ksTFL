@@ -58,6 +58,9 @@ void DocxEmitter::emit_run_props(XmlWriter &w, const FontProps &font, const Inli
   bool underline = font.underline.value_or(false) || run_style.underline_override;
   if (underline) { w.element_with_attr("w:u", "w:val", "single"); }
 
+  bool strike = font.strikethrough.value_or(false) || run_style.strikethrough_override;
+  if (strike) { w.self_closing_element("w:strike"); }
+
   if (font.font_size.has_value()) {
     double size = font.font_size.value();
     // Note: do NOT reduce font size for superscript/subscript here.

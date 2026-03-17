@@ -4,10 +4,16 @@
 \alias{clean_reports}
 \title{Clean Obsolete and Orphaned JSON Files from a Meta Folder}
 \usage{
-clean_reports(meta_dir, keep_versions = 1L, dry_run = TRUE)
+clean_reports(
+  meta_dir = tfl_get_option("meta_directory"),
+  keep_versions = 1L,
+  dry_run = TRUE
+)
 }
 \arguments{
-\item{meta_dir}{Character string. Path to the meta folder.}
+\item{meta_dir}{Character string. Path to the meta folder.  Defaults to
+\code{tfl_get_option("meta_directory")}.  An error is raised when neither
+the argument nor the option is set.}
 
 \item{keep_versions}{Integer. Number of most-recent spec versions to keep
 per document. Default \code{1} (keep only the latest).  Set to \code{2}

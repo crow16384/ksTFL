@@ -737,7 +737,7 @@ You now understand ksTFL's core workflow. Next steps:
 | Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
 | Save + render (one step) | `write_doc(report, name, ...)` | Recommended: saves JSON + renders DOCX |
 | Save only | `save_report(report, ...)` | Writes JSON + data files for manual rendering |
-| Render from JSON | `replay_report(spec_json, meta_dir, output_path)` | C++ renderer: JSON → styled DOCX |
+| Render from JSON | `replay_report(spec_json, meta_dir, output_path, overrideTemplate = NULL)` | C++ renderer: JSON → styled DOCX |
 | Set session defaults | `tfl_set_options(...)` | Inherited by new specs in session |
 | Check options | `tfl_get_options()`, `tfl_get_option(name)` | View current session settings |
 | Reset options | `tfl_reset_options()` | Back to package defaults |

@@ -1,3 +1,21 @@
+# ksTFL 0.5.4
+
+## New Features
+
+* Added inline strikethrough support via `<s>...</s>` in the C++ renderer, including OOXML emission (`<w:strike/>`), JSON parsing, and style API support (`s_font(strikethrough = ...)`).
+* `replay_report()` now supports `overrideTemplate` (bundled template name or custom JSON path), matching `write_doc()` behavior.
+* Combined replay Shiny app now supports both predefined template selection and custom template JSON paths.
+
+## Improvements
+
+* `list_reports()`, `replay_report()`, and `clean_reports()` now default `meta_dir` to `tfl_get_option("meta_directory")`.
+* `write_doc()` now safely falls back to `tempdir()` when `meta_directory` is not configured.
+* Improved Aptos font resolution in the font cache (`Aptos.ttf` regular face lookup).
+
+## Bug Fixes
+
+* Functions that rely on meta artifacts now raise a clear error when neither `meta_dir` argument nor `meta_directory` option is set.
+
 # ksTFL 0.5.3
 
 ## New Features

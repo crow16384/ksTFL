@@ -86,6 +86,15 @@ ui <- fluidPage(
                   value = "Table of Contents")
       ))
     ),
+    fluidRow(
+      column(4, selectInput("override_template", "Style Template Override",
+                            choices = c("(per-spec default)" = "",
+                                        ksTFL::tfl_list_templates()),
+                            selected = "")),
+      column(8, textInput("custom_template_path",
+                          "Or custom template JSON path",
+                          placeholder = "e.g. /path/to/my_style.json"))
+    ),
     hr(),
     h5("Render Log"),
     uiOutput("render_log_ui")
@@ -319,6 +328,14 @@ server <- function(input, output, session) {
       toc_flag   <- if (input$insert_toc) TRUE else NULL
       toc_title  <- if (input$insert_toc && nzchar(input$toc_title))
                       input$toc_title else NULL
+      custom_path <- trimws(input$custom_template_path)
+      override_tpl <- if (nzchar(custom_path)) {
+        custom_path
+      } else if (nzchar(input$override_template)) {
+        input$override_template
+      } else {
+        NULL
+      }
 
       rv$render_log <- paste0("Rendering ", length(sel), " reports...\n")
 
@@ -328,6 +345,7 @@ server <- function(input, output, session) {
           spec_json   = spec_jsons,
           meta_dir    = meta_dirs,
           output_path = tmp_out,
+          overrideTemplate = override_tpl,
           insertTOC   = toc_flag,
           tocTitle    = toc_title
         )

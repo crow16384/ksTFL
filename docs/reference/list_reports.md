@@ -9,14 +9,19 @@ file otherwise.
 ## Usage
 
 ``` r
-list_reports(meta_dir, sort_by = c("datetime", "doc_file", "spec_file"))
+list_reports(
+  meta_dir = tfl_get_option("meta_directory"),
+  sort_by = c("datetime", "doc_file", "spec_file")
+)
 ```
 
 ## Arguments
 
 - meta_dir:
 
-  Character string. Path to the meta folder.
+  Character string. Path to the meta folder. Defaults to
+  `tfl_get_option("meta_directory")`. An error is raised when neither
+  the argument nor the option is set.
 
 - sort_by:
 

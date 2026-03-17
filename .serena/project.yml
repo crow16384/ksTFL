@@ -123,7 +123,7 @@ default_modes:
 
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
-initial_prompt: ""
+initial_prompt: "Supported inline markup tags in cell values: <b>, <i>, <u>, <s>, <sup>, <sub>, <br>, <p>. The <s> tag maps to OOXML <w:strike/>."
 
 # time budget (seconds) per tool call for the retrieval of additional symbol information
 # such as docstrings or parameter information.

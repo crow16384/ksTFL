@@ -8,7 +8,7 @@ write_doc(
   report,
   name,
   outDir = tfl_get_option("output_directory"),
-  metaPath = tfl_get_option("meta_directory"),
+  metaPath = tfl_get_option("meta_directory") \%||\% tempdir(),
   prettify = FALSE,
   toc = tfl_get_option("insertTOC"),
   tocTitle = tfl_get_option("tocTitle"),

@@ -11,4 +11,7 @@ replay_report(c("16c_no_rowbreak_with_repeat.docx",
                 "03_narrative_figure_table.docx"), meta_dir = meta_dir,
               output_path = file.path(out_dir,"Combined replay.docx"),
               insertTOC = T, 
-              tocTitle     = "Combined Table of Contents")
+              tocTitle     = "Combined Table of Contents",
+              overrideTemplate = "Carbon_Dark")
+              #overrideTemplate = file.path(getwd(),"inst","templates","Warm_Slate.json"))
+

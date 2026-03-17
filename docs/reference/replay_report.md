@@ -9,9 +9,10 @@ reproducing outputs after code changes or on a different machine.
 ``` r
 replay_report(
   spec_json,
-  meta_dir = NULL,
+  meta_dir = tfl_get_option("meta_directory"),
   output_path = NULL,
   template_json = NULL,
+  overrideTemplate = NULL,
   insertTOC = NULL,
   tocTitle = NULL,
   verbose = FALSE
@@ -34,6 +35,8 @@ replay_report(
 - meta_dir:
 
   Character string or character vector. Path(s) to the meta folder(s).
+  Defaults to `tfl_get_option("meta_directory")`. An error is raised
+  when neither the argument nor the option is set.
 
   - A single string is recycled for every element of `spec_json`.
 
@@ -53,6 +56,14 @@ replay_report(
 
   Character string. Override the template JSON path. If `NULL`, resolved
   automatically from the spec.
+
+- overrideTemplate:
+
+  Character string. A bundled template name (e.g. `"Navy_Pro"`) or file
+  path to a custom styles JSON. When non-`NULL`, this takes precedence
+  over `template_json`. See
+  [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)
+  for available names.
 
 - insertTOC:
 

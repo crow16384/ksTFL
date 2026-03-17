@@ -120,7 +120,7 @@ inline const std::unordered_map<std::string, std::array<std::string, 4>> font_ma
     {"calibri", {"calibri", "calibrib", "calibrii", "calibriz"}},
     {"liberation sans",
      {"LiberationSans-Regular", "LiberationSans-Bold", "LiberationSans-Italic", "LiberationSans-BoldItalic"}},
-    {"aptos", {"Aptos-Regular", "Aptos-Bold", "Aptos-Italic", "Aptos-Bold-Italic"}}};
+    {"aptos", {"Aptos", "Aptos-Bold", "Aptos-Italic", "Aptos-Bold-Italic"}}};
 
 } // namespace kstfl
 
