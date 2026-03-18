@@ -82,6 +82,13 @@ export(
   run_styles_editor,
   run_replay_app,
 
+  # Viewer and addins
+  view_tfl_spec,
+  tfl_spec_preview_selection,
+  tfl_spec_preview_prompt,
+  tfl_print_style_atoms,
+  tfl_style_atoms_catalog,
+
   # Package options and template listing
   tfl_get_options,
   tfl_get_option,

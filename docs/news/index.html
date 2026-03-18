@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,6 +30,21 @@
       <h1>Changelog</h1>
 
     </div>
+
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.5.5" id="kstfl-055">ksTFL 0.5.5<a class="anchor" aria-label="anchor" href="#kstfl-055"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-5-5">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-5"></a></h3>
+<ul><li>HTML "TFL Specification Preview" is no longer triggered by <code>print(spec)</code>; <code>print.TFL_spec()</code> is now console-only. Use the new <code>view_tfl_spec()</code> function or RStudio Addins to open the HTML preview.</li>
+<li>Added <code>view_tfl_spec(spec)</code> to open the TFL Specification Preview in the RStudio Viewer pane.</li>
+<li>Added RStudio Addins: "TFL Spec Preview (Selection)" and "TFL Spec Preview (by name)" to show the HTML preview from selected code or a prompted object name.</li>
+<li>Added "Style Atoms Catalog" RStudio Addin and <code>tfl_print_style_atoms()</code> to print all built-in style atoms to the console with coloured output.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="changes-0-5-5">Changes<a class="anchor" aria-label="anchor" href="#changes-0-5-5"></a></h3>
+<ul><li>Removed the <code>TFL.viewer</code> option; HTML preview is only available via <code>view_tfl_spec()</code> or the addins.</li>
+</ul></div>
+</div>
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.4" id="kstfl-054">ksTFL 0.5.4<a class="anchor" aria-label="anchor" href="#kstfl-054"></a></h2>

@@ -455,14 +455,6 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
   }, silent = TRUE)
 
 
-   # Optional interactive viewer
-  if (isTRUE(getOption("TFL.viewer", FALSE))) {
-    try(
-      .render_TFL_spec_viewer(x),
-      silent = TRUE
-    )
-  }
-
   invisible(x)
 }
 
@@ -642,6 +634,23 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
       )
     }
   )
+}
+
+#' Open the HTML TFL Specification Preview in the RStudio Viewer
+#'
+#' Renders a comprehensive HTML overview of a TFL specification and displays it
+#' in the RStudio Viewer pane. Requires RStudio and the \pkg{htmltools} package.
+#'
+#' @param spec A `TFL_spec` object.
+#'
+#' @return `TRUE` invisibly on success, `FALSE` invisibly if the viewer could
+#'   not be opened (e.g. not running inside RStudio or \pkg{htmltools} is
+#'   missing).
+#'
+#' @export
+view_tfl_spec <- function(spec) {
+  assert_class(spec, "TFL_spec")
+  .render_TFL_spec_viewer(spec)
 }
 
 .render_TFL_spec_viewer <- function(x) {

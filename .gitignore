@@ -69,3 +69,6 @@ tests/testthat/test-results/
 # Core dumps
 core.*
 core
+
+# Pkgdown / doc build output
+docs/reference/output/

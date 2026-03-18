@@ -11,7 +11,7 @@ types and formats, titles, headers, footers, and sample data."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -109,7 +109,7 @@ for side effects while preserving the spec in piped workflows.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">45</span>, <span class="fl">10</span><span class="op">)</span>, group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Motor Trend Study"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
@@ -119,13 +119,86 @@ for side effects while preserving the spec in piped workflows.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Print with full details (calls print.TFL_spec)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">─── TFL Specification Preview ─────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📝 TFL Specification Preview</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">🖹 Document Type:</span> <span style="color: #0000BB;">Table</span> <span style="font-weight: bold;">💾 Has Data:</span> <span style="color: #00BB00;">✅ Yes</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📃 Content:</span> Columns: <span style="color: #BB0000;">3</span> | Titles: <span style="color: #BB0000;">1</span> | Subtitles: <span style="color: #BB0000;">1</span> | Footnotes: <span style="color: #BB0000;">1</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📑 Sections:</span> Headers: <span style="color: #BB0000;">1</span> | Footers: <span style="color: #BB0000;">0</span> | Body Text: <span style="color: #BB0000;">1</span> | Styles: <span style="color: #BB0000;">99</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">─── Document Properties ───────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Type:</span> Table</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Has Data:</span> Yes</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Continues:</span> No</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Content Width:</span> 100%</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Footnote Place:</span> repeated</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB00BB;">─── Document Style Template ───────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Template:</span> CRO Example_default</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">─── Headers ───────────────────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Row 1:</span> <span style="color: #BBBB00;">ABC Research</span> | <span style="color: #BBBB00;">Confidential</span> | <span style="color: #BBBB00;">2024</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">─── Titles ────────────────────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Motor Trend Study</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">─── Subtitles ─────────────────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Vehicle Performance Analysis</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">─── Columns ───────────────────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #0000BB;">Name  | Label | Type    | Format | Missings | Width | Flags | Styles</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ────────────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> id    | id    | numeric | %d     |         | 14.3% |       |       </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> age   | age   | numeric | %.4f   |         | 50.0% |       |       </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> group | group | string  | %s     |         | 35.7% |       |       </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">─── Footnotes ─────────────────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Source: mtcars dataset</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">─── Body text ─────────────────────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • No data to report</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">─── Sample data (first 3 rows) ────────────────────────────────────────────</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   id      age group</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  1 72.55418     A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  2 45.46531     B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  3 50.77709     A</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Compact view</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec</span>, layout <span class="op">=</span> <span class="st">"compact"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">─── TFL Specification Preview ─────────────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📝 TFL Specification Preview</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">🖹 Document Type:</span> <span style="color: #0000BB;">Table</span> <span style="font-weight: bold;">💾 Has Data:</span> <span style="color: #00BB00;">✅ Yes</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📃 Content:</span> Columns: <span style="color: #BB0000;">3</span> | Titles: <span style="color: #BB0000;">1</span> | Subtitles: <span style="color: #BB0000;">1</span> | Footnotes: <span style="color: #BB0000;">1</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📑 Sections:</span> Headers: <span style="color: #BB0000;">1</span> | Footers: <span style="color: #BB0000;">0</span> | Body Text: <span style="color: #BB0000;">1</span> | Styles: <span style="color: #BB0000;">99</span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Without colors</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec</span>, colors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── TFL Specification Preview ─────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📝 TFL Specification Preview</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">🖹 Document Type:</span> Table <span style="font-weight: bold;">💾 Has Data:</span> ✅ Yes</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📃 Content:</span> Columns: 3 | Titles: 1 | Subtitles: 1 | Footnotes: 1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">📑 Sections:</span> Headers: 1 | Footers: 0 | Body Text: 1 | Styles: 99</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Document Properties ───────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Type:</span> Table</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Has Data:</span> Yes</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Continues:</span> No</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Content Width:</span> 100%</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Footnote Place:</span> repeated</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Document Style Template ───────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Template:</span> CRO Example_default</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Headers ───────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="font-weight: bold;">Row 1:</span> ABC Research | Confidential | 2024</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Titles ────────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Motor Trend Study</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Subtitles ─────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Vehicle Performance Analysis</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Columns ───────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Name  | Label | Type    | Format | Missings | Width | Flags | Styles</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ────────────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> id    | id    | numeric | %d     |         | 14.3% |       |       </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> age   | age   | numeric | %.4f   |         | 50.0% |       |       </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> group | group | string  | %s     |         | 35.7% |       |       </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Footnotes ─────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • Source: mtcars dataset</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Body text ─────────────────────────────────────────────────────────────</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • No data to report</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> ─── Sample data (first 3 rows) ────────────────────────────────────────────</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   id      age group</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  1 72.55418     A</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  2 45.46531     B</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  3 50.77709     A</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

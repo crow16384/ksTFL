@@ -15,7 +15,7 @@ from reports)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,15 +86,18 @@ Result has class <code>TFL_report</code>.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">spec2</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">final_report</span> <span class="op">&lt;-</span> <span class="fu">create_report</span><span class="op">(</span><span class="va">spec1</span>, <span class="va">spec2</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Combining with a previous report</span></span></span>
 <span class="r-in"><span><span class="va">spec3</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_figure.html">create_figure</a></span><span class="op">(</span><span class="st">"path/to/image.png"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .tfl_init(data = plot_or_path, cols = everything(), docType = "Figure"):</span> Document type `Figure` requires a readable file path:</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Provided data <span style="color: #0000BB;">"path/to/image.png"</span> is not a valid file path or is not readable</span>
 <span class="r-in"><span><span class="va">combined</span> <span class="op">&lt;-</span> <span class="fu">create_report</span><span class="op">(</span><span class="va">final_report</span>, <span class="va">spec3</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'spec3' not found</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -1,5 +1,30 @@
 # Changelog
 
+## ksTFL 0.5.5
+
+### New Features
+
+- HTML "TFL Specification Preview" is no longer triggered by
+  `print(spec)`; `print.TFL_spec()` is now console-only. Use the new
+  [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md)
+  function or RStudio Addins to open the HTML preview.
+- Added
+  [`view_tfl_spec(spec)`](https://example.com/reference/view_tfl_spec.md)
+  to open the TFL Specification Preview in the RStudio Viewer pane.
+- Added RStudio Addins: "TFL Spec Preview (Selection)" (evaluate
+  selected code as a `TFL_spec` and show HTML preview) and "TFL Spec
+  Preview (by name)" (prompt for an object name in `.GlobalEnv` and
+  show preview).
+- Added "Style Atoms Catalog" RStudio Addin and
+  [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
+  to print all built-in style atoms from `.const_options_styles` to the
+  console with coloured, grouped output via cli.
+
+### Changes
+
+- Removed the `TFL.viewer` option; HTML preview is only available via
+  `view_tfl_spec()` or the addins.
+
 ## ksTFL 0.5.4
 
 ### New Features

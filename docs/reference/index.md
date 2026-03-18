@@ -113,5 +113,11 @@
   : Reset all session options to package defaults
 - [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
   : Update the session package settings
+- [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
+  : Print all built-in style atoms to the console
+- [`tfl_style_atoms_catalog()`](https://example.com/reference/tfl_style_atoms_catalog.md)
+  : RStudio Addin to print style atoms catalog
+- [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md) : Open
+  the HTML TFL Specification Preview in the RStudio Viewer
 - [`write_doc()`](https://example.com/reference/write_doc.md) : Save and
   Render a TFL Report to DOCX

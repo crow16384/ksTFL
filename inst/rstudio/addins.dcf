@@ -9,3 +9,21 @@ Description: Select, reorder and combine reports into a single document
 Binding: run_replay_app
 Package: ksTFL
 Interactive: true
+
+Name: TFL Spec Preview (Selection)
+Description: Preview the selected TFL_spec expression in the HTML viewer
+Binding: tfl_spec_preview_selection
+Package: ksTFL
+Interactive: false
+
+Name: TFL Spec Preview (by name)
+Description: Enter a TFL_spec object name to preview in the HTML viewer
+Binding: tfl_spec_preview_prompt
+Package: ksTFL
+Interactive: true
+
+Name: Style Atoms Catalog
+Description: Print all built-in style atoms to the console with colours
+Binding: tfl_style_atoms_catalog
+Package: ksTFL
+Interactive: false

@@ -11,7 +11,7 @@ reproducing outputs after code changes or on a different machine."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -125,16 +125,19 @@ DOCX file.  <code>output_path</code> is required in this case.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># By doc name (uses latest spec)</span></span></span>
 <span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span><span class="st">"test_01.docx"</span>, meta_dir <span class="op">=</span> <span class="st">"path/to/meta"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .resolve_spec_path(spec_json, md):</span> Assertion on 'meta_dir' failed: Directory 'path/to/meta' does not exist.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># By spec hash (exact version)</span></span></span>
 <span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span><span class="st">"abc123def456.json"</span>, meta_dir <span class="op">=</span> <span class="st">"path/to/meta"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .resolve_spec_path(spec_json, md):</span> Assertion on 'meta_dir' failed: Directory 'path/to/meta' does not exist.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Override output location</span></span></span>
 <span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span><span class="st">"test_01.docx"</span>, meta_dir <span class="op">=</span> <span class="st">"path/to/meta"</span>,</span></span>
 <span class="r-in"><span>              output_path <span class="op">=</span> <span class="st">"~/Desktop/test_01_replay.docx"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .resolve_spec_path(spec_json, md):</span> Assertion on 'meta_dir' failed: Directory 'path/to/meta' does not exist.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Merge two documents from the same meta folder</span></span></span>
 <span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span></span></span>
@@ -142,13 +145,17 @@ DOCX file.  <code>output_path</code> is required in this case.</p>
 <span class="r-in"><span>  meta_dir    <span class="op">=</span> <span class="st">"path/to/meta"</span>,</span></span>
 <span class="r-in"><span>  output_path <span class="op">=</span> <span class="st">"output/combined.docx"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .resolve_spec_path(spec_jsons[[i]], md):</span> Assertion on 'meta_dir' failed: Directory 'path/to/meta' does not exist.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Merge documents from different meta folders</span></span></span>
 <span class="r-in"><span><span class="fu">replay_report</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"path/to/meta_a/abc123.json"</span>, <span class="st">"path/to/meta_b/def456.json"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  output_path <span class="op">=</span> <span class="st">"output/combined.docx"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in replay_report(c("path/to/meta_a/abc123.json", "path/to/meta_b/def456.json"),     output_path = "output/combined.docx"):</span> `meta_dir` is required.</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Provide the path directly or set it via `tfl_set_options()` with</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span>   `meta_directory`.</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

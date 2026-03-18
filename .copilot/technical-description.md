@@ -113,7 +113,7 @@ Expressions in `compute_cols()` are captured as quosures and evaluated in this e
 | `schema_serialize.R` | 1141 | Schema-driven validation: `$ref` resolution, `allOf` merging, type coercion, `serialize_spec()` |
 | `pkg_settings.R` | 291 | Package options: `.options_env`, `tfl_get/set/reset_options()` |
 | `utility_functions.R` | 770 | General utilities: merge, hash, file checks, column width calculation, layout guessing |
-| `spec_print.R` | ~650 | `print.TFL_spec()` — console and HTML viewer rendering |
+| `spec_print.R` | ~650 | `print.TFL_spec()` (console only), `view_tfl_spec()`, `.render_TFL_spec_viewer()` for HTML preview |
 | `ksTFL.R` | ~80 | Package docs, `.onLoad()`, `.onAttach()`, `.onUnload()` |
 
 ### Schemas (`inst/schemas/`)
