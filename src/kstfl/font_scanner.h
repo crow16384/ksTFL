@@ -2,9 +2,10 @@
 //
 // Scans OS-specific font directories + user-provided directories at package
 // load time. Builds a runtime font path map that replaces the old hardcoded
-// font_map. Target fonts (Arial, Courier New, Times New Roman, Calibri) are
-// resolved from system/user fonts first; only if not found anywhere do we
-// fall back to bundled license-free alternatives (Liberation family, Carlito).
+// font_map. Target fonts (Arial, Courier New, Times New Roman, Georgia,
+// Verdana, Trebuchet MS) are resolved from system/user fonts first; only if
+// not found anywhere do we fall back to bundled license-free alternatives
+// (Liberation family).
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 

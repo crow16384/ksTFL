@@ -36,11 +36,13 @@
 <div class="section level3">
 <h3 id="breaking-changes-0-6-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-6-0"></a></h3>
 <ul><li>
-<strong>System font scanning replaces bundled proprietary fonts.</strong> The package no longer ships proprietary TTF fonts (Arial, Courier New, Times New Roman, Calibri, Aptos). Instead, fonts are discovered from the operating system at package load time via FreeType-based scanning. If a requested font is not installed on the system, a metrically compatible open-source fallback is used automatically:
+<strong>System font scanning replaces bundled proprietary fonts.</strong> The package no longer ships proprietary TTF fonts (Arial, Courier New, Times New Roman, Georgia, Verdana, Trebuchet MS, Aptos). Instead, fonts are discovered from the operating system at package load time via FreeType-based scanning. If a requested font is not installed on the system, a metrically compatible open-source fallback is used automatically:
 <ul><li>Arial → Liberation Sans (bundled)</li>
 <li>Times New Roman → Liberation Serif (bundled)</li>
 <li>Courier New → Liberation Mono (bundled)</li>
-<li>Calibri → Carlito (bundled)</li>
+<li>Georgia → Liberation Serif (bundled)</li>
+<li>Verdana → Liberation Sans (bundled)</li>
+<li>Trebuchet MS → Liberation Sans (bundled)</li>
 </ul></li>
 <li>
 <strong>Aptos font family dropped.</strong> Aptos is no longer a target font. Existing specs referencing Aptos will fall back to Liberation Sans.</li>
@@ -63,7 +65,7 @@
 <h3 id="internals-0-6-0">Internals<a class="anchor" aria-label="anchor" href="#internals-0-6-0"></a></h3>
 <ul><li>New C++ module: <code>font_scanner.h</code> / <code>font_scanner.cpp</code> — platform-specific font directory enumeration (Windows registry, macOS standard dirs, Linux XDG/freedesktop dirs) and FreeType-based family/style classification.</li>
 <li>
-<code>font_cache.cpp</code> now resolves fonts via the scanner’s global path map, with a two-tier fallback chain: designated fallback family (e.g. Calibri → Carlito), then Liberation Sans as last resort.</li>
+<code>font_cache.cpp</code> now resolves fonts via the scanner’s global path map, with a two-tier fallback chain: designated fallback family (e.g. Georgia → Liberation Serif), then Liberation Sans as last resort.</li>
 <li>
 <code>rcpp_bindings.cpp</code> exports <code>init_font_registry_impl()</code> and <code>get_font_dirs_impl()</code> to R.</li>
 <li>
@@ -84,9 +86,6 @@
 </tr><tr class="odd"><td>Liberation Mono (4 styles)</td>
 <td>SIL OFL 1.1</td>
 <td>Courier New</td>
-</tr><tr class="even"><td>Carlito (4 styles)</td>
-<td>SIL OFL 1.1</td>
-<td>Calibri</td>
 </tr></tbody></table></div>
 </div>
     <div class="section level2">

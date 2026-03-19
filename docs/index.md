@@ -368,7 +368,8 @@ The C++20 rendering engine provides a complete end-to-end pipeline: -
 **HarfBuzz text shaping** for deterministic text measurement -
 **FreeType font loading** with automatic system font scanning and
 open-source fallback chain (Arial → Liberation Sans, Times New Roman →
-Liberation Serif, Courier New → Liberation Mono, Calibri → Carlito) -
+Liberation Serif, Courier New → Liberation Mono, Georgia → Liberation
+Serif, Verdana → Liberation Sans, Trebuchet MS → Liberation Sans) -
 **Vertical & horizontal pagination** with configurable page break
 rules - **OOXML emission** into valid .docx ZIP packages - Support for
 all 3 document types (Table, Figure, Text) - **Per-spec template
@@ -394,7 +395,9 @@ missing does the package fall back to a bundled open-source alternative.
 | Arial           | Liberation Sans    | SIL OFL 1.1 |
 | Times New Roman | Liberation Serif   | SIL OFL 1.1 |
 | Courier New     | Liberation Mono    | SIL OFL 1.1 |
-| Calibri         | Carlito            | SIL OFL 1.1 |
+| Georgia         | Liberation Serif   | SIL OFL 1.1 |
+| Verdana         | Liberation Sans    | SIL OFL 1.1 |
+| Trebuchet MS    | Liberation Sans    | SIL OFL 1.1 |
 
 **Custom font directories:**
 

@@ -30,9 +30,9 @@ the following happens:
     scanned last.
 
 4.  **Target fonts are resolved.** For each target font family (Arial,
-    Times New Roman, Courier New, Calibri), the scanner checks whether
-    the font was found in any scanned directory. If not, a designated
-    fallback is assigned.
+    Times New Roman, Courier New, Georgia, Verdana, Trebuchet MS), the
+    scanner checks whether the font was found in any scanned directory.
+    If not, a designated fallback is assigned.
 
 **Key rule:** system-installed fonts always take priority. The bundled
 fallbacks are only used when a target font is not found anywhere on the
@@ -50,16 +50,18 @@ The scanner inspects the following directories by default:
 
 ## Target Fonts and Fallbacks
 
-The rendering engine targets four font families commonly used in
-clinical documents. Each has a metrically compatible open-source
-fallback bundled with the package:
+The rendering engine targets six font families commonly used in clinical
+documents. Each has a metrically compatible open-source fallback bundled
+with the package:
 
 | Target Font         | Fallback Font    | Notes                                   |
 |---------------------|------------------|-----------------------------------------|
 | **Arial**           | Liberation Sans  | Metrically identical to Arial           |
 | **Times New Roman** | Liberation Serif | Metrically identical to Times New Roman |
 | **Courier New**     | Liberation Mono  | Metrically identical to Courier New     |
-| **Calibri**         | Carlito          | Metrically compatible with Calibri      |
+| **Georgia**         | Liberation Serif | Serif fallback for Georgia              |
+| **Verdana**         | Liberation Sans  | Sans-serif fallback for Verdana         |
+| **Trebuchet MS**    | Liberation Sans  | Sans-serif fallback for Trebuchet MS    |
 
 All bundled fonts are licensed under the SIL Open Font License 1.1.
 
@@ -76,11 +78,13 @@ to see the current font resolution:
 ``` r
 library(ksTFL)
 tfl_font_status()
-#> ksTFL font scan: 3 target(s) resolved, 1 using fallback
+#> ksTFL font scan: 3 target(s) resolved, 3 using fallback
 #>   [ok]       Arial                -> Arial
 #>   [ok]       Times New Roman      -> Times New Roman
 #>   [ok]       Courier New          -> Courier New
-#>   [fallback] Calibri              -> Carlito
+#>   [fallback] Georgia              -> Liberation Serif
+#>   [fallback] Verdana              -> Liberation Sans
+#>   [fallback] Trebuchet MS         -> Liberation Sans
 #>   Scanned 5 directories
 ```
 
@@ -127,13 +131,15 @@ after:
 - Mounting a new network font directory
 
 ``` r
-# Install Calibri to /usr/local/share/fonts/calibri/ ... then:
+# Install Georgia to /usr/local/share/fonts/georgia/ ... then:
 tfl_rescan_fonts()
-#> ksTFL font scan: 4 target(s) resolved, 0 using fallback
+#> ksTFL font scan: 6 target(s) resolved, 0 using fallback
 #>   [ok]       Arial                -> Arial
 #>   [ok]       Times New Roman      -> Times New Roman
 #>   [ok]       Courier New          -> Courier New
-#>   [ok]       Calibri              -> Calibri
+#>   [ok]       Georgia              -> Georgia
+#>   [ok]       Verdana              -> Verdana
+#>   [ok]       Trebuchet MS         -> Trebuchet MS
 #>   Scanned 5 directories
 ```
 
@@ -144,7 +150,7 @@ fonts are using fallbacks:
 
     ksTFL v0.6.0 - Clinical TFL Framework
     For help, type: ??ksTFL
-    Note: 1 font(s) using fallback: Calibri
+    Note: 3 font(s) using fallback: Georgia, Verdana, Trebuchet MS
     Run tfl_font_status() for details.
 
 If all target fonts are found on the system, no font-related message is
@@ -189,9 +195,9 @@ directory, add that directory to `ksTFL.font_dirs`.
 
 ### Q: Will documents look different on systems without the proprietary fonts?
 
-The fallback fonts (Liberation family, Carlito) are designed to be
-metrically compatible with their proprietary counterparts. Line breaks,
-page breaks, and column widths should be identical or very close. Minor
+The fallback fonts (Liberation family) are designed to be metrically
+compatible with their proprietary counterparts. Line breaks, page
+breaks, and column widths should be identical or very close. Minor
 glyph-level differences may exist, but document layout is preserved.
 
 ### Q: How do I suppress the startup font warning?

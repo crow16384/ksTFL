@@ -336,7 +336,7 @@ define_cols(spec, c(col1, col2, col3), colWidth = c("20%", "30%", "50%"))
 
 The C++20 rendering engine provides a complete end-to-end pipeline:
 - **HarfBuzz text shaping** for deterministic text measurement
-- **FreeType font loading** with automatic system font scanning and open-source fallback chain (Arial → Liberation Sans, Times New Roman → Liberation Serif, Courier New → Liberation Mono, Calibri → Carlito)
+- **FreeType font loading** with automatic system font scanning and open-source fallback chain (Arial → Liberation Sans, Times New Roman → Liberation Serif, Courier New → Liberation Mono, Georgia → Liberation Serif, Verdana → Liberation Sans, Trebuchet MS → Liberation Sans)
 - **Vertical & horizontal pagination** with configurable page break rules
 - **OOXML emission** into valid .docx ZIP packages
 - Support for all 3 document types (Table, Figure, Text)
@@ -357,7 +357,9 @@ ksTFL automatically discovers fonts installed on the operating system at package
 | Arial | Liberation Sans | SIL OFL 1.1 |
 | Times New Roman | Liberation Serif | SIL OFL 1.1 |
 | Courier New | Liberation Mono | SIL OFL 1.1 |
-| Calibri | Carlito | SIL OFL 1.1 |
+| Georgia | Liberation Serif | SIL OFL 1.1 |
+| Verdana | Liberation Sans | SIL OFL 1.1 |
+| Trebuchet MS | Liberation Sans | SIL OFL 1.1 |
 
 **Custom font directories:**
 

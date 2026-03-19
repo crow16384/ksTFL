@@ -30,7 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -90,9 +90,9 @@ well.</p></li>
 package’s own <code>inst/fonts/</code> directory (containing
 license-free alternatives) is scanned last.</p></li>
 <li><p><strong>Target fonts are resolved.</strong> For each target font
-family (Arial, Times New Roman, Courier New, Calibri), the scanner
-checks whether the font was found in any scanned directory. If not, a
-designated fallback is assigned.</p></li>
+family (Arial, Times New Roman, Courier New, Georgia, Verdana, Trebuchet
+MS), the scanner checks whether the font was found in any scanned
+directory. If not, a designated fallback is assigned.</p></li>
 </ol>
 <p><strong>Key rule:</strong> system-installed fonts always take
 priority. The bundled fallbacks are only used when a target font is not
@@ -138,7 +138,7 @@ data dirs</td>
 <div class="section level2">
 <h2 id="target-fonts-and-fallbacks">Target Fonts and Fallbacks<a class="anchor" aria-label="anchor" href="#target-fonts-and-fallbacks"></a>
 </h2>
-<p>The rendering engine targets four font families commonly used in
+<p>The rendering engine targets six font families commonly used in
 clinical documents. Each has a metrically compatible open-source
 fallback bundled with the package:</p>
 <table class="table">
@@ -169,9 +169,19 @@ fallback bundled with the package:</p>
 <td>Metrically identical to Courier New</td>
 </tr>
 <tr class="even">
-<td><strong>Calibri</strong></td>
-<td>Carlito</td>
-<td>Metrically compatible with Calibri</td>
+<td><strong>Georgia</strong></td>
+<td>Liberation Serif</td>
+<td>Serif fallback for Georgia</td>
+</tr>
+<tr class="odd">
+<td><strong>Verdana</strong></td>
+<td>Liberation Sans</td>
+<td>Sans-serif fallback for Verdana</td>
+</tr>
+<tr class="even">
+<td><strong>Trebuchet MS</strong></td>
+<td>Liberation Sans</td>
+<td>Sans-serif fallback for Trebuchet MS</td>
 </tr>
 </tbody>
 </table>
@@ -190,11 +200,13 @@ the current font resolution:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://example.com">ksTFL</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/tfl_font_status.html">tfl_font_status</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ksTFL font scan: 3 target(s) resolved, 1 using fallback</span></span>
+<span><span class="co">#&gt; ksTFL font scan: 3 target(s) resolved, 3 using fallback</span></span>
 <span><span class="co">#&gt;   [ok]       Arial                -&gt; Arial</span></span>
 <span><span class="co">#&gt;   [ok]       Times New Roman      -&gt; Times New Roman</span></span>
 <span><span class="co">#&gt;   [ok]       Courier New          -&gt; Courier New</span></span>
-<span><span class="co">#&gt;   [fallback] Calibri              -&gt; Carlito</span></span>
+<span><span class="co">#&gt;   [fallback] Georgia              -&gt; Liberation Serif</span></span>
+<span><span class="co">#&gt;   [fallback] Verdana              -&gt; Liberation Sans</span></span>
+<span><span class="co">#&gt;   [fallback] Trebuchet MS         -&gt; Liberation Sans</span></span>
 <span><span class="co">#&gt;   Scanned 5 directories</span></span></code></pre></div>
 <p><strong>Reading the output:</strong></p>
 <ul>
@@ -242,13 +254,15 @@ directory paths.</p>
 <li>Mounting a new network font directory</li>
 </ul>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Install Calibri to /usr/local/share/fonts/calibri/ ... then:</span></span>
+<code class="sourceCode R"><span><span class="co"># Install Georgia to /usr/local/share/fonts/georgia/ ... then:</span></span>
 <span><span class="fu"><a href="../reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ksTFL font scan: 4 target(s) resolved, 0 using fallback</span></span>
+<span><span class="co">#&gt; ksTFL font scan: 6 target(s) resolved, 0 using fallback</span></span>
 <span><span class="co">#&gt;   [ok]       Arial                -&gt; Arial</span></span>
 <span><span class="co">#&gt;   [ok]       Times New Roman      -&gt; Times New Roman</span></span>
 <span><span class="co">#&gt;   [ok]       Courier New          -&gt; Courier New</span></span>
-<span><span class="co">#&gt;   [ok]       Calibri              -&gt; Calibri</span></span>
+<span><span class="co">#&gt;   [ok]       Georgia              -&gt; Georgia</span></span>
+<span><span class="co">#&gt;   [ok]       Verdana              -&gt; Verdana</span></span>
+<span><span class="co">#&gt;   [ok]       Trebuchet MS         -&gt; Trebuchet MS</span></span>
 <span><span class="co">#&gt;   Scanned 5 directories</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -258,7 +272,7 @@ directory paths.</p>
 target fonts are using fallbacks:</p>
 <pre><code>ksTFL v0.6.0 - Clinical TFL Framework
 For help, type: ??ksTFL
-Note: 1 font(s) using fallback: Calibri
+Note: 3 font(s) using fallback: Georgia, Verdana, Trebuchet MS
 Run tfl_font_status() for details.</code></pre>
 <p>If all target fonts are found on the system, no font-related message
 is shown.</p>
@@ -304,9 +318,9 @@ non-standard directory, add that directory to
 <h3 id="q-will-documents-look-different-on-systems-without-the-proprietary-fonts">Q: Will documents look different on systems without the proprietary
 fonts?<a class="anchor" aria-label="anchor" href="#q-will-documents-look-different-on-systems-without-the-proprietary-fonts"></a>
 </h3>
-<p>The fallback fonts (Liberation family, Carlito) are designed to be
-metrically compatible with their proprietary counterparts. Line breaks,
-page breaks, and column widths should be identical or very close. Minor
+<p>The fallback fonts (Liberation family) are designed to be metrically
+compatible with their proprietary counterparts. Line breaks, page
+breaks, and column widths should be identical or very close. Minor
 glyph-level differences may exist, but document layout is preserved.</p>
 </div>
 <div class="section level3">

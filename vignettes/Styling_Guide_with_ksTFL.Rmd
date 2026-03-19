@@ -75,7 +75,7 @@ All style primitives begin with `s_` and must be used **only inside `add_style()
 Control font appearance (name, size, weight, color, decorations).
 
 **Parameters**:
-- `font_name`: Font family (e.g., "Arial", "Courier New", "Times New Roman", "Calibri")
+- `font_name`: Font family (e.g., "Arial", "Courier New", "Times New Roman", "Georgia")
 - `font_size`: Size with units (e.g., "12pt", "11pt")
 - `bold`: Logical (TRUE/FALSE)
 - `italic`: Logical (TRUE/FALSE)
@@ -447,9 +447,9 @@ Color parameters accept both **hex codes** (e.g., `"#FF0000"`) and **named color
 - Arial
 - Courier New
 - Times New Roman
-- Calibri
 - Georgia
 - Verdana
+- Trebuchet MS
 
 ### Alignment
 - "left"

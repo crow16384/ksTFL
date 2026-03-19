@@ -81,7 +81,7 @@ if used incorrectly.
 Control font appearance (name, size, weight, color, decorations).
 
 **Parameters**: - `font_name`: Font family (e.g., “Arial”, “Courier
-New”, “Times New Roman”, “Calibri”) - `font_size`: Size with units
+New”, “Times New Roman”, “Georgia”) - `font_size`: Size with units
 (e.g., “12pt”, “11pt”) - `bold`: Logical (TRUE/FALSE) - `italic`:
 Logical (TRUE/FALSE) - `underline`: Logical (TRUE/FALSE) - `color`:
 Color as hex code (e.g., “#000000”, “#FF0000”) or color name (e.g.,
@@ -486,9 +486,9 @@ grey90 (or gray with ‘a’)
 - Arial
 - Courier New
 - Times New Roman
-- Calibri
 - Georgia
 - Verdana
+- Trebuchet MS
 
 ### Alignment
 

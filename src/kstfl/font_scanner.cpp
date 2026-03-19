@@ -1,9 +1,9 @@
 // kstfl/font_scanner.cpp — System font discovery and registry implementation
 //
 // Scans platform-specific font directories with FreeType to discover installed
-// fonts. Resolves target fonts (Arial, Courier New, Times New Roman, Calibri)
-// against the full scan results: system/user fonts always win over bundled
-// fallbacks.
+// fonts. Resolves target fonts (Arial, Courier New, Times New Roman, Georgia,
+// Verdana, Trebuchet MS) against the full scan results: system/user fonts
+// always win over bundled fallbacks.
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
@@ -50,10 +50,8 @@ struct TargetFallback {
 
 static const std::vector<TargetFallback> &target_fallbacks() {
   static const std::vector<TargetFallback> map = {
-      {"Arial", "Liberation Sans"},
-      {"Times New Roman", "Liberation Serif"},
-      {"Courier New", "Liberation Mono"},
-      {"Calibri", "Carlito"},
+      {"Arial", "Liberation Sans"},    {"Times New Roman", "Liberation Serif"}, {"Courier New", "Liberation Mono"},
+      {"Georgia", "Liberation Serif"}, {"Verdana", "Liberation Sans"},          {"Trebuchet MS", "Liberation Sans"},
   };
   return map;
 }
