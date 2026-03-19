@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -802,269 +802,303 @@ Each atom sets exactly one visual property; compose them freely with
 <td>Underline</td>
 </tr>
 <tr class="odd">
-<td><strong>Font — size</strong></td>
+<td><strong>Font — family</strong></td>
 <td></td>
 </tr>
 <tr class="even">
+<td><code>font_arial</code></td>
+<td>Set <code>font_name = "Arial"</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>font_courier_new</code></td>
+<td>Set <code>font_name = "Courier New"</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>font_times_new_roman</code></td>
+<td>Set <code>font_name = "Times New Roman"</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>font_georgia</code></td>
+<td>Set <code>font_name = "Georgia"</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>font_verdana</code></td>
+<td>Set <code>font_name = "Verdana"</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>font_trebuchet_ms</code></td>
+<td>Set <code>font_name = "Trebuchet MS"</code>
+</td>
+</tr>
+<tr class="even">
+<td><strong>Font — size</strong></td>
+<td></td>
+</tr>
+<tr class="odd">
 <td>
 <code>fs_7</code> … <code>fs_11</code>
 </td>
 <td>Font size 7 pt … 11 pt</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Font — colour</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>fc_black</code>, <code>fc_red</code>, <code>fc_blue</code>,
 <code>fc_green</code>
 </td>
 <td>Pure text colours</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>fc_gray</code> / <code>fc_grey</code>
 </td>
 <td>Secondary / reference text (#595959)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>fc_navy</code>, <code>fc_teal</code>, <code>fc_olive</code>,
 <code>fc_rust</code>, <code>fc_plum</code>, <code>fc_slate</code>
 </td>
 <td>Muted clinical palette</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Text highlight (cell shading)</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>hl_yellow</code>, <code>hl_red</code>, <code>hl_green</code>,
 <code>hl_gray</code> / <code>hl_grey</code>
 </td>
 <td>Strong highlight colours</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>hl_peach</code>, <code>hl_mint</code>, <code>hl_sky</code>,
 <code>hl_lemon</code>, <code>hl_lilac</code>
 </td>
 <td>Pastel highlight palette</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Paragraph — alignment</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>al</code> / <code>text_left</code>
 </td>
 <td>Left-align</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>ar</code> / <code>text_right</code>
 </td>
 <td>Right-align</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>ac</code> / <code>text_center</code>
 </td>
 <td>Center-align</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Paragraph — left indentation</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>ind1</code> / <code>indent_1</code>
 </td>
 <td>0.5 cm left indent (top-level category)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>ind2</code> / <code>indent_2</code>
 </td>
 <td>1.0 cm left indent (first sub-group)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>ind3</code> / <code>indent_3</code>
 </td>
 <td>1.5 cm left indent (second sub-group)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>ind4</code> / <code>indent_4</code>
 </td>
 <td>2.0 cm left indent (detail)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Paragraph — table-width shrink</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>tw_95</code> … <code>tw_50</code>
 </td>
 <td>Symmetric left+right indent to match table at 95 %…50 % width (5 %
 steps)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Paragraph — spacing</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>sp_0</code></td>
 <td>No space before/after paragraph</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>sp_2</code></td>
 <td>2 pt space before and after</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>sp_4</code></td>
 <td>4 pt space before and after</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Paragraph — pagination</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>kl</code></td>
 <td>Keep all lines of a cell on the same page</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>kn</code></td>
 <td>Keep this row on the same page as the next row</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Group / category header composites</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>grp_hdr</code></td>
 <td>Bold + 4 pt space above + left indent reset (category header)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>grp_hdr_i</code></td>
 <td>Bold + italic + 4 pt space above + left indent reset</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Cell — vertical alignment</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>va_t</code> / <code>va_top</code>
 </td>
 <td>Top</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>va_m</code> / <code>va_center</code>
 </td>
 <td>Middle</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>va_b</code> / <code>va_bottom</code>
 </td>
 <td>Bottom</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Cell — text orientation</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>to_h</code> / <code>text_horizontal</code>
 </td>
 <td>Horizontal (default)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>to_90</code> / <code>text_vertical_90</code>
 </td>
 <td>Rotated 90° (bottom-to-top)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>to_270</code> / <code>text_vertical_270</code>
 </td>
 <td>Rotated 270° (top-to-bottom)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Cell — background colour</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>bg_blue</code>, <code>bg_gray</code> /
 <code>bg_grey</code>
 </td>
 <td>Standard backgrounds</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>bg_peach</code>, <code>bg_mint</code>, <code>bg_sky</code>,
 <code>bg_lemon</code>, <code>bg_lilac</code>
 </td>
 <td>Pastel backgrounds</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>bg_navy</code>, <code>bg_slate</code>,
 <code>bg_steel</code>
 </td>
 <td>Dark/medium header backgrounds</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Row height</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>row_h2</code>, <code>row_h4</code>, <code>row_h6</code>
 </td>
 <td>Row height 2 / 4 / 6 pt (separator rows)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Border — sides (1 pt black)</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>bt</code>, <code>bb</code>, <code>bl</code>,
 <code>br</code>
 </td>
 <td>Top / bottom / left / right border</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Border — thin sides (0.5 pt black)</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>bt_th</code>, <code>bb_th</code>
 </td>
 <td>Thin top / bottom border</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Border — colour override</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>bc_gray</code> / <code>bc_grey</code>
 </td>
 <td>All sides → medium gray (#AAAAAA)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>bc_white</code></td>
 <td>All sides → white / none (suppress borders)</td>
 </tr>
@@ -1076,7 +1110,8 @@ steps)</td>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Source: database."</span>, styleRef <span class="op">=</span> <span class="st">"tw_80"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Combine atoms with f_combine()</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">value</span>, valueStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"ar"</span>, <span class="st">"fs_9"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">value</span>,</span>
+<span>  valueStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"font_verdana"</span>, <span class="st">"ar"</span>, <span class="st">"fs_9"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Combine atoms with named styles</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"group_hdr"</span>,</span>

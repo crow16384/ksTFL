@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -423,7 +423,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Context-Based Nesting Rules</strong>: - <code><a href="reference/s_font.html">s_font()</a></code>, <code><a href="reference/s_paragraph.html">s_paragraph()</a></code>, <code><a href="reference/s_table_style.html">s_table_style()</a></code> — direct children of <code><a href="reference/add_style.html">add_style()</a></code> - <code><a href="reference/s_borders.html">s_borders()</a></code> — must be inside <code>s_table_style(borders = s_borders(...))</code> - <code><a href="reference/s_spacing.html">s_spacing()</a></code>, <code><a href="reference/s_indents.html">s_indents()</a></code> — must be inside <code><a href="reference/s_paragraph.html">s_paragraph()</a></code></p>
+<p><strong>Context-Based Nesting Rules</strong>: - <code><a href="reference/s_font.html">s_font()</a></code>, <code><a href="reference/s_paragraph.html">s_paragraph()</a></code>, <code><a href="reference/s_table_style.html">s_table_style()</a></code> — direct children of <code><a href="reference/add_style.html">add_style()</a></code> - <code><a href="reference/s_borders.html">s_borders()</a></code> — must be inside <code>s_table_style(borders = s_borders(...))</code> - <code><a href="reference/s_spacing.html">s_spacing()</a></code>, <code><a href="reference/s_indents.html">s_indents()</a></code> — must be inside <code><a href="reference/s_paragraph.html">s_paragraph()</a></code> - Built-in target font atoms are available for direct <code>styleRef</code> composition: <code>font_arial</code>, <code>font_courier_new</code>, <code>font_times_new_roman</code>, <code>font_georgia</code>, <code>font_verdana</code>, <code>font_trebuchet_ms</code></p>
 <p><strong>Example Style Definition</strong>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"header_style"</span>,</span>
@@ -432,7 +432,10 @@
 <span>  <span class="fu"><a href="reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#E8E8E8"</span>, borders <span class="op">=</span> <span class="fu"><a href="reference/s_borders.html">s_borders</a></span><span class="op">(</span></span>
 <span>    bottom <span class="op">=</span> <span class="fu"><a href="reference/s_border.html">s_border</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"black"</span>, width <span class="op">=</span> <span class="st">"2pt"</span>, line_style <span class="op">=</span> <span class="st">"double"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">mpg</span>,</span>
+<span>  valueStyleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"font_verdana"</span>, <span class="st">"fs_10"</span>, <span class="st">"ar"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="document-configuration">Document Configuration<a class="anchor" aria-label="anchor" href="#document-configuration"></a>

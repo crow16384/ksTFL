@@ -1,3 +1,13 @@
+# ksTFL 0.7.0
+
+## New Features
+
+* Added built-in style atoms for target font families: `font_arial`, `font_courier_new`, `font_times_new_roman`, `font_georgia`, `font_verdana`, and `font_trebuchet_ms`. These atoms set `font_name` only and are intended for composition with existing size, colour, alignment, and spacing atoms via `f_combine()`.
+
+## Documentation
+
+* Updated the styling and font-management articles to document target font family atoms and show how to combine them with other built-in style atoms.
+
 # ksTFL 0.6.0
 
 ## Breaking Changes

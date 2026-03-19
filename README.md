@@ -172,6 +172,7 @@ Define and compose styles:
 - `s_font()`, `s_paragraph()`, `s_table_style()` — direct children of `add_style()`
 - `s_borders()` — must be inside `s_table_style(borders = s_borders(...))`
 - `s_spacing()`, `s_indents()` — must be inside `s_paragraph()`
+- Built-in target font atoms are available for direct `styleRef` composition: `font_arial`, `font_courier_new`, `font_times_new_roman`, `font_georgia`, `font_verdana`, `font_trebuchet_ms`
 
 **Example Style Definition**:
 
@@ -183,6 +184,9 @@ spec <- add_style(spec, id = "header_style",
     bottom = s_border(color = "black", width = "2pt", line_style = "double")
   ))
 )
+
+spec <- define_cols(spec, mpg,
+  valueStyleRef = f_combine("font_verdana", "fs_10", "ar"))
 ```
 
 ### Document Configuration

@@ -4,7 +4,7 @@
 
 ksTFL renders DOCX documents using a C++ engine that requires
 TrueType/OpenType font files for text measurement and pagination.
-Starting with version 0.6.0, the package **automatically discovers fonts
+Starting with version 0.7.0, the package **automatically discovers fonts
 installed on the operating system** at load time. If a required font is
 not available on the system, a metrically compatible open-source
 fallback is used.
@@ -68,6 +68,13 @@ All bundled fonts are licensed under the SIL Open Font License 1.1.
 If a font family requested in a spec (via `s_font(font_name = "...")`)
 is not a target font and is not found on the system, the engine falls
 back to Liberation Sans as the last resort.
+
+For convenience, ksTFL also ships built-in style atoms for the target
+font families: `font_arial`, `font_courier_new`, `font_times_new_roman`,
+`font_georgia`, `font_verdana`, and `font_trebuchet_ms`. These atoms set
+only `font_name`, so they can be safely combined with size, colour,
+alignment, and other style atoms via
+[`f_combine()`](https://example.com/reference/f_combine.md).
 
 ## Checking Font Status
 
@@ -148,7 +155,7 @@ tfl_rescan_fonts()
 When the package is attached, it prints a concise summary if any target
 fonts are using fallbacks:
 
-    ksTFL v0.6.0 - Clinical TFL Framework
+    ksTFL v0.7.0 - Clinical TFL Framework
     For help, type: ??ksTFL
     Note: 3 font(s) using fallback: Georgia, Verdana, Trebuchet MS
     Run tfl_font_status() for details.

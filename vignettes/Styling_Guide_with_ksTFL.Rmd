@@ -621,6 +621,13 @@ ksTFL ships a library of single-property style atoms accessible via `f_combine()
 | `b` / `font_bold` | Bold |
 | `i` / `font_italic` | Italic |
 | `u` / `font_underline` | Underline |
+| **Font — family** | |
+| `font_arial` | Set `font_name = "Arial"` |
+| `font_courier_new` | Set `font_name = "Courier New"` |
+| `font_times_new_roman` | Set `font_name = "Times New Roman"` |
+| `font_georgia` | Set `font_name = "Georgia"` |
+| `font_verdana` | Set `font_name = "Verdana"` |
+| `font_trebuchet_ms` | Set `font_name = "Trebuchet MS"` |
 | **Font — size** | |
 | `fs_7` … `fs_11` | Font size 7 pt … 11 pt |
 | **Font — colour** | |
@@ -680,7 +687,8 @@ ksTFL ships a library of single-property style atoms accessible via `f_combine()
 spec <- add_footnote(spec, "Source: database.", styleRef = "tw_80")
 
 # Combine atoms with f_combine()
-spec <- define_cols(spec, value, valueStyleRef = f_combine("ar", "fs_9"))
+spec <- define_cols(spec, value,
+  valueStyleRef = f_combine("font_verdana", "ar", "fs_9"))
 
 # Combine atoms with named styles
 spec <- add_style(spec, id = "group_hdr",

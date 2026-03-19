@@ -405,6 +405,9 @@ NULL
 # -----------------
 #  b / i / u            font: bold / italic / underline
 #                        aliases: font_bold / font_italic / font_underline
+#  font_<family>        target font family atoms
+#                        font_arial / font_courier_new / font_times_new_roman /
+#                        font_georgia / font_verdana / font_trebuchet_ms
 #  fs_N                 font size in pt  (fs_7 … fs_11)
 #  fc_<colour>          font (text) colour
 #  hl_<colour>          cell text highlight / shading
@@ -441,6 +444,18 @@ NULL
     font_bold      = list(font = list(bold      = TRUE)),
     font_italic    = list(font = list(italic    = TRUE)),
     font_underline = list(font = list(underline = TRUE)),
+
+  # -------------------------------------------------------------------------
+  # Font — target family
+  # Use these atoms to select one of the package target font families without
+  # setting any face/style properties such as bold or italic.
+  # -------------------------------------------------------------------------
+  font_arial            = list(font = list(font_name = "Arial")),
+  font_courier_new      = list(font = list(font_name = "Courier New")),
+  font_times_new_roman  = list(font = list(font_name = "Times New Roman")),
+  font_georgia          = list(font = list(font_name = "Georgia")),
+  font_verdana          = list(font = list(font_name = "Verdana")),
+  font_trebuchet_ms     = list(font = list(font_name = "Trebuchet MS")),
 
     # -------------------------------------------------------------------------
     # Font — size  (explicit pt values; use the value closest to your template)

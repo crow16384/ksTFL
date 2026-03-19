@@ -113,6 +113,11 @@ tfl_spec_preview_prompt <- function() {
 .style_atom_category <- function(nm) {
   if (nm %in% c("b", "i", "u", "font_bold", "font_italic", "font_underline"))
     return("Font \u2014 decoration")
+  if (nm %in% c(
+    "font_arial", "font_courier_new", "font_times_new_roman",
+    "font_georgia", "font_verdana", "font_trebuchet_ms"
+  ))
+    return("Font \u2014 family")
   if (grepl("^fs_", nm))    return("Font \u2014 size")
   if (grepl("^fc_", nm))    return("Font \u2014 colour")
   if (grepl("^hl_", nm))    return("Text highlight")
@@ -189,7 +194,7 @@ tfl_print_style_atoms <- function() {
     "bc_grey"
   )
 
-  name_width <- 20L
+  name_width <- 24L
 
   for (cat in seen_cats) {
     cli::cli_rule(cat)

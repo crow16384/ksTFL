@@ -192,7 +192,10 @@ direct children of
 inside `s_table_style(borders = s_borders(...))` -
 [`s_spacing()`](https://example.com/reference/s_spacing.md),
 [`s_indents()`](https://example.com/reference/s_indents.md) — must be
-inside [`s_paragraph()`](https://example.com/reference/s_paragraph.md)
+inside [`s_paragraph()`](https://example.com/reference/s_paragraph.md) -
+Built-in target font atoms are available for direct `styleRef`
+composition: `font_arial`, `font_courier_new`, `font_times_new_roman`,
+`font_georgia`, `font_verdana`, `font_trebuchet_ms`
 
 **Example Style Definition**:
 
@@ -204,6 +207,9 @@ spec <- add_style(spec, id = "header_style",
     bottom = s_border(color = "black", width = "2pt", line_style = "double")
   ))
 )
+
+spec <- define_cols(spec, mpg,
+  valueStyleRef = f_combine("font_verdana", "fs_10", "ar"))
 ```
 
 ### Document Configuration
