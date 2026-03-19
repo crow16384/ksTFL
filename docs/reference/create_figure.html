@@ -11,7 +11,7 @@ rendered automatically to a temporary SVG file."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,12 +99,9 @@ formats.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co">## From file path (existing behaviour)</span></span></span>
 <span class="r-in"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu">create_figure</span><span class="op">(</span><span class="st">"inst/images/example.png"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in .tfl_init(data = plot_or_path, cols = everything(), docType = "Figure"):</span> Document type `Figure` requires a readable file path:</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> Provided data <span style="color: #0000BB;">"inst/images/example.png"</span> is not a valid file path or is not</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span>   readable</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## From a ggplot2 object</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></span>
@@ -118,9 +115,6 @@ formats.</p>
 <span class="r-in"><span><span class="co">## Override per figure</span></span></span>
 <span class="r-in"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu">create_figure</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="set_document.html">set_document</a></span><span class="op">(</span>figureDevice <span class="op">=</span> <span class="st">"jpeg"</span>, figureScaleMode <span class="op">=</span> <span class="st">"fitWidth"</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Figure dimensions are ignored when `figureScaleMode = "fitWidth"` in</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> `set_document()`</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> The renderer computes figure size from page bounds in this mode</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Full pipeline</span></span></span>
 <span class="r-in"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu">create_figure</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
@@ -128,12 +122,7 @@ formats.</p>
 <span class="r-in"><span>  <span class="fu"><a href="add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Source: Motor Trend, 1974."</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"fig01"</span>, outDir <span class="op">=</span> <span class="st">"output"</span>, metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Report saved successfully</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Spec file: 1e84b1e8c0e5b4b4.json</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Data files saved to: /tmp/Rtmp8Q2xNP</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> DOCX rendered: <span style="color: #0000BB;">/tank/storage/Develop/R/ksTFL/docs/reference/output/fig01.docx</span> (1 page)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [OK] fig01 -&gt; /tank/storage/Develop/R/ksTFL/docs/reference/output/fig01.docx</span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

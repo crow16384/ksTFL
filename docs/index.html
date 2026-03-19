@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -665,14 +665,75 @@
 <div class="section level3">
 <h3 id="id_6-built-in-docx-renderer">6. Built-in DOCX Renderer<a class="anchor" aria-label="anchor" href="#id_6-built-in-docx-renderer"></a>
 </h3>
-<p>The C++20 rendering engine provides a complete end-to-end pipeline: - <strong>HarfBuzz text shaping</strong> for deterministic text measurement - <strong>FreeType font loading</strong> with automatic fallback chain (Arial → Liberation Sans → DejaVu Sans → Noto Sans → FreeSans) - <strong>Vertical &amp; horizontal pagination</strong> with configurable page break rules - <strong>OOXML emission</strong> into valid .docx ZIP packages - Support for all 3 document types (Table, Figure, Text) - <strong>Per-spec template rendering</strong> in multi-spec reports (mixed <code>docTemplate</code> values) - Inline markup: <code>**bold**</code>, <code>*italic*</code>, <code>__underline__</code>, <code>~~strikethrough~~</code> - Structural borders (header top/bottom, table bottom) - Title soft-break rendering (combined paragraph with per-group font styling) - Configurable style templates (<code>CRO Example_default</code> bundled)</p>
+<p>The C++20 rendering engine provides a complete end-to-end pipeline: - <strong>HarfBuzz text shaping</strong> for deterministic text measurement - <strong>FreeType font loading</strong> with automatic system font scanning and open-source fallback chain (Arial → Liberation Sans, Times New Roman → Liberation Serif, Courier New → Liberation Mono, Calibri → Carlito) - <strong>Vertical &amp; horizontal pagination</strong> with configurable page break rules - <strong>OOXML emission</strong> into valid .docx ZIP packages - Support for all 3 document types (Table, Figure, Text) - <strong>Per-spec template rendering</strong> in multi-spec reports (mixed <code>docTemplate</code> values) - Inline markup: <code>**bold**</code>, <code>*italic*</code>, <code>__underline__</code>, <code>~~strikethrough~~</code> - Structural borders (header top/bottom, table bottom) - Title soft-break rendering (combined paragraph with per-group font styling) - Configurable style templates (<code>CRO Example_default</code> bundled)</p>
+</div>
+<div class="section level3">
+<h3 id="id_7-font-management">7. Font Management<a class="anchor" aria-label="anchor" href="#id_7-font-management"></a>
+</h3>
+<p>ksTFL automatically discovers fonts installed on the operating system at package load time. The C++ font scanner inspects platform-specific directories (Windows font folders, macOS system/user Library, Linux freedesktop paths) and builds a font registry. System-installed proprietary fonts are always preferred; only when a target font is missing does the package fall back to a bundled open-source alternative.</p>
+<p><strong>Target fonts and fallbacks:</strong></p>
+<table class="table">
+<thead><tr class="header">
+<th>Target Font</th>
+<th>Fallback (bundled)</th>
+<th>License</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Arial</td>
+<td>Liberation Sans</td>
+<td>SIL OFL 1.1</td>
+</tr>
+<tr class="even">
+<td>Times New Roman</td>
+<td>Liberation Serif</td>
+<td>SIL OFL 1.1</td>
+</tr>
+<tr class="odd">
+<td>Courier New</td>
+<td>Liberation Mono</td>
+<td>SIL OFL 1.1</td>
+</tr>
+<tr class="even">
+<td>Calibri</td>
+<td>Carlito</td>
+<td>SIL OFL 1.1</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Custom font directories:</strong></p>
+<p>Point the <code>ksTFL.font_dirs</code> option to directories containing proprietary or additional fonts. These are scanned alongside system directories:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/opt/company-fonts"</span>, <span class="st">"~/my-fonts"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Font management functions:</strong></p>
+<table class="table">
+<colgroup>
+<col width="52%">
+<col width="47%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/tfl_font_status.html">tfl_font_status()</a></code></td>
+<td>Print current font resolution report</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code></td>
+<td>Re-scan all font directories and print updated report</td>
+</tr>
+</tbody>
+</table>
 <hr>
 </div>
 </div>
 <div class="section level2">
 <h2 id="full-pipeline-example">Full Pipeline Example<a class="anchor" aria-label="anchor" href="#full-pipeline-example"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://example.com">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Create and customize spec</span></span>
@@ -781,7 +842,7 @@
 <h2 id="building-the-pkgdown-site">Building the pkgdown site<a class="anchor" aria-label="anchor" href="#building-the-pkgdown-site"></a>
 </h2>
 <p>From the package root in R:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Optional: longer timeout if CRAN is slow (downlit fetches packages.rds when building articles)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>timeout <span class="op">=</span> <span class="fl">120</span><span class="op">)</span></span>
 <span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span>pkg <span class="op">=</span> <span class="st">"."</span>, install <span class="op">=</span> <span class="cn">FALSE</span>, preview <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>

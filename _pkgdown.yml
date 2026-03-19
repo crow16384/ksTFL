@@ -47,3 +47,4 @@ articles:
     navbar: Internals
     contents:
       - Rendering_Pipeline
+      - Font_Management

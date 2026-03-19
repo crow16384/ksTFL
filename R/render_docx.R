@@ -231,11 +231,9 @@ render_docx <- function(spec_json,
     dir.create(out_dir, recursive = TRUE)
   }
 
-  # ---- Always include bundled package fonts (inst/fonts/) ----
-  pkg_fonts_dir <- system.file("fonts", package = "ksTFL")
-  if (nzchar(pkg_fonts_dir)) {
-    font_dirs <- c(pkg_fonts_dir, font_dirs)
-  }
+  # ---- Collect font directories from scanner + per-call extras ----
+  scanned_dirs <- tryCatch(get_font_dirs_impl(), error = function(e) character(0))
+  font_dirs <- unique(c(scanned_dirs, font_dirs))
 
   # ---- Determine data_dir strategy ----
   use_custom_data_dir <- !is.null(data_dir)

@@ -28,6 +28,7 @@ SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/json_parser.cpp \
     kstfl/style_resolver.cpp \
     kstfl/inline_parser.cpp \
+    kstfl/font_scanner.cpp \
     kstfl/font_cache.cpp \
     kstfl/text_measurer.cpp \
     kstfl/logical_table.cpp \

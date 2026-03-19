@@ -25,3 +25,11 @@ render_docx_from_strings_impl <- function(spec_json, template_json, output_path,
     .Call(`_ksTFL_render_docx_from_strings_impl`, spec_json, template_json, output_path, data_dir, font_dirs, fallback_font, verbose)
 }
 
+init_font_registry_impl <- function(fallback_font_dir, extra_dirs = NULL) {
+    .Call(`_ksTFL_init_font_registry_impl`, fallback_font_dir, extra_dirs)
+}
+
+get_font_dirs_impl <- function() {
+    .Call(`_ksTFL_get_font_dirs_impl`)
+}
+

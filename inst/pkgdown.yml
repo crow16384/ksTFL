@@ -4,11 +4,12 @@ pkgdown_sha: ~
 articles:
   Advanced_StyleRows: Advanced_StyleRows.html
   Column_Width_Management: Column_Width_Management.html
+  Font_Management: Font_Management.html
   Getting_Started_with_ksTFL: Getting_Started_with_ksTFL.html
   Rendering_Pipeline: Rendering_Pipeline.html
   Reporting_Examples_with_ksTFL: Reporting_Examples_with_ksTFL.html
   Styling_Guide_with_ksTFL: Styling_Guide_with_ksTFL.html
-last_built: 2026-03-18T09:13Z
+last_built: 2026-03-19T10:07Z
 urls:
   reference: https://example.com/reference
   article: https://example.com/articles

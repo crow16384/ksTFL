@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -53,7 +53,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-03-17</h4>
+            <h4 data-toc-skip class="date">2026-03-19</h4>
       
 
       <div class="d-none name"><code>Rendering_Pipeline.Rmd</code></div>
@@ -78,6 +78,7 @@ Core modules
   json_parser.cpp      : spec/template/data parsing
   style_resolver.cpp   : style cascade + page/width resolution
   logical_table.cpp    : header grid + logical row stream + styleRows actions
+  font_scanner.cpp     : system font discovery + fallback resolution
   text_measurer.cpp    : HarfBuzz-based deterministic measurement
   paginator.cpp        : vertical and horizontal pagination
   docx_*.cpp           : OOXML emission for document parts
@@ -146,12 +147,21 @@ detect_grouping_boundaries()</li>
 </ul>
 </div>
 <div class="section level3">
-<h3 id="measurement-and-pagination">2.4 Measurement and pagination<a class="anchor" aria-label="anchor" href="#measurement-and-pagination"></a>
+<h3 id="font-discovery-measurement-and-pagination">2.4 Font discovery, measurement, and pagination<a class="anchor" aria-label="anchor" href="#font-discovery-measurement-and-pagination"></a>
 </h3>
 <ul>
+<li>src/kstfl/font_scanner.cpp
+<ul>
+<li>Platform-specific system font directory enumeration</li>
+<li>FreeType-based font family/style classification</li>
+<li>Global font path map (populated once at package load)</li>
+<li>Target font resolution with fallback assignment</li>
+</ul>
+</li>
 <li>src/kstfl/font_cache.cpp
 <ul>
 <li>FreeType/HarfBuzz font loading + metrics cache</li>
+<li>Dynamic font resolution via scanner’s global path map</li>
 </ul>
 </li>
 <li>src/kstfl/text_measurer.cpp

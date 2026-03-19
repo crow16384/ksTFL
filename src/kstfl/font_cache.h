@@ -113,15 +113,6 @@ private:
   std::unordered_map<MetricsKey, FontMetrics, MetricsKeyHash> metrics_cache_;
 };
 
-inline const std::unordered_map<std::string, std::array<std::string, 4>> font_map = {
-    {"courier new", {"cour", "courb", "couri", "courbi"}},
-    {"arial", {"arial", "arialb", "ariali", "arialbi"}},
-    {"times new roman", {"times", "timesbd", "timesi", "timesbi"}},
-    {"calibri", {"calibri", "calibrib", "calibrii", "calibriz"}},
-    {"liberation sans",
-     {"LiberationSans-Regular", "LiberationSans-Bold", "LiberationSans-Italic", "LiberationSans-BoldItalic"}},
-    {"aptos", {"Aptos", "Aptos-Bold", "Aptos-Italic", "Aptos-Bold-Italic"}}};
-
 } // namespace kstfl
 
 #endif // KSTFL_FONT_CACHE_H

@@ -22,10 +22,15 @@
 #'   \item \code{vignette("Reporting_Examples_with_ksTFL")} — Progressive real-world examples
 #'   \item \code{vignette("Advanced_StyleRows")} — Conditional formatting with \code{compute_cols()}
 #'   \item \code{vignette("Column_Width_Management")} — Column width locking and auto-calculation
+#'   \item \code{vignette("Font_Management")} — System font discovery, fallbacks, and rescanning
+#'   \item \code{vignette("Rendering_Pipeline")} — Full C++ renderer architecture and internals
 #' }
 #'
 #' @keywords internal
 "_PACKAGE"
+
+# Internal package environment for storing runtime state (e.g., font report)
+.pkg_env <- new.env(parent = emptyenv())
 
 #' Package load/unload hooks
 #'
@@ -39,16 +44,19 @@
 #' @keywords internal
 #' @noRd
 .onLoad <- function(libname, pkgname) {
- 
-  
-  # Initialize package environment if needed
-  # (settings are already initialized in pkg_settings.R)
-  
-  # Register S3 methods (if you have any custom printing/methods)
-  # e.g., registerS3method("print", "TFL_spec", print.TFL_spec)
-  
-  # Set package-specific options for users
-  # These can be overridden by users with options()
+  # Scan system fonts and populate the C++ font registry
+  pkg_fonts_dir <- system.file("fonts", package = pkgname)
+  extra_dirs <- getOption("ksTFL.font_dirs", default = character(0))
+  tryCatch(
+    {
+      report <- init_font_registry_impl(pkg_fonts_dir, extra_dirs)
+      .pkg_env[["font_report"]] <- report
+    },
+    error = function(e) {
+      warning("ksTFL: font scanner initialisation failed: ", conditionMessage(e),
+              call. = FALSE)
+    }
+  )
   invisible(NULL)
 }
 
@@ -62,19 +70,26 @@
 #' @keywords internal
 #' @noRd
 .onAttach <- function(libname, pkgname) {
-  # Called after package is attached
-  # Useful for checking dependencies or system requirements
-   # Get package version
   pkg_version <- utils::packageVersion(pkgname)
-  
-  # Display welcome message
   packageStartupMessage(
-    sprintf(
-      "ksTFL v%s - Clinical TFL Framework\n",
-      pkg_version
-    ),
-      "For help, type: ??ksTFL"
+    sprintf("ksTFL v%s - Clinical TFL Framework\n", pkg_version),
+    "For help, type: ??ksTFL"
   )
+
+  # Print font scan summary (if available)
+  report <- .pkg_env[["font_report"]]
+  if (!is.null(report)) {
+    n_fb <- sum(vapply(report$resolutions, function(r) r$is_fallback, logical(1)))
+    if (n_fb > 0) {
+      targets <- vapply(report$resolutions[vapply(report$resolutions,
+        function(r) r$is_fallback, logical(1))],
+        function(r) r$target, character(1))
+      packageStartupMessage(
+        sprintf("Note: %d font(s) using fallback: %s", n_fb, paste(targets, collapse = ", ")),
+        "\nRun tfl_font_status() for details."
+      )
+    }
+  }
 
   invisible(NULL)
 }

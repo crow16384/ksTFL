@@ -336,7 +336,7 @@ define_cols(spec, c(col1, col2, col3), colWidth = c("20%", "30%", "50%"))
 
 The C++20 rendering engine provides a complete end-to-end pipeline:
 - **HarfBuzz text shaping** for deterministic text measurement
-- **FreeType font loading** with automatic fallback chain (Arial → Liberation Sans → DejaVu Sans → Noto Sans → FreeSans)
+- **FreeType font loading** with automatic system font scanning and open-source fallback chain (Arial → Liberation Sans, Times New Roman → Liberation Serif, Courier New → Liberation Mono, Calibri → Carlito)
 - **Vertical & horizontal pagination** with configurable page break rules
 - **OOXML emission** into valid .docx ZIP packages
 - Support for all 3 document types (Table, Figure, Text)
@@ -345,6 +345,35 @@ The C++20 rendering engine provides a complete end-to-end pipeline:
 - Structural borders (header top/bottom, table bottom)
 - Title soft-break rendering (combined paragraph with per-group font styling)
 - Configurable style templates (`CRO Example_default` bundled)
+
+### 7. Font Management
+
+ksTFL automatically discovers fonts installed on the operating system at package load time. The C++ font scanner inspects platform-specific directories (Windows font folders, macOS system/user Library, Linux freedesktop paths) and builds a font registry. System-installed proprietary fonts are always preferred; only when a target font is missing does the package fall back to a bundled open-source alternative.
+
+**Target fonts and fallbacks:**
+
+| Target Font | Fallback (bundled) | License |
+|-------------|-------------------|---------|
+| Arial | Liberation Sans | SIL OFL 1.1 |
+| Times New Roman | Liberation Serif | SIL OFL 1.1 |
+| Courier New | Liberation Mono | SIL OFL 1.1 |
+| Calibri | Carlito | SIL OFL 1.1 |
+
+**Custom font directories:**
+
+Point the `ksTFL.font_dirs` option to directories containing proprietary or additional fonts. These are scanned alongside system directories:
+
+```r
+options(ksTFL.font_dirs = c("/opt/company-fonts", "~/my-fonts"))
+tfl_rescan_fonts()
+```
+
+**Font management functions:**
+
+| Function | Purpose |
+|----------|---------|
+| `tfl_font_status()` | Print current font resolution report |
+| `tfl_rescan_fonts()` | Re-scan all font directories and print updated report |
 
 ---
 

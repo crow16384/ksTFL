@@ -1,3 +1,41 @@
+# ksTFL 0.6.0
+
+## Breaking Changes
+
+* **System font scanning replaces bundled proprietary fonts.** The package no longer ships proprietary TTF fonts (Arial, Courier New, Times New Roman, Calibri, Aptos). Instead, fonts are discovered from the operating system at package load time via FreeType-based scanning. If a requested font is not installed on the system, a metrically compatible open-source fallback is used automatically:
+  - Arial → Liberation Sans (bundled)
+  - Times New Roman → Liberation Serif (bundled)
+  - Courier New → Liberation Mono (bundled)
+  - Calibri → Carlito (bundled)
+* **Aptos font family dropped.** Aptos is no longer a target font. Existing specs referencing Aptos will fall back to Liberation Sans.
+* The hardcoded `font_map` in the C++ font cache has been removed. Font resolution is now fully dynamic.
+
+## New Features
+
+* **Runtime font discovery.** At package load (`.onLoad()`), the C++ font scanner inspects system font directories (platform-specific) and builds a global font registry. System-installed fonts are always preferred over bundled fallbacks.
+* **`tfl_rescan_fonts()`** — Re-run font discovery after installing new fonts or changing `ksTFL.font_dirs`. Prints a resolution report to the console.
+* **`tfl_font_status()`** — Print the current font resolution report without rescanning.
+* **`ksTFL.font_dirs` option** — Point `options(ksTFL.font_dirs = c("/path/to/fonts"))` to additional directories containing proprietary or custom fonts. These directories are scanned alongside system directories.
+* **Startup font report.** When the package is attached, a message reports any target fonts that use a fallback, with guidance to run `tfl_font_status()` for details.
+
+## Internals
+
+* New C++ module: `font_scanner.h` / `font_scanner.cpp` — platform-specific font directory enumeration (Windows registry, macOS standard dirs, Linux XDG/freedesktop dirs) and FreeType-based family/style classification.
+* `font_cache.cpp` now resolves fonts via the scanner's global path map, with a two-tier fallback chain: designated fallback family (e.g. Calibri → Carlito), then Liberation Sans as last resort.
+* `rcpp_bindings.cpp` exports `init_font_registry_impl()` and `get_font_dirs_impl()` to R.
+* `render_docx.R` now collects font directories from the scanner cache via `get_font_dirs_impl()` instead of using only the bundled `inst/fonts/` directory.
+
+## Bundled Fonts
+
+Only license-free fallback fonts are included in `inst/fonts/`:
+
+| Font Family | License | Replaces |
+|-------------|---------|----------|
+| Liberation Sans (4 styles) | SIL OFL 1.1 | Arial |
+| Liberation Serif (4 styles) | SIL OFL 1.1 | Times New Roman |
+| Liberation Mono (4 styles) | SIL OFL 1.1 | Courier New |
+| Carlito (4 styles) | SIL OFL 1.1 | Calibri |
+
 # ksTFL 0.5.5
 
 ## New Features

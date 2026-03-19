@@ -42,7 +42,10 @@ Recommended reading order after this vignette: 1.
 `Reporting_Examples_with_ksTFL` for realistic workflow patterns. 2.
 `Styling_Guide_with_ksTFL` for style primitives and reusable style
 systems. 3. `Column_Width_Management` for layout tuning. 4.
-`Advanced_StyleRows` for conditional row actions.
+`Advanced_StyleRows` for conditional row actions. 5. `Font_Management`
+for system font discovery, custom font directories, and fallback
+behavior. 6. `Rendering_Pipeline` for detailed C++ architecture and DOCX
+emission internals.
 
 ------------------------------------------------------------------------
 

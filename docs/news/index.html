@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,20 +32,77 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.6.0" id="kstfl-060">ksTFL 0.6.0<a class="anchor" aria-label="anchor" href="#kstfl-060"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-0-6-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-6-0"></a></h3>
+<ul><li>
+<strong>System font scanning replaces bundled proprietary fonts.</strong> The package no longer ships proprietary TTF fonts (Arial, Courier New, Times New Roman, Calibri, Aptos). Instead, fonts are discovered from the operating system at package load time via FreeType-based scanning. If a requested font is not installed on the system, a metrically compatible open-source fallback is used automatically:
+<ul><li>Arial → Liberation Sans (bundled)</li>
+<li>Times New Roman → Liberation Serif (bundled)</li>
+<li>Courier New → Liberation Mono (bundled)</li>
+<li>Calibri → Carlito (bundled)</li>
+</ul></li>
+<li>
+<strong>Aptos font family dropped.</strong> Aptos is no longer a target font. Existing specs referencing Aptos will fall back to Liberation Sans.</li>
+<li>The hardcoded <code>font_map</code> in the C++ font cache has been removed. Font resolution is now fully dynamic.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-0-6-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-6-0"></a></h3>
+<ul><li>
+<strong>Runtime font discovery.</strong> At package load (<code>.onLoad()</code>), the C++ font scanner inspects system font directories (platform-specific) and builds a global font registry. System-installed fonts are always preferred over bundled fallbacks.</li>
+<li>
+<strong><code><a href="../reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code></strong> — Re-run font discovery after installing new fonts or changing <code>ksTFL.font_dirs</code>. Prints a resolution report to the console.</li>
+<li>
+<strong><code><a href="../reference/tfl_font_status.html">tfl_font_status()</a></code></strong> — Print the current font resolution report without rescanning.</li>
+<li>
+<strong><code>ksTFL.font_dirs</code> option</strong> — Point <code>options(ksTFL.font_dirs = c("/path/to/fonts"))</code> to additional directories containing proprietary or custom fonts. These directories are scanned alongside system directories.</li>
+<li>
+<strong>Startup font report.</strong> When the package is attached, a message reports any target fonts that use a fallback, with guidance to run <code><a href="../reference/tfl_font_status.html">tfl_font_status()</a></code> for details.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="internals-0-6-0">Internals<a class="anchor" aria-label="anchor" href="#internals-0-6-0"></a></h3>
+<ul><li>New C++ module: <code>font_scanner.h</code> / <code>font_scanner.cpp</code> — platform-specific font directory enumeration (Windows registry, macOS standard dirs, Linux XDG/freedesktop dirs) and FreeType-based family/style classification.</li>
+<li>
+<code>font_cache.cpp</code> now resolves fonts via the scanner’s global path map, with a two-tier fallback chain: designated fallback family (e.g. Calibri → Carlito), then Liberation Sans as last resort.</li>
+<li>
+<code>rcpp_bindings.cpp</code> exports <code>init_font_registry_impl()</code> and <code>get_font_dirs_impl()</code> to R.</li>
+<li>
+<code>render_docx.R</code> now collects font directories from the scanner cache via <code>get_font_dirs_impl()</code> instead of using only the bundled <code>inst/fonts/</code> directory.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bundled-fonts-0-6-0">Bundled Fonts<a class="anchor" aria-label="anchor" href="#bundled-fonts-0-6-0"></a></h3>
+<p>Only license-free fallback fonts are included in <code>inst/fonts/</code>:</p>
+<table class="table"><thead><tr class="header"><th>Font Family</th>
+<th>License</th>
+<th>Replaces</th>
+</tr></thead><tbody><tr class="odd"><td>Liberation Sans (4 styles)</td>
+<td>SIL OFL 1.1</td>
+<td>Arial</td>
+</tr><tr class="even"><td>Liberation Serif (4 styles)</td>
+<td>SIL OFL 1.1</td>
+<td>Times New Roman</td>
+</tr><tr class="odd"><td>Liberation Mono (4 styles)</td>
+<td>SIL OFL 1.1</td>
+<td>Courier New</td>
+</tr><tr class="even"><td>Carlito (4 styles)</td>
+<td>SIL OFL 1.1</td>
+<td>Calibri</td>
+</tr></tbody></table></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.5" id="kstfl-055">ksTFL 0.5.5<a class="anchor" aria-label="anchor" href="#kstfl-055"></a></h2>
 <div class="section level3">
 <h3 id="new-features-0-5-5">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-5"></a></h3>
-<ul><li>HTML "TFL Specification Preview" is no longer triggered by <code>print(spec)</code>; <code>print.TFL_spec()</code> is now console-only. Use the new <code>view_tfl_spec()</code> function or RStudio Addins to open the HTML preview.</li>
+<ul><li>HTML “TFL Specification Preview” is no longer triggered by <code>print(spec)</code>; <code><a href="../reference/print.TFL_spec.html">print.TFL_spec()</a></code> is now console-only. Use the new <code>view_tfl_spec(spec)</code> function or RStudio Addins to open the HTML preview.</li>
 <li>Added <code>view_tfl_spec(spec)</code> to open the TFL Specification Preview in the RStudio Viewer pane.</li>
-<li>Added RStudio Addins: "TFL Spec Preview (Selection)" and "TFL Spec Preview (by name)" to show the HTML preview from selected code or a prompted object name.</li>
-<li>Added "Style Atoms Catalog" RStudio Addin and <code>tfl_print_style_atoms()</code> to print all built-in style atoms to the console with coloured output.</li>
+<li>Added RStudio Addins: “TFL Spec Preview (Selection)” (evaluate selected code as a <code>TFL_spec</code> and show HTML preview) and “TFL Spec Preview (by name)” (prompt for an object name in <code>.GlobalEnv</code> and show preview).</li>
+<li>Added “Style Atoms Catalog” RStudio Addin and <code><a href="../reference/tfl_print_style_atoms.html">tfl_print_style_atoms()</a></code> to print all built-in style atoms from <code>.const_options_styles</code> to the console with coloured, grouped output via cli.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="changes-0-5-5">Changes<a class="anchor" aria-label="anchor" href="#changes-0-5-5"></a></h3>
-<ul><li>Removed the <code>TFL.viewer</code> option; HTML preview is only available via <code>view_tfl_spec()</code> or the addins.</li>
+<ul><li>Removed the <code>TFL.viewer</code> option; HTML preview is only available via <code><a href="../reference/view_tfl_spec.html">view_tfl_spec()</a></code> or the addins.</li>
 </ul></div>
 </div>
-
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.5.4" id="kstfl-054">ksTFL 0.5.4<a class="anchor" aria-label="anchor" href="#kstfl-054"></a></h2>
 <div class="section level3">

@@ -1,21 +1,86 @@
 # Changelog
 
+## ksTFL 0.6.0
+
+### Breaking Changes
+
+- **System font scanning replaces bundled proprietary fonts.** The
+  package no longer ships proprietary TTF fonts (Arial, Courier New,
+  Times New Roman, Calibri, Aptos). Instead, fonts are discovered from
+  the operating system at package load time via FreeType-based scanning.
+  If a requested font is not installed on the system, a metrically
+  compatible open-source fallback is used automatically:
+  - Arial → Liberation Sans (bundled)
+  - Times New Roman → Liberation Serif (bundled)
+  - Courier New → Liberation Mono (bundled)
+  - Calibri → Carlito (bundled)
+- **Aptos font family dropped.** Aptos is no longer a target font.
+  Existing specs referencing Aptos will fall back to Liberation Sans.
+- The hardcoded `font_map` in the C++ font cache has been removed. Font
+  resolution is now fully dynamic.
+
+### New Features
+
+- **Runtime font discovery.** At package load (`.onLoad()`), the C++
+  font scanner inspects system font directories (platform-specific) and
+  builds a global font registry. System-installed fonts are always
+  preferred over bundled fallbacks.
+- **[`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)**
+  — Re-run font discovery after installing new fonts or changing
+  `ksTFL.font_dirs`. Prints a resolution report to the console.
+- **[`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)**
+  — Print the current font resolution report without rescanning.
+- **`ksTFL.font_dirs` option** — Point
+  `options(ksTFL.font_dirs = c("/path/to/fonts"))` to additional
+  directories containing proprietary or custom fonts. These directories
+  are scanned alongside system directories.
+- **Startup font report.** When the package is attached, a message
+  reports any target fonts that use a fallback, with guidance to run
+  [`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)
+  for details.
+
+### Internals
+
+- New C++ module: `font_scanner.h` / `font_scanner.cpp` —
+  platform-specific font directory enumeration (Windows registry, macOS
+  standard dirs, Linux XDG/freedesktop dirs) and FreeType-based
+  family/style classification.
+- `font_cache.cpp` now resolves fonts via the scanner’s global path map,
+  with a two-tier fallback chain: designated fallback family
+  (e.g. Calibri → Carlito), then Liberation Sans as last resort.
+- `rcpp_bindings.cpp` exports `init_font_registry_impl()` and
+  `get_font_dirs_impl()` to R.
+- `render_docx.R` now collects font directories from the scanner cache
+  via `get_font_dirs_impl()` instead of using only the bundled
+  `inst/fonts/` directory.
+
+### Bundled Fonts
+
+Only license-free fallback fonts are included in `inst/fonts/`:
+
+| Font Family                 | License     | Replaces        |
+|-----------------------------|-------------|-----------------|
+| Liberation Sans (4 styles)  | SIL OFL 1.1 | Arial           |
+| Liberation Serif (4 styles) | SIL OFL 1.1 | Times New Roman |
+| Liberation Mono (4 styles)  | SIL OFL 1.1 | Courier New     |
+| Carlito (4 styles)          | SIL OFL 1.1 | Calibri         |
+
 ## ksTFL 0.5.5
 
 ### New Features
 
-- HTML "TFL Specification Preview" is no longer triggered by
-  `print(spec)`; `print.TFL_spec()` is now console-only. Use the new
-  [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md)
-  function or RStudio Addins to open the HTML preview.
-- Added
-  [`view_tfl_spec(spec)`](https://example.com/reference/view_tfl_spec.md)
-  to open the TFL Specification Preview in the RStudio Viewer pane.
-- Added RStudio Addins: "TFL Spec Preview (Selection)" (evaluate
-  selected code as a `TFL_spec` and show HTML preview) and "TFL Spec
-  Preview (by name)" (prompt for an object name in `.GlobalEnv` and
-  show preview).
-- Added "Style Atoms Catalog" RStudio Addin and
+- HTML “TFL Specification Preview” is no longer triggered by
+  `print(spec)`;
+  [`print.TFL_spec()`](https://example.com/reference/print.TFL_spec.md)
+  is now console-only. Use the new `view_tfl_spec(spec)` function or
+  RStudio Addins to open the HTML preview.
+- Added `view_tfl_spec(spec)` to open the TFL Specification Preview in
+  the RStudio Viewer pane.
+- Added RStudio Addins: “TFL Spec Preview (Selection)” (evaluate
+  selected code as a `TFL_spec` and show HTML preview) and “TFL Spec
+  Preview (by name)” (prompt for an object name in `.GlobalEnv` and show
+  preview).
+- Added “Style Atoms Catalog” RStudio Addin and
   [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
   to print all built-in style atoms from `.const_options_styles` to the
   console with coloured, grouped output via cli.
@@ -23,7 +88,8 @@
 ### Changes
 
 - Removed the `TFL.viewer` option; HTML preview is only available via
-  `view_tfl_spec()` or the addins.
+  [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md) or
+  the addins.
 
 ## ksTFL 0.5.4
 

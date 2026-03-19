@@ -1,14 +1,16 @@
 // kstfl/font_cache.cpp — FreeType + HarfBuzz font loading and caching
 //
-// Font loading uses ONLY fonts from inst/fonts/ (bundled with the package).
-// No system fonts are used. If a requested font is not found, LiberationSans
-// is used as fallback. Metrics are computed from the OS/2 table
-// (usWinAscent / usWinDescent) to match Microsoft Word's line height
-// calculation.
+// Font loading uses fonts discovered by the font scanner at package load time.
+// System-installed fonts are preferred; if a requested font is not found,
+// the scanner's fallback assignment is used (e.g., Calibri → Carlito).
+// Last-resort fallback is always Liberation Sans (bundled in inst/fonts/).
+// Metrics are computed from the OS/2 table (usWinAscent / usWinDescent)
+// to match Microsoft Word's line height calculation.
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "font_cache.h"
+#include "font_scanner.h"
 #include "types.h"
 
 #include <ft2build.h>
@@ -89,33 +91,46 @@ void FontCache::add_font_dir(const std::string &dir) {
 // Font file finding (recursive directory search)
 // ---------------------------------------------------------------------------
 
-/// Map common font names to typical filenames (case-insensitive).
-static std::string font_name_to_filename_hint(const std::string &name, bool bold, bool italic) {
-  // lowercase conversion
+/// Look up a font path from the global font path map (populated by font scanner).
+/// Returns the full path for the requested family+style, or empty string.
+static std::string lookup_in_path_map(const std::string &name, bool bold, bool italic) {
   std::string lower;
   lower.reserve(name.size());
   for (unsigned char c : name)
     lower.push_back(static_cast<char>(std::tolower(c)));
 
-  // style index: 0=regular, 1=bold, 2=italic, 3=bold+italic
+  const auto &path_map = get_font_path_map();
+  auto it = path_map.find(lower);
+  if (it == path_map.end()) return "";
+
   int idx = (bold ? 1 : 0) | (italic ? 2 : 0);
+  return it->second[idx];
+}
 
-  auto it = font_map.find(lower);
-  if (it != font_map.end()) return it->second[idx];
+/// Stem-based fallback hint for the font_index_ built by add_font_dir().
+static std::string font_name_to_stem_hint(const std::string &name, bool bold, bool italic) {
+  std::string lower;
+  lower.reserve(name.size());
+  for (unsigned char c : name)
+    lower.push_back(static_cast<char>(std::tolower(c)));
 
-  // Fallback: construct name + style suffix indexed by bold|italic bits
   static constexpr std::array<const char *, 4> suffixes = {"", "bd", "i", "bi"};
+  int idx = (bold ? 1 : 0) | (italic ? 2 : 0);
   return lower + suffixes[idx];
 }
 
 std::string FontCache::find_font_file(const FaceKey &key) const {
-  std::string hint = font_name_to_filename_hint(key.name, key.bold, key.italic);
+  // 1. Check global font path map (populated at package load by font scanner)
+  std::string path = lookup_in_path_map(key.name, key.bold, key.italic);
+  if (!path.empty()) return path;
+
+  // 2. Fall back to stem-based lookup in per-render font_index_
+  std::string hint = font_name_to_stem_hint(key.name, key.bold, key.italic);
   std::string hint_lower;
   hint_lower.reserve(hint.size());
   for (unsigned char c : hint)
     hint_lower.push_back(static_cast<char>(std::tolower(c)));
 
-  // O(1) lookup in pre-built index
   auto it = font_index_.find(hint_lower);
   if (it != font_index_.end()) return it->second;
 
@@ -164,14 +179,29 @@ const CachedFace &FontCache::get_face(const FaceKey &key) {
   }
 
   if (path.empty() && key.name != FALLBACK_FONT_NAME) {
-    // Fallback to LiberationSans with matching style
-    Rcpp::Rcerr << "[ksTFL] WARNING: Font '" << key.name << "' not found in inst/fonts/. Falling back to "
-                << FALLBACK_FONT_NAME << ".\n";
+    // Try the designated fallback for this font (e.g., Calibri → Carlito)
+    std::string fb_family = get_fallback_family(key.name);
+    if (!fb_family.empty()) {
+      FaceKey fb_key{fb_family, key.bold, key.italic};
+      path = find_font_file(fb_key);
+      if (path.empty() && (key.bold || key.italic)) {
+        FaceKey fb_plain{fb_family, false, false};
+        path = find_font_file(fb_plain);
+      }
+      if (!path.empty()) {
+        Rcpp::Rcerr << "[ksTFL] INFO: Font '" << key.name << "' not found. Using " << fb_family << " (fallback).\n";
+      }
+    }
+  }
+
+  if (path.empty() && key.name != FALLBACK_FONT_NAME) {
+    // Last resort: Liberation Sans
+    Rcpp::Rcerr << "[ksTFL] WARNING: Font '" << key.name << "' not found. Falling back to " << FALLBACK_FONT_NAME
+                << ".\n";
     FaceKey fallback_key{FALLBACK_FONT_NAME, key.bold, key.italic};
     path = find_font_file(fallback_key);
 
     if (path.empty() && (key.bold || key.italic)) {
-      // Try plain LiberationSans
       FaceKey fallback_plain{FALLBACK_FONT_NAME, false, false};
       path = find_font_file(fallback_plain);
     }
@@ -181,7 +211,7 @@ const CachedFace &FontCache::get_face(const FaceKey &key) {
     throw RenderError("Font not found: '" + key.name + "' (bold=" + (key.bold ? "true" : "false") +
                       ", italic=" + (key.italic ? "true" : "false") +
                       "). "
-                      "No matching font in inst/fonts/ and LiberationSans "
+                      "No matching font found and LiberationSans "
                       "fallback also not found.");
   }
 

@@ -23,3 +23,4 @@
 
 - [Rendering Pipeline and Full C++
   Architecture](https://example.com/articles/Rendering_Pipeline.md):
+- [Font Management](https://example.com/articles/Font_Management.md):

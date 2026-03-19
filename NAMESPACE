@@ -94,7 +94,11 @@ export(
   tfl_get_option,
   tfl_set_options,
   tfl_reset_options,
-  tfl_list_templates
+  tfl_list_templates,
+
+  # Font management
+  tfl_rescan_fonts,
+  tfl_font_status
 )
 
 # S3 method registrations for add_style

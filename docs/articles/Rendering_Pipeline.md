@@ -17,6 +17,7 @@ output.
       json_parser.cpp      : spec/template/data parsing
       style_resolver.cpp   : style cascade + page/width resolution
       logical_table.cpp    : header grid + logical row stream + styleRows actions
+      font_scanner.cpp     : system font discovery + fallback resolution
       text_measurer.cpp    : HarfBuzz-based deterministic measurement
       paginator.cpp        : vertical and horizontal pagination
       docx_*.cpp           : OOXML emission for document parts
@@ -55,10 +56,16 @@ output.
   - build_header_grid(), build_data_rows()
   - apply_dedupe(), apply_style_rows(), detect_grouping_boundaries()
 
-### 2.4 Measurement and pagination
+### 2.4 Font discovery, measurement, and pagination
 
+- src/kstfl/font_scanner.cpp
+  - Platform-specific system font directory enumeration
+  - FreeType-based font family/style classification
+  - Global font path map (populated once at package load)
+  - Target font resolution with fallback assignment
 - src/kstfl/font_cache.cpp
   - FreeType/HarfBuzz font loading + metrics cache
+  - Dynamic font resolution via scanner’s global path map
 - src/kstfl/text_measurer.cpp
   - TextMeasurer::measure_plain()
   - measure_cell() with wrapping, spacing, margins, orientation support

@@ -27,6 +27,8 @@ To get started, see the vignettes:
 \item \code{vignette("Reporting_Examples_with_ksTFL")} — Progressive real-world examples
 \item \code{vignette("Advanced_StyleRows")} — Conditional formatting with \code{compute_cols()}
 \item \code{vignette("Column_Width_Management")} — Column width locking and auto-calculation
+\item \code{vignette("Font_Management")} — System font discovery, fallbacks, and rescanning
+\item \code{vignette("Rendering_Pipeline")} — Full C++ renderer architecture and internals
 }
 }
 \seealso{

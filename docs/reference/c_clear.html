@@ -11,7 +11,7 @@ empty without affecting their column structure, width, or styling."></head><body
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.5.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,18 +80,16 @@ renders as a blank merged cell.</p></li>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span>  <span class="co"># Blank label column in total rows</span></span></span>
 <span class="r-in"><span>  <span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">is_total</span>,</span></span>
 <span class="r-in"><span>    <span class="fu">c_clear</span><span class="op">(</span><span class="va">label</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'spec' not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span>  <span class="co"># Clear then replace with a value from another column (full replacement)</span></span></span>
 <span class="r-in"><span>  <span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">condition</span>,</span></span>
 <span class="r-in"><span>    <span class="fu">c_clear</span><span class="op">(</span><span class="va">display_col</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    <span class="fu"><a href="c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">display_col</span>, <span class="st">"after"</span>, glue_col <span class="op">=</span> <span class="va">replacement_col</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'spec' not found</span>
-<span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

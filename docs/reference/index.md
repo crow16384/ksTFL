@@ -103,21 +103,27 @@
   Set document properties
 - [`set_page_style()`](https://example.com/reference/set_page_style.md)
   : Set document style properties
+- [`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)
+  : Show current font status
 - [`tfl_get_option()`](https://example.com/reference/tfl_get_option.md)
   : Retrieve a single package option
 - [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md)
   : Return the active package options
 - [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)
   : List available bundled templates
+- [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
+  [`tfl_style_atoms_catalog()`](https://example.com/reference/tfl_print_style_atoms.md)
+  : Print all built-in style atoms to the console
+- [`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)
+  : Rescan system fonts
 - [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md)
   : Reset all session options to package defaults
 - [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
   : Update the session package settings
-- [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
-  : Print all built-in style atoms to the console
-- [`tfl_style_atoms_catalog()`](https://example.com/reference/tfl_style_atoms_catalog.md)
-  : RStudio Addin to print style atoms catalog
-- [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md) : Open
-  the HTML TFL Specification Preview in the RStudio Viewer
+- [`tfl_spec_preview_selection()`](https://example.com/reference/tfl_spec_addins.md)
+  [`tfl_spec_preview_prompt()`](https://example.com/reference/tfl_spec_addins.md)
+  : RStudio Addins for TFL Specification Preview
+- [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md) :
+  Open the HTML TFL Specification Preview in the RStudio Viewer
 - [`write_doc()`](https://example.com/reference/write_doc.md) : Save and
   Render a TFL Report to DOCX

@@ -47,6 +47,12 @@ To get started, see the vignettes:
 - [`vignette("Column_Width_Management")`](https://example.com/articles/Column_Width_Management.md)
   — Column width locking and auto-calculation
 
+- [`vignette("Font_Management")`](https://example.com/articles/Font_Management.md)
+  — System font discovery, fallbacks, and rescanning
+
+- [`vignette("Rendering_Pipeline")`](https://example.com/articles/Rendering_Pipeline.md)
+  — Full C++ renderer architecture and internals
+
 ## See also
 
 Useful links:

@@ -83,3 +83,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// init_font_registry_impl
+Rcpp::List init_font_registry_impl(const std::string& fallback_font_dir, Rcpp::Nullable<Rcpp::CharacterVector> extra_dirs);
+RcppExport SEXP _ksTFL_init_font_registry_impl(SEXP fallback_font_dirSEXP, SEXP extra_dirsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type fallback_font_dir(fallback_font_dirSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type extra_dirs(extra_dirsSEXP);
+    rcpp_result_gen = Rcpp::wrap(init_font_registry_impl(fallback_font_dir, extra_dirs));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_font_dirs_impl
+Rcpp::CharacterVector get_font_dirs_impl();
+RcppExport SEXP _ksTFL_get_font_dirs_impl() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(get_font_dirs_impl());
+    return rcpp_result_gen;
+END_RCPP
+}
