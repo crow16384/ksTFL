@@ -16,6 +16,9 @@ PKG_CPPFLAGS = -I../inst/include -I./vendor \
 PKG_LIBS = -L$(HARFBUZZ_DIR)/lib -lharfbuzz \
     -L$(FREETYPE_DIR)/lib -lfreetype \
     -L$(MINIZIP_DIR)/lib -lminizip -lz \
+    -lpng -lbrotlidec -lbrotlicommon \
+    -lbz2 -llzma -lzstd \
+    -lbcrypt \
     $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \

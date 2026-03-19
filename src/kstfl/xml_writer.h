@@ -8,6 +8,7 @@
 #ifndef KSTFL_XML_WRITER_H
 #define KSTFL_XML_WRITER_H
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
