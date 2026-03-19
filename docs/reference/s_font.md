@@ -23,7 +23,7 @@ s_font(
 - font_name:
 
   Font family name. One of: "Arial", "Courier New", "Times New Roman",
-  "Calibri"
+  "Georgia", "Verdana", "Trebuchet MS", "Liberation Sans"
 
 - font_size:
 

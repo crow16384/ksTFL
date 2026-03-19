@@ -489,7 +489,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #'
 #' Constructs and validates a font specification list.
 #'
-#' @param font_name Character. Font family name (Arial, Courier New, Times New Roman, Calibri)
+#' @param font_name Character. Font family name (Arial, Courier New, Times New Roman, Georgia, Verdana, Trebuchet MS, Liberation Sans)
 #' @param font_size Character. Font size with units (e.g., "12pt")
 #' @param bold Logical. Whether text should be bold
 #' @param italic Logical. Whether text should be italic
@@ -878,7 +878,8 @@ assign("stack", character(0), envir = .context_marker_env)
 #' This function can only be used inside \code{\link{add_style}}.
 #' 
 #' @param font_name Font family name. One of: "Arial", "Courier New", 
-#'   "Times New Roman", "Calibri"
+#'   "Times New Roman", "Georgia", "Verdana", "Trebuchet MS",
+#'   "Liberation Sans"
 #' @param font_size Font size with units, e.g. "12pt"
 #' @param bold Logical, whether text is bold
 #' @param italic Logical, whether text is italic

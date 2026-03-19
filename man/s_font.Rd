@@ -17,7 +17,8 @@ s_font(
 }
 \arguments{
 \item{font_name}{Font family name. One of: "Arial", "Courier New",
-"Times New Roman", "Calibri"}
+"Times New Roman", "Georgia", "Verdana", "Trebuchet MS",
+"Liberation Sans"}
 
 \item{font_size}{Font size with units, e.g. "12pt"}
 
