@@ -4,8 +4,30 @@
 #' \code{getOption("ksTFL.font_dirs")}. This is useful after installing
 #' new fonts or after changing the \code{ksTFL.font_dirs} option.
 #'
+#' @details
+#' To point ksTFL at a custom TTF folder, set the \code{ksTFL.font_dirs}
+#' option before or during your session, then call \code{tfl_rescan_fonts()}:
+#'
+#' \preformatted{
+#' options(ksTFL.font_dirs = "/path/to/your/fonts")
+#' tfl_rescan_fonts()
+#' }
+#'
+#' Multiple directories are supported:
+#'
+#' \preformatted{
+#' options(ksTFL.font_dirs = c("/path/to/fonts1", "/path/to/fonts2"))
+#' tfl_rescan_fonts()
+#' }
+#'
+#' The package's own bundled fonts directory is always scanned automatically;
+#' \code{ksTFL.font_dirs} only adds extra directories on top of that.
+#' To make the setting persistent across sessions, add the \code{options()}
+#' call to your \file{~/.Rprofile}.
+#'
 #' @return Invisibly returns the font scan report (a list with
 #'   \code{resolutions} and \code{dirs_scanned}).
+#' @seealso \code{\link{tfl_font_status}}
 #' @export
 tfl_rescan_fonts <- function() {
   pkg_fonts_dir <- system.file("fonts", package = "ksTFL")
