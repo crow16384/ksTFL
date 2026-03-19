@@ -55,30 +55,15 @@ rendered automatically to a temporary SVG file.</p>
 <dd><p>One of:</p><ul><li><p>A <strong>character string</strong> — path to an existing, readable image file
 (<code>.png</code>, <code>.jpeg</code>/<code>.jpg</code>, or <code>.svg</code>).</p></li>
 <li><p>A <strong>ggplot2 object</strong> (class <code>"gg"</code> or <code>"ggplot"</code>) — the plot is
-rendered to a temporary file via <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code>. Use <code>width</code>,
-<code>height</code>, <code>dpi</code>, and <code>device</code> to control output dimensions.</p></li>
+rendered to a temporary file via <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code>. Use <code>dpi</code> and
+package options (<code>figureWidth</code>, <code>figureHeight</code>, <code>figureDevice</code>) to
+control output dimensions and format.</p></li>
 </ul></dd>
 
 
 <dt id="arg-dpi">dpi<a class="anchor" aria-label="anchor" href="#arg-dpi"></a></dt>
 <dd><p>Integer. Resolution (dots per inch) when <code>plot_or_path</code> is a
 ggplot2 object. Ignored for file paths. Default: <code>300</code>.</p></dd>
-
-
-<dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
-<dd><p>Numeric. Plot width in inches when <code>plot_or_path</code> is a ggplot2
-object. Ignored for file paths. Default: <code>6</code>.</p></dd>
-
-
-<dt id="arg-height">height<a class="anchor" aria-label="anchor" href="#arg-height"></a></dt>
-<dd><p>Numeric. Plot height in inches when <code>plot_or_path</code> is a
-ggplot2 object. Ignored for file paths. Default: <code>4</code>.</p></dd>
-
-
-<dt id="arg-device">device<a class="anchor" aria-label="anchor" href="#arg-device"></a></dt>
-<dd><p>Character. Output format when <code>plot_or_path</code> is a ggplot2
-object. One of <code>"svg"</code> (default), <code>"png"</code>, <code>"jpeg"</code>, <code>"jpg"</code>.
-Ignored for file paths.</p></dd>
 
 </dl></div>
     <div class="section level2">

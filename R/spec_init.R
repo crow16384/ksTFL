@@ -642,18 +642,12 @@ create_table <- function(data = NULL, cols = everything()) {
 #'     \item A **character string** — path to an existing, readable image file
 #'       (`.png`, `.jpeg`/`.jpg`, or `.svg`).
 #'     \item A **ggplot2 object** (class `"gg"` or `"ggplot"`) — the plot is
-#'       rendered to a temporary file via `ggplot2::ggsave()`. Use `width`,
-#'       `height`, `dpi`, and `device` to control output dimensions.
+#'       rendered to a temporary file via `ggplot2::ggsave()`. Use `dpi` and
+#'       package options (`figureWidth`, `figureHeight`, `figureDevice`) to
+#'       control output dimensions and format.
 #'   }
-#' @param width Numeric. Plot width in inches when `plot_or_path` is a ggplot2
-#'   object. Ignored for file paths. Default: `6`.
-#' @param height Numeric. Plot height in inches when `plot_or_path` is a
-#'   ggplot2 object. Ignored for file paths. Default: `4`.
 #' @param dpi Integer. Resolution (dots per inch) when `plot_or_path` is a
 #'   ggplot2 object. Ignored for file paths. Default: `300`.
-#' @param device Character. Output format when `plot_or_path` is a ggplot2
-#'   object. One of `"svg"` (default), `"png"`, `"jpeg"`, `"jpg"`.
-#'   Ignored for file paths.
 #'
 #' @return A `TFL_spec` object with `docType = "Figure"`.
 #'

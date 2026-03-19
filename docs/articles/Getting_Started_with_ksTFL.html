@@ -264,20 +264,23 @@ returned ready for customization</p>
 <code class="sourceCode R"><span><span class="co"># From a file path — any image format your renderer supports (PNG, JPEG, etc.)</span></span>
 <span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="st">"path/to/plot.png"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># From a ggplot2 object — rendered automatically to a temporary PNG</span></span>
+<span><span class="co"># From a ggplot2 object — rendered automatically to a temporary image file</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">mtcars</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">wt</span>, y <span class="op">=</span> <span class="va">mpg</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>                         <span class="co"># default 6x4in, 300 dpi</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">5</span><span class="op">)</span> <span class="co"># custom dimensions</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, device <span class="op">=</span> <span class="st">"jpeg"</span><span class="op">)</span>        <span class="co"># JPEG output</span></span></code></pre></div>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>          <span class="co"># uses configured defaults</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, dpi <span class="op">=</span> <span class="fl">150L</span><span class="op">)</span> <span class="co"># custom resolution (dpi)</span></span>
+<span></span>
+<span><span class="co"># Control output size/format via options</span></span>
+<span><span class="co"># tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "jpeg")</span></span>
+<span><span class="co"># spec_fig &lt;- create_figure(p)</span></span></code></pre></div>
 <p><strong>What happens</strong>: - If a <strong>file path</strong> is
 given: it is validated (must exist and be readable); the file is used
 as-is - If a <strong>ggplot2 object</strong> is given: rendered via
-<code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> to <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> using the
-specified <code>device</code> (default <code>"png"</code>); the
-resulting path is stored in the spec - The <code>width</code>,
-<code>height</code>, and <code>dpi</code> parameters only apply when a
-ggplot2 object is passed; they are ignored for file paths - The image
+<code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> to <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> using package
+defaults (<code>figureWidth</code>, <code>figureHeight</code>,
+<code>figureDevice</code>); the resulting path is stored in the spec -
+The <code>dpi</code> parameter applies when a ggplot2 object is passed;
+width/height/device are configured through package options - The image
 file is copied to <code>metaPath</code> when the report is saved</p>
 </div>
 <div class="section level3">
@@ -950,7 +953,7 @@ repository</a>
 </tr>
 <tr class="even">
 <td>Create figure spec</td>
-<td><code>create_figure(plot_or_path, ...)</code></td>
+<td><code>create_figure(plot_or_path, dpi = 300L)</code></td>
 <td>File path or ggplot2 object; path must be readable</td>
 </tr>
 <tr class="odd">

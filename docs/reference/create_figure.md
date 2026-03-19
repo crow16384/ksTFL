@@ -22,29 +22,13 @@ create_figure(plot_or_path, dpi = 300L)
   - A **ggplot2 object** (class `"gg"` or `"ggplot"`) — the plot is
     rendered to a temporary file via
     [`ggplot2::ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html).
-    Use `width`, `height`, `dpi`, and `device` to control output
-    dimensions.
+    Use `dpi` and package options (`figureWidth`, `figureHeight`,
+    `figureDevice`) to control output dimensions and format.
 
 - dpi:
 
   Integer. Resolution (dots per inch) when `plot_or_path` is a ggplot2
   object. Ignored for file paths. Default: `300`.
-
-- width:
-
-  Numeric. Plot width in inches when `plot_or_path` is a ggplot2 object.
-  Ignored for file paths. Default: `6`.
-
-- height:
-
-  Numeric. Plot height in inches when `plot_or_path` is a ggplot2
-  object. Ignored for file paths. Default: `4`.
-
-- device:
-
-  Character. Output format when `plot_or_path` is a ggplot2 object. One
-  of `"svg"` (default), `"png"`, `"jpeg"`, `"jpg"`. Ignored for file
-  paths.
 
 ## Value
 

@@ -12,22 +12,13 @@ create_figure(plot_or_path, dpi = 300L)
 \item A \strong{character string} — path to an existing, readable image file
 (\code{.png}, \code{.jpeg}/\code{.jpg}, or \code{.svg}).
 \item A \strong{ggplot2 object} (class \code{"gg"} or \code{"ggplot"}) — the plot is
-rendered to a temporary file via \code{ggplot2::ggsave()}. Use \code{width},
-\code{height}, \code{dpi}, and \code{device} to control output dimensions.
+rendered to a temporary file via \code{ggplot2::ggsave()}. Use \code{dpi} and
+package options (\code{figureWidth}, \code{figureHeight}, \code{figureDevice}) to
+control output dimensions and format.
 }}
 
 \item{dpi}{Integer. Resolution (dots per inch) when \code{plot_or_path} is a
 ggplot2 object. Ignored for file paths. Default: \code{300}.}
-
-\item{width}{Numeric. Plot width in inches when \code{plot_or_path} is a ggplot2
-object. Ignored for file paths. Default: \code{6}.}
-
-\item{height}{Numeric. Plot height in inches when \code{plot_or_path} is a
-ggplot2 object. Ignored for file paths. Default: \code{4}.}
-
-\item{device}{Character. Output format when \code{plot_or_path} is a ggplot2
-object. One of \code{"svg"} (default), \code{"png"}, \code{"jpeg"}, \code{"jpg"}.
-Ignored for file paths.}
 }
 \value{
 A \code{TFL_spec} object with \code{docType = "Figure"}.

@@ -147,23 +147,27 @@ calculation) - A `TFL_spec` object is returned ready for customization
 # From a file path — any image format your renderer supports (PNG, JPEG, etc.)
 spec_fig <- create_figure("path/to/plot.png")
 
-# From a ggplot2 object — rendered automatically to a temporary PNG
+# From a ggplot2 object — rendered automatically to a temporary image file
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
-spec_fig <- create_figure(p)                         # default 6x4in, 300 dpi
-spec_fig <- create_figure(p, width = 8, height = 5) # custom dimensions
-spec_fig <- create_figure(p, device = "jpeg")        # JPEG output
+spec_fig <- create_figure(p)          # uses configured defaults
+spec_fig <- create_figure(p, dpi = 150L) # custom resolution (dpi)
+
+# Control output size/format via options
+# tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "jpeg")
+# spec_fig <- create_figure(p)
 ```
 
 **What happens**: - If a **file path** is given: it is validated (must
 exist and be readable); the file is used as-is - If a **ggplot2 object**
 is given: rendered via
 [`ggplot2::ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html)
-to [`tempdir()`](https://rdrr.io/r/base/tempfile.html) using the
-specified `device` (default `"png"`); the resulting path is stored in
-the spec - The `width`, `height`, and `dpi` parameters only apply when a
-ggplot2 object is passed; they are ignored for file paths - The image
-file is copied to `metaPath` when the report is saved
+to [`tempdir()`](https://rdrr.io/r/base/tempfile.html) using package
+defaults (`figureWidth`, `figureHeight`, `figureDevice`); the resulting
+path is stored in the spec - The `dpi` parameter applies when a ggplot2
+object is passed; width/height/device are configured through package
+options - The image file is copied to `metaPath` when the report is
+saved
 
 ### Text spec (narrative content)
 
@@ -787,7 +791,7 @@ You now understand ksTFL’s core workflow. Next steps:
 | Task                     | Function                                                                                                                                                                                            | Notes                                                                                                                                                                                           |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Create table spec        | `create_table(data, cols = ...)`                                                                                                                                                                    | Auto-detects columns, types, widths                                                                                                                                                             |
-| Create figure spec       | `create_figure(plot_or_path, ...)`                                                                                                                                                                  | File path or ggplot2 object; path must be readable                                                                                                                                              |
+| Create figure spec       | `create_figure(plot_or_path, dpi = 300L)`                                                                                                                                                           | File path or ggplot2 object; path must be readable                                                                                                                                              |
 | Create text spec         | [`create_text()`](https://example.com/reference/create_text.md)                                                                                                                                     | For narrative content only                                                                                                                                                                      |
 | Set document properties  | `set_document(spec, hasData = ...)`                                                                                                                                                                 | Optional: configure content width, placement                                                                                                                                                    |
 | Customize columns        | `define_cols(spec, cols, ...)`                                                                                                                                                                      | Use [`c()`](https://rdrr.io/r/base/c.html) for multiple columns                                                                                                                                 |
