@@ -31,24 +31,38 @@ options(pkgdown.internet = FALSE)
 ksTFL is a lightweight R toolkit for building metadata specifications
 for clinical Tables, Figures, and Text (TFLs). Unlike traditional table
 formatters (flextable, huxtable, officer), ksTFL separates *metadata
-generation* from *rendering*: - **You define**: Document structure,
-content, column formats, and styles in R - **ksTFL generates**: A
-structured specification (JSON metadata + data files) - **Built-in C++
-renderer**: Produces submission-quality DOCX documents with
-deterministic HarfBuzz-based pagination via `write_doc()` /
+generation* from *rendering*:
+
+\- **You define**: Document structure, content, column formats, and
+styles in R
+
+\- **ksTFL generates**: A structured specification (JSON metadata + data
+files)
+
+\- **Built-in C++ renderer**: Produces submission-quality DOCX documents
+with deterministic HarfBuzz-based pagination via `write_doc()` /
 `replay_report()`
 
-This separation enables: - **Consistency**: All tables follow the same
-style templates - **Automation**: Generate 50+ tables with consistent
-formatting and minimal code - **Reproducibility**: Specifications are
-version-controllable and auditable - **Flexibility**: Swap renderers
-without changing your R code
+This separation enables:
 
-**When to use ksTFL:** - Regulatory clinical reporting (FDA, EMA
-submissions) - Large-scale automated reporting (100+ tables from common
-data sources) - Complex styling requirements (multi-level headers,
-spanning columns, conditional formatting) - When you need JSON metadata
-for downstream processing
+\- **Consistency**: All tables follow the same style templates
+
+\- **Automation**: Generate 50+ tables with consistent formatting and
+minimal code
+
+\- **Reproducibility**: Specifications are version-controllable and
+auditable
+
+\- **Flexibility**: Swap renderers without changing your R code
+
+**When to use ksTFL:**
+
+\- Regulatory clinical reporting (FDA, EMA submissions) - Large-scale
+automated reporting (100+ tables from common data sources)
+
+\- Complex styling requirements (multi-level headers, spanning columns,
+conditional formatting) - When you need JSON metadata for downstream
+processing
 
 ## How to use this guide
 
@@ -59,16 +73,25 @@ This is the foundation vignette and best starting point for new users.
     minimal working examples
 -   Outcome: ability to create, assemble, and render reports confidently
 
-Recommended reading order after this vignette: 1. [Reporting
-Examples](Reporting_Examples_with_ksTFL.Rmd) for realistic workflow
-patterns. 2. [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for style
-primitives and reusable style systems. 3. [Column Width
-Management](Column_Width_Management.Rmd) for layout tuning. 4. [Advanced
-StyleRows](Advanced_StyleRows.Rmd) for conditional row actions. 5. [Font
-Management](Font_Management.Rmd) for system font discovery, custom font
-directories, and fallback behavior. 6. [Rendering
-Pipeline](Rendering_Pipeline.Rmd) for detailed C++ architecture and DOCX
-emission internals.
+Recommended reading order after this vignette:
+
+1\. [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for
+realistic workflow patterns.
+
+2\. [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for style primitives
+and reusable style systems.
+
+3\. [Column Width Management](Column_Width_Management.Rmd) for layout
+tuning.
+
+4\. [Advanced StyleRows](Advanced_StyleRows.Rmd) for conditional row
+actions.
+
+5\. [Font Management](Font_Management.Rmd) for system font discovery,
+custom font directories, and fallback behavior.
+
+6\. [Rendering Pipeline](Rendering_Pipeline.Rmd) for detailed C++
+architecture and DOCX emission internals.
 
 ------------------------------------------------------------------------
 
@@ -641,7 +664,7 @@ doc_path <- write_doc(report,
 **Additional parameters**:
 
 \- `toc`: If `TRUE`, prepends a Table of Contents page (requires
-`toclevel` on titles — see `?add_title`)
+`toclevel` on titles - see `?add_title`)
 
 \- `tocTitle`: Heading above the TOC field (default
 `"Table of Contents"`)

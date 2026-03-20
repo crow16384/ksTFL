@@ -6,8 +6,11 @@ output:
     dev: pdf
 vignette: >
   %\VignetteIndexEntry{Reporting Examples — ksTFL}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -19,39 +22,63 @@ knitr::opts_chunk$set(
 options(pkgdown.internet = FALSE)
 ```
 
-<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700" />
+<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700"/>
 
-This vignette presents a realistic progression of reporting examples — from minimal tables/listings/figures/text to a full clinical-style table with multi-level headers, spanning stub columns, multi-line titles/footnotes, reusable styles, and session defaults. All examples use exported ksTFL helpers only; set `eval=TRUE` locally to run the R chunks.
+This vignette presents a realistic progression of reporting examples —
+from minimal tables/listings/figures/text to a full clinical-style table
+with multi-level headers, spanning stub columns, multi-line
+titles/footnotes, reusable styles, and session defaults. All examples
+use exported ksTFL helpers only; set `eval=TRUE` locally to run the R
+chunks.
 
 ## Category and scope
 
 This is an applied workflow vignette.
 
-- Audience: users who already know the basic pipeline and want practical templates
-- Focus: end-to-end report assembly patterns you can adapt directly
-- Outcome: production-oriented examples for table, figure, text, and multi-spec workflows
+-   Audience: users who already know the basic pipeline and want
+    practical templates
+-   Focus: end-to-end report assembly patterns you can adapt directly
+-   Outcome: production-oriented examples for table, figure, text, and
+    multi-spec workflows
 
 **Related vignettes:**
-- [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline overview and all core concepts
-- [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — complete style reference and built-in atoms
-- [Advanced StyleRows](Advanced_StyleRows.Rmd) — deep dive into `compute_cols()`, `c_glue()`, `c_clear()`
-- [Column Width Management](Column_Width_Management.Rmd) — width locking, auto-calculation, invisible columns
+
+\- [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline overview
+and all core concepts
+
+\- [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — complete style
+reference and built-in atoms
+
+\- [Advanced StyleRows](Advanced_StyleRows.Rmd) — deep dive into
+`compute_cols()`, `c_glue()`, `c_clear()`
+
+\- [Column Width Management](Column_Width_Management.Rmd) — width
+locking, auto-calculation, invisible columns
 
 ## Workflow overview
 
-This vignette follows a consistent end-to-end pattern for each example so you can reproduce the full reporting pipeline locally:
+This vignette follows a consistent end-to-end pattern for each example
+so you can reproduce the full reporting pipeline locally:
 
-- Prepare small, self-contained sample data (run the setup chunk with `eval=TRUE`).
-- Build `TFL_spec` objects using `create_table()`, `create_figure()` or `create_text()`.
-- Tune columns and styles via `define_cols()` and `add_style()` (use `f_combine()` to reference combined styles).
-- Assemble specs into a `TFL_report` with `create_report()` (this consolidates style references and assigns `dataRef`).
-- Render to a DOCX with `write_doc()` (one-step: saves JSON metadata and produces the final document).
+-   Prepare small, self-contained sample data (run the setup chunk with
+    `eval=TRUE`).
+-   Build `TFL_spec` objects using `create_table()`, `create_figure()`
+    or `create_text()`.
+-   Tune columns and styles via `define_cols()` and `add_style()` (use
+    `f_combine()` to reference combined styles).
+-   Assemble specs into a `TFL_report` with `create_report()` (this
+    consolidates style references and assigns `dataRef`).
+-   Render to a DOCX with `write_doc()` (one-step: saves JSON metadata
+    and produces the final document).
 
 Best practices:
 
-- Use named styles (`add_style()`) and reference them by id; avoid inspecting or mutating internal fields.
-- Use `print(spec)` and `print(report)` for concise, user-facing previews rather than reading internals.
-- Use `metaPath = tempdir()` during examples to avoid writing permanent files while you experiment.
+-   Use named styles (`add_style()`) and reference them by id; avoid
+    inspecting or mutating internal fields.
+-   Use `print(spec)` for concise, user-facing previews rather than
+    reading internals. Or use package provided Addins
+-   Use `metaPath = tempdir()` during examples to avoid writing
+    permanent files while you experiment.
 
 ```{r create_sample_data, eval = FALSE}
 # Sample datasets used by multiple sections (run locally before executing examples)
@@ -86,10 +113,20 @@ plot_file <- file.path(tempdir(), "example_plot.png")
 png(plot_file, width = 600, height = 400, type = "cairo")
 plot(demog_tbl$age, vitals_tbl$sbp[1:24], xlab = "Age", ylab = "SBP", main = "Age vs SBP")
 dev.off()
+
+## Session-wide package and document settings:
+tfl_reset_options()
+tfl_set_options(
+  add_header(c("CRO Example LLC.", "CONFIDENTIAL", "Page {PAGE} of {NUMPAGES}")),
+  add_header("Study: Miracle Drug 001"),
+  add_footer(c("Showcase examples", "Program: inst/examples/showcase")),
+  output_directory = out_dir,
+  footnotePlace = "repeated",
+  meta_directory = file.path(out_dir, "meta")
+)
 ```
 
 ## 1 — Simple minimal table
-
 
 ```{r example_minimal_table, eval = FALSE}
 spec_min_table <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
@@ -100,18 +137,18 @@ print(spec_min_table)
 # close the example chunk
 ```
 
+print() on a TFL_spec provides a readable overview including titles and
+defined columns: ![](images/clipboard-1089030957.png)
+
 ```{r save_min_table, eval = FALSE}
 # End-to-end: wrap single spec into a report and render to DOCX
 rpt_min_table <- create_report(spec_min_table)
-write_doc(rpt_min_table, name = "tbl_min", outDir = "./out", metaPath = tempdir())
+write_doc(rpt_min_table, name = "tbl_min")
 ```
 
-Notes: `print()` on a `TFL_spec` provides a readable overview including docType, titles and defined columns.
-
----
+## ![](images/clipboard-3882147075.png)
 
 ## 2 — Simple minimal figure
-
 
 ```{r example_minimal_figure, eval = FALSE}
 spec_min_fig <- create_figure(plot_file)
@@ -123,40 +160,60 @@ print(spec_min_fig)
 ```{r save_min_fig, eval = FALSE}
 # End-to-end: render the single-figure report to DOCX
 rpt_min_fig <- create_report(spec_min_fig)
-write_doc(rpt_min_fig, name = "fig_min", outDir = "./out", metaPath = tempdir())
+write_doc(rpt_min_fig, name = "fig_min")
 ```
 
----
+## ![](images/clipboard-1432659028.png)
 
 ## 3 — Simple minimal text (narrative)
 
-
 ```{r example_minimal_text, eval = FALSE}
-spec_min_text <- create_text()
-spec_min_text <- add_body_text(spec_min_text, "This narrative describes the study population and analysis approach.")
-print(spec_min_text)
-# close example chunk
+## Narrative object:
+nartv <- list(
+  subj = 'ABC-001',
+  enrldt = '01JAN2022',
+  compldt = '22JUN2022',
+  discreas = 'Completed per protocol',
+  nae = 3,
+  listae = list('Nausea', 'Vomiting', 'Headache')
+)
+
+## Formatted text of the subject narrative:
+text <- sprintf('The subject <b>%s</b> entered study %s and discontinued the study %s with a reason <i>"%s"</i>.<br>During the treatment period subject had the following %d AEs:<br><b>- %s</b>', 
+        nartv[["subj"]],
+        nartv[["enrldt"]],
+        nartv[["compldt"]],
+        nartv[["discreas"]],
+        nartv[["nae"]],
+        paste(nartv[["listae"]], collapse = '<br>- ')
+)
+
 ```
 
 ```{r save_min_text, eval = FALSE}
 # End-to-end: render the narrative report to DOCX
+spec_min_text <- create_text() |> add_title("Sample Narrative Text")
+spec_min_text <- add_body_text(spec_min_text, text)
 rpt_min_text <- create_report(spec_min_text)
-write_doc(rpt_min_text, name = "txt_min", outDir = "./out", metaPath = tempdir())
+write_doc(rpt_min_text, name = "nar_min")
 ```
 
----
+## ![](images/clipboard-959874429.png)
 
 ## 4 — Define columns: single, batch, and parameter recycling
 
-
 ### Why `define_cols()`?
-After creating a table with `create_table()`, column properties are auto-detected from the data. However, you often need to:
-- Customize column labels for readability
-- Specify numeric formats (e.g., "%.2f" for 2 decimal places)
-- Control visibility, styling, or special behaviors (ID column, deduplicate, page breaks)
-- Lock or adjust column widths for better layout
 
-`define_cols()` is the primary tool for these customizations. It supports both **single-column** and **batch updates**, with intelligent **parameter recycling** to keep code concise.
+After creating a table with `create_table()`, column properties are
+auto-detected from the data. However, you often need to: - Customize
+column labels for readability - Specify numeric formats (e.g., "%.2f"
+for 2 decimal places) - Control visibility, styling, or special
+behaviors (ID column, deduplicate, page breaks) - Lock or adjust column
+widths for better layout
+
+`define_cols()` is the primary tool for these customizations. It
+supports both **single-column** and **batch updates**, with intelligent
+**parameter recycling** to keep code concise.
 
 ### Example 1: Single column definition
 
@@ -179,7 +236,8 @@ print(spec_single)
 
 ### Example 2: Batch update with single value (recycling to all columns)
 
-Update multiple columns with the **same value** — the value is automatically recycled:
+Update multiple columns with the **same value** — the value is
+automatically recycled:
 
 ```{r example_define_batch_single, eval = FALSE}
 # Apply single format to multiple columns
@@ -187,25 +245,29 @@ spec_batch <- create_table(data = vitals_tbl, cols = c(sbp, dbp))
 spec_batch <- define_cols(spec_batch, c(sbp, dbp),
                           type = "numeric",      # Applied to both
                           format = "%.1f",       # Applied to both
-                          valueStyleRef = "numeric_right")  # Applied to both
+                          valueStyleRef = "b")  # Applied to both
 
 print(spec_batch)
 # close example chunk
 ```
 
-**Why this matters**: Instead of writing three separate `define_cols()` calls, you write one line and the package applies the same values to all selected columns.
+**Why this matters**: Instead of writing three separate `define_cols()`
+calls, you write one line and the package applies the same values to all
+selected columns.
 
 ### Example 3: Batch update with per-column values (1-to-N mapping)
 
-Update multiple columns with **different values** — provide a vector matching the number of columns:
+Update multiple columns with **different values** — provide a vector
+matching the number of columns:
 
 ```{r example_define_batch_mapped, eval = FALSE}
 # Different label and format for each column
 spec_mapped <- create_table(data = demog_tbl, cols = c(age, sex, trt))
-spec_mapped <- define_cols(spec_mapped, c(age, sex, trt),
-                           label = c("Age (years)", "Biological Sex", "Treatment Group"),
-                           type = c("numeric", "string", "string"),
-                           format = c("%.0f", "", "")
+spec_mapped <- define_cols(
+                spec_mapped, c(age, sex, trt),
+                label = c("Age (years)", "Biological Sex", "Treatment Group"),
+                type = c("numeric", "string", "string"),
+                format = c("%.0f", NA, NA) #format not applicable for strings -> NA
 )
 
 print(spec_mapped)
@@ -213,56 +275,66 @@ print(spec_mapped)
 ```
 
 **Important**: The vector length must match exactly:
-- Length 1: applies to all columns
-- Length N (where N = number of columns): applies one-to-one
-- Any other length: raises an error
+
+\- Length 1: applies to all columns
+
+\- Length N (where N = number of columns): applies one-to-one
+
+\- Any other length: raises an error
 
 ### Example 4: Multiple `define_cols()` calls (chaining with `|>`)
 
-Combine `define_cols()` calls to layer customizations — each call merges with previous settings (last-win strategy):
+Combine `define_cols()` calls to layer customizations — each call merges
+with previous settings (last-win strategy):
 
 ```{r example_define_chain, eval = FALSE}
 # Start with basic table
-spec_chain <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
-
+spec_chain <- 
+  create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt)) |>
 # First pass: set all labels
-spec_chain <- define_cols(spec_chain, c(subject_id, age, sex, trt),
-                          label = c("Subject ID", "Age", "Sex", "Treatment"))
-
+  define_cols(spec_chain, c(subject_id, age, sex, trt),
+                          label = c("Subject ID", "Age", "Sex", "Treatment")) |>
 # Second pass: set numeric formatting for age and trt
-spec_chain <- define_cols(spec_chain, age, type = "numeric", format = "%.0f")
-
+  define_cols(spec_chain, age, type = "numeric", format = "%.0f") |>
 # Third pass: mark subject_id as ID column (repeats on page breaks)
-spec_chain <- define_cols(spec_chain, subject_id, isID = TRUE)
+  define_cols(spec_chain, subject_id, isID = TRUE)
 
 print(spec_chain)
 # close example chunk
 ```
 
 This approach makes it easy to:
-- Define labels first (human-readable column names)
-- Then apply formatting (numeric/string types, decimals)
-- Then apply special behavior flags (ID, deduplicate, etc.)
 
----
+\- Define labels first (human-readable column names)
+
+\- Then apply formatting (numeric/string types, decimals)
+
+\- Then apply special behavior flags (ID, deduplicate, etc.)
+
+------------------------------------------------------------------------
 
 ## 5 — Set document properties (hasData, content width, placement)
 
-
 **Key function**: `set_document()`
-- `glueNumType`: Whether to combine type and number with first title (default TRUE)
-- `hasData`: Whether document contains data (important for Text specs)
-- `bodyTitles`, `footnotePlace`, `bodySubtitles`: Control placement of titles, footnotes, and subtitles
-- `contentWidth`: Content width (e.g., "100%", "6.5in", "16.51cm")
-- `isContinues`: Ignore page breaks between sections
+
+-   `hasData`: Whether document contains data (important for Text specs)
+
+\- `footnotePlace`: Control placement of titles, footnotes, and
+subtitles
+
+\- `contentWidth`: Content width (e.g., "100%", "6.5in", "16.51cm")
+
+\- `isContinues`: Ignore page breaks between sections
 
 **Example 1: hasData flag**
 
 ```{r example_set_document_prefix, eval = FALSE}
-spec <- create_table(demog_tbl)
+spec <- create_table(demog_tbl) #automatically detects if dataframe has any rows
+# When data frame does not have any rows, the report will show the default body_text placeholder instead of empty table. 
+#body text can be manually specified
 
 spec <- set_document(spec,
-  hasData = TRUE)
+  hasData = FALSE) #override autodetected value
 
 print(spec)
 ```
@@ -274,50 +346,57 @@ spec <- create_table(demog_tbl)
 
 spec <- set_document(spec,
   contentWidth = "95%",        # Narrower content (default 100%)
-  bodyTitles = FALSE,          # Titles in header, not body
   footnotePlace = "repeated",  # Footnotes on every page
   glueNumType = FALSE)
 ```
 
 **Notes**:
-- Most defaults are sensible; you typically only need `set_document()` for content width
-- Multiple calls merge with last-win strategy (later calls override earlier ones)
-- Pairs well with `set_page_style()` for complete document configuration
 
----
+\- Most defaults are sensible; you typically only need `set_document()`
+for content width
+
+\- Multiple calls merge with last-win strategy (later calls override
+earlier ones)
+
+------------------------------------------------------------------------
 
 ## 6 — Combine table/figure/text into a single report
 
-
 ```{r example_combine_report, eval = FALSE}
 report_simple <- create_report(spec_min_table, spec_min_fig, spec_min_text)
-print(report_simple)
-# close example chunk
 ```
 
 ```{r save_report_simple, eval = FALSE}
 # Render combined simple report to DOCX
-write_doc(report_simple, name = "report_simple", outDir = "./out", metaPath = tempdir())
+write_doc(report_simple, name = "report_simple")
 ```
 
-Notes: `create_report()` preserves input order and consolidates styles and ids.
+Notes: `create_report()` preserves input order and consolidates styles.
+Additionally, with `toc = TRUE` parameter the table of contents can be
+generated [in order this to work the titles in the input specs should be
+marked for toc entries - see `?add_title`]
 
----
+------------------------------------------------------------------------
 
 ## 7 — Column widths: automatic calculation and locking
 
-
 ### How automatic column width works
 
-When you create a table with `create_table()`, ksTFL automatically analyzes the data and distributes column widths proportionally:
+When you create a table with `create_table()`, ksTFL automatically
+analyzes the data and distributes column widths proportionally:
 
-1. **Initial analysis**: For each column, the package examines data values (length, type, number of decimals)
-2. **Width calculation**: Numeric columns typically get wider if they have many decimals or large values; short text columns get narrower
-3. **Proportional distribution**: All widths are normalized to sum to 100% (or remaining available width)
-4. **Default**: `autoColWidth = TRUE` in package options (can be changed with `tfl_set_options()`)
+1.  **Initial analysis**: For each column, the package examines data
+    values (length, type, number of decimals)
+2.  **Width calculation**: Numeric columns typically get wider if they
+    have many decimals or large values; short text columns get narrower
+3.  **Proportional distribution**: All widths are normalized to sum to
+    100% (or remaining available width)
+4.  **Default**: `autoColWidth = TRUE` in package options (can be
+    changed with `tfl_set_options()`)
 
-**Example**: A table with columns `id` (short numeric), `description` (long text), `value` (numeric):
-- Auto-detected widths might be: `id = 20%`, `description = 50%`, `value = 30%`
+**Example**: A table with columns `id` (short numeric), `description`
+(long text), `value` (numeric): - Auto-detected widths might be:
+`id = 20%`, `description = 50%`, `value = 30%`
 
 ### Example 1: Accept auto-calculated widths
 
@@ -331,12 +410,15 @@ spec_auto <- define_cols(spec_auto, c(subject_id, ALT, AST),
 
 # Print to see auto-calculated widths
 print(spec_auto)
-# close example chunk
+
 ```
+
+![](images/clipboard-3594939568.png)
 
 ### Example 2: Lock one column, auto-adjust others
 
-Lock a specific column width while others recalculate to fill remaining space:
+Lock a specific column width while others recalculate to fill remaining
+space:
 
 ```{r example_colwidth_lock_one, eval = FALSE}
 # Lock subject_id at 15%, let ALT and AST split the remaining 85%
@@ -349,8 +431,10 @@ spec_lock1 <- define_cols(spec_lock1, subject_id,
 # to maintain their initial proportion while filling the remaining 85%
 
 print(spec_lock1)
-# close example chunk
+
 ```
+
+![](images/clipboard-2085870902.png)
 
 ### Example 3: Lock multiple columns with relative widths
 
@@ -369,8 +453,10 @@ spec_lock_multi <- define_cols(spec_lock_multi, ALT,
 # AST automatically fills remaining 48% (100% - 12% - 40%)
 
 print(spec_lock_multi)
-# close example chunk
+
 ```
+
+![](images/clipboard-1444834458.png)
 
 ### Example 4: Mixed units (percentages and absolute)
 
@@ -387,10 +473,14 @@ spec_mixed <- define_cols(spec_mixed, ALT,
                           colWidth = "35%")   # Percentage of remaining
 
 print(spec_mixed)
-# close example chunk
+
 ```
 
-**Important**: When mixing units (cm, in, pt) with percentages, the absolute widths are reserved first, then percentages are calculated from remaining space.
+![](images/clipboard-1984427091.png)
+
+**Important**: When mixing units (cm, in, pt) with percentages, **the
+absolute widths are reserved first**, then percentages are calculated
+from remaining space.
 
 ### Example 5: Width validation and constraints
 
@@ -428,22 +518,30 @@ print(spec_valid)
 ```
 
 **Width validation rules**:
-- **Relative width (%)**: Must be ≥ `minColWidth` (default 0.5%)
-- **Relative width (%)**: Cannot exceed max allowed considering locked columns and other column minimums
-- **Fixed width**: Must be ≥ 0.2cm (all units: cm, in, pt, mm automatically converted)
-- **Incompatible widths**: Cannot set width to 100% (would exclude all other columns)
 
-**Error messages** are detailed and show the maximum allowed width when you exceed limits:
-```
+\- **Relative width (%)**: Must be ≥ `minColWidth` (default 0.5%)
+
+-   **Relative width (%)**: Cannot exceed max allowed considering locked
+    columns and other column minimums
+
+\- **Fixed width**: Must be ≥ 0.2cm (all units: cm, in, pt, mm
+automatically converted)
+
+\- **Incompatible widths**: Cannot set width to 100% (would exclude all
+other columns)
+
+**Error messages** are detailed and show the maximum allowed width when
+you exceed limits:
+
+```         
 Error: relative width 100.0% exceeds maximum allowed 75.0% 
        (accounting for 2 locked columns requiring 25% total, 
         and minimum 0.5% for remaining 1 unlocked column)
 ```
 
----
+------------------------------------------------------------------------
 
 ## 8 — Table with titles, subtitles and footnotes
-
 
 ```{r example_multilevel_table, eval = FALSE}
 spec_multi <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
@@ -464,21 +562,23 @@ print(spec_multi)
 ```{r save_multilevel, eval = FALSE}
 # Render the multilevel table to DOCX
 rpt_multi <- create_report(spec_multi)
-write_doc(rpt_multi, name = "tbl_multi", outDir = "./out", metaPath = tempdir())
+write_doc(rpt_multi, name = "tbl_multi")
 ```
 
----
+## ![](images/clipboard-192293685.png)
 
-## 9 — Stub columns (spanning headers)
-
+## 9 — span columns (spanning headers)
 
 ### Why spanning headers?
 
-In clinical tables, you often need to group related columns under a common header. For example:
-- "Baseline" spanning columns: `visit`, `sbp`, `dbp`, `pulse`
-- "Week 12" spanning columns: `sbp`, `dbp`, `pulse` (repeated measurements at different visits)
+In clinical tables, you often need to group related columns under a
+common header. For example: - "Baseline" spanning columns: `visit`,
+`sbp`, `dbp`, `pulse` - "Week 12" spanning columns: `sbp`, `dbp`,
+`pulse` (repeated measurements at different visits)
 
-Spanning headers (called "stubs" in ksTFL) are separate from column labels — they sit above the column labels and group multiple columns. Multiple stubs can be stacked at different vertical levels.
+Spanning headers (called "spans" in ksTFL) are separate from column
+labels — they sit above the column labels and group multiple columns.
+Multiple spans can be stacked at different vertical levels.
 
 ### Example 1: Single spanning header
 
@@ -486,25 +586,28 @@ Create one stub that groups related columns:
 
 ```{r example_stubs_single, eval = FALSE}
 # Start with demographics table
-spec_stub_simple <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
-spec_stub_simple <- define_cols(spec_stub_simple, 
+spec_span_simple <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
+spec_span_simple <- define_cols(spec_span_simple, 
                                 c(subject_id, age, sex, trt), 
                                 label = c("Subject","Age","Sex","Treatment"))
 
 # Add a spanning header for "Demographics" above age and sex
-spec_stub_simple <- add_span_header(spec_stub_simple, 
+spec_span_simple <- add_span_header(spec_span_simple, 
                                     cols = c("age", "sex"), 
                                     label = "Demographics")
 
-print(spec_stub_simple)
-# close example chunk
+print(spec_span_simple)
+
 ```
 
-**Result**: A table with column labels on one row and a "Demographics" header spanning age+sex columns above it.
+**Result**: A table with column labels on one row and a "Demographics"
+header spanning age+sex columns above it:\
+![](images/clipboard-40037553.png)
 
 ### Example 1b: Using tidyselect helpers with spanning headers
 
-`add_span_header()` supports all tidyselect expressions — use helpers for flexible column selection:
+`add_span_header()` supports all tidyselect expressions — use helpers
+for flexible column selection:
 
 ```{r example_stubs_tidyselect, eval = FALSE}
 # Table with mixed column types
@@ -522,104 +625,72 @@ spec_tidysel <- create_table(mixed_data)
 spec_tidysel <- add_span_header(spec_tidysel, 
                                 cols = starts_with("age"),
                                 label = "Age Measurements",
-                                stubOrder = 0)
-
+                                stubOrder = 1) |>
+# Using col position 
+add_span_header(cols = c(4,5),
+               label = "Weight Measurements",
+               stubOrder = 1) |>
 # Using negation (-) to exclude columns
-spec_tidysel <- add_span_header(spec_tidysel,
-                                cols = -id,
-                                label = "Baseline and Follow",
-                                stubOrder = 1)
-
-# Using matches() regex pattern
-spec_tidysel <- add_span_header(spec_tidysel,
-                                cols = matches("_baseline$"),
-                                label = "Baseline Visits",
-                                stubOrder = 2)
+add_span_header(cols = -id,
+                label = "Baseline and Follow",
+                stubOrder = 2)
 
 print(spec_tidysel)
 ```
 
+![](images/clipboard-86533784.png)
+
 **Tidyselect expressions supported**:
-- **Ranges**: `cols = age:weight` (all columns between age and weight)
-- **Helpers**: `cols = starts_with("age")`, `contains("baseline")`, `matches("^w")`
-- **Negation**: `cols = -id` (all columns except id)
-- **Combinations**: `cols = c(starts_with("age"), weight_baseline)`
 
-### Example 2: Multiple stubs at different levels
+\- **Ranges**: `cols = age:weight` (all columns between age and weight)
 
-Stack multiple stubs to create a multi-level hierarchy:
+\- **Helpers**: `cols = starts_with("age")`, `contains("baseline")`,
+`matches("^w")`
 
-```{r example_stubs_multi, eval = FALSE}
-# Create table with visit measurements at two time points
-vitals_data <- data.frame(
-  subject = sprintf("S%03d", 1:10),
-  baseline_sbp = round(rnorm(10, 120, 10)),
-  baseline_dbp = round(rnorm(10, 75, 8)),
-  week12_sbp = round(rnorm(10, 118, 10)),
-  week12_dbp = round(rnorm(10, 74, 8))
-)
+\- **Negation**: `cols = -id` (all columns except id)
 
-# Create spec and define columns
-spec_stubs_multi <- create_table(data = vitals_data, 
-                                 cols = c(subject, baseline_sbp, baseline_dbp, week12_sbp, week12_dbp))
-spec_stubs_multi <- define_cols(spec_stubs_multi,
-                                c(subject, baseline_sbp, baseline_dbp, week12_sbp, week12_dbp),
-                                label = c("Subject ID", "SBP", "DBP", "SBP", "DBP"))
+\- **Combinations**: `cols = c(starts_with("age"), weight_baseline)`
 
-# Add first stub spanning baseline measurements
-spec_stubs_multi <- add_span_header(spec_stubs_multi,
-                                    cols = c("baseline_sbp", "baseline_dbp"),
-                                    label = "Baseline",
-                                    stubOrder = 1)
-
-# Add second stub spanning week 12 measurements
-spec_stubs_multi <- add_span_header(spec_stubs_multi,
-                                    cols = c("week12_sbp", "week12_dbp"),
-                                    label = "Week 12",
-                                    stubOrder = 2)
-
-print(spec_stubs_multi)
-# close example chunk
-```
-
-**How `stubOrder` works**: 
-- Lower numbers appear closer to the top (e.g., `stubOrder = 0` is the topmost row; `stubOrder = 1` is below it)
-- You can have multiple stubs at the same order level as long as their column sets don't overlap
-- If NULL, `stubOrder` is auto-generated in call order
-
-### Example 3: Styled spanning headers
+### Example 2: Styled spanning headers
 
 Apply styles to stub labels using `labelStyleRef`:
 
 ```{r example_stubs_styled, eval = FALSE}
 # First, create a style for stub labels
-spec_stubs_style <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
+spec_spans_style <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 
-spec_stubs_style <- add_style(spec_stubs_style, 
-                              id = "stub_header",
+spec_spans_style <- add_style(spec_spans_style, 
+                              id = "span_header",
                               s_font(bold = TRUE, font_size = "12pt"),
                               s_paragraph(alignment = "center"),
                               s_table_style(background_color = "#E8E8E8"))
 
 # Define columns
-spec_stubs_style <- define_cols(spec_stubs_style,
+spec_spans_style <- define_cols(spec_spans_style,
                                 c(subject_id, age, sex, trt),
-                                label = c("Subject ID", "Age", "Sex", "Treatment"))
+                                label = c("Subject ID", "Age", "Sex", "Treatment"),
+                                valueStyleRef = 'ac')
 
-# Add stub with style reference
-spec_stubs_style <- add_span_header(spec_stubs_style,
+# Add span with style reference
+spec_spans_style <- add_span_header(spec_spans_style,
                                     cols = c("age", "sex"),
                                     label = "Demographics",
-                                    labelStyleRef = "stub_header")
+                                    labelStyleRef = "span_header")
 
-print(spec_stubs_style)
-# close example chunk
+
 ```
 
-Notes: 
-- `labelStyleRef` can be a single style name or multiple styles combined with `f_combine()`
-- Stub labels inherit the applied style, making grouped columns visually distinct
-- Styles must be defined before referencing them in `add_span_header()`
+![](images/clipboard-2991126070.png)
+
+Notes:
+
+\- `labelStyleRef` can be a single style name or multiple styles
+combined with `f_combine()`
+
+\- Span labels inherit the applied style, making grouped columns
+visually distinct
+
+\- Styles must be defined before referencing them in `add_span_header()`
 
 ```{r save_stub, eval = FALSE}
 # Render stubbed table report to DOCX
@@ -627,19 +698,26 @@ rpt_stub <- create_report(spec_stubs_style)
 write_doc(rpt_stub, name = "tbl_stub", outDir = "./out", metaPath = tempdir())
 ```
 
----
+------------------------------------------------------------------------
 
 ## 10 — Styles and `f_combine()` for combined style references
-
 
 ### Why named styles?
 
 Styles are foundational in professional reporting:
-- Define once, reference many times — consistency across your document
-- Easy to update: change one style definition and all references automatically pick up the change
-- Composable: combine base styles (bold, red text) into complex styles for specific use cases
 
-ksTFL uses a **named style system**: you define styles with `add_style()` giving each an `id`, then reference them by name wherever you need them (`labelStyleRef`, `valueStyleRef`, `labelStyleRef` in stubs, etc.).
+\- Define once, reference many times — consistency across your document
+
+\- Easy to update: change one style definition and all references
+automatically pick up the change
+
+\- Composable: combine base styles (bold, red text) into complex styles
+for specific use cases
+
+ksTFL uses a **named style system**: you define styles with
+`add_style()` giving each an `id`, then reference them by name wherever
+you need them (`labelStyleRef`, `valueStyleRef`, `labelStyleRef` in
+stubs, etc.).
 
 ### Example 1: Define base styles
 
@@ -671,7 +749,8 @@ print(spec_base_styles)
 
 ### Example 2: Combine styles with `f_combine()`
 
-Apply multiple styles to a single element using `f_combine()` — they merge at render time:
+Apply multiple styles to a single element using `f_combine()` — they
+merge at render time:
 
 ```{r example_styles_fcombine, eval = FALSE}
 # Create spec and define base styles
@@ -686,64 +765,45 @@ spec_combined <- add_style(spec_combined, id = "centered", s_paragraph(alignment
 spec_combined <- define_cols(spec_combined,
                              subject_id,
                              label = "Subject ID",
-                             labelStyleRef = f_combine("bold_text", "red_color", "centered"))
+                             labelStyleRef = f_combine("bold_text", "red_color", "centered")) |>
 
+define_cols(c(sex, trt),
+            label=c('Sex', 'Treatment'),
+            labelStyleRef = f_combine('b','i'),
+            valueStyleRef = f_combine('ar', 'i')
+            ) |>
 # Different columns can use different combinations
-spec_combined <- define_cols(spec_combined, age, label = "Age",
-                             labelStyleRef = f_combine("bold_text", "centered"))
-
-print(spec_combined)
-# close example chunk
+define_cols(age, label = "Age",
+            labelStyleRef = f_combine("bold_text", "centered"),
+            valueStyleRef = 'ac')
 ```
+
+![](images/clipboard-3003524943.png)
 
 **How `f_combine()` works**:
-- Takes multiple style names as arguments
-- Returns a reference object that tells the package to merge those styles
-- Useful for creating ad-hoc combinations without defining new named styles
-- Order matters for last-win conflict resolution (later arguments override earlier ones)
 
-### Example 3: Batch apply combined styles to multiple columns
+\- Takes multiple style names as arguments
 
-Use the recycling feature to apply the same combined style to multiple columns:
+\- Returns a reference object that tells the package to merge those
+styles
 
-```{r example_styles_batch_combine, eval = FALSE}
-# Create spec and styles
-spec_batch_combined <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
-
-spec_batch_combined <- add_style(spec_batch_combined, id = "header_emphasis",
-                                 s_font(bold = TRUE, font_size = "13pt"),
-                                 s_table_style(background_color = "#E0E0E0"))
-
-# Apply combined styles: emphasis for subject_id + age, different for sex + trt
-spec_batch_combined <- define_cols(spec_batch_combined,
-                                   c(subject_id, age, sex, trt),
-                                   label = c("Subject ID", "Age", "Sex", "Treatment"),
-                                   labelStyleRef = c(f_combine("header_emphasis", "centered"),
-                                                     f_combine("header_emphasis", "centered"),
-                                                     "centered",
-                                                     "centered"))
-
-print(spec_batch_combined)
-# close example chunk
-```
-
-**Key insight**: When using multiple columns with different style combinations, provide a vector matching the column count (one-to-one mapping).
-
-```{r save_styles, eval = FALSE}
-# Render the styled table report to DOCX
-rpt_styles <- create_report(spec_batch_combined)
-write_doc(rpt_styles, name = "tbl_styles", outDir = "./out", metaPath = tempdir())
-```
-
----
+\- Order matters for last-win conflict resolution (later arguments
+override earlier ones)
 
 ## 11 — Conditional row actions with `compute_cols()`
 
+**Overview**: While `define_cols()` sets properties globally for all
+rows, `compute_cols()` applies **conditional actions** to specific rows
+matching a condition.
 
-**Overview**: While `define_cols()` sets properties globally for all rows, `compute_cols()` applies **conditional actions** to specific rows matching a condition. Common use cases:
-- Style rows where a specific value occurs (e.g., first/last occurrence, threshold-based)
-- Merge columns in certain rows (e.g., group headers)
-- Insert separator or summary rows programmatically
+Common use cases:
+
+\- Style rows where a specific value occurs (e.g., first/last
+occurrence, threshold-based)
+
+\- Merge columns in certain rows (e.g., group headers)
+
+\- Insert separator or summary rows programmatically
 
 ### Example 1: Conditional styling
 
@@ -770,8 +830,10 @@ spec <- spec |>
 spec <- spec |>
   compute_cols(count > 20, c_style(count, styleRef = "emphasize"))
 
-print(spec)
+
 ```
+
+![](images/clipboard-1437051722.png)
 
 ### Example 2: Combining styles in conditional rows
 
@@ -790,6 +852,8 @@ spec <- spec |>
   )
 ```
 
+![](images/clipboard-137358296.png)
+
 ### Example 3: Column merging in conditional rows
 
 Merge adjacent columns for rows matching a condition:
@@ -804,6 +868,8 @@ spec <- spec |>
     c_merge(c(metric, count), styleRef = "group_label")
   )
 ```
+
+![](images/clipboard-2883006425.png)
 
 ### Example 4: Inserting separator rows
 
@@ -826,6 +892,8 @@ spec <- spec |>
   )
 ```
 
+![](images/clipboard-2551143985.png)
+
 ### Example 4b: Page break insertion
 
 Force a page break when a group ends (useful for long groups):
@@ -839,7 +907,8 @@ spec <- spec |>
 
 ### Example 5: Multiple actions on same rows
 
-Combine styling, merging, and row insertion in a single `compute_cols()` call:
+Combine styling, merging, and row insertion in a single `compute_cols()`
+call:
 
 ```{r compute_multi_action, eval = FALSE}
 spec <- create_table(data) |>
@@ -855,34 +924,54 @@ spec <- spec |>
   )
 ```
 
-**Key concepts**:
-- **Conditions** are unevaluated expressions evaluated at report generation time (during `create_report()`)
-- **Helper functions** (`firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`) are only available inside `compute_cols()` conditions — they are **not** standalone exported functions. See `vignette("Advanced_StyleRows")` for full details.
-- **Multiple calls accumulate**: calling `compute_cols()` multiple times on the same spec appends actions
-- **Multiple actions in one call**: same row can have styling, merging, and row insertion simultaneously
-- **Overlapping conditions**: if multiple conditions match the same row, all actions apply (styling aggregates, merging rules apply)
-- **value_from**: Optional in `c_addrow()` — omit for empty separator rows
-- **Performance**: Conditions evaluated once per row during report assembly; style consolidation happens automatically
+![](images/clipboard-2936122457.png)
 
----
+**Key concepts**:
+
+\- **Conditions** are unevaluated expressions evaluated at report
+generation time (during `create_report()`)
+
+\- **Helper functions** (`firstOf()`, `lastOf()`, `firstRow()`,
+`lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`) are only
+available inside `compute_cols()` conditions — they are **not**
+standalone exported functions. See `vignette("Advanced_StyleRows")` for
+full details.
+
+\- **Multiple calls accumulate**: calling `compute_cols()` multiple
+times on the same spec appends actions
+
+\- **Multiple actions in one call**: same row can have styling, merging,
+and row insertion simultaneously
+
+\- **Overlapping conditions**: if multiple conditions match the same
+row, all actions apply (styling aggregates, merging rules apply) -
+**value_from**: Optional in `c_addrow()` — omit for empty separator rows
+
+\- **Performance**: Conditions evaluated once per row during report
+assembly; style consolidation happens automatically
+
+------------------------------------------------------------------------
 
 ## 12 — Render to DOCX with `write_doc()`
 
-
 ### What `write_doc()` does
 
-`write_doc()` is the primary output function. It combines two lower-level steps into one:
+`write_doc()` is the primary output function. It combines two
+lower-level steps into one:
 
-1. **Validates and serializes** the report to JSON, writing metadata and data files to `metaPath`
-2. **Renders** the JSON to a DOCX file in `outDir`
+1.  **Validates and serializes** the report to JSON, writing metadata
+    and data files to `metaPath`
+2.  **Renders** the JSON to a DOCX file in `outDir`
 
-```
+```         
 create_report() → write_doc()  →  output.docx
 ```
 
 ### Example: Assemble and render a multi-spec report
 
-> **Tip**: Use `tfl_list_templates()` to discover available template names (e.g., `"Navy_Pro"`, `"Carbon_Dark"`). Use `run_styles_editor()` to interactively preview and customize templates.
+> **Tip**: Use `tfl_list_templates()` to discover available template
+> names (e.g., `"Navy_Pro"`, `"Carbon_Dark"`). Use `run_styles_editor()`
+> to interactively preview and customize templates.
 
 ```{r example_write_doc, eval = FALSE}
 # Create multiple specs
@@ -912,30 +1001,36 @@ write_doc(
 
 In this workflow:
 
-- `write_doc(..., overrideTemplate = NULL)` keeps per-spec `docTemplate` styling.
-- `write_doc(..., overrideTemplate = <name_or_path>)` applies a single global template to all specs.
+-   `write_doc(..., overrideTemplate = NULL)` keeps per-spec
+    `docTemplate` styling.
+-   `write_doc(..., overrideTemplate = <name_or_path>)` applies a single
+    global template to all specs.
 
-**Key parameters**:
-- `report`: A `TFL_report` object (created via `create_report()`)
-- `name`: Base name for the output DOCX (e.g. `"example_report"` → `example_report.docx`)
-- `outDir`: Directory where the output DOCX is written
-- `metaPath`: Directory where intermediate JSON and data files are written
+**Key parameters**: - `report`: A `TFL_report` object (created via
+`create_report()`) - `name`: Base name for the output DOCX (e.g.
+`"example_report"` → `example_report.docx`) - `outDir`: Directory where
+the output DOCX is written - `metaPath`: Directory where intermediate
+JSON and data files are written
 
-**Advanced**: If you need to inspect the JSON before rendering (e.g. for debugging or CI pipelines), you can split the call into `save_report()` + `replay_report()`. See `?write_doc` and `?replay_report` for details.
+**Advanced**: If you need to inspect the JSON before rendering (e.g. for
+debugging or CI pipelines), you can split the call into
+`save_report()` + `replay_report()`. See `?write_doc` and
+`?replay_report` for details.
 
----
+------------------------------------------------------------------------
 
 ## 13 — Session-wide `tfl_options`: common headers/footers and default body text
 
-
 ### Why session options?
 
-In a real clinical reporting workflow, many tables/listings share:
-- Common headers (study name, database version, confidentiality notice)
-- Common footers (company name, page numbers, disclaimers)
-- Default body text (standard disclaimers or methodology notes)
+In a real clinical reporting workflow, many tables/listings share: -
+Common headers (study name, database version, confidentiality notice) -
+Common footers (company name, page numbers, disclaimers) - Default body
+text (standard disclaimers or methodology notes)
 
-Instead of adding these to every spec, use `tfl_set_options()` to set session defaults once. All specs created afterward inherit these settings.
+Instead of adding these to every spec, use `tfl_set_options()` to set
+session defaults once. All specs created afterward inherit these
+settings.
 
 ### Example 1: Set basic session options
 
@@ -954,7 +1049,9 @@ print(spec_with_opts)
 # close example chunk
 ```
 
-**Key point**: Headers and footers from `tfl_set_options()` are automatically applied to new specs. No need to call `add_header()` again.
+**Key point**: Headers and footers from `tfl_set_options()` are
+automatically applied to new specs. No need to call `add_header()`
+again.
 
 ### Example 2: Override session options in a specific spec
 
@@ -977,7 +1074,8 @@ print(spec_override)  # Uses custom header from add_header call
 # close example chunk
 ```
 
-**Rule**: Spec-level settings always take precedence over session defaults (last-win strategy).
+**Rule**: Spec-level settings always take precedence over session
+defaults (last-win strategy).
 
 ### Example 3: Check and reset session options
 
@@ -1001,31 +1099,35 @@ print(spec_reset)
 # close example chunk
 ```
 
----
+------------------------------------------------------------------------
 
 ## Final notes
 
-This comprehensive vignette demonstrates the complete ksTFL reporting pipeline using only exported helpers. 
+This comprehensive vignette demonstrates the complete ksTFL reporting
+pipeline using only exported helpers.
 
-**Examples covered**:
-1. Minimal table/figure/text creation (single-spec workflows)
-2. **Define columns**: Single column, batch updates, parameter recycling (NEW)
-3. Column widths: Auto-calculation, locking, mixed units (NEW)
-4. Multi-level tables with titles, subtitles, and footnotes
-5. Combining multiple specs into a report
-6. Spanning headers (stub columns) with styling
-7. Named styles and combining with `f_combine()` (expanded)
-8. End-to-end render with `write_doc()`
-9. Session defaults with `tfl_set_options()`
+**Examples covered**: 1. Minimal table/figure/text creation (single-spec
+workflows) 2. **Define columns**: Single column, batch updates,
+parameter recycling (NEW) 3. Column widths: Auto-calculation, locking,
+mixed units (NEW) 4. Multi-level tables with titles, subtitles, and
+footnotes 5. Combining multiple specs into a report 6. Spanning headers
+(stub columns) with styling 7. Named styles and combining with
+`f_combine()` (expanded) 8. End-to-end render with `write_doc()` 9.
+Session defaults with `tfl_set_options()`
 
-**Key patterns to remember**:
-- **Batch operations**: Use `c()` to select multiple columns, provide single values (recycled) or N values (one-to-one mapping)
-- **Multiple calls**: Chain `define_cols()`, `add_style()`, etc. — each call merges with previous settings
-- **Flexible column widths**: Auto-calculated by default; lock specific columns with `colWidth` to trigger recalculation of others
-- **Combining styles**: Use `f_combine()` for on-the-fly combinations; define named styles for reuse
-- **Session defaults**: Use `tfl_set_options()` once; all new specs inherit settings (override per-spec if needed)
+**Key patterns to remember**: - **Batch operations**: Use `c()` to
+select multiple columns, provide single values (recycled) or N values
+(one-to-one mapping) - **Multiple calls**: Chain `define_cols()`,
+`add_style()`, etc. — each call merges with previous settings -
+**Flexible column widths**: Auto-calculated by default; lock specific
+columns with `colWidth` to trigger recalculation of others - **Combining
+styles**: Use `f_combine()` for on-the-fly combinations; define named
+styles for reuse - **Session defaults**: Use `tfl_set_options()` once;
+all new specs inherit settings (override per-spec if needed)
 
-**Running examples locally**: Set the top chunk `eval=TRUE` to generate sample data, then execute examples in order. All code uses exported functions only — no internal API manipulation needed.
+**Running examples locally**: Set the top chunk `eval=TRUE` to generate
+sample data, then execute examples in order. All code uses exported
+functions only — no internal API manipulation needed.
 
-For more details on function parameters, see the roxygen documentation: `?create_table`, `?define_cols`, `?add_style`, `?write_doc`, etc.
-
+For more details on function parameters, see the roxygen documentation:
+`?create_table`, `?define_cols`, `?add_style`, `?write_doc`, etc.
