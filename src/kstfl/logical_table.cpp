@@ -441,6 +441,10 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec &spec, const Col
           if (col_idx < p_lo || col_idx > p_hi) continue;
 
           // Parent span covers this column.
+          // Never peel into a named (user-defined) stub span —
+          // only anonymous (empty-label) wrapper spans may be shrunk.
+          if (!parent.label.empty()) break;
+
           // Only peel from left or right boundary.
           if (col_idx == p_lo) {
             // --- Peel from left edge ---

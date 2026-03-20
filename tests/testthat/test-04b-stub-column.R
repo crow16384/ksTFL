@@ -357,3 +357,60 @@ test_that("add_span_header() empty selection after tidyselect filtering raises e
     "Must have length >= 1"
   )
 })
+
+# ============================================================================
+# Regression: full-spanning stub must not be shrunk by Post-pass 3
+# ============================================================================
+
+test_that("span header covering all columns retains full gridSpan after rendering", {
+  # Reproduces the vignette issue: stubOrder=2 spans ALL 3 columns,
+
+  # stubOrder=1 spans only 2.  The renderer must NOT peel the uncovered
+# column off the top-level span.
+  data <- data.frame(
+    subject = sprintf("S%03d", 1:3),
+    age = c(40, 50, 60),
+    sex = c("M", "F", "M")
+  )
+
+  spec <- create_table(data, cols = c(subject, age, sex))
+  spec <- define_cols(spec, c(subject, age, sex),
+                      label = c("Subject ID", "Age (years)", "Sex"))
+  spec <- add_span_header(spec, c(age, sex), "Characteristic", stubOrder = 1)
+  spec <- add_span_header(spec, c(subject, age, sex), "Treatment A (N=10)", stubOrder = 2)
+
+  report <- create_report(spec)
+
+  out_dir  <- tempfile("ksTFL_stubspan_out_")
+  meta_dir <- tempfile("ksTFL_stubspan_meta_")
+  dir.create(out_dir, recursive = TRUE)
+  dir.create(meta_dir, recursive = TRUE)
+  on.exit({
+    unlink(out_dir, recursive = TRUE)
+    unlink(meta_dir, recursive = TRUE)
+  })
+
+  out_path <- write_doc(report, name = "stub_span_test",
+                        outDir = out_dir, metaPath = meta_dir)
+  expect_true(file.exists(out_path))
+
+  # Unzip the DOCX and inspect document.xml for gridSpan values
+  unzip_dir <- tempfile("ksTFL_stubspan_unzip_")
+  dir.create(unzip_dir)
+  on.exit(unlink(unzip_dir, recursive = TRUE), add = TRUE)
+  utils::unzip(out_path, exdir = unzip_dir)
+
+  doc_xml <- readLines(file.path(unzip_dir, "word", "document.xml"), warn = FALSE)
+  doc_text <- paste(doc_xml, collapse = "")
+
+  # "Treatment A (N=10)" must span all 3 columns => gridSpan val="3"
+  # Look backwards from "Treatment A" to find the gridSpan in the same <w:tc>
+  pos <- regexpr("Treatment A", doc_text)
+  expect_true(pos > 0, label = "Treatment A text found in DOCX XML")
+  before <- substr(doc_text, max(1L, pos - 800L), pos - 1L)
+  spans <- regmatches(before, gregexpr('gridSpan w:val="[0-9]+"', before, perl = TRUE))[[1]]
+  expect_true(length(spans) > 0, label = "gridSpan found before Treatment A")
+  # The last gridSpan before the text belongs to the same <w:tc>
+  expect_equal(spans[length(spans)], 'gridSpan w:val="3"',
+               label = "Treatment A gridSpan must be 3 (all columns)")
+})

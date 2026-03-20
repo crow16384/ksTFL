@@ -99,7 +99,7 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)
 Each `TFL_spec` contains:
 
 | Component | Purpose | How to modify |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | **document** | Metadata (docType, title, page settings) | `set_document()`, `set_page_style()` |
 | **columns** | Column definitions, labels, formats, styles | `define_cols()` |
 | **stubColumns** | Spanning headers above column groups | `add_span_header()` |
@@ -571,7 +571,7 @@ groups - **Merge columns**: Create group headers by merging columns -
 **Key action functions** (used inside `compute_cols()`):
 
 | Function | Purpose | Example |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
 | `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
 | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
@@ -870,7 +870,7 @@ spec <- add_title(spec, "Demographics Table")
 spec <- add_subtitle(spec, "All subjects in safety population")
 spec <- add_footnote(spec, "Data are shown as observed.")
 
-spec <- add_span_header(spec, c(age, sex), 'Charactersitic', 
+spec <- add_span_header(spec, c(age, sex), 'Characteristic', 
                         labelStyleRef = "header", stubOrder = 1)
 spec <- add_span_header(spec, c(subject, age, sex), 'Treatment A (N=10)', 
                         labelStyleRef = "header", stubOrder = 2)
@@ -883,17 +883,12 @@ report <- create_report(spec) |>  write_doc('demographics')
 # Done!
 ```
 
-![](images/clipboard-2576915099.png)
-
-*ISSUE: Currently we have a issue with span headers - the
-`Treatment A (N=10)` must span all columns per the code!!!*
-
-------------------------------------------------------------------------
+![](images/clipboard-1347102353.png)
 
 ## Key gotchas and tips
 
 | Gotcha | Solution |
-|----|----|
+|------------------------------------|------------------------------------|
 | **Calling s\_\* helpers outside add_style()** | Always use s\_\* inside `add_style()` — they validate context |
 | **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
 | **Styles from f_combine() not consolidated** | Call `create_report()` before `write_doc()` |
@@ -935,7 +930,7 @@ You now understand ksTFL's core workflow. Next steps:
 ## Quick reference table
 
 | Task | Function | Notes |
-|----|----|----|
+|------------------------|------------------------|------------------------|
 | Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
 | Create figure spec | `create_figure(plot_or_path, dpi = 300L)` | File path or ggplot2 object; path must be readable |
 | Create text spec | `create_text()` | For narrative content only |
