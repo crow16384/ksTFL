@@ -18,8 +18,14 @@ specifications. Text documents do not accept \code{data} and will have
 }
 \examples{
 \dontrun{
-## Create a simple text spec
-spec <- create_text()
+# Create a text-only spec and add narrative content
+spec <- create_text() |>
+  add_title("Listing of Adverse Events") |>
+  set_document(hasData = FALSE) |>
+  add_body_text("No adverse events were reported during the study.")
 }
 
+}
+\seealso{
+\code{\link[=create_table]{create_table()}}, \code{\link[=create_figure]{create_figure()}}, \code{\link[=add_body_text]{add_body_text()}}
 }

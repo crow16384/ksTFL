@@ -2222,9 +2222,14 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL, t
 #' 
 #' @examples
 #' \dontrun{
-#' spec <- create_text() |>
+#' spec <- create_table(mtcars) |>
 #'   add_footnote("Data source: Clinical database lock 2025-12-01") |>
-#'   add_footnote("Missing values displayed as 'N/A'", styleRef = c("footnote_style", "emphasis"))
+#'   add_footnote("Missing values displayed as 'N/A'",
+#'                styleRef = f_combine("footnote_style", "font_courier_new"))
+#'
+#' # Multiple footnote lines in one group
+#' spec <- create_table(mtcars) |>
+#'   add_footnote(c("a. Treatment group A", "b. Treatment group B"))
 #' }
 add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
@@ -2254,9 +2259,16 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #'
 #' @examples
 #' \dontrun{
+#' # Text-only spec with body text
 #' spec <- create_text() |>
 #'   set_document(hasData = FALSE) |>
-#'   add_body_text("No data available for the specified criteria", styleRef = c("error_style", "bold"))
+#'   add_body_text("No data available for the specified criteria.")
+#'
+#' # Table spec with body text as fallback when no data rows
+#' spec <- create_table(empty_df) |>
+#'   set_document(hasData = FALSE) |>
+#'   add_body_text("No adverse events were reported.",
+#'                 styleRef = f_combine("b", "fc_red"))
 #' }
 add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
   UseMethod("add_body_text", spec)
@@ -2686,36 +2698,68 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' Document type (`docType`) is set automatically by `create_table()`,
 #' `create_figure()`, or `create_text()` and cannot be changed here. Global
 #' document order (`docOrder`) is assigned by `create_report()`.
-#' `docPrefix` is not an argument of `set_document()` in the current API.
 #'
 #' @param spec TFL spec object
-#' @param isContinues Whether page breaks should be ignored
-#' @param contentWidth Width of content, e.g. "100%", "25cm", "10in"
+#' @param isContinues Logical. When `TRUE`, page breaks between specs in a
+#'   multi-spec report are suppressed and the next spec continues on the same
+#'   page.
+#' @param contentWidth Width of content, e.g. `"100%"`, `"25cm"`, `"10in"`.
 #' @param footnotePlace Character; controls where footnotes are rendered.
 #'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
 #'   `"repeated"` (place under the table on every page),
 #'   or `"last_page"` (place under the table on the last page only).
 #'   Default `"repeated"`.
-#' @param hasData Whether document has data to report
-#' @param topEmptyLine Empty spacer row height after table header (table-level), e.g. "6pt".
-#'   Use NULL to disable. `0pt` is treated as no spacer row.
-#' @param bottomEmptyLine Empty spacer row height before table bottom border (table-level), e.g. "6pt".
-#'   Use NULL to disable. `0pt` is treated as no spacer row.
+#' @param hasData Logical. Whether this spec has data to render. Set to `TRUE`
+#'   for tables with data rows. When `FALSE`, the body text (if any) is
+#'   rendered instead.
+#' @param topEmptyLine Empty spacer row height after table header (table-level),
+#'   e.g. `"6pt"`. Use `NULL` to disable. `"0pt"` is treated as no spacer row.
+#' @param bottomEmptyLine Empty spacer row height before table bottom border
+#'   (table-level), e.g. `"6pt"`. Use `NULL` to disable.
 #' @param docTemplate Character. Template to use for rendering. Accepts either:
 #'   \itemize{
-#'     \item Name of a bundled template (see `tfl_list_templates()`).
+#'     \item Name of a bundled template (see [tfl_list_templates()]).
 #'     \item Full path to a custom styles JSON file.
 #'   }
+#' @param figureWidth Figure width with units, e.g. `"6in"`, `"70%"`,
+#'   `"16.51cm"`. Only relevant for `docType = "Figure"`.
+#' @param figureHeight Figure height with units. Same syntax as `figureWidth`.
+#' @param figureDevice Character. Image format for ggplot2 rendering.
+#'   One of `"svg"`, `"png"`, or `"jpeg"`.
+#' @param figureScaleMode Character. How the figure is scaled in the DOCX.
+#'   One of `"fixed"` (exact dimensions) or `"fitWidth"` (scale to page width,
+#'   preserving aspect ratio).
 #' 
 #' @return Updated spec object
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#' # Table spec with data
+#' spec <- create_table(mtcars) |>
+#'   set_document(hasData = TRUE)
+#'
+#' # Text spec for narrative-only output
 #' spec <- create_text() |>
+#'   set_document(hasData = FALSE) |>
+#'   add_body_text("No adverse events were reported.")
+#'
+#' # Figure spec with custom sizing
+#' spec <- create_figure("plot.png") |>
 #'   set_document(
-#'     hasData = TRUE
+#'     figureWidth  = "7in",
+#'     figureHeight = "5in",
+#'     figureScaleMode = "fitWidth"
 #'   )
+#'
+#' # Footnotes placed on last page only
+#' spec <- create_table(mtcars) |>
+#'   set_document(hasData = TRUE, footnotePlace = "last_page") |>
+#'   add_footnote("Source: Motor Trend, 1974.")
+#'
+#' # Use a bundled template (see tfl_list_templates() for available names)
+#' spec <- create_table(mtcars) |>
+#'   set_document(hasData = TRUE, docTemplate = "Navy_Pro")
 #' }
 set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
                          footnotePlace = NULL, hasData = NULL,

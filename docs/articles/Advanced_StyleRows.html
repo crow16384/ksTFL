@@ -227,6 +227,12 @@ invisible ones)</li>
 <strong>Embedded functions</strong>: Internal utilities for column
 access</li>
 </ol>
+<blockquote>
+<p><strong>Important</strong>: These helper functions are only available
+inside the <code>cond</code> argument of <code><a href="../reference/compute_cols.html">compute_cols()</a></code>.
+They are <strong>not</strong> standalone exported functions — you cannot
+call them outside of <code><a href="../reference/compute_cols.html">compute_cols()</a></code>.</p>
+</blockquote>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># You can reference any column directly in conditions</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -238,8 +244,8 @@ access</li>
 <div class="section level3">
 <h3 id="available-helper-functions">Available Helper Functions<a class="anchor" aria-label="anchor" href="#available-helper-functions"></a>
 </h3>
-<p>ksTFL provides these helper functions evaluated in the data
-context:</p>
+<p>The following helpers are available exclusively inside
+<code><a href="../reference/compute_cols.html">compute_cols()</a></code> conditions:</p>
 <ul>
 <li>
 <strong><code>firstOf(...)</code></strong>: Logical vector marking

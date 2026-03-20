@@ -15,4 +15,15 @@ Invisible \code{NULL}.
 \description{
 Iterates over every atom in the internal \code{.const_options_styles} registry
 and prints a coloured, grouped summary using \pkg{cli}.
+\code{tfl_style_atoms_catalog()} is a convenience alias for \code{tfl_print_style_atoms()}.
+}
+\examples{
+\dontrun{
+# Print the full catalog of built-in style atoms
+tfl_print_style_atoms()
+
+# Same output via the alias
+tfl_style_atoms_catalog()
+}
+
 }

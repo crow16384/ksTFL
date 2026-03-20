@@ -77,6 +77,8 @@
   page margins
 - [`p_page()`](https://example.com/reference/p_page.md) : Define page
   settings
+- [`print(`*`<TFL_spec>`*`)`](https://example.com/reference/print.TFL_spec.md)
+  : Print method for TFL specification objects
 - [`replay_report()`](https://example.com/reference/replay_report.md) :
   Re-render a DOCX from Stored JSON
 - [`run_replay_app()`](https://example.com/reference/run_replay_app.md)

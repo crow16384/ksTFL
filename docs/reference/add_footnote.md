@@ -41,8 +41,13 @@ Updated spec object
 
 ``` r
 if (FALSE) { # \dontrun{
-spec <- create_text() |>
+spec <- create_table(mtcars) |>
   add_footnote("Data source: Clinical database lock 2025-12-01") |>
-  add_footnote("Missing values displayed as 'N/A'", styleRef = c("footnote_style", "emphasis"))
+  add_footnote("Missing values displayed as 'N/A'",
+               styleRef = f_combine("footnote_style", "font_courier_new"))
+
+# Multiple footnote lines in one group
+spec <- create_table(mtcars) |>
+  add_footnote(c("a. Treatment group A", "b. Treatment group B"))
 } # }
 ```

@@ -14,3 +14,21 @@ tfl_rescan_fonts()
 
 Invisibly returns the font scan report (a list with `resolutions` and
 `dirs_scanned`).
+
+## See also
+
+[`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)
+to print the cached report without rescanning.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+# Rescan after installing new fonts
+tfl_rescan_fonts()
+
+# Point to a custom font directory, then rescan
+options(ksTFL.font_dirs = c("/usr/share/fonts/custom"))
+tfl_rescan_fonts()
+} # }
+```

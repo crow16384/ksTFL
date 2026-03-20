@@ -29,13 +29,13 @@ save_report(
 - docFileName:
 
   Character string. Name of the rendered document file that will be
-  created by the Python renderer (e.g., "report.docx"). This value is
+  created by the C++ renderer (e.g., "report.docx"). This value is
   stored in the `_metadata/docFileName` property of the exported JSON
   spec.
 
 - outDir:
 
-  Character string. Output directory where the Python renderer will save
+  Character string. Output directory where the C++ renderer will save
   the rendered document. This path is stored in the `_metadata/outDir`
   property. If not provided, defaults to
   `tfl_get_option("output_directory")`.

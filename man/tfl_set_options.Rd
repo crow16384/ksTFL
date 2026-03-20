@@ -48,6 +48,18 @@ Default \code{"repeated"}.}
 
 \item{missings}{Character; default representation for missing values (e.g. "NA", ".", "---").}
 
+\item{figureWidth}{Character; default width for figure output (e.g. \code{"6in"}, \code{"16cm"}).
+Applied when \code{create_figure()} specs do not specify their own width.}
+
+\item{figureHeight}{Character; default height for figure output (e.g. \code{"4in"}, \code{"10cm"}).
+Applied when \code{create_figure()} specs do not specify their own height.}
+
+\item{figureDevice}{Character; graphics device used for figure rendering
+(e.g. \code{"png"}, \code{"pdf"}, \code{"svg"}). Default depends on system capabilities.}
+
+\item{figureScaleMode}{Character; how figures are scaled into the page content area.
+Typically \code{"fit"} (scale to fit) or \code{"exact"} (use exact dimensions).}
+
 \item{autoColWidth}{Logical; enable automatic column width recalculation when user sets \code{colWidth} via \code{define_cols()}.
 Default TRUE. When TRUE, locked columns maintain exact width while unlocked columns normalize to fill remaining space.
 Set FALSE to disable auto-recalculation and manage widths manually.}

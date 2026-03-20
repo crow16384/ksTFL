@@ -42,11 +42,11 @@ system.
 
 The scanner inspects the following directories by default:
 
-| Platform    | Directories                                                                                              |
-|-------------|----------------------------------------------------------------------------------------------------------|
-| **Linux**   | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.local/share/fonts`, `~/.fonts`, plus any XDG data dirs |
-| **macOS**   | `/System/Library/Fonts`, `/Library/Fonts`, `~/Library/Fonts`                                             |
-| **Windows** | System fonts directory (from registry), plus user fonts in `%LOCALAPPDATA%\Microsoft\Windows\Fonts`      |
+| Platform | Directories |
+|----|----|
+| **Linux** | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.local/share/fonts`, `~/.fonts`, plus any XDG data dirs |
+| **macOS** | `/System/Library/Fonts`, `/Library/Fonts`, `~/Library/Fonts` |
+| **Windows** | System fonts directory (from registry), plus user fonts in `%LOCALAPPDATA%\Microsoft\Windows\Fonts` |
 
 ## Target Fonts and Fallbacks
 
@@ -54,14 +54,14 @@ The rendering engine targets six font families commonly used in clinical
 documents. Each has a metrically compatible open-source fallback bundled
 with the package:
 
-| Target Font         | Fallback Font    | Notes                                   |
-|---------------------|------------------|-----------------------------------------|
-| **Arial**           | Liberation Sans  | Metrically identical to Arial           |
+| Target Font | Fallback Font | Notes |
+|----|----|----|
+| **Arial** | Liberation Sans | Metrically identical to Arial |
 | **Times New Roman** | Liberation Serif | Metrically identical to Times New Roman |
-| **Courier New**     | Liberation Mono  | Metrically identical to Courier New     |
-| **Georgia**         | Liberation Serif | Serif fallback for Georgia              |
-| **Verdana**         | Liberation Sans  | Sans-serif fallback for Verdana         |
-| **Trebuchet MS**    | Liberation Sans  | Sans-serif fallback for Trebuchet MS    |
+| **Courier New** | Liberation Mono | Metrically identical to Courier New |
+| **Georgia** | Liberation Serif | Serif fallback for Georgia |
+| **Verdana** | Liberation Sans | Sans-serif fallback for Verdana |
+| **Trebuchet MS** | Liberation Sans | Sans-serif fallback for Trebuchet MS |
 
 All bundled fonts are licensed under the SIL Open Font License 1.1.
 
@@ -83,6 +83,7 @@ After loading the package, call
 to see the current font resolution:
 
 ``` r
+
 library(ksTFL)
 tfl_font_status()
 #> ksTFL font scan: 3 target(s) resolved, 3 using fallback
@@ -112,6 +113,7 @@ afterwards:
 ### Option A: Set before loading
 
 ``` r
+
 options(ksTFL.font_dirs = c("/opt/company-fonts", "/mnt/shared/fonts"))
 library(ksTFL)
 ```
@@ -119,6 +121,7 @@ library(ksTFL)
 ### Option B: Set and rescan after loading
 
 ``` r
+
 library(ksTFL)
 options(ksTFL.font_dirs = "/opt/company-fonts")
 tfl_rescan_fonts()
@@ -138,6 +141,7 @@ after:
 - Mounting a new network font directory
 
 ``` r
+
 # Install Georgia to /usr/local/share/fonts/georgia/ ... then:
 tfl_rescan_fonts()
 #> ksTFL font scan: 6 target(s) resolved, 0 using fallback
@@ -172,6 +176,7 @@ automatically uses the font directories from the scanner cache. You can
 still pass additional per-call directories via the `font_dirs` argument:
 
 ``` r
+
 write_doc(report, name = "output",
           outDir = "results",
           metaPath = tempdir(),
@@ -189,6 +194,7 @@ The font may be installed in a directory not scanned by default. Add its
 directory to `ksTFL.font_dirs` and rescan:
 
 ``` r
+
 options(ksTFL.font_dirs = "/path/to/font/directory")
 tfl_rescan_fonts()
 ```
@@ -212,6 +218,7 @@ glyph-level differences may exist, but document layout is preserved.
 You can suppress all startup messages with:
 
 ``` r
+
 suppressPackageStartupMessages(library(ksTFL))
 ```
 

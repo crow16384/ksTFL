@@ -59,7 +59,7 @@ then edited and downloaded as JSON for use with <code><a href="set_page_style.ht
 
 <dl><dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Additional arguments passed to <code><a href="https://rdrr.io/pkg/shiny/man/runApp.html" class="external-link">shiny::runApp()</a></code>, such as
-<code>launch.browser = TRUE</code>.</p></dd>
+<code>launch.browser = TRUE</code> or <code>port = 4321</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -68,13 +68,18 @@ then edited and downloaded as JSON for use with <code><a href="set_page_style.ht
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This function requires the <code>shiny</code> package to be installed.</p>
+    <p>This function requires the <span class="pkg">shiny</span> package to be installed.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="tfl_list_templates.html">tfl_list_templates()</a></code>, <code><a href="set_page_style.html">set_page_style()</a></code></p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="fu">run_styles_editor</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">run_styles_editor</span><span class="op">(</span>launch.browser <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

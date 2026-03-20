@@ -142,6 +142,14 @@ tfl_get_option <- function(name) {
 #'   Set FALSE to disable auto-recalculation and manage widths manually.
 #' @param minColWidth Numeric; minimum relative column width (%) for unlocked columns during recalculation.
 #'   Default 0.5. Used to validate that relative widths don't squeeze columns below acceptable minimum.
+#' @param figureWidth Character; default width for figure output (e.g. `"6in"`, `"16cm"`).
+#'   Applied when `create_figure()` specs do not specify their own width.
+#' @param figureHeight Character; default height for figure output (e.g. `"4in"`, `"10cm"`).
+#'   Applied when `create_figure()` specs do not specify their own height.
+#' @param figureDevice Character; graphics device used for figure rendering
+#'   (e.g. `"png"`, `"pdf"`, `"svg"`). Default depends on system capabilities.
+#' @param figureScaleMode Character; how figures are scaled into the page content area.
+#'   Typically `"fit"` (scale to fit) or `"exact"` (use exact dimensions).
 #' @param insertTOC Logical; when `TRUE` the renderer prepends a Table of Contents
 #'   page (using a `{ TOC \f \h \z }` field) before the first spec. Requires at least
 #'   one `add_title()` or `add_subtitle()` call with `toclevel` set. Default `FALSE`.

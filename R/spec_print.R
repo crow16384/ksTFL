@@ -44,7 +44,6 @@
 #'   \item `_` = Blank after (insert blank row after value change)
 #' }
 #'
-#' @keywords internal
 #' @name print.TFL_spec
 #' @aliases print.TFL_spec
 #'

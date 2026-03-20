@@ -914,13 +914,20 @@ column:</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Key concepts</strong>: - <strong>Conditions</strong> are
 unevaluated expressions evaluated at report generation time (during
-<code><a href="../reference/create_report.html">create_report()</a></code>) - <strong>Multiple calls
-accumulate</strong>: calling <code><a href="../reference/compute_cols.html">compute_cols()</a></code> multiple times
-on the same spec appends actions - <strong>Multiple actions in one
-call</strong>: same row can have styling, merging, and row insertion
-simultaneously - <strong>Overlapping conditions</strong>: if multiple
-conditions match the same row, all actions apply (styling aggregates,
-merging rules apply) - <strong>value_from</strong>: Optional in
+<code><a href="../reference/create_report.html">create_report()</a></code>) - <strong>Helper functions</strong>
+(<code>firstOf()</code>, <code>lastOf()</code>, <code>firstRow()</code>,
+<code>lastRow()</code>, <code>rowNumber()</code>,
+<code>everyNth()</code>, <code>firstOfBlock()</code>) are only available
+inside <code><a href="../reference/compute_cols.html">compute_cols()</a></code> conditions — they are
+<strong>not</strong> standalone exported functions. See
+<code><a href="../articles/Advanced_StyleRows.html">vignette("Advanced_StyleRows")</a></code> for full details. -
+<strong>Multiple calls accumulate</strong>: calling
+<code><a href="../reference/compute_cols.html">compute_cols()</a></code> multiple times on the same spec appends
+actions - <strong>Multiple actions in one call</strong>: same row can
+have styling, merging, and row insertion simultaneously -
+<strong>Overlapping conditions</strong>: if multiple conditions match
+the same row, all actions apply (styling aggregates, merging rules
+apply) - <strong>value_from</strong>: Optional in
 <code><a href="../reference/c_addrow.html">c_addrow()</a></code> — omit for empty separator rows -
 <strong>Performance</strong>: Conditions evaluated once per row during
 report assembly; style consolidation happens automatically</p>
@@ -950,6 +957,12 @@ writing metadata and data files to <code>metaPath</code>
 <div class="section level3">
 <h3 id="example-assemble-and-render-a-multi-spec-report">Example: Assemble and render a multi-spec report<a class="anchor" aria-label="anchor" href="#example-assemble-and-render-a-multi-spec-report"></a>
 </h3>
+<blockquote>
+<p><strong>Tip</strong>: Use <code><a href="../reference/tfl_list_templates.html">tfl_list_templates()</a></code> to
+discover available template names (e.g., <code>"Navy_Pro"</code>,
+<code>"Carbon_Dark"</code>). Use <code><a href="../reference/run_styles_editor.html">run_styles_editor()</a></code> to
+interactively preview and customize templates.</p>
+</blockquote>
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create multiple specs</span></span>
 <span><span class="va">table_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">labs_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">ALT</span>, <span class="va">AST</span><span class="op">)</span><span class="op">)</span></span>

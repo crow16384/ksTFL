@@ -27,7 +27,19 @@
 #'
 #' @return Invisibly returns the font scan report (a list with
 #'   \code{resolutions} and \code{dirs_scanned}).
-#' @seealso \code{\link{tfl_font_status}}
+#'
+#' @seealso [tfl_font_status()] to print the cached report without rescanning.
+#'
+#' @examples
+#' \dontrun{
+#' # Rescan after installing new fonts
+#' tfl_rescan_fonts()
+#'
+#' # Point to a custom font directory, then rescan
+#' options(ksTFL.font_dirs = c("/usr/share/fonts/custom"))
+#' tfl_rescan_fonts()
+#' }
+#'
 #' @export
 tfl_rescan_fonts <- function() {
   pkg_fonts_dir <- system.file("fonts", package = "ksTFL")
@@ -41,9 +53,18 @@ tfl_rescan_fonts <- function() {
 #' Show current font status
 #'
 #' Prints the font resolution report from the most recent scan without
-#' re-scanning. Use \code{\link{tfl_rescan_fonts}} to perform a fresh scan.
+#' re-scanning. Use [tfl_rescan_fonts()] to perform a fresh scan.
 #'
 #' @return Invisibly returns the cached font scan report.
+#'
+#' @seealso [tfl_rescan_fonts()] to re-run the scan.
+#'
+#' @examples
+#' \dontrun{
+#' # Check which fonts are resolved and which use fallbacks
+#' tfl_font_status()
+#' }
+#'
 #' @export
 tfl_font_status <- function() {
   report <- .pkg_env[["font_report"]]

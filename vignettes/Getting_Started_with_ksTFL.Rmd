@@ -6,8 +6,11 @@ output:
     dev: pdf
 vignette: >
   %\VignetteIndexEntry{Getting Started with ksTFL}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -19,52 +22,61 @@ knitr::opts_chunk$set(
 options(pkgdown.internet = FALSE)
 ```
 
-<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700" />
+<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700"/>
 
 ## Introduction
 
 **What is ksTFL?**
 
-ksTFL is a lightweight R toolkit for building metadata specifications for clinical Tables, Figures, and Text (TFLs). Unlike traditional table formatters (flextable, huxtable, officer), ksTFL separates *metadata generation* from *rendering*:
-- **You define**: Document structure, content, column formats, and styles in R
-- **ksTFL generates**: A structured specification (JSON metadata + data files)
-- **Built-in C++ renderer**: Produces submission-quality DOCX documents with deterministic HarfBuzz-based pagination via `write_doc()` / `replay_report()`
+ksTFL is a lightweight R toolkit for building metadata specifications
+for clinical Tables, Figures, and Text (TFLs). Unlike traditional table
+formatters (flextable, huxtable, officer), ksTFL separates *metadata
+generation* from *rendering*: - **You define**: Document structure,
+content, column formats, and styles in R - **ksTFL generates**: A
+structured specification (JSON metadata + data files) - **Built-in C++
+renderer**: Produces submission-quality DOCX documents with
+deterministic HarfBuzz-based pagination via `write_doc()` /
+`replay_report()`
 
-This separation enables:
-- **Consistency**: All tables follow the same style templates
-- **Automation**: Generate 50+ tables with consistent formatting and minimal code
-- **Reproducibility**: Specifications are version-controllable and auditable
-- **Flexibility**: Swap renderers without changing your R code
+This separation enables: - **Consistency**: All tables follow the same
+style templates - **Automation**: Generate 50+ tables with consistent
+formatting and minimal code - **Reproducibility**: Specifications are
+version-controllable and auditable - **Flexibility**: Swap renderers
+without changing your R code
 
-**When to use ksTFL:**
-- Regulatory clinical reporting (FDA, EMA submissions)
-- Large-scale automated reporting (100+ tables from common data sources)
-- Complex styling requirements (multi-level headers, spanning columns, conditional formatting)
-- When you need JSON metadata for downstream processing
+**When to use ksTFL:** - Regulatory clinical reporting (FDA, EMA
+submissions) - Large-scale automated reporting (100+ tables from common
+data sources) - Complex styling requirements (multi-level headers,
+spanning columns, conditional formatting) - When you need JSON metadata
+for downstream processing
 
 ## How to use this guide
 
 This is the foundation vignette and best starting point for new users.
 
-- Audience: users building first end-to-end TFL workflows
-- Focus: core objects (`TFL_spec`, `TFL_report`), function flow, and minimal working examples
-- Outcome: ability to create, assemble, and render reports confidently
+-   Audience: users building first end-to-end TFL workflows
+-   Focus: core objects (`TFL_spec`, `TFL_report`), function flow, and
+    minimal working examples
+-   Outcome: ability to create, assemble, and render reports confidently
 
-Recommended reading order after this vignette:
-1. `Reporting_Examples_with_ksTFL` for realistic workflow patterns.
-2. `Styling_Guide_with_ksTFL` for style primitives and reusable style systems.
-3. `Column_Width_Management` for layout tuning.
-4. `Advanced_StyleRows` for conditional row actions.
-5. `Font_Management` for system font discovery, custom font directories, and fallback behavior.
-6. `Rendering_Pipeline` for detailed C++ architecture and DOCX emission internals.
+Recommended reading order after this vignette: 1. [Reporting
+Examples](Reporting_Examples_with_ksTFL.Rmd) for realistic workflow
+patterns. 2. [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for style
+primitives and reusable style systems. 3. [Column Width
+Management](Column_Width_Management.Rmd) for layout tuning. 4. [Advanced
+StyleRows](Advanced_StyleRows.Rmd) for conditional row actions. 5. [Font
+Management](Font_Management.Rmd) for system font discovery, custom font
+directories, and fallback behavior. 6. [Rendering
+Pipeline](Rendering_Pipeline.Rmd) for detailed C++ architecture and DOCX
+emission internals.
 
----
+------------------------------------------------------------------------
 
 ## General workflow
 
 ### High-level pipeline
 
-```
+```         
 Data Frame / Image File
        ↓
 create_table() / create_figure() / create_text()
@@ -87,7 +99,7 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)
 Each `TFL_spec` contains:
 
 | Component | Purpose | How to modify |
-|-----------|---------|---------------|
+|----|----|----|
 | **document** | Metadata (docType, title, page settings) | `set_document()`, `set_page_style()` |
 | **columns** | Column definitions, labels, formats, styles | `define_cols()` |
 | **stubColumns** | Spanning headers above column groups | `add_span_header()` |
@@ -99,7 +111,7 @@ Each `TFL_spec` contains:
 | **footers** | Page footer text | `add_footer()` |
 | **styles** | Named styles defined with `add_style()` | `add_style()` |
 
----
+------------------------------------------------------------------------
 
 ## Quick 5-minute example
 
@@ -134,7 +146,7 @@ report <- create_report(spec)
 write_doc(report, name = "my_table", outDir = "./output", metaPath = tempdir())
 ```
 
----
+------------------------------------------------------------------------
 
 ## Step 1: Create a TFL_spec
 
@@ -151,10 +163,10 @@ spec_tbl <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
 
 ```
 
-**What happens**: 
-- Data is copied into the spec's internal environment (not modifiable)
-- Columns are auto-analyzed (type detection, width calculation)
-- A `TFL_spec` object is returned ready for customization
+**What happens**: - Data is shadow-copied into the spec's internal
+environment (not modifiable) - Columns are auto-analyzed (type
+detection, width calculation) - A `TFL_spec` object is returned ready
+for customization
 
 ### Figure spec (from image file)
 
@@ -173,11 +185,14 @@ spec_fig <- create_figure(p, dpi = 150L) # custom resolution (dpi)
 # spec_fig <- create_figure(p)
 ```
 
-**What happens**:
-- If a **file path** is given: it is validated (must exist and be readable); the file is used as-is
-- If a **ggplot2 object** is given: rendered via `ggplot2::ggsave()` to `tempdir()` using package defaults (`figureWidth`, `figureHeight`, `figureDevice`); the resulting path is stored in the spec
-- The `dpi` parameter applies when a ggplot2 object is passed; width/height/device are configured through package options
-- The image file is copied to `metaPath` when the report is saved
+**What happens**: - If a **file path** is given: it is validated (must
+exist and be readable); the file is used as-is - If a **ggplot2 object**
+is given: rendered via `ggplot2::ggsave()` to `tempdir()` using package
+defaults (`figureWidth`, `figureHeight`, `figureDevice`); the resulting
+path is stored in the spec - The `dpi` parameter applies when a ggplot2
+object is passed; width/height/device are configured through package
+options - The image file is copied to `metaPath` when the report is
+saved
 
 ### Text spec (narrative content)
 
@@ -188,11 +203,10 @@ spec_txt <- create_text()
 spec_txt <- add_body_text(spec_txt, "This analysis includes all subjects in the safety population.")
 ```
 
-**What happens**:
-- Empty spec with no data
-- Ready for narrative content via `add_body_text()`
+**What happens**: - Empty spec with no data - Ready for narrative
+content via `add_body_text()`
 
----
+------------------------------------------------------------------------
 
 ## Step 2: Customize columns (define_cols)
 
@@ -229,33 +243,47 @@ spec <- define_cols(spec, c(mpg, cyl, hp),
 ```
 
 **Key parameters**:
-- `label`: Column header text
-- `type`: "numeric" or "string" (auto-detected if omitted)
-- `format`: Format string (e.g., "%.2f", "0.00")
-- `colWidth`: Column width (e.g., "20%", "2cm")
-  - When set, column is locked to that width
-  - Other unlocked columns auto-recalculate to sum to 100%
-  - Disable auto-recalculation with `tfl_set_options(autoColWidth = FALSE)`
-- `isVisible`: TRUE (default) or FALSE
-  - Set to FALSE to hide column from output
-  - Invisible columns show width "0.0cm" 
-  - Cannot set colWidth on invisible columns
-  - Invisible columns excluded from width recalculation
-- `isID`: TRUE if column repeats on page breaks
-- `labelStyleRef`: Style(s) to apply to column header
-- `valueStyleRef`: Style(s) to apply to cell values
+
+\- `label`: Column header text
+
+\- `type`: "numeric" or "string" (auto-detected if omitted)
+
+\- `format`: Format string (e.g., "%.2f", "0.00")
+
+\- `colWidth`: Column width (e.g., "20%", "2cm") - When set, column is
+locked to that width - Other unlocked columns auto-recalculate to sum to
+100% - Disable auto-recalculation with
+`tfl_set_options(autoColWidth = FALSE)`
+
+\- `isVisible`: TRUE (default) or FALSE - Set to FALSE to hide column
+from output - Invisible columns show width "0.0cm" - Cannot set colWidth
+on invisible columns - Invisible columns excluded from width
+recalculation
+
+\- `isID`: TRUE if column repeats on page breaks
+
+\- `dedupe`: TRUE to clear consecutive repeating values in a column
+
+\- `isColBreak`: TRUE on a column that needs to be moved on the next
+page (break long tables)
+
+\- `labelStyleRef`: Style(s) to apply to column header
+
+\- `valueStyleRef`: Style(s) to apply to cell values
 
 **Hiding Columns**:
-```r
+
+``` r
 # Hide a column (e.g., for conditional logic that doesn't display)
 spec <- create_table(data) |>
   define_cols(group_id, isVisible = FALSE)
   # Result: group_id is hidden, other columns recalculated to fill 100%
 ```
 
-See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed column customization patterns.
+See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed
+column customization patterns.
 
----
+------------------------------------------------------------------------
 
 ## Step 3: Define styles (add_style)
 
@@ -280,15 +308,19 @@ spec <- define_cols(spec, c(mpg, hp),
   valueStyleRef = "numeric_right")
 ```
 
-**Best practice**: Define styles once, reference by id (name) throughout your spec.
+**Best practice**: Define styles once, reference by id (name) throughout
+your spec. If style needs to be used across many tables define it thru
+`tfl_setoptions()` to make it available session-wide.
 
-For comprehensive styling details see [Styling Guide](Styling_Guide_with_ksTFL.Rmd).
+For comprehensive styling details see [Styling
+Guide](Styling_Guide_with_ksTFL.Rmd).
 
----
+------------------------------------------------------------------------
 
 ## Step 4: Add spanning headers (span headers)
 
-Create multi-level headers with `add_span_header()` using tidyselect expressions:
+Create multi-level headers with `add_span_header()` using tidyselect
+expressions:
 
 ```{r add_stubs, eval = FALSE}
 spec <- create_table(mtcars)
@@ -308,7 +340,8 @@ add_span_header(cols = wt,
   stubOrder = 1)
 ```
 
-**Tidyselect support**: `add_span_header()` accepts all tidyselect expressions:
+**Tidyselect support**: `add_span_header()` accepts all tidyselect
+expressions:
 
 ```{r add_stubs_tidyselect, eval = FALSE}
 # Using column ranges and helpers
@@ -318,25 +351,44 @@ spec <- add_span_header(spec, cols = mpg:hp, label = "First", stubOrder = 0) |>
 ```
 
 **Key concepts**:
-- `cols`: Column names (from `spec$columns`) to span. Accepts:
-  - **Unquoted names**: `c(mpg, cyl, hp)` 
-  - **Quoted names**: `c("mpg", "cyl", "hp")`
-  - **Ranges**: `mpg:hp`
-  - **Helpers**: `starts_with("c")`, `contains("w")`, `matches("^m")`
-  - **Negation**: `-mpg` (all columns except mpg)
-- `label`: Spanning header text
-- `stubOrder`: Vertical stacking order (0 = top, 1 = next, etc.; auto-generated if NULL)
-- `labelStyleRef`: Style(s) for the header label
+
+\- `cols`: Column names (from `spec$columns`) to span.
+
+Accepts:
+
+\- **Unquoted names**: `c(mpg, cyl, hp)`
+
+\- **Quoted names**: `c("mpg", "cyl", "hp")`
+
+\- **Ranges**: `mpg:hp`
+
+\- **Helpers**: `starts_with("c")`, `contains("w")`, `matches("^m")`
+
+\- **Negation**: `-mpg` (all columns except mpg)
+
+\- `label`: Spanning header text
+
+\- `stubOrder`: Vertical stacking order (1 = top, 2 = next, etc.;
+auto-generated if NULL)
+
+\- `labelStyleRef`: Style(s) for the header label
 
 **Rules**:
-- Stubs at the **same** `stubOrder` cannot share columns (prevents ambiguous headers)
-- Stubs at **different** `stubOrder` values can overlap freely (enables hierarchical structure)
-- Multiple stubs at the same order are allowed as long as their column sets don't overlap
-- Use `add_style()` to style stub labels
+
+\- Stubs at the **same** `stubOrder` cannot share columns (prevents
+ambiguous headers)
+
+\- Stubs at **different** `stubOrder` values can overlap freely (enables
+hierarchical structure)
+
+\- Multiple stubs at the same order are allowed as long as their column
+sets don't overlap
+
+\- Use `add_style()` to style stub labels or use embedded atomic styles
 
 See [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for styling stubs.
 
----
+------------------------------------------------------------------------
 
 ## Step 5: Add titles, footnotes, headers, footers
 
@@ -363,13 +415,91 @@ spec <- add_body_text(spec, "This analysis includes all subjects in the safety p
 ```
 
 **Notes**:
-- `add_header()` and `add_footer()` take up to 3 separate string arguments: left, center, right
-- Placeholders like `{page}` and `{numpages}` are filled in by the renderer
-- Multiple `add_header()` calls append additional header rows; use the `level` parameter to replace a specific row
-- Multiple `add_footnote()` calls stack in order
-- `add_title()` and `add_subtitle()` accept an optional `toclevel` parameter (integer, e.g. `1` or `2`). When set, the title is included in the Table of Contents generated by `write_doc(toc = TRUE)`. See `?add_title` for details.
 
----
+\- `add_header()` and `add_footer()` take up to 3 separate string
+arguments: left, center, right
+
+\- Placeholders like `{page}` and `{numpages}` are filled in by the
+renderer
+
+\- Multiple `add_header()` calls append additional header rows; use the
+`level` parameter to replace a specific row
+
+\- Multiple `add_footnote()` calls stack in order
+
+\- `add_title()` and `add_subtitle()` accept an optional `toclevel`
+parameter (integer, `1` to `9`). When set, the title is included in the
+Table of Contents generated by `write_doc(toc = TRUE)`. See `?add_title`
+for details.
+
+------------------------------------------------------------------------
+
+## Step 5b: Page layout and templates
+
+### Page size, orientation, and margins
+
+Use `set_page_style()` with `p_page()` and `p_margins()` to control the
+physical page layout:
+
+```{r page_layout, eval = FALSE}
+spec <- create_table(mtcars) |>
+  set_page_style(
+    page = p_page(
+      size        = "A4",        # "A4", "Letter", or "Legal"
+      orientation = "landscape",  # "portrait" or "landscape"
+      margins     = p_margins(
+        top    = "1in",
+        bottom = "1in",
+        left   = "0.75in",
+        right  = "0.75in",
+        header = "0.5in",
+        footer = "0.5in"
+      )
+    )
+  )
+```
+
+**`p_page()` parameters**:
+
+\- `size`: Page size — `"A4"` (default), `"Letter"`, or `"Legal"`
+
+\- `orientation`: `"portrait"` (default) or `"landscape"`
+
+\- `margins`: A margins object from `p_margins()`
+
+**`p_margins()` parameters** (all accept dimension strings like `"1in"`,
+`"2.54cm"`, `"72pt"`, `"25.4mm"`):
+
+\- `top`, `bottom`, `left`, `right`: Page margins
+
+\- `header`, `footer`: Distance from page edge to header/footer content
+
+### Document templates
+
+Templates control the visual appearance (colours, fonts, borders) of the
+rendered DOCX:
+
+```{r templates, eval = FALSE}
+# List all bundled templates
+tfl_list_templates()
+
+# Apply a bundled template
+spec <- create_table(mtcars) |>
+  set_page_style(docTemplate = "Navy_Pro")
+
+# Or apply via set_document()
+spec <- create_table(mtcars) |>
+  set_document(hasData = TRUE, docTemplate = "Carbon_Dark")
+
+# Use a custom external template (JSON file)
+spec <- create_table(mtcars) |>
+  set_page_style(docTemplate = "path/to/my_custom_template.json")
+```
+
+Use `run_styles_editor()` to interactively create and edit template JSON
+files.
+
+------------------------------------------------------------------------
 
 ## Step 6: Combine specs into a report
 
@@ -393,20 +523,29 @@ print(report)
 ```
 
 **What `create_report()` does**:
-1. Flattens inputs (supports nested reports)
-2. Validates structure
-3. Consolidates combined styles (if any used `f_combine()`)
-4. Assigns sequential `docOrder` (1, 2, 3, ...)
-5. Creates `dataRef` names for new specs
-6. Returns a `TFL_report` object
+
+1\. Flattens inputs (supports nested reports)
+
+2\. Validates structure
+
+3\. Consolidates combined styles (if any used `f_combine()`)
+
+4\. Assigns sequential `docOrder` (1, 2, 3, ...)
+
+5\. Creates `dataRef` names for new specs
+
+6\. Returns a `TFL_report` object
 
 **Result**: A single report combining all specs in input order.
+Additionally a Table of Contents can be auto-generated in such documents
+that allows to create a production ready TFL reports.
 
----
+------------------------------------------------------------------------
 
 ## Step 7: Apply conditional row actions (compute_cols)
 
-Beyond global column styling, apply **conditional actions** to specific rows that match a condition:
+Beyond global column styling, apply **conditional actions** to specific
+rows that match a condition:
 
 ```{r compute_cols_basic, eval = FALSE}
 spec <- create_table(mtcars)
@@ -423,16 +562,16 @@ spec <- compute_cols(spec, firstOf(cyl),
   c_addrow(pos = "above"))
 ```
 
-**Common use cases**:
-- **Highlight group headers**: Style first/last occurrence of a group
-- **Add separators**: Insert empty rows between groups
-- **Merge columns**: Create group headers by merging columns
-- **Conditional formatting**: Style rows meeting a threshold (e.g., `value > 100`)
+**Common use cases**: - **Highlight group headers**: Style first/last
+occurrence of a group - **Add separators**: Insert empty rows between
+groups - **Merge columns**: Create group headers by merging columns -
+**Conditional formatting**: Style rows meeting a threshold (e.g.,
+`value > 100`)
 
 **Key action functions** (used inside `compute_cols()`):
 
 | Function | Purpose | Example |
-|----------|---------|---------|
+|----|----|----|
 | `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
 | `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
 | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
@@ -447,22 +586,41 @@ compute_cols(spec, cyl > 6, c_style(mpg, styleRef = "emphasize"))
 # String matching
 compute_cols(spec, Parameter == "Pulse", c_style(value, styleRef = "numeric"))
 
-# Helper functions (firstOf, lastOf, everyNth)
+# Helper functions available INSIDE compute_cols() conditions:
+#   firstOf(col1, col2, ...)  — TRUE for first row of each unique combination
+#   lastOf(col1, col2, ...)   — TRUE for last row of each unique combination
+#   firstRow()                — TRUE only for the very first data row
+#   lastRow()                 — TRUE only for the very last data row
+#   everyNth(n)               — TRUE every n-th row (1, n+1, 2n+1, ...)
+#   rowNumber()               — 1-based row index
+#   firstOfBlock(col, n, offset) — first row of every n-th block
+# Note: these helpers are NOT standalone functions — they only work inside
+# the condition argument of compute_cols().
+
 compute_cols(spec, firstOf(group), c_style(c(col1, col2), styleRef = "group_header"))
+compute_cols(spec, lastOf(group), c_addrow(pos = "below"))
+compute_cols(spec, everyNth(5), c_style(mpg, styleRef = "zebra"))
 
 # Combine conditions
 compute_cols(spec, cyl == 8 & hp > 100, c_style(mpg, styleRef = "high_power"))
 ```
 
 **Key concepts**:
-- Conditions are evaluated during `create_report()` — at that point, all data is available
-- Multiple `compute_cols()` calls accumulate on the same spec
-- Actions on the same row from different `compute_cols()` blocks are combined (styles merge automatically)
-- `value_from = NULL` in `c_addrow()` creates an empty separator row
 
-For detailed examples see [Reporting Examples: Conditional Row Actions](Reporting_Examples_with_ksTFL.Rmd#conditional-row-actions).
+\- Conditions are evaluated during `create_report()` — at that point,
+all data is available
 
----
+\- Multiple `compute_cols()` calls accumulate on the same spec
+
+\- Actions on the same row from different `compute_cols()` blocks are
+combined
+
+\- `value_from = NULL` in `c_addrow()` creates an empty separator row
+
+For detailed examples see [Reporting Examples: Conditional Row
+Actions](Reporting_Examples_with_ksTFL.Rmd#conditional-row-actions).
+
+------------------------------------------------------------------------
 
 ## Step 8: Save and Render
 
@@ -481,12 +639,20 @@ doc_path <- write_doc(report,
 ```
 
 **Additional parameters**:
-- `toc`: If `TRUE`, prepends a Table of Contents page (requires `toclevel` on titles — see `?add_title`)
-- `tocTitle`: Heading above the TOC field (default `"Table of Contents"`)
-- `prettify`: If `TRUE`, writes human-readable JSON (useful for debugging)
-- `verbose`: If `TRUE`, prints renderer progress messages
 
-This is the recommended approach for production use. Set session defaults once:
+\- `toc`: If `TRUE`, prepends a Table of Contents page (requires
+`toclevel` on titles — see `?add_title`)
+
+\- `tocTitle`: Heading above the TOC field (default
+`"Table of Contents"`)
+
+\- `prettify`: If `TRUE`, writes human-readable JSON (useful for
+debugging)
+
+\- `verbose`: If `TRUE`, prints renderer progress messages to R console
+
+This is the recommended approach for production use. Set session
+defaults once:
 
 ```{r write_doc_with_options, eval = FALSE}
 tfl_set_options(
@@ -500,7 +666,8 @@ write_doc(report, name = "demographics")
 
 ### Option B: Two steps with `save_report()` + `replay_report()`
 
-Use this when you need to inspect or version-control the JSON metadata separately:
+Use this when you need to inspect or version-control the JSON metadata
+separately:
 
 ```{r save_report, eval = FALSE}
 report <- create_report(spec_table, spec_text)
@@ -520,35 +687,50 @@ replay_report(
 ```
 
 **`save_report()` output files**:
-- `{metaPath}/{spec_hash}.json` — Main specification (consumed by renderer)
-- `{metaPath}/{dataRef}.json` — Table data files (one per table spec)
-- Figure files copied to `metaPath` as-is
 
----
+\- `{metaPath}/{spec_hash}.json` — Main specification (consumed by
+renderer)
+
+\- `{metaPath}/{dataRef}.json` — Table data files (one per table spec) -
+Figure files copied to `metaPath` as-is
+
+------------------------------------------------------------------------
 
 ## Step 9: JSON metadata — what it is and why you might need it
 
 ### What is the metadata folder?
 
-Every time `write_doc()` (or `save_report()`) runs, it writes intermediate files to `metaPath`:
+Every time `write_doc()` (or `save_report()`) runs, it writes
+intermediate files to `metaPath`:
 
-- **`{hash}.json`** — The main spec file: document structure, column definitions, styles, titles, footnotes, headers/footers. This is what the C++ renderer reads.
-- **`{dataRef}.json`** — One data file per table spec, containing the actual row data.
-- **Figure files** — Copied from their original paths into `metaPath`.
-- **`_index.json`** — An index of all spec files written to this folder (auto-maintained).
+-   **`{hash}.json`** — The main spec file: document structure, column
+    definitions, styles, titles, footnotes, headers/footers. This is
+    what the C++ renderer reads.
+-   **`{dataRef}.json`** — One data file per table spec, containing the
+    actual row data.
+-   **Figure files** — Copied from their original paths into `metaPath`.
+-   **`_index.json`** — An index of all spec files written to this
+    folder (auto-maintained).
 
-For most workflows, `metaPath = tempdir()` is fine — you only care about the final `.docx`. But there are real reasons to use a persistent `metaPath`.
+For most workflows, `metaPath = tempdir()` is fine — you only care about
+the final `.docx`. But there are real reasons to use a persistent
+`metaPath`.
 
 ### Why use a persistent metaPath?
 
-**Reproducibility / audit trail**: In regulated environments (FDA, EMA submissions), you may need to prove that a specific DOCX was generated from a specific dataset at a specific time. The spec JSON + data JSON together form a complete, reproducible snapshot.
+**Reproducibility / audit trail**: In regulated environments (FDA, EMA
+submissions), you may need to prove that a specific DOCX was generated
+from a specific dataset at a specific time. The spec JSON + data JSON
+together form a complete, reproducible snapshot.
 
-**Re-rendering without R**: Once the JSON files exist, you can re-render the DOCX without any R objects or data frames — just the JSON files. This is useful for:
-- Regenerating a document after a template change
-- Rendering on a different machine or in a CI/CD pipeline
-- Reproducing an output months later
+**Re-rendering without R**: Once the JSON files exist, you can re-render
+the DOCX without any R objects or data frames — just the JSON files.
+This is useful for: - Regenerating a document after a template change -
+Rendering on a different machine or in a CI/CD pipeline - Reproducing an
+output months later
 
-**Version management**: Each `write_doc()` call writes a new hash-named spec file. You can keep multiple versions and compare them.
+**Version management**: Each `write_doc()` call writes a new hash-named
+spec file. You can keep multiple versions and compare them.
 
 ### Managing metadata files
 
@@ -571,11 +753,16 @@ clean_reports(meta_dir, dry_run = TRUE)   # Preview what would be deleted
 clean_reports(meta_dir, dry_run = FALSE)  # Actually delete
 ```
 
-**`list_reports()`** returns a data frame with columns: `doc_file`, `datetime`, `is_latest`, `n_specs`, `spec_file`, `data_refs`.
+**`list_reports()`** returns a data frame with columns: `doc_file`,
+`datetime`, `is_latest`, `n_specs`, `spec_file`, `data_refs`.
 
-**`replay_report()`** re-renders from JSON — no R spec objects, no data frames required. Pass either the target `.docx` name (re-renders the latest version) or the exact spec hash filename.
+**`replay_report()`** re-renders from JSON — no R spec objects, no data
+frames required. Pass either the target `.docx` name (re-renders the
+latest version) or the exact spec hash filename.
 
-**`clean_reports()`** removes obsolete JSON files. By default keeps 1 version per document (`keep_versions = 1`). Always run with `dry_run = TRUE` first.
+**`clean_reports()`** removes obsolete JSON files. By default keeps 1
+version per document (`keep_versions = 1`). Always run with
+`dry_run = TRUE` first.
 
 ### Recommended production setup
 
@@ -594,15 +781,16 @@ write_doc(report2, name = "tbl_labs")
 replay_report("tbl_demographics.docx", meta_dir = "./meta")
 ```
 
----
+------------------------------------------------------------------------
 
 ## Understanding auto-generated values
 
 ### Column widths (auto-calculation)
 
-When you create a table, widths are auto-calculated based on data characteristics:
+When you create a table, widths are auto-calculated based on data
+characteristics:
 
-```r
+``` r
 # Auto-calculated widths (example)
 # id = 20%, description = 50%, value = 30%
 spec <- create_table(my_data)
@@ -611,13 +799,14 @@ spec <- create_table(my_data)
 spec <- define_cols(spec, id, colWidth = "15%")
 ```
 
-See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed width customization.
+See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed
+width customization.
 
 ### Data references (dataRef)
 
 Each table spec gets a `dataRef` name for its data file:
 
-```r
+``` r
 # Auto-generated: "0001_abc123def456" (docOrder + hash)
 report <- create_report(spec_table1, spec_table2)
 
@@ -625,7 +814,7 @@ report <- create_report(spec_table1, spec_table2)
 write_doc(report, name = "my_report", outDir = "./output", metaPath = "./meta")
 ```
 
----
+------------------------------------------------------------------------
 
 ## Session-wide defaults with `tfl_options`
 
@@ -649,7 +838,7 @@ tfl_get_options()
 tfl_reset_options()
 ```
 
----
+------------------------------------------------------------------------
 
 ## Complete example: From data to document
 
@@ -667,13 +856,13 @@ data <- data.frame(
 spec <- create_table(data, cols = c(subject, age, sex))
 
 spec <- add_style(spec, id = "header",
-  s_font(bold = TRUE, font_size = "11pt"),
-  s_paragraph(alignment = "center"),
-  s_table_style(background_color = "#DDDDDD"))
+                  s_font(bold = TRUE, font_size = "11pt"),
+                  s_paragraph(alignment = "center"),
+                  s_table_style(background_color = "#DDDDDD"))
 
 spec <- define_cols(spec, c(subject, age, sex),
-  label = c("Subject ID", "Age (years)", "Sex"),
-  labelStyleRef = "header")
+                    label = c("Subject ID", "Age (years)", "Sex"),
+                    labelStyleRef = "header")
 
 spec <- define_cols(spec, age, type = "numeric", format = "%.0f")
 
@@ -681,20 +870,31 @@ spec <- add_title(spec, "Demographics Table")
 spec <- add_subtitle(spec, "All subjects in safety population")
 spec <- add_footnote(spec, "Data are shown as observed.")
 
+spec <- add_span_header(spec, c(age, sex), 'Charactersitic', 
+                        labelStyleRef = "header", stubOrder = 1)
+spec <- add_span_header(spec, c(subject, age, sex), 'Treatment A (N=10)', 
+                        labelStyleRef = "header", stubOrder = 2)
+
+spec <- set_document(spec, contentWidth = '40%')
+
 # --- Export ---
-report <- create_report(spec)
-write_doc(report, name = "demographics", outDir = "./output", metaPath = tempdir())
+report <- create_report(spec) |>  write_doc('demographics')
 
 # Done!
 ```
 
----
+![](images/clipboard-2576915099.png)
+
+*ISSUE: Currently we have a issue with span headers - the
+`Treatment A (N=10)` must span all columns per the code!!!*
+
+------------------------------------------------------------------------
 
 ## Key gotchas and tips
 
 | Gotcha | Solution |
-|--------|----------|
-| **Calling s_* helpers outside add_style()** | Always use s_* inside `add_style()` — they validate context |
+|----|----|
+| **Calling s\_\* helpers outside add_style()** | Always use s\_\* inside `add_style()` — they validate context |
 | **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
 | **Styles from f_combine() not consolidated** | Call `create_report()` before `write_doc()` |
 | **Multiple add_header() calls stack** | Each call **appends** a new header level; use `level =` to replace a specific level |
@@ -702,33 +902,40 @@ write_doc(report, name = "demographics", outDir = "./output", metaPath = tempdir
 | **create_text() with data argument** | `create_text()` requires `data = NULL` — no data for text specs |
 | **Overlapping stubs at same stubOrder** | Error; use different `stubOrder` or non-overlapping column sets |
 
----
+------------------------------------------------------------------------
 
 ## Next steps
 
 You now understand ksTFL's core workflow. Next steps:
 
-1. **Run the quick example** above with your own data
-2. **Explore [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd)** for detailed patterns
-3. **Read [Styling Guide](Styling_Guide_with_ksTFL.Rmd)** for advanced styling
-4. **Read [Advanced StyleRows](Advanced_StyleRows.Rmd)** for conditional formatting
-5. **Check function docs**: `?create_table`, `?define_cols`, `?add_style`, `?write_doc`, `?list_reports`
+1.  **Run the quick example** above with your own data
+2.  **Explore [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd)**
+    for detailed patterns
+3.  **Read [Styling Guide](Styling_Guide_with_ksTFL.Rmd)** for advanced
+    styling
+4.  **Read [Advanced StyleRows](Advanced_StyleRows.Rmd)** for
+    conditional formatting
+5.  **Check function docs**: `?create_table`, `?define_cols`,
+    `?add_style`, `?write_doc`, `?list_reports`
 
----
+------------------------------------------------------------------------
 
 ## Resources
 
-- **Function reference**: `?ksTFL` (package overview) or `?create_table`, `?define_cols`, etc.
-- **Reporting Examples**: [Detailed working examples with explanations](Reporting_Examples_with_ksTFL.Rmd)
-- **Styling Guide**: [Comprehensive style reference](Styling_Guide_with_ksTFL.Rmd)
-- **GitHub**: [ksTFL repository](https://example.com)
+-   **Function reference**: `?ksTFL` (package overview) or
+    `?create_table`, `?define_cols`, etc.
+-   **Reporting Examples**: [Detailed working examples with
+    explanations](Reporting_Examples_with_ksTFL.Rmd)
+-   **Styling Guide**: [Comprehensive style
+    reference](Styling_Guide_with_ksTFL.Rmd)
+-   **GitHub**: [ksTFL repository](https://example.com)
 
----
+------------------------------------------------------------------------
 
 ## Quick reference table
 
 | Task | Function | Notes |
-|------|----------|-------|
+|----|----|----|
 | Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
 | Create figure spec | `create_figure(plot_or_path, dpi = 300L)` | File path or ggplot2 object; path must be readable |
 | Create text spec | `create_text()` | For narrative content only |
@@ -738,7 +945,12 @@ You now understand ksTFL's core workflow. Next steps:
 | Add spanning header | `add_span_header(spec, cols, label, ...)` | Supports tidyselect; multi-level headers |
 | Add titles/content | `add_title()`, `add_footnote()`, `add_body_text()` | Layer document content |
 | Add page headers/footers | `add_header()`, `add_footer()` | 3 parts: left/center/right |
+| Conditional row actions | `compute_cols(spec, cond, ...)` | Use `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`, `c_pageBreak()` |
 | Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |
+| Page settings helper | `p_page(size, orientation, margins)` | `"A4"` / `"Letter"` / `"Legal"`, margins via `p_margins()` |
+| List templates | `tfl_list_templates()` | Shows all bundled template names |
+| Discover style atoms | `tfl_print_style_atoms()` | Prints all built-in style atoms grouped by category |
+| Font status | `tfl_font_status()`, `tfl_rescan_fonts()` | Check or re-run font discovery |
 | Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
 | Save + render (one step) | `write_doc(report, name, ...)` | Recommended: saves JSON + renders DOCX |
 | Save only | `save_report(report, ...)` | Writes JSON + data files for manual rendering |

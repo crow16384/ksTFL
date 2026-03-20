@@ -34,6 +34,12 @@ Invisibly returns the result of
 This function requires the `shiny`, `sortable`, and `shinyFiles`
 packages.
 
+## See also
+
+[`list_reports()`](https://example.com/reference/list_reports.md),
+[`replay_report()`](https://example.com/reference/replay_report.md),
+[`clean_reports()`](https://example.com/reference/clean_reports.md)
+
 ## Examples
 
 ``` r

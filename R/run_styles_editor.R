@@ -3,19 +3,22 @@
 #' Opens an interactive Shiny application for creating and editing ksTFL
 #' styles templates that conform to `styles_schema_v2.json`. Templates can be
 #' loaded from the bundled `inst/templates/` directory or uploaded from disk,
-#' then edited and downloaded as JSON for use with `set_page_style()` /
-#' `write_doc()`.
+#' then edited and downloaded as JSON for use with [set_page_style()] /
+#' [write_doc()].
 #'
-#' This function requires the `shiny` package to be installed.
+#' This function requires the \pkg{shiny} package to be installed.
 #'
 #' @param ... Additional arguments passed to [shiny::runApp()], such as
-#'   `launch.browser = TRUE`.
+#'   `launch.browser = TRUE` or `port = 4321`.
 #'
 #' @return Invisibly returns the result of [shiny::runApp()].
+#'
+#' @seealso [tfl_list_templates()], [set_page_style()]
 #'
 #' @examples
 #' \dontrun{
 #' run_styles_editor()
+#' run_styles_editor(launch.browser = TRUE)
 #' }
 #'
 #' @export

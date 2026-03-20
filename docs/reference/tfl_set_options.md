@@ -85,6 +85,30 @@ tfl_set_options(
   Character; default representation for missing values (e.g. "NA", ".",
   "—").
 
+- figureWidth:
+
+  Character; default width for figure output (e.g. `"6in"`, `"16cm"`).
+  Applied when
+  [`create_figure()`](https://example.com/reference/create_figure.md)
+  specs do not specify their own width.
+
+- figureHeight:
+
+  Character; default height for figure output (e.g. `"4in"`, `"10cm"`).
+  Applied when
+  [`create_figure()`](https://example.com/reference/create_figure.md)
+  specs do not specify their own height.
+
+- figureDevice:
+
+  Character; graphics device used for figure rendering (e.g. `"png"`,
+  `"pdf"`, `"svg"`). Default depends on system capabilities.
+
+- figureScaleMode:
+
+  Character; how figures are scaled into the page content area.
+  Typically `"fit"` (scale to fit) or `"exact"` (use exact dimensions).
+
 - autoColWidth:
 
   Logical; enable automatic column width recalculation when user sets

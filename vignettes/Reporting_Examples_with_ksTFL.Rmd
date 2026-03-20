@@ -857,6 +857,7 @@ spec <- spec |>
 
 **Key concepts**:
 - **Conditions** are unevaluated expressions evaluated at report generation time (during `create_report()`)
+- **Helper functions** (`firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`) are only available inside `compute_cols()` conditions — they are **not** standalone exported functions. See `vignette("Advanced_StyleRows")` for full details.
 - **Multiple calls accumulate**: calling `compute_cols()` multiple times on the same spec appends actions
 - **Multiple actions in one call**: same row can have styling, merging, and row insertion simultaneously
 - **Overlapping conditions**: if multiple conditions match the same row, all actions apply (styling aggregates, merging rules apply)
@@ -880,6 +881,8 @@ create_report() → write_doc()  →  output.docx
 ```
 
 ### Example: Assemble and render a multi-spec report
+
+> **Tip**: Use `tfl_list_templates()` to discover available template names (e.g., `"Navy_Pro"`, `"Carbon_Dark"`). Use `run_styles_editor()` to interactively preview and customize templates.
 
 ```{r example_write_doc, eval = FALSE}
 # Create multiple specs

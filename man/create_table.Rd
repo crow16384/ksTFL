@@ -53,3 +53,7 @@ spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
 }
 
 }
+\seealso{
+\code{\link[=create_text]{create_text()}}, \code{\link[=create_figure]{create_figure()}}, \code{\link[=define_cols]{define_cols()}},
+\code{\link[=add_title]{add_title()}}, \code{\link[=create_report]{create_report()}}
+}

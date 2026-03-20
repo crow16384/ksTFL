@@ -22,9 +22,11 @@ set_document(
 \arguments{
 \item{spec}{TFL spec object}
 
-\item{isContinues}{Whether page breaks should be ignored}
+\item{isContinues}{Logical. When \code{TRUE}, page breaks between specs in a
+multi-spec report are suppressed and the next spec continues on the same
+page.}
 
-\item{contentWidth}{Width of content, e.g. "100\%", "25cm", "10in"}
+\item{contentWidth}{Width of content, e.g. \code{"100\%"}, \code{"25cm"}, \code{"10in"}.}
 
 \item{footnotePlace}{Character; controls where footnotes are rendered.
 One of \code{"doc_footer"} (place inside the Word footer, below footer rows),
@@ -32,19 +34,33 @@ One of \code{"doc_footer"} (place inside the Word footer, below footer rows),
 or \code{"last_page"} (place under the table on the last page only).
 Default \code{"repeated"}.}
 
-\item{hasData}{Whether document has data to report}
+\item{hasData}{Logical. Whether this spec has data to render. Set to \code{TRUE}
+for tables with data rows. When \code{FALSE}, the body text (if any) is
+rendered instead.}
 
-\item{topEmptyLine}{Empty spacer row height after table header (table-level), e.g. "6pt".
-Use NULL to disable. \verb{0pt} is treated as no spacer row.}
+\item{topEmptyLine}{Empty spacer row height after table header (table-level),
+e.g. \code{"6pt"}. Use \code{NULL} to disable. \code{"0pt"} is treated as no spacer row.}
 
-\item{bottomEmptyLine}{Empty spacer row height before table bottom border (table-level), e.g. "6pt".
-Use NULL to disable. \verb{0pt} is treated as no spacer row.}
+\item{bottomEmptyLine}{Empty spacer row height before table bottom border
+(table-level), e.g. \code{"6pt"}. Use \code{NULL} to disable.}
 
 \item{docTemplate}{Character. Template to use for rendering. Accepts either:
 \itemize{
-\item Name of a bundled template (see \code{tfl_list_templates()}).
+\item Name of a bundled template (see \code{\link[=tfl_list_templates]{tfl_list_templates()}}).
 \item Full path to a custom styles JSON file.
 }}
+
+\item{figureWidth}{Figure width with units, e.g. \code{"6in"}, \code{"70\%"},
+\code{"16.51cm"}. Only relevant for \code{docType = "Figure"}.}
+
+\item{figureHeight}{Figure height with units. Same syntax as \code{figureWidth}.}
+
+\item{figureDevice}{Character. Image format for ggplot2 rendering.
+One of \code{"svg"}, \code{"png"}, or \code{"jpeg"}.}
+
+\item{figureScaleMode}{Character. How the figure is scaled in the DOCX.
+One of \code{"fixed"} (exact dimensions) or \code{"fitWidth"} (scale to page width,
+preserving aspect ratio).}
 }
 \value{
 Updated spec object
@@ -54,13 +70,33 @@ Define document-level properties. Multiple calls merge with last-win strategy.
 Document type (\code{docType}) is set automatically by \code{create_table()},
 \code{create_figure()}, or \code{create_text()} and cannot be changed here. Global
 document order (\code{docOrder}) is assigned by \code{create_report()}.
-\code{docPrefix} is not an argument of \code{set_document()} in the current API.
 }
 \examples{
 \dontrun{
+# Table spec with data
+spec <- create_table(mtcars) |>
+  set_document(hasData = TRUE)
+
+# Text spec for narrative-only output
 spec <- create_text() |>
+  set_document(hasData = FALSE) |>
+  add_body_text("No adverse events were reported.")
+
+# Figure spec with custom sizing
+spec <- create_figure("plot.png") |>
   set_document(
-    hasData = TRUE
+    figureWidth  = "7in",
+    figureHeight = "5in",
+    figureScaleMode = "fitWidth"
   )
+
+# Footnotes placed on last page only
+spec <- create_table(mtcars) |>
+  set_document(hasData = TRUE, footnotePlace = "last_page") |>
+  add_footnote("Source: Motor Trend, 1974.")
+
+# Use a bundled template (see tfl_list_templates() for available names)
+spec <- create_table(mtcars) |>
+  set_document(hasData = TRUE, docTemplate = "Navy_Pro")
 }
 }

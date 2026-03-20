@@ -75,12 +75,8 @@ NULL
 #' @description Clear all cached schemas. Useful for development or if schemas change.
 #'
 #' @return Invisibly returns TRUE
-#' @export
 #'
-#' @examples
-#' \dontrun{
-#' .clear_schema_cache()
-#' }
+#' @keywords internal
 #' @noRd
 .clear_schema_cache <- function() {
   rm(list = ls(envir = .schema_cache), envir = .schema_cache)

@@ -82,4 +82,3 @@ print(spec, layout = "compact")
 print(spec, colors = FALSE)
 }
 }
-\keyword{internal}

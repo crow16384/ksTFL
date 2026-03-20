@@ -16,11 +16,20 @@ create_text()
 
 A `TFL_spec` object with `docType = "Text"`.
 
+## See also
+
+[`create_table()`](https://example.com/reference/create_table.md),
+[`create_figure()`](https://example.com/reference/create_figure.md),
+[`add_body_text()`](https://example.com/reference/add_body_text.md)
+
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
-## Create a simple text spec
-spec <- create_text()
+# Create a text-only spec and add narrative content
+spec <- create_text() |>
+  add_title("Listing of Adverse Events") |>
+  set_document(hasData = FALSE) |>
+  add_body_text("No adverse events were reported during the study.")
 } # }
 ```

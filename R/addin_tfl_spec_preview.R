@@ -170,8 +170,18 @@ tfl_spec_preview_prompt <- function() {
 #'
 #' Iterates over every atom in the internal `.const_options_styles` registry
 #' and prints a coloured, grouped summary using \pkg{cli}.
+#' `tfl_style_atoms_catalog()` is a convenience alias for `tfl_print_style_atoms()`.
 #'
 #' @return Invisible `NULL`.
+#'
+#' @examples
+#' \dontrun{
+#' # Print the full catalog of built-in style atoms
+#' tfl_print_style_atoms()
+#'
+#' # Same output via the alias
+#' tfl_style_atoms_catalog()
+#' }
 #'
 #' @export
 tfl_print_style_atoms <- function() {

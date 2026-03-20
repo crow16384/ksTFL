@@ -54,6 +54,12 @@ When a ggplot2 object is passed:
 The C++ renderer natively supports `.png`, `.jpeg`/`.jpg`, and `.svg`
 formats.
 
+## See also
+
+[`create_table()`](https://example.com/reference/create_table.md),
+[`create_text()`](https://example.com/reference/create_text.md),
+[`set_document()`](https://example.com/reference/set_document.md)
+
 ## Examples
 
 ``` r

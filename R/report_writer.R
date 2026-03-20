@@ -2,7 +2,7 @@
 ##
 ## This module is responsible for preparing and serializing `TFL_report` objects
 ## into JSON documents that conform to the package JSON schema suitable for the
-## Python renderer.
+## C++ renderer.
 ##
 
 
@@ -37,9 +37,9 @@
 #'
 #' @param report A TFL_report object (output from `create_report()`)
 #' @param docFileName Character string. Name of the rendered document file that will be
-#'   created by the Python renderer (e.g., "report.docx"). This value is stored in the
+#'   created by the C++ renderer (e.g., "report.docx"). This value is stored in the
 #'   `_metadata/docFileName` property of the exported JSON spec.
-#' @param outDir Character string. Output directory where the Python renderer will save
+#' @param outDir Character string. Output directory where the C++ renderer will save
 #'   the rendered document. This path is stored in the `_metadata/outDir` property.
 #'   If not provided, defaults to `tfl_get_option("output_directory")`.
 #' @param metaPath Character string. Directory where this function will save the JSON spec

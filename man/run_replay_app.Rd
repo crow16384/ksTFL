@@ -34,3 +34,6 @@ run_replay_app(meta_dir = "path/to/meta")
 }
 
 }
+\seealso{
+\code{\link[=list_reports]{list_reports()}}, \code{\link[=replay_report]{replay_report()}}, \code{\link[=clean_reports]{clean_reports()}}
+}

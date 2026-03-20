@@ -16,6 +16,8 @@
 #'
 #' @return Invisibly returns the result of [shiny::runApp()].
 #'
+#' @seealso [list_reports()], [replay_report()], [clean_reports()]
+#'
 #' @examples
 #' \dontrun{
 #' run_replay_app()

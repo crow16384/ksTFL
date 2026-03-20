@@ -490,8 +490,8 @@ element without pre-defining a combined style.</p>
 </h3>
 <table class="table">
 <colgroup>
-<col width="50%">
-<col width="50%">
+<col width="44%">
+<col width="55%">
 </colgroup>
 <thead><tr class="header">
 <th>Use Case</th>
@@ -766,13 +766,20 @@ styles</strong> defined in the same spec with <code><a href="../reference/add_st
 <code><a href="../reference/f_combine.html">f_combine()</a></code> or directly as <code>styleRef</code> values.
 Each atom sets exactly one visual property; compose them freely with
 <code><a href="../reference/f_combine.html">f_combine()</a></code>.</p>
+<p><strong>Discovering atoms programmatically</strong>: Use
+<code><a href="../reference/tfl_print_style_atoms.html">tfl_print_style_atoms()</a></code> (or its alias
+<code><a href="../reference/tfl_print_style_atoms.html">tfl_style_atoms_catalog()</a></code>) to print all available atoms
+grouped by category with colour-coded output in the console:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Print all built-in atoms categorised and colour-coded</span></span>
+<span><span class="fu"><a href="../reference/tfl_print_style_atoms.html">tfl_print_style_atoms</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="complete-atom-reference">Complete atom reference<a class="anchor" aria-label="anchor" href="#complete-atom-reference"></a>
 </h3>
 <table class="table">
 <colgroup>
-<col width="42%">
-<col width="57%">
+<col width="47%">
+<col width="52%">
 </colgroup>
 <thead><tr class="header">
 <th>Atom</th>
@@ -1105,7 +1112,7 @@ steps)</td>
 </tbody>
 </table>
 <p><strong>Usage:</strong></p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Single atom as styleRef</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Source: database."</span>, styleRef <span class="op">=</span> <span class="st">"tw_80"</span><span class="op">)</span></span>
 <span></span>
@@ -1192,7 +1199,7 @@ step corresponds to 0.68 cm per side.</p>
 </table>
 <p><strong>Usage — match footnotes and titles to a narrower
 table:</strong></p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>contentWidth <span class="op">=</span> <span class="st">"80%"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Demographics Table"</span>,   styleRef <span class="op">=</span> <span class="st">"tw_80"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1200,7 +1207,7 @@ table:</strong></p>
 <span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Source: study database."</span>, styleRef <span class="op">=</span> <span class="st">"tw_80"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Combine with other atoms</strong> using
 <code><a href="../reference/f_combine.html">f_combine()</a></code>:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Bold title, indented to match a 75 % table</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Efficacy Summary"</span>,</span>
 <span>                  styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"tw_75"</span><span class="op">)</span><span class="op">)</span></span>
@@ -1210,7 +1217,7 @@ table:</strong></p>
 <span>                     styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"i"</span>, <span class="st">"fs_8"</span>, <span class="st">"tw_70"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Apply via a named style</strong> for reuse across multiple
 specs:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define the style on each spec (or use a helper function to apply it)</span></span>
 <span><span class="va">add_footnote_80</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">spec</span>, <span class="va">text</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"fn_80"</span>,</span>

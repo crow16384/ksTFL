@@ -11,5 +11,15 @@ Invisibly returns the cached font scan report.
 }
 \description{
 Prints the font resolution report from the most recent scan without
-re-scanning. Use \code{\link{tfl_rescan_fonts}} to perform a fresh scan.
+re-scanning. Use \code{\link[=tfl_rescan_fonts]{tfl_rescan_fonts()}} to perform a fresh scan.
+}
+\examples{
+\dontrun{
+# Check which fonts are resolved and which use fallbacks
+tfl_font_status()
+}
+
+}
+\seealso{
+\code{\link[=tfl_rescan_fonts]{tfl_rescan_fonts()}} to re-run the scan.
 }

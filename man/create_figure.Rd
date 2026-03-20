@@ -69,3 +69,6 @@ write_doc(report, name = "fig01", outDir = "output", metaPath = tempdir())
 }
 
 }
+\seealso{
+\code{\link[=create_table]{create_table()}}, \code{\link[=create_text]{create_text()}}, \code{\link[=set_document]{set_document()}}
+}

@@ -45,6 +45,14 @@ Example workflow:
 - `define_cols(age, colWidth="2cm")`: locks age at fixed 2cm width,
   other relative columns recalculated to fill remaining space
 
+## See also
+
+[`create_text()`](https://example.com/reference/create_text.md),
+[`create_figure()`](https://example.com/reference/create_figure.md),
+[`define_cols()`](https://example.com/reference/define_cols.md),
+[`add_title()`](https://example.com/reference/add_title.md),
+[`create_report()`](https://example.com/reference/create_report.md)
+
 ## Examples
 
 ``` r

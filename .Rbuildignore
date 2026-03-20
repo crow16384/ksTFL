@@ -27,3 +27,5 @@
 ^_pkgdown\.yml$
 ^pkgdown$
 ^compile_commands\.json$
+cclsp.json$
+^\.Rhistory$

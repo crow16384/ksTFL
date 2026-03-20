@@ -1,40 +1,3 @@
-#' Internal: Initialize a TFL Specification Object
-#'
-#' This internal function creates and initializes a TFL (Tables, Figures,
-#' Listings and Text) specification object. It is intended to be called by the
-#' public facing wrappers `create_table()`, `create_figure()` and
-#' `create_text()`. Users should call the wrappers instead of this function.
-#'
-#' @param data A data frame to build the table from (for tables), a file path
-#'   for figures, or NULL for text documents.
-#' @param cols Tidyselect expression indicating which columns from `data` to
-#'   include in the spec. Defaults to `everything()` (all columns). This
-#'   argument is captured and passed from the public wrappers using
-#'   quosures.
-#' @param docType Character. Document type: one of "Table", "Text", or
-#'   "Figure". Defaults to "Table".
-#'
-#' @return A TFL_spec object.
-#'
-#' @details
-#' The initializer enforces docType-specific rules:
-#' \itemize{
-#'   \item{Table:} `data` must be a `data.frame` and `cols` selects included columns via tidyselect; the original data is copied into a data environment stored in `spec$.metadata$data_env` for later evaluation (styles/conditions).
-#'   \item{Figure:} `data` must be a single file path string pointing to a readable file; no table columns are created.
-#'   \item{Text:} `data` must be `NULL`; the spec is created without tabular columns.
-#' }
-#'
-#' @keywords internal
-#' @noRd
-.fill_spec_defaults <- function(spec) {
-  settings <- tfl_get_options()
-  
-  spec$document$footnotePlace <- unclass(settings$footnotePlace)
-  spec$document$contentWidth <- unclass(settings$contentWidth)
-  
-  spec
-}
-
 #' Internal: Convert figure size string to inches for temporary ggplot export
 #' @keywords internal
 #' @noRd
@@ -518,9 +481,14 @@
 #'
 #' @examples
 #' \dontrun{
-#' ## Create a simple text spec
-#' spec <- create_text()
+#' # Create a text-only spec and add narrative content
+#' spec <- create_text() |>
+#'   add_title("Listing of Adverse Events") |>
+#'   set_document(hasData = FALSE) |>
+#'   add_body_text("No adverse events were reported during the study.")
 #' }
+#'
+#' @seealso [create_table()], [create_figure()], [add_body_text()]
 #'
 #' @export
 create_text <- function() {
@@ -572,6 +540,9 @@ create_text <- function() {
 #' ## or simple by names
 #' spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
 #' }
+#'
+#' @seealso [create_text()], [create_figure()], [define_cols()],
+#'   [add_title()], [create_report()]
 #'
 create_table <- function(data = NULL, cols = everything()) {
   cols_quo <- enquo(cols)
@@ -691,6 +662,8 @@ create_table <- function(data = NULL, cols = everything()) {
 #' report <- create_report(spec)
 #' write_doc(report, name = "fig01", outDir = "output", metaPath = tempdir())
 #' }
+#'
+#' @seealso [create_table()], [create_text()], [set_document()]
 #'
 create_figure <- function(plot_or_path, dpi = 300L) {
 

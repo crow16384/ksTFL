@@ -18,10 +18,10 @@ save_report(
 \item{report}{A TFL_report object (output from \code{create_report()})}
 
 \item{docFileName}{Character string. Name of the rendered document file that will be
-created by the Python renderer (e.g., "report.docx"). This value is stored in the
+created by the C++ renderer (e.g., "report.docx"). This value is stored in the
 \verb{_metadata/docFileName} property of the exported JSON spec.}
 
-\item{outDir}{Character string. Output directory where the Python renderer will save
+\item{outDir}{Character string. Output directory where the C++ renderer will save
 the rendered document. This path is stored in the \verb{_metadata/outDir} property.
 If not provided, defaults to \code{tfl_get_option("output_directory")}.}
 

@@ -19,7 +19,7 @@ run_styles_editor(...)
 
   Additional arguments passed to
   [`shiny::runApp()`](https://rdrr.io/pkg/shiny/man/runApp.html), such
-  as `launch.browser = TRUE`.
+  as `launch.browser = TRUE` or `port = 4321`.
 
 ## Value
 
@@ -28,12 +28,18 @@ Invisibly returns the result of
 
 ## Details
 
-This function requires the `shiny` package to be installed.
+This function requires the shiny package to be installed.
+
+## See also
+
+[`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md),
+[`set_page_style()`](https://example.com/reference/set_page_style.md)
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
 run_styles_editor()
+run_styles_editor(launch.browser = TRUE)
 } # }
 ```

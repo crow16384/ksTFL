@@ -37,8 +37,15 @@ Multiple calls add multiple text groups. Calling with the same ID merges with la
 }
 \examples{
 \dontrun{
+# Text-only spec with body text
 spec <- create_text() |>
   set_document(hasData = FALSE) |>
-  add_body_text("No data available for the specified criteria", styleRef = c("error_style", "bold"))
+  add_body_text("No data available for the specified criteria.")
+
+# Table spec with body text as fallback when no data rows
+spec <- create_table(empty_df) |>
+  set_document(hasData = FALSE) |>
+  add_body_text("No adverse events were reported.",
+                styleRef = f_combine("b", "fc_red"))
 }
 }

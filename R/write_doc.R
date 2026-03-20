@@ -29,9 +29,9 @@
 #'   page. Defaults to `tfl_get_option("tocTitle")`.
 #' @param overrideTemplate Optional character string. Global template override used
 #'   by the internal renderer for all specs. Accepts either:
-#'   \\itemize{
-#'     \\item A predefined bundled template name (e.g. `"Navy_Pro"`).
-#'     \\item A file path (absolute or relative) to an external template JSON file.
+#'   \itemize{
+#'     \item A predefined bundled template name (e.g. `"Navy_Pro"`).
+#'     \item A file path (absolute or relative) to an external template JSON file.
 #'   }
 #'   If `NULL` (default), templates are resolved per-spec from each spec's
 #'   `docTemplate` value (allowing mixed templates in

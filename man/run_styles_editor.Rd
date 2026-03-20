@@ -8,7 +8,7 @@ run_styles_editor(...)
 }
 \arguments{
 \item{...}{Additional arguments passed to \code{\link[shiny:runApp]{shiny::runApp()}}, such as
-\code{launch.browser = TRUE}.}
+\code{launch.browser = TRUE} or \code{port = 4321}.}
 }
 \value{
 Invisibly returns the result of \code{\link[shiny:runApp]{shiny::runApp()}}.
@@ -17,15 +17,19 @@ Invisibly returns the result of \code{\link[shiny:runApp]{shiny::runApp()}}.
 Opens an interactive Shiny application for creating and editing ksTFL
 styles templates that conform to \code{styles_schema_v2.json}. Templates can be
 loaded from the bundled \verb{inst/templates/} directory or uploaded from disk,
-then edited and downloaded as JSON for use with \code{set_page_style()} /
-\code{write_doc()}.
+then edited and downloaded as JSON for use with \code{\link[=set_page_style]{set_page_style()}} /
+\code{\link[=write_doc]{write_doc()}}.
 }
 \details{
-This function requires the \code{shiny} package to be installed.
+This function requires the \pkg{shiny} package to be installed.
 }
 \examples{
 \dontrun{
 run_styles_editor()
+run_styles_editor(launch.browser = TRUE)
 }
 
+}
+\seealso{
+\code{\link[=tfl_list_templates]{tfl_list_templates()}}, \code{\link[=set_page_style]{set_page_style()}}
 }
