@@ -99,7 +99,7 @@ spec <- spec |>
 **Result:** Rows where `response == "CR"` show green bold text; rows
 where `response == "PD"` show red bold text:
 
-![](images/clipboard-3800596295.png)
+![](images/style-conditional-green-red-response.png)
 
 ### `c_merge()`: Conditional Cell Merging
 
@@ -124,7 +124,7 @@ spec <- create_table(data_groups) |>
 and `visit` cells merge, displaying the merged content in the `group`
 column.
 
-![](images/clipboard-2820420209.png)
+![](images/merge-group-visit-cells.png)
 
 **Note:** The `cols` argument to `c_merge()` must resolve to at least
 two **consecutive** columns in the final report column order. The value
@@ -148,7 +148,7 @@ copy a single column's value into the inserted row use `value_from` (see
 later examples). Use `pos = "below"` to insert after the matching row
 instead.
 
-![](images/clipboard-3635852446.png)
+![](images/addrow-separator-above-groups.png)
 
 ### `c_pageBreak()`: Conditional Page Break
 
@@ -166,7 +166,7 @@ spec <- create_table(data_groups) |>
 **Result:** The renderer will start a new page at rows matching the
 condition:
 
-![](images/clipboard-3833113929.png)
+![](images/pagebreak-at-group-start.png)
 
 ## Evaluation Context
 
@@ -194,7 +194,7 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/clipboard-1422833318.png){width="316"}
+![](images/style-multi-column-conditional.png){width="316"}
 
 ### Available Helper Functions
 
@@ -267,7 +267,7 @@ spec <- create_table(data_lab) |>
   )
 ```
 
-![](images/clipboard-4018027858.png)
+![](images/style-out-of-range-highlight.png)
 
 ### Conditional Styling with Complex Logic
 
@@ -284,7 +284,7 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/clipboard-135355541.png)
+![](images/style-critical-senior-age.png)
 
 ### Row-Level Styling
 
@@ -300,7 +300,7 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/clipboard-3199120875.png)
+![](images/style-alternating-row-colors.png)
 
 ## Advanced `c_merge()` Patterns
 
@@ -329,7 +329,7 @@ spec <- create_table(data_nested) |>
   )
 ```
 
-![](images/clipboard-1433567229.png)
+![](images/merge-multi-column-grouping.png)
 
 ### Conditional Display Column Content
 
@@ -352,7 +352,7 @@ spec <- create_table(data_nested) |>
   )
 ```
 
-![](images/clipboard-3785452628.png)
+![](images/merge-with-styling.png)
 
 ## Advanced `c_addrow()` Patterns
 
@@ -383,7 +383,7 @@ spec <- create_table(data_sales) |>
   )
 ```
 
-![](images/clipboard-155381044.png)
+![](images/addrow-summary-subtotals.png)
 
 ### Header Rows
 
@@ -420,7 +420,7 @@ spec <- create_table(data_sales) |>
   )
 ```
 
-![](images/clipboard-442851926.png)
+![](images/addrow-header-from-column.png)
 
 More complex example with two-level indents:
 
@@ -464,7 +464,7 @@ spec <- create_table(data_sales) |>
 
 As a result we are getting two-level stub:
 
-![](images/clipboard-277123039.png)
+![](images/addrow-two-level-stub-indent.png)
 
 ## `c_glue()`: Append or Prepend Text to Cell Values
 
@@ -485,7 +485,7 @@ exclusive with `text`)
 `glue_col`)
 
 \- `separator`: string inserted between original value and the glued
-text (default `""`)
+text (default `NULL`)
 
 ```{r c-glue-basic}
 data_units <- data.frame(
@@ -504,7 +504,7 @@ spec <- create_table(data_units) |>
   )
 ```
 
-![](images/clipboard-3788815761.png)
+![](images/glue-append-units.png)
 
 `c_glue()` is fully compatible with `c_style()` and `c_merge()` in the
 same `compute_cols()` call.
@@ -533,7 +533,7 @@ spec <- create_table(data_groups) |>
   )
 ```
 
-![](images/clipboard-1457968813.png)
+![](images/clear-blank-cells.png)
 
 **Note:** `c_clear()` only affects the rendered display text. The
 underlying data value is still available for conditions in other
@@ -589,11 +589,10 @@ spec <- create_table(data_sales) |>
 
 Here we can see how a simple planar data frame:
 
-![](images/clipboard-994528206.png)
+![](images/data-simple-planar-dataframe.png)
 
 become a production ready table:\
-![](images/clipboard-2616986225.png)
-
+![](images/result-production-ready-table.png)
 
 ## Performance Tips
 

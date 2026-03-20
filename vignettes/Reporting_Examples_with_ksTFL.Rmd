@@ -138,7 +138,7 @@ print(spec_min_table)
 ```
 
 print() on a TFL_spec provides a readable overview including titles and
-defined columns: ![](images/clipboard-1089030957.png)
+defined columns: ![](images/print-output-minimal-table.png)
 
 ```{r save_min_table, eval = FALSE}
 # End-to-end: wrap single spec into a report and render to DOCX
@@ -146,7 +146,7 @@ rpt_min_table <- create_report(spec_min_table)
 write_doc(rpt_min_table, name = "tbl_min")
 ```
 
-## ![](images/clipboard-3882147075.png)
+## ![](images/rendered-minimal-table.png)
 
 ## 2 — Simple minimal figure
 
@@ -163,7 +163,7 @@ rpt_min_fig <- create_report(spec_min_fig)
 write_doc(rpt_min_fig, name = "fig_min")
 ```
 
-## ![](images/clipboard-1432659028.png)
+## ![](images/rendered-minimal-figure.png)
 
 ## 3 — Simple minimal text (narrative)
 
@@ -198,7 +198,7 @@ rpt_min_text <- create_report(spec_min_text)
 write_doc(rpt_min_text, name = "nar_min")
 ```
 
-## ![](images/clipboard-959874429.png)
+## ![](images/rendered-narrative-text.png)
 
 ## 4 — Define columns: single, batch, and parameter recycling
 
@@ -292,12 +292,12 @@ with previous settings (last-win strategy):
 spec_chain <- 
   create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt)) |>
 # First pass: set all labels
-  define_cols(spec_chain, c(subject_id, age, sex, trt),
-                          label = c("Subject ID", "Age", "Sex", "Treatment")) |>
-# Second pass: set numeric formatting for age and trt
-  define_cols(spec_chain, age, type = "numeric", format = "%.0f") |>
+  define_cols(c(subject_id, age, sex, trt),
+             label = c("Subject ID", "Age", "Sex", "Treatment")) |>
+# Second pass: set numeric formatting for age
+  define_cols(age, type = "numeric", format = "%.0f") |>
 # Third pass: mark subject_id as ID column (repeats on page breaks)
-  define_cols(spec_chain, subject_id, isID = TRUE)
+  define_cols(subject_id, isID = TRUE)
 
 print(spec_chain)
 # close example chunk
@@ -346,8 +346,7 @@ spec <- create_table(demog_tbl)
 
 spec <- set_document(spec,
   contentWidth = "95%",        # Narrower content (default 100%)
-  footnotePlace = "repeated",  # Footnotes on every page
-  glueNumType = FALSE)
+  footnotePlace = "repeated")  # Footnotes on every page
 ```
 
 **Notes**:
@@ -413,7 +412,7 @@ print(spec_auto)
 
 ```
 
-![](images/clipboard-3594939568.png)
+![](images/colwidth-auto-calculated.png)
 
 ### Example 2: Lock one column, auto-adjust others
 
@@ -434,7 +433,7 @@ print(spec_lock1)
 
 ```
 
-![](images/clipboard-2085870902.png)
+![](images/colwidth-single-locked.png)
 
 ### Example 3: Lock multiple columns with relative widths
 
@@ -456,7 +455,7 @@ print(spec_lock_multi)
 
 ```
 
-![](images/clipboard-1444834458.png)
+![](images/colwidth-multiple-locked.png)
 
 ### Example 4: Mixed units (percentages and absolute)
 
@@ -476,7 +475,7 @@ print(spec_mixed)
 
 ```
 
-![](images/clipboard-1984427091.png)
+![](images/colwidth-mixed-units.png)
 
 **Important**: When mixing units (cm, in, pt) with percentages, **the
 absolute widths are reserved first**, then percentages are calculated
@@ -565,7 +564,7 @@ rpt_multi <- create_report(spec_multi)
 write_doc(rpt_multi, name = "tbl_multi")
 ```
 
-## ![](images/clipboard-192293685.png)
+## ![](images/table-titles-subtitles-footnotes.png)
 
 ## 9 — span columns (spanning headers)
 
@@ -602,7 +601,7 @@ print(spec_span_simple)
 
 **Result**: A table with column labels on one row and a "Demographics"
 header spanning age+sex columns above it:\
-![](images/clipboard-40037553.png)
+![](images/span-header-single.png)
 
 ### Example 1b: Using tidyselect helpers with spanning headers
 
@@ -638,7 +637,7 @@ add_span_header(cols = -id,
 print(spec_tidysel)
 ```
 
-![](images/clipboard-86533784.png)
+![](images/span-header-tidyselect.png)
 
 **Tidyselect expressions supported**:
 
@@ -680,7 +679,7 @@ spec_spans_style <- add_span_header(spec_spans_style,
 
 ```
 
-![](images/clipboard-2991126070.png)
+![](images/span-header-styled.png)
 
 Notes:
 
@@ -778,7 +777,7 @@ define_cols(age, label = "Age",
             valueStyleRef = 'ac')
 ```
 
-![](images/clipboard-3003524943.png)
+![](images/styles-fcombine-columns.png)
 
 **How `f_combine()` works**:
 
@@ -833,7 +832,7 @@ spec <- spec |>
 
 ```
 
-![](images/clipboard-1437051722.png)
+![](images/compute-conditional-styling.png)
 
 ### Example 2: Combining styles in conditional rows
 
@@ -852,7 +851,7 @@ spec <- spec |>
   )
 ```
 
-![](images/clipboard-137358296.png)
+![](images/compute-combined-styles.png)
 
 ### Example 3: Column merging in conditional rows
 
@@ -869,7 +868,7 @@ spec <- spec |>
   )
 ```
 
-![](images/clipboard-2883006425.png)
+![](images/compute-column-merging.png)
 
 ### Example 4: Inserting separator rows
 
@@ -892,7 +891,7 @@ spec <- spec |>
   )
 ```
 
-![](images/clipboard-2551143985.png)
+![](images/compute-row-insertion.png)
 
 ### Example 4b: Page break insertion
 
@@ -924,7 +923,7 @@ spec <- spec |>
   )
 ```
 
-![](images/clipboard-2936122457.png)
+![](images/compute-multiple-actions.png)
 
 **Key concepts**:
 
@@ -1038,7 +1037,7 @@ settings.
 # Set session defaults (applies to all NEW specs created after this call)
 tfl_set_options(
   add_header("Study ABC", "Phase II Safety Study", "CONFIDENTIAL"),
-  add_footer("Company Confidential", "Page {page} of {numpages}")
+  add_footer("Company Confidential", "Page {PAGE} of {NUMPAGES}")
 )
 
 # Create spec — automatically inherits headers/footers from options

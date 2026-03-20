@@ -36,6 +36,17 @@ The package's own bundled fonts directory is always scanned automatically;
 To make the setting persistent across sessions, add the \code{options()}
 call to your \file{~/.Rprofile}.
 }
+\examples{
+\dontrun{
+# Rescan after installing new fonts
+tfl_rescan_fonts()
+
+# Point to a custom font directory, then rescan
+options(ksTFL.font_dirs = c("/usr/share/fonts/custom"))
+tfl_rescan_fonts()
+}
+
+}
 \seealso{
-\code{\link{tfl_font_status}}
+\code{\link[=tfl_font_status]{tfl_font_status()}} to print the cached report without rescanning.
 }

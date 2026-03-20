@@ -121,18 +121,18 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)
 
 Each `TFL_spec` contains:
 
-| Component | Purpose | How to modify |
-|------------------------|------------------------|------------------------|
-| **document** | Metadata (docType, title, page settings) | `set_document()`, `set_page_style()` |
-| **columns** | Column definitions, labels, formats, styles | `define_cols()` |
-| **stubColumns** | Spanning headers above column groups | `add_span_header()` |
-| **headers** | Page header text (left/center/right) | `add_header()` |
-| **titles** | Main document titles | `add_title()` |
-| **subtitles** | Secondary titles | `add_subtitle()` |
-| **bodyText** | Narrative content | `add_body_text()` |
-| **footnotes** | Document footnotes | `add_footnote()` |
-| **footers** | Page footer text | `add_footer()` |
-| **styles** | Named styles defined with `add_style()` | `add_style()` |
+| Component       | Purpose                                     | How to modify                        |
+| --------------- | ------------------------------------------- | ------------------------------------ |
+| **document**    | Metadata (docType, title, page settings)    | `set_document()`, `set_page_style()` |
+| **columns**     | Column definitions, labels, formats, styles | `define_cols()`                      |
+| **stubColumns** | Spanning headers above column groups        | `add_span_header()`                  |
+| **headers**     | Page header text (left/center/right)        | `add_header()`                       |
+| **titles**      | Main document titles                        | `add_title()`                        |
+| **subtitles**   | Secondary titles                            | `add_subtitle()`                     |
+| **bodyText**    | Narrative content                           | `add_body_text()`                    |
+| **footnotes**   | Document footnotes                          | `add_footnote()`                     |
+| **footers**     | Page footer text                            | `add_footer()`                       |
+| **styles**      | Named styles defined with `add_style()`     | `add_style()`                        |
 
 ------------------------------------------------------------------------
 
@@ -333,7 +333,7 @@ spec <- define_cols(spec, c(mpg, hp),
 
 **Best practice**: Define styles once, reference by id (name) throughout
 your spec. If style needs to be used across many tables define it thru
-`tfl_setoptions()` to make it available session-wide.
+`tfl_set_options()` to make it available session-wide.
 
 For comprehensive styling details see [Styling
 Guide](Styling_Guide_with_ksTFL.Rmd).
@@ -428,7 +428,7 @@ spec <- add_subtitle(spec, "Motor Vehicle Analysis")
 spec <- add_footnote(spec, "Values are from 1974 Motor Trend magazine.")
 
 # Page headers (left/center/right) — three separate string arguments
-spec <- add_header(spec, "Study ABC", "CONFIDENTIAL", "Page {page}")
+spec <- add_header(spec, "Study ABC", "CONFIDENTIAL", "Page {PAGE}")
 
 # Page footers (left/center/right) — three separate string arguments
 spec <- add_footer(spec, "Company", "Locked DB", "2025")
@@ -442,7 +442,7 @@ spec <- add_body_text(spec, "This analysis includes all subjects in the safety p
 \- `add_header()` and `add_footer()` take up to 3 separate string
 arguments: left, center, right
 
-\- Placeholders like `{page}` and `{numpages}` are filled in by the
+\- Placeholders like `{PAGE}` and `{NUMPAGES}` are filled in by the
 renderer
 
 \- Multiple `add_header()` calls append additional header rows; use the
@@ -593,12 +593,12 @@ groups - **Merge columns**: Create group headers by merging columns -
 
 **Key action functions** (used inside `compute_cols()`):
 
-| Function | Purpose | Example |
-|------------------------|------------------------|------------------------|
-| `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
-| `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
-| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
-| `c_pageBreak()` | Insert a page break at the matching row (no args) | `c_pageBreak()` |
+| Function                                            | Purpose                                           | Example                                       |
+| --------------------------------------------------- | ------------------------------------------------- | --------------------------------------------- |
+| `c_style(cols, styleRef)`                           | Apply style to columns in matching rows           | `c_style(c(mpg, hp), styleRef = "bold")`      |
+| `c_merge(cols, styleRef = NULL)`                    | Merge adjacent columns                            | `c_merge(c(col1, col2), styleRef = "header")` |
+| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below                            | `c_addrow(pos = "above")` for empty separator |
+| `c_pageBreak()`                                     | Insert a page break at the matching row (no args) | `c_pageBreak()`                               |
 
 **Condition syntax**:
 
@@ -847,7 +847,7 @@ Set defaults once, inherited by all new specs:
 # Set session defaults
 tfl_set_options(
   add_header("Study ABC", "Locked Database", "CONFIDENTIAL"),
-  add_footer("Company Name", "Page {page}", "2025"),
+  add_footer("Company Name", "Page {PAGE}", "2025"),
   add_body_text("Analysis performed in R with ksTFL."))
 
 # All new specs created afterward inherit these settings
@@ -906,19 +906,19 @@ report <- create_report(spec) |>  write_doc('demographics')
 # Done!
 ```
 
-![](images/clipboard-1347102353.png)
+![](images/example-complete-demographics.png)
 
 ## Key gotchas and tips
 
-| Gotcha | Solution |
-|------------------------------------|------------------------------------|
-| **Calling s\_\* helpers outside add_style()** | Always use s\_\* inside `add_style()` — they validate context |
-| **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
-| **Styles from f_combine() not consolidated** | Call `create_report()` before `write_doc()` |
-| **Multiple add_header() calls stack** | Each call **appends** a new header level; use `level =` to replace a specific level |
-| **Figure file not found** | Check path is absolute or relative to current working directory |
-| **create_text() with data argument** | `create_text()` requires `data = NULL` — no data for text specs |
-| **Overlapping stubs at same stubOrder** | Error; use different `stubOrder` or non-overlapping column sets |
+| Gotcha                                              | Solution                                                                            |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Calling s\_\* helpers outside add_style()**       | Always use s\_\* inside `add_style()` — they validate context                       |
+| **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns                              |
+| **Styles from f_combine() not consolidated**        | Call `create_report()` before `write_doc()`                                         |
+| **Multiple add_header() calls stack**               | Each call **appends** a new header level; use `level =` to replace a specific level |
+| **Figure file not found**                           | Check path is absolute or relative to current working directory                     |
+| **create_text() does not accept data**              | `create_text()` takes no arguments — add content via `add_body_text()`              |
+| **Overlapping stubs at same stubOrder**             | Error; use different `stubOrder` or non-overlapping column sets                     |
 
 ------------------------------------------------------------------------
 
@@ -952,27 +952,27 @@ You now understand ksTFL's core workflow. Next steps:
 
 ## Quick reference table
 
-| Task | Function | Notes |
-|------------------------|------------------------|------------------------|
-| Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
-| Create figure spec | `create_figure(plot_or_path, dpi = 300L)` | File path or ggplot2 object; path must be readable |
-| Create text spec | `create_text()` | For narrative content only |
-| Set document properties | `set_document(spec, hasData = ...)` | Optional: configure content width, placement |
-| Customize columns | `define_cols(spec, cols, ...)` | Use `c()` for multiple columns |
-| Define styles | `add_style(spec, id = "name", ...)` | Use `s_font()`, `s_paragraph()`, `s_table_style()` |
-| Add spanning header | `add_span_header(spec, cols, label, ...)` | Supports tidyselect; multi-level headers |
-| Add titles/content | `add_title()`, `add_footnote()`, `add_body_text()` | Layer document content |
-| Add page headers/footers | `add_header()`, `add_footer()` | 3 parts: left/center/right |
-| Conditional row actions | `compute_cols(spec, cond, ...)` | Use `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`, `c_pageBreak()` |
-| Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |
-| Page settings helper | `p_page(size, orientation, margins)` | `"A4"` / `"Letter"` / `"Legal"`, margins via `p_margins()` |
-| List templates | `tfl_list_templates()` | Shows all bundled template names |
-| Discover style atoms | `tfl_print_style_atoms()` | Prints all built-in style atoms grouped by category |
-| Font status | `tfl_font_status()`, `tfl_rescan_fonts()` | Check or re-run font discovery |
-| Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
-| Save + render (one step) | `write_doc(report, name, ...)` | Recommended: saves JSON + renders DOCX |
-| Save only | `save_report(report, ...)` | Writes JSON + data files for manual rendering |
-| Render from JSON | `replay_report(spec_json, meta_dir, output_path, overrideTemplate = NULL)` | C++ renderer: JSON → styled DOCX |
-| Set session defaults | `tfl_set_options(...)` | Inherited by new specs in session |
-| Check options | `tfl_get_options()`, `tfl_get_option(name)` | View current session settings |
-| Reset options | `tfl_reset_options()` | Back to package defaults |
+| Task                     | Function                                                                   | Notes                                                                                |
+| ------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Create table spec        | `create_table(data, cols = ...)`                                           | Auto-detects columns, types, widths                                                  |
+| Create figure spec       | `create_figure(plot_or_path, dpi = 300L)`                                  | File path or ggplot2 object; path must be readable                                   |
+| Create text spec         | `create_text()`                                                            | For narrative content only                                                           |
+| Set document properties  | `set_document(spec, hasData = ...)`                                        | Optional: configure content width, placement                                         |
+| Customize columns        | `define_cols(spec, cols, ...)`                                             | Use `c()` for multiple columns                                                       |
+| Define styles            | `add_style(spec, id = "name", ...)`                                        | Use `s_font()`, `s_paragraph()`, `s_table_style()`                                   |
+| Add spanning header      | `add_span_header(spec, cols, label, ...)`                                  | Supports tidyselect; multi-level headers                                             |
+| Add titles/content       | `add_title()`, `add_footnote()`, `add_body_text()`                         | Layer document content                                                               |
+| Add page headers/footers | `add_header()`, `add_footer()`                                             | 3 parts: left/center/right                                                           |
+| Conditional row actions  | `compute_cols(spec, cond, ...)`                                            | Use `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`, `c_pageBreak()` |
+| Set page style           | `set_page_style(spec, page = p_page(...))`                                 | Configure page size, orientation, margins                                            |
+| Page settings helper     | `p_page(size, orientation, margins)`                                       | `"A4"` / `"Letter"` / `"Legal"`, margins via `p_margins()`                           |
+| List templates           | `tfl_list_templates()`                                                     | Shows all bundled template names                                                     |
+| Discover style atoms     | `tfl_print_style_atoms()`                                                  | Prints all built-in style atoms grouped by category                                  |
+| Font status              | `tfl_font_status()`, `tfl_rescan_fonts()`                                  | Check or re-run font discovery                                                       |
+| Combine specs            | `create_report(spec1, spec2, ...)`                                         | Consolidates styles, assigns order                                                   |
+| Save + render (one step) | `write_doc(report, name, ...)`                                             | Recommended: saves JSON + renders DOCX                                               |
+| Save only                | `save_report(report, ...)`                                                 | Writes JSON + data files for manual rendering                                        |
+| Render from JSON         | `replay_report(spec_json, meta_dir, output_path, overrideTemplate = NULL)` | C++ renderer: JSON → styled DOCX                                                     |
+| Set session defaults     | `tfl_set_options(...)`                                                     | Inherited by new specs in session                                                    |
+| Check options            | `tfl_get_options()`, `tfl_get_option(name)`                                | View current session settings                                                        |
+| Reset options            | `tfl_reset_options()`                                                      | Back to package defaults                                                             |
