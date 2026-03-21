@@ -8,6 +8,8 @@ output:
     toc_depth: 3
     dev: pdf
     css: ksTFL-vignette.css
+resource_files:
+  - images/
 vignette: >
   %\VignetteIndexEntry{Advanced StyleRows and Conditional Formatting}
   %\VignetteEncoding{UTF-8}
