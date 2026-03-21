@@ -4,6 +4,7 @@ author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
     dev: pdf
+    css: ksTFL-vignette.css
 resource_files:
   - pdf/
 vignette: >
@@ -28,21 +29,19 @@ options(pkgdown.internet = FALSE)
 
 ## Purpose
 
-This vignette presents real-world clinical reporting examples built with
-ksTFL. Each example walks through the complete pipeline — from raw input
-data, through the R code that constructs the specification object, to
-the final rendered document — so you can see exactly what goes in and
-what comes out.
+This vignette presents real-world clinical reporting examples built with ksTFL.
+Each example walks through the complete pipeline — from raw input data, through
+the R code that constructs the specification object, to the final rendered
+document — so you can see exactly what goes in and what comes out.
 
-The examples are ordered by complexity: we start with a demographics
-table that introduces core concepts (invisible columns, conditional
-formatting, section headers), then move on to multi-language support,
-complex spanning headers, data listings with grouping, and finally
-figure output.
+The examples are ordered by complexity: we start with a demographics table that
+introduces core concepts (invisible columns, conditional formatting, section
+headers), then move on to multi-language support, complex spanning headers, data
+listings with grouping, and finally figure output.
 
-All code chunks use `eval = FALSE`; the rendered PDFs were pre-generated
-and are embedded below. To reproduce any example locally, copy the code
-into an R session with ksTFL loaded and run it.
+All code chunks use `eval = FALSE`; the rendered PDFs were pre-generated and are
+embedded below. To reproduce any example locally, copy the code into an R
+session with ksTFL loaded and run it.
 
 ## How examples are organised
 
@@ -50,36 +49,34 @@ Every example follows the same structure:
 
 1.  **Input data** — the data frame that feeds `create_table()` or
     `create_figure()`
-2.  **Spec-building pipeline** — the ksTFL calls that define the
-    document (with inline comments explaining each step)
+2.  **Spec-building pipeline** — the ksTFL calls that define the document (with
+    inline comments explaining each step)
 3.  **Rendered output** — the resulting document embedded as PDF
 
-A shared **session setup** block at the top configures page headers,
-footers, and output defaults so individual examples stay focused on
-their unique logic.
+A shared **session setup** block at the top configures page headers, footers,
+and output defaults so individual examples stay focused on their unique logic.
 
 **Related vignettes:**
 
--   [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline
-    overview and core concepts
--   [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — simpler
-    worked examples covering each feature in isolation
+-   [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline overview and
+    core concepts
+-   [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — simpler worked
+    examples covering each feature in isolation
 -   [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — style primitives and
     templates
 -   [Advanced StyleRows](Advanced_StyleRows.Rmd) — deep dive into
     `compute_cols()`, `c_glue()`, `c_clear()`
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 ## Session setup (shared across examples)
 
-Every example in this vignette assumes the following session-wide
-settings are in place. The `tfl_set_options()` call registers default
-page headers (company name, confidentiality notice, page numbering), a
-study-level sub-header, and page footers. It also sets the output
-directory and footnote placement strategy. Because these options are set
-once at the session level, individual specs don't need to repeat them —
-they inherit the defaults automatically:
+Every example in this vignette assumes the following session-wide settings are
+in place. The `tfl_set_options()` call registers default page headers (company
+name, confidentiality notice, page numbering), a study-level sub-header, and
+page footers. It also sets the output directory and footnote placement strategy.
+Because these options are set once at the session level, individual specs don't
+need to repeat them — they inherit the defaults automatically:
 
 ```{r session_setup, eval = FALSE}
 library(ksTFL)
@@ -96,42 +93,41 @@ tfl_set_options(
 )
 ```
 
-------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 ## Example 1 — Demographics table with conditional formatting {#example-01}
 
 Demographics tables are among the most common deliverables in clinical
-reporting. They summarise baseline patient characteristics by treatment
-arm and typically include section headers, summary statistics, and
-inferential test results.
+reporting. They summarise baseline patient characteristics by treatment arm and
+typically include section headers, summary statistics, and inferential test
+results.
 
 This example shows how ksTFL handles all of that declaratively. The key
 techniques demonstrated here are:
 
--   **Invisible helper columns** — `SECTION`, `SECTION_ID`, and
-    `MODELVAL` are kept out of the rendered document but drive
-    conditional logic via `compute_cols()`. This is a core ksTFL
-    pattern: your data frame can carry metadata columns that the
-    rendering engine never prints but uses to control formatting.
--   **`c_addrow()`** — inserts bold section headers (Age, Sex, Race)
-    above the first row of each group, pulling values directly from the
-    hidden `SECTION` column.
--   **`c_merge()` + `c_glue()`** — on p-value rows the treatment columns
-    are merged into one cell and the p-value is appended, creating the
-    typical "p = 0.041" display.
--   **`c_pageBreak()`** — forces a page break before the "Race" section
-    for readability.
--   **Spacer rows** — `c_addrow("below")` with `row_h4` adds visual
-    separation between sections.
+-   **Invisible helper columns** — `SECTION`, `SECTION_ID`, and `MODELVAL` are
+    kept out of the rendered document but drive conditional logic via
+    `compute_cols()`. This is a core ksTFL pattern: your data frame can carry
+    metadata columns that the rendering engine never prints but uses to control
+    formatting.
+-   **`c_addrow()`** — inserts bold section headers (Age, Sex, Race) above the
+    first row of each group, pulling values directly from the hidden `SECTION`
+    column.
+-   **`c_merge()` + `c_glue()`** — on p-value rows the treatment columns are
+    merged into one cell and the p-value is appended, creating the typical "p =
+    0.041" display.
+-   **`c_pageBreak()`** — forces a page break before the "Race" section for
+    readability.
+-   **Spacer rows** — `c_addrow("below")` with `row_h4` adds visual separation
+    between sections.
 
 ### Input data
 
-The data frame has three demographic sections (Age, Sex, Race), each
-containing summary statistics and an optional p-value stored in the
-`MODELVAL` column. Note that `MODELVAL` is only populated on the p-value
-rows — it is `NA` everywhere else, which is how we target those rows in
-`compute_cols()`. The `SECTION_ID` column is derived from the grouping
-and used for spacing and page-break logic:
+The data frame has three demographic sections (Age, Sex, Race), each containing
+summary statistics and an optional p-value stored in the `MODELVAL` column. Note
+that `MODELVAL` is only populated on the p-value rows — it is `NA` everywhere
+else, which is how we target those rows in `compute_cols()`. The `SECTION_ID`
+column is derived from the grouping and used for spacing and page-break logic:
 
 ```{r example_01_data, eval = FALSE}
 raw <- tibble(
@@ -282,19 +278,18 @@ create_report(spec) %>% write_doc("example_01")
 
 ### Switching style templates
 
-The example above uses the default embedded style template. One of
-ksTFL's design principles is that **content and styling are separate**:
-you can switch to a completely different visual theme by changing a
-single parameter on an already-built spec, without touching any of the
-data or conditional logic:
+The example above uses the default embedded style template. One of ksTFL's
+design principles is that **content and styling are separate**: you can switch
+to a completely different visual theme by changing a single parameter on an
+already-built spec, without touching any of the data or conditional logic:
 
 ```{r example_01_navy, eval = FALSE}
 spec <- set_document(spec, docTemplate = 'Navy_Pro')
 create_report(spec) %>% write_doc("example_01_navy")
 ```
 
-The same table is now rendered with the "Navy_Pro" template — different
-fonts, colours, and border styles, but identical content and structure:
+The same table is now rendered with the "Navy_Pro" template — different fonts,
+colours, and border styles, but identical content and structure:
 
 <iframe src="pdf/example_01_navy.pdf#navpanes=0" width="100%" height="600px" style="border: 1px solid #ccc;">
 
@@ -304,30 +299,28 @@ fonts, colours, and border styles, but identical content and structure:
 
 **Key take-aways from this example:**
 
--   **Invisible columns** — `SECTION`, `SECTION_ID`, and `MODELVAL`
-    never appear in the document, yet they drive all conditional logic.
-    This is the core "metadata column" pattern.
--   **`c_addrow(value_from = ...)`** pulls text from a hidden column
-    into a dynamically inserted header row — no manual string
-    duplication needed.
--   **`c_merge()` + `c_glue()`** combine cells and append content from
-    another column in a single `compute_cols()` call, producing the
-    merged p-value display.
+-   **Invisible columns** — `SECTION`, `SECTION_ID`, and `MODELVAL` never appear
+    in the document, yet they drive all conditional logic. This is the core
+    "metadata column" pattern.
+-   **`c_addrow(value_from = ...)`** pulls text from a hidden column into a
+    dynamically inserted header row — no manual string duplication needed.
+-   **`c_merge()` + `c_glue()`** combine cells and append content from another
+    column in a single `compute_cols()` call, producing the merged p-value
+    display.
 -   **`c_pageBreak()`** gives fine-grained control over pagination.
--   **Template switching** — `set_document(docTemplate = ...)` re-skins
-    the entire output without modifying the spec pipeline.
+-   **Template switching** — `set_document(docTemplate = ...)` re-skins the
+    entire output without modifying the spec pipeline.
 
 ## Example 2 — Demographics table (UTF-8 encoding support)
 
-Clinical trials run in many countries, and regulatory submissions often
-require documents in local languages. ksTFL has full UTF-8 support —
-titles, footnotes, column labels, and data values can all contain
-non-Latin characters without any special configuration.
+Clinical trials run in many countries, and regulatory submissions often require
+documents in local languages. ksTFL has full UTF-8 support — titles, footnotes,
+column labels, and data values can all contain non-Latin characters without any
+special configuration.
 
-This example reproduces the same demographics table structure from
-Example 1, but entirely in Russian. The code also serves as a detailed
-walkthrough of the spec-building pipeline, with comments explaining
-every step.
+This example reproduces the same demographics table structure from Example 1,
+but entirely in Russian. The code also serves as a detailed walkthrough of the
+spec-building pipeline, with comments explaining every step.
 
 ### Input data
 
@@ -350,10 +343,9 @@ every step.
 ### Code
 
 The pipeline follows the same pattern as Example 1: create table →
-titles/footnotes → hide helper columns → define visible columns →
-conditional row transforms → document settings. Reading the inline
-comments below alongside Example 1 will help you see the one-to-one
-correspondence:
+titles/footnotes → hide helper columns → define visible columns → conditional
+row transforms → document settings. Reading the inline comments below alongside
+Example 1 will help you see the one-to-one correspondence:
 
 ```{r example_02_render, eval = FALSE}
 ### Build the specification object
@@ -454,22 +446,22 @@ spec_dm_01 <- create_table(data) %>%
 
 ## Example 3 — Adverse Events table with complex spanning headers
 
-Adverse Event (AE) frequency tables are a staple of clinical safety
-reporting. They often have many columns (treatment periods, follow-up
-windows, overall totals) arranged under multi-level spanning headers.
+Adverse Event (AE) frequency tables are a staple of clinical safety reporting.
+They often have many columns (treatment periods, follow-up windows, overall
+totals) arranged under multi-level spanning headers.
 
 This example demonstrates:
 
--   **Three-tier spanning headers** via `add_span_header()` with
-    `stubOrder` to stack period sub-headers, a follow-up banner, and a
-    top-level drug-arm header.
--   **Custom page layout** — landscape A4 with tight margins to fit 14
-    numeric columns plus two identifier columns.
--   **`isID = TRUE`** — marks columns that should repeat on every page
-    when the table spans multiple pages.
--   **Conditional formatting** — bold SOC-level totals, inserted header
-    rows per System Organ Class, and a forced page break between the
-    "Any AE" summary and per-SOC detail.
+-   **Three-tier spanning headers** via `add_span_header()` with `stubOrder` to
+    stack period sub-headers, a follow-up banner, and a top-level drug-arm
+    header.
+-   **Custom page layout** — landscape A4 with tight margins to fit 14 numeric
+    columns plus two identifier columns.
+-   **`isID = TRUE`** — marks columns that should repeat on every page when the
+    table spans multiple pages.
+-   **Conditional formatting** — bold SOC-level totals, inserted header rows per
+    System Organ Class, and a forced page break between the "Any AE" summary and
+    per-SOC detail.
 
 ### Input data
 
@@ -678,22 +670,22 @@ create_report(spec) %>% write_doc("example_03_ae")
 
 ## Example 4 — Data listing with automatic two-level TOC
 
-Data listings present individual patient records with minimal
-aggregation. They often run to hundreds of pages, so navigation features
-become essential. This example demonstrates:
+Data listings present individual patient records with minimal aggregation. They
+often run to hundreds of pages, so navigation features become essential. This
+example demonstrates:
 
--   **`isGrouping = TRUE`** — marks columns as grouping variables. When
-    grouping columns change value, ksTFL inserts a page break and
-    generates a new sub-entry in the Table of Contents.
--   **Dynamic subtitles** — `#ByGroup1`, `#ByGroup2`, etc. are
-    placeholders that get replaced with the current group values,
-    producing "Subject: 01001, Sex: M, Age (years): 26" automatically.
--   **Two-level TOC** — the title and subtitle together create a nested
-    TOC: listing title at level 1, per-subject entries at level 2.
--   **Value-dependent formatting** — `compute_cols()` flags pH values
-    above 5.5 in red with a checkmark symbol.
--   **Rotated column labels** — `to_90` rotates headers 90° to save
-    horizontal space for the many narrow lab-parameter columns.
+-   **`isGrouping = TRUE`** — marks columns as grouping variables. When grouping
+    columns change value, ksTFL inserts a page break and generates a new
+    sub-entry in the Table of Contents.
+-   **Dynamic subtitles** — `#ByGroup1`, `#ByGroup2`, etc. are placeholders that
+    get replaced with the current group values, producing "Subject: 01001, Sex:
+    M, Age (years): 26" automatically.
+-   **Two-level TOC** — the title and subtitle together create a nested TOC:
+    listing title at level 1, per-subject entries at level 2.
+-   **Value-dependent formatting** — `compute_cols()` flags pH values above 5.5
+    in red with a checkmark symbol.
+-   **Rotated column labels** — `to_90` rotates headers 90° to save horizontal
+    space for the many narrow lab-parameter columns.
 
 ### Input data
 
@@ -804,15 +796,15 @@ create_report(spec_lbl_01) %>% write_doc("example_04_list", toc = TRUE)
 
 ### Splitting long tables across pages
 
-When a table has too many columns to fit on one page, ksTFL can
-automatically split the columns across multiple pages. The `isColBreak`
-parameter on `define_cols()` tells the engine where to start a new
-column page. Columns marked with `isID = TRUE` repeat on every
-column-page, ensuring the reader always sees the identifying context.
+When a table has too many columns to fit on one page, ksTFL can automatically
+split the columns across multiple pages. The `isColBreak` parameter on
+`define_cols()` tells the engine where to start a new column page. Columns
+marked with `isID = TRUE` repeat on every column-page, ensuring the reader
+always sees the identifying context.
 
-For example, adding a column break at `PH` splits the listing into two
-column groups — Bilirubin through Nitrites on the first page, and pH
-through White Blood Cells on the second:
+For example, adding a column break at `PH` splits the listing into two column
+groups — Bilirubin through Nitrites on the first page, and pH through White
+Blood Cells on the second:
 
 ```{r example_04_colbreak, eval = FALSE}
 spec_lbl_02 <- spec_lbl_01 %>%
@@ -827,23 +819,21 @@ create_report(spec_lbl_02) %>% write_doc("example_04_list_colbr", toc = TRUE)
 
 <iframe src="pdf/example_04_list_colbr.pdf#navpanes=0" width="100%" height="600px" style="border: 1px solid #ccc;">
 
-<a href="pdf/example_04_list_colbr.pdf">Download
-example_04_list_colbr.pdf</a>
+<a href="pdf/example_04_list_colbr.pdf">Download example_04_list_colbr.pdf</a>
 
 </iframe>
 
 ## Example 5 — Figures and combined multi-spec reports with TOC
 
-ksTFL is not limited to tables. The `create_figure()` function wraps a
-ggplot2 object (or an image file path) into a `TFL_spec`, which can then
-receive titles, subtitles, footnotes, and document settings just like a
-table.
+ksTFL is not limited to tables. The `create_figure()` function wraps a ggplot2
+object (or an image file path) into a `TFL_spec`, which can then receive titles,
+subtitles, footnotes, and document settings just like a table.
 
-The real power shows when you combine multiple specs into a single
-document. `create_report()` accepts any number of `TFL_spec` objects —
-tables, figures, and text — and merges them into one report. When
-`write_doc()` is called with `toc = TRUE`, a Table of Contents is
-generated automatically from the `toclevel` values set in titles.
+The real power shows when you combine multiple specs into a single document.
+`create_report()` accepts any number of `TFL_spec` objects — tables, figures,
+and text — and merges them into one report. When `write_doc()` is called with
+`toc = TRUE`, a Table of Contents is generated automatically from the `toclevel`
+values set in titles.
 
 This example creates three ggplot2 figures and writes them into a single
 landscape document with a TOC page.
@@ -954,13 +944,12 @@ write_doc(t.fig.report, "figures_single_doc_toc", toc = TRUE)
 
 ### Rendered output
 
-The resulting document contains a TOC page listing all three figures,
-followed by one page per figure. Each figure fills the landscape page
-thanks to `figureScaleMode = "fitPage"`.
+The resulting document contains a TOC page listing all three figures, followed
+by one page per figure. Each figure fills the landscape page thanks to
+`figureScaleMode = "fitPage"`.
 
 <iframe src="pdf/figures_single_doc_toc.pdf#navpanes=0" width="100%" height="600px" style="border: 1px solid #ccc;">
 
-<a href="pdf/figures_single_doc_toc.pdf">Download
-figures_single_doc_toc.pdf</a>
+<a href="pdf/figures_single_doc_toc.pdf">Download figures_single_doc_toc.pdf</a>
 
 </iframe>

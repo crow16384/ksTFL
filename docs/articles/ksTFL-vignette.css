@@ -1,0 +1,295 @@
+/* ksTFL vignette theme — modern clinical reporting look
+ * Applied via: css: ksTFL-vignette.css in the vignette YAML
+ * Replaces the default vignette.css — includes essential layout rules.
+ * Designed around the ksTFL monochrome brand (#111, white, blue accent)
+ */
+
+/* ── Layout (replaces html_vignette defaults) ───────────── */
+body {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5em 2em;
+    color: #1a1a2e;
+    line-height: 1.7;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    background: #ffffff;
+}
+
+/* ── Headings ───────────────────────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-weight: 700;
+    color: #111111;
+}
+
+h1 {
+    font-size: 1.75em;
+    border-bottom: 3px solid #111111;
+    padding-bottom: 0.35em;
+    margin-top: 1.6em;
+}
+
+h2 {
+    font-size: 1.4em;
+    border-bottom: 2px solid #d0d0d0;
+    padding-bottom: 0.25em;
+    margin-top: 2em;
+}
+
+h3 {
+    font-size: 1.15em;
+    color: #2166AC;
+    margin-top: 1.5em;
+}
+
+h4 {
+    font-size: 1.0em;
+    color: #555;
+    font-weight: 600;
+}
+
+/* ── Links ──────────────────────────────────────────────── */
+a {
+    color: #2166AC;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+a:hover {
+    border-bottom-color: #2166AC;
+}
+
+/* ── Code blocks ────────────────────────────────────────── */
+pre,
+pre:not([class]) {
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-left: 4px solid #2166AC;
+    border-radius: 6px;
+    padding: 1em 1.2em;
+    overflow-x: auto;
+    max-width: 100%;
+    font-size: 0.88em;
+    line-height: 1.55;
+    word-wrap: normal;
+    white-space: pre;
+}
+
+/* Data preview blocks (``` without language) — subtler accent */
+pre:not(.sourceCode) {
+    border-left-color: #d0d0d0;
+    background: #fafbfc;
+    font-size: 0.82em;
+}
+
+code {
+    font-family: "Consolas", "SFMono-Regular", "Menlo", monospace;
+    font-size: 0.9em;
+    font-variant-ligatures: none;
+}
+
+/* Inline code */
+p>code,
+li>code,
+td>code,
+h3>code,
+h4>code {
+    background: #f0f3f6;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    color: #1a1a2e;
+    font-size: 0.88em;
+}
+
+/* ── Tables ─────────────────────────────────────────────── */
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    margin: 1.2em 0;
+    font-size: 0.9em;
+    border: 1px solid #d8dee4;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th {
+    background: #f0f6fc;
+    color: #1a3a5c;
+    font-weight: 700;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.7em 1em;
+    text-align: left;
+    border-bottom: 2px solid #2166AC;
+}
+
+td {
+    padding: 0.55em 1em;
+    border-bottom: 1px solid #eaecef;
+    color: #24292f;
+}
+
+tbody tr:nth-child(even) {
+    background: #f8fafb;
+}
+
+tbody tr:hover {
+    background: #e8f0fe;
+}
+
+/* First column emphasis (function names, labels) */
+td:first-child {
+    font-weight: 500;
+}
+
+/* Code inside table cells */
+td code {
+    font-size: 0.85em;
+    background: #e8eef4;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+}
+
+/* ── Blockquotes (tips / notes) ─────────────────────────── */
+blockquote {
+    border-left: 4px solid #2166AC;
+    background: #f0f6fc;
+    margin: 1.2em 0;
+    padding: 0.6em 1em;
+    color: #1a1a2e;
+    border-radius: 0 6px 6px 0;
+}
+
+blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* ── Lists ──────────────────────────────────────────────── */
+ul,
+ol {
+    padding-left: 1.5em;
+}
+
+li {
+    margin-bottom: 0.3em;
+}
+
+li>strong:first-child {
+    color: #111111;
+}
+
+/* ── Horizontal rules ───────────────────────────────────── */
+hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right, #111111 0%, #d0d0d0 50%, transparent 100%);
+    margin: 2.5em 0;
+}
+
+/* ── Iframes (PDF embeds) ───────────────────────────────── */
+iframe {
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    margin: 1em 0 1.5em;
+}
+
+/* ── Images ─────────────────────────────────────────────── */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em auto;
+    border-radius: 6px;
+    border: 1px solid #e1e4e8;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Logo in vignette header — no border/shadow */
+img[src*="logo"],
+img[alt="ksTFL logo"] {
+    border: none;
+    box-shadow: none;
+}
+
+/* ── Brand accent strip (top of page) ───────────────────── */
+body::before {
+    content: "";
+    display: block;
+    height: 4px;
+    background: linear-gradient(to right, #2166AC 0%, #2E86C1 60%, #d0d0d0 100%);
+    margin: -1.5em -2em 1.5em -2em;
+}
+
+/* ── Title block ────────────────────────────────────────── */
+h1.title {
+    font-size: 2em;
+    border-bottom: 4px solid #2166AC;
+    margin-bottom: 0.1em;
+}
+
+h4.author,
+h4.date {
+    font-weight: 400;
+    color: #666;
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+/* ── TOC styling (when toc: true) ───────────────────────── */
+#TOC {
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 0.8em 1.2em;
+    margin-bottom: 2em;
+}
+
+#TOC>ul>li>a {
+    font-weight: 600;
+}
+
+#TOC ul {
+    list-style-type: none;
+    padding-left: 1em;
+}
+
+#TOC>ul {
+    padding-left: 0;
+}
+
+#TOC a {
+    border-bottom: none;
+    transition: color 0.2s;
+}
+
+#TOC a:hover {
+    color: #2166AC;
+}
+
+/* ── Selection highlight (brand-colored) ────────────────── */
+::selection {
+    background: rgba(33, 102, 172, 0.15);
+}
+
+/* ── Scrollbar styling (Webkit) ─────────────────────────── */
+pre::-webkit-scrollbar {
+    height: 6px;
+}
+
+pre::-webkit-scrollbar-thumb {
+    background: #c0c8d0;
+    border-radius: 3px;
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+    background: #2166AC;
+}

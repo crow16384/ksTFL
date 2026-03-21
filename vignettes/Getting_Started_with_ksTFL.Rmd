@@ -4,6 +4,7 @@ author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
     dev: pdf
+    css: ksTFL-vignette.css
 vignette: >
   %\VignetteIndexEntry{Getting Started with ksTFL}
   %\VignetteEncoding{UTF-8}

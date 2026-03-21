@@ -7,6 +7,10 @@
 
 template:
   bootstrap: 5
+  bslib:
+    primary: "#2166AC"
+    border-radius: "0.375rem"
+    font-size-base: "0.95rem"
 
 navbar:
   left:

@@ -6,6 +6,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 3
+    css: ksTFL-vignette.css
 vignette: >
   %\VignetteIndexEntry{Rendering Pipeline and Full C++ Architecture}
   %\VignetteEncoding{UTF-8}

@@ -4,6 +4,7 @@ author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
     dev: pdf
+    css: ksTFL-vignette.css
 vignette: >
   %\VignetteIndexEntry{Reporting Examples — ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -156,10 +157,10 @@ write_doc(rpt_min_table, name = "tbl_min")
 > available for conditional logic in `compute_cols()`. For instance, you
 > could exclude a helper column like `flag` from the report
 > (`cols = c(subject_id, age, sex, trt)`) yet still reference `flag` in
-> a `compute_cols()` condition to drive styling or value
-> transformations. This design means you never need to pre-filter or
-> reorder your data frame before passing it to ksTFL — `cols` handles
-> column selection and ordering in one place.
+> a `compute_cols()` condition to drive styling or value transformations.
+> This design means you never need to pre-filter or reorder your data
+> frame before passing it to ksTFL — `cols` handles column selection and
+> ordering in one place.
 
 ## 2 — Simple minimal figure
 
