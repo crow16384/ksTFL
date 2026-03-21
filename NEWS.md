@@ -1,3 +1,10 @@
+# ksTFL 0.7.6
+
+## Fixes
+
+* Fixed inline markup paragraph handling so <p> produces real paragraph boundaries in emitted DOCX text groups (titles, subtitles, body text, footnotes), aligned with pagination measurement logic.
+* Improved spacer-row border behavior: left/right borders are preserved through top/bottom empty spacer rows, while top/bottom lines remain suppressed as intended.
+
 # ksTFL 0.7.5
 
 ## Documentation

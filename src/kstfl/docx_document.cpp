@@ -281,17 +281,17 @@ std::string DocxEmitter::emit_document_xml(
     }
     // Pre-parse title inline markup once — titles are the same on every
     // page, so we avoid re-parsing on each emit_page() call.
-    // Each text element is parsed individually so that boundaries between
-    // elements become soft line breaks (<w:br/>) rather than new paragraphs.
-    std::vector<std::vector<ParsedCell>> parsed_titles;
+    // Text elements are combined with <br> (matching the measurement path)
+    // so that <p> paragraph breaks within elements are preserved.
+    std::vector<ParsedCell> parsed_titles;
     parsed_titles.reserve(spec.titles.size());
     for (const auto &group : spec.titles) {
-      std::vector<ParsedCell> elements;
-      elements.reserve(group.text.size());
-      for (const auto &txt : group.text) {
-        elements.push_back(parse_inline_markup(txt));
+      std::string combined;
+      for (size_t i = 0; i < group.text.size(); ++i) {
+        if (i > 0) combined += "<br>";
+        combined += group.text[i];
       }
-      parsed_titles.push_back(std::move(elements));
+      parsed_titles.push_back(parse_inline_markup(combined));
     }
 
     bool first_physical_page = true;

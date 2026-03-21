@@ -26,10 +26,10 @@ raw <- tibble(
   ungroup()
 
 spec <- create_table(raw) %>%
-  add_title(c("Table S1", "Demographic and Baseline Characteristics"), toclevel = 1) %>%
+  add_title(c("Table S1", "Demographic andBaseline Characteristics"), toclevel = 1) %>%
   add_title("Full Analysis Set", styleRef = "font_italic") %>%
   add_footnote(c(
-    "Values are shown as n (%), mean (SD), median, or quartiles.",
+    "Values are <b><u>shown</u></b> as n (%), mean (SD), median, or quartiles.",
     "P-values shown for section-level inferential tests."
   )) %>%
   define_cols(c(SECTION, SECTION_ID, MODELVAL), isVisible = FALSE) %>%
@@ -62,7 +62,7 @@ spec <- create_table(raw) %>%
     SECTION_ID == 3 & firstOf(SECTION_ID),
     c_pageBreak()
   ) %>%
-  set_document(contentWidth = "75%", docTemplate = "Classic_landscape_aptos")
+  set_document(contentWidth = "75%", docTemplate = "Classic_landscape_times")
 
 list_reports()
 

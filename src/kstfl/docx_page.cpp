@@ -12,7 +12,7 @@ namespace kstfl {
 
 void DocxEmitter::emit_page(XmlWriter &w, const TFLSpec &spec, const PageSlice &page, const HorizontalSegment &segment,
                             const std::vector<LogicalRow> &rows, const HeaderGrid &header_grid,
-                            const StyleResolver &resolver, const std::vector<std::vector<ParsedCell>> &parsed_titles,
+                            const StyleResolver &resolver, const std::vector<ParsedCell> &parsed_titles,
                             const std::vector<TocHeadingEntry> &toc_headings) const {
 
   // NOTE: Document headers/footers are no longer emitted in the page body.
@@ -52,38 +52,38 @@ void DocxEmitter::emit_page(XmlWriter &w, const TFLSpec &spec, const PageSlice &
       // Stamp exact line height so Word uses same height as paginator
       stamp_exact_line_height(style);
 
-      // Use precomputed per-element parsed titles to avoid re-parsing.
-      const auto &parsed_elements = parsed_titles[gi];
+      // Use precomputed per-group combined parsed title.
+      const auto &parsed = parsed_titles[gi];
 
-      w.start_element("w:p");
       std::optional<std::string> toc_style_id;
       if (page.is_first_page && segment.segment_index == 0 && group.toc_level > 0) {
         toc_style_id = find_toc_heading_style_id(toc_headings, style, group.toc_level);
       }
-      if (toc_style_id.has_value()) {
-        w.start_element("w:pPr");
-        w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+
+      if (parsed.paragraphs.empty()) {
+        w.start_element("w:p");
+        if (toc_style_id.has_value()) {
+          w.start_element("w:pPr");
+          w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+          w.end_element();
+        } else if (style.paragraph.has_value()) {
+          emit_para_props(w, style.paragraph.value());
+        }
         w.end_element();
-      } else if (style.paragraph.has_value()) {
-        emit_para_props(w, style.paragraph.value());
-      }
-
-      FontProps base_font = style.font.value_or(FontProps{});
-      bool need_break = false;
-      for (const auto &parsed : parsed_elements) {
-        if (need_break) {
-          w.start_element("w:r");
-          emit_run_props(w, base_font);
-          w.self_closing_element("w:br");
-          w.end_element(); // w:r
+      } else {
+        for (size_t pi = 0; pi < parsed.paragraphs.size(); ++pi) {
+          w.start_element("w:p");
+          if (pi == 0 && toc_style_id.has_value()) {
+            w.start_element("w:pPr");
+            w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+            w.end_element();
+          } else if (style.paragraph.has_value()) {
+            emit_para_props(w, style.paragraph.value());
+          }
+          emit_parsed_paragraph_runs(w, parsed.paragraphs[pi], style);
+          w.end_element(); // w:p
         }
-        for (const auto &para : parsed.paragraphs) {
-          emit_parsed_paragraph_runs(w, para, style);
-        }
-        need_break = true;
       }
-
-      w.end_element(); // w:p
     }
   }
 
@@ -121,14 +121,14 @@ void DocxEmitter::emit_page(XmlWriter &w, const TFLSpec &spec, const PageSlice &
       }
       stamp_exact_line_height(style);
 
-      // Parse each text element individually for inline markup.
-      std::vector<ParsedCell> parsed_elements;
-      parsed_elements.reserve(group.text.size());
-      for (const auto &txt : group.text) {
-        parsed_elements.push_back(parse_inline_markup(txt));
+      // Combine text elements with <br> and parse once (matching measurement path).
+      std::string combined;
+      for (size_t i = 0; i < group.text.size(); ++i) {
+        if (i > 0) combined += "<br>";
+        combined += group.text[i];
       }
+      ParsedCell parsed = parse_inline_markup(combined);
 
-      w.start_element("w:p");
       std::optional<std::string> sub_toc_style_id;
       if (group.toc_level > 0) {
         bool is_dynamic = false;
@@ -141,30 +141,31 @@ void DocxEmitter::emit_page(XmlWriter &w, const TFLSpec &spec, const PageSlice &
         bool use_toc_heading = (is_dynamic || page.is_first_page) && segment.segment_index == 0;
         if (use_toc_heading) { sub_toc_style_id = find_toc_heading_style_id(toc_headings, style, group.toc_level); }
       }
-      if (sub_toc_style_id.has_value()) {
-        w.start_element("w:pPr");
-        w.element_with_attr("w:pStyle", "w:val", sub_toc_style_id.value());
+
+      if (parsed.paragraphs.empty()) {
+        w.start_element("w:p");
+        if (sub_toc_style_id.has_value()) {
+          w.start_element("w:pPr");
+          w.element_with_attr("w:pStyle", "w:val", sub_toc_style_id.value());
+          w.end_element();
+        } else if (style.paragraph.has_value()) {
+          emit_para_props(w, style.paragraph.value());
+        }
         w.end_element();
-      } else if (style.paragraph.has_value()) {
-        emit_para_props(w, style.paragraph.value());
-      }
-
-      FontProps base_font = style.font.value_or(FontProps{});
-      bool need_break = false;
-      for (const auto &parsed : parsed_elements) {
-        if (need_break) {
-          w.start_element("w:r");
-          emit_run_props(w, base_font);
-          w.self_closing_element("w:br");
-          w.end_element(); // w:r
+      } else {
+        for (size_t pi = 0; pi < parsed.paragraphs.size(); ++pi) {
+          w.start_element("w:p");
+          if (pi == 0 && sub_toc_style_id.has_value()) {
+            w.start_element("w:pPr");
+            w.element_with_attr("w:pStyle", "w:val", sub_toc_style_id.value());
+            w.end_element();
+          } else if (style.paragraph.has_value()) {
+            emit_para_props(w, style.paragraph.value());
+          }
+          emit_parsed_paragraph_runs(w, parsed.paragraphs[pi], style);
+          w.end_element(); // w:p
         }
-        for (const auto &para : parsed.paragraphs) {
-          emit_parsed_paragraph_runs(w, para, style);
-        }
-        need_break = true;
       }
-
-      w.end_element(); // w:p
     }
   }
 

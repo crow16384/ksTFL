@@ -527,6 +527,71 @@ Rcpp::List cpp_test_inline_parser() {
     t.check(cell.paragraphs.size() >= size_t(2), "<p>: >= 2 paragraphs");
   }
 
+  // --- <p> with explicit open/close tags ---
+  {
+    auto cell = parse_inline_markup("<p>Para1</p><p>Para2</p>");
+    t.check_eq(cell.paragraphs.size(), size_t(2), "<p> open/close: 2 paragraphs");
+    bool found_p1 = false, found_p2 = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "Para1") found_p1 = true;
+    }
+    for (const auto &run : cell.paragraphs[1].runs) {
+      if (run.text == "Para2") found_p2 = true;
+    }
+    t.check(found_p1, "<p> open/close: Para1 in paragraph 0");
+    t.check(found_p2, "<p> open/close: Para2 in paragraph 1");
+  }
+
+  // --- <p> without closing tag ---
+  {
+    auto cell = parse_inline_markup("text1<p>text2");
+    t.check_eq(cell.paragraphs.size(), size_t(2), "<p> no close: 2 paragraphs");
+    bool found_t1 = false, found_t2 = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "text1") found_t1 = true;
+    }
+    for (const auto &run : cell.paragraphs[1].runs) {
+      if (run.text == "text2") found_t2 = true;
+    }
+    t.check(found_t1, "<p> no close: text1 in paragraph 0");
+    t.check(found_t2, "<p> no close: text2 in paragraph 1");
+  }
+
+  // --- Formatting across <p> boundary (tag stack persists) ---
+  {
+    auto cell = parse_inline_markup("<b>bold<p>still bold</b>");
+    t.check_eq(cell.paragraphs.size(), size_t(2), "<p> fmt across: 2 paragraphs");
+    bool p1_bold = false, p2_bold = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "bold" && run.style.bold_override) p1_bold = true;
+    }
+    for (const auto &run : cell.paragraphs[1].runs) {
+      if (run.text == "still bold" && run.style.bold_override) p2_bold = true;
+    }
+    t.check(p1_bold, "<p> fmt across: 'bold' has bold_override");
+    t.check(p2_bold, "<p> fmt across: 'still bold' has bold_override");
+  }
+
+  // --- Mixed <br> and <p> ---
+  {
+    auto cell = parse_inline_markup("line1<br>line2<p>line3");
+    t.check_eq(cell.paragraphs.size(), size_t(2), "<p>+br: 2 paragraphs");
+    // First paragraph: line1 + \n + line2
+    bool has_l1 = false, has_br = false, has_l2 = false, has_l3 = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "line1") has_l1 = true;
+      if (run.text == "\n") has_br = true;
+      if (run.text == "line2") has_l2 = true;
+    }
+    for (const auto &run : cell.paragraphs[1].runs) {
+      if (run.text == "line3") has_l3 = true;
+    }
+    t.check(has_l1, "<p>+br: line1 in paragraph 0");
+    t.check(has_br, "<p>+br: \\n run in paragraph 0");
+    t.check(has_l2, "<p>+br: line2 in paragraph 0");
+    t.check(has_l3, "<p>+br: line3 in paragraph 1");
+  }
+
   // --- Multiple line breaks → one paragraph with multiple \\n runs ---
   {
     auto cell = parse_inline_markup("a<br/>b<br/>c");

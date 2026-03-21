@@ -102,8 +102,7 @@ private:
   /// Emit document.xml content for a single spec's page.
   void emit_page(XmlWriter &w, const TFLSpec &spec, const PageSlice &page, const HorizontalSegment &segment,
                  const std::vector<LogicalRow> &rows, const HeaderGrid &header_grid, const StyleResolver &resolver,
-                 const std::vector<std::vector<ParsedCell>> &parsed_titles,
-                 const std::vector<TocHeadingEntry> &toc_headings) const;
+                 const std::vector<ParsedCell> &parsed_titles, const std::vector<TocHeadingEntry> &toc_headings) const;
 
   /// Emit a table element.
   void emit_table(XmlWriter &w, const TFLSpec &spec, const PageSlice &page, const HorizontalSegment &segment,

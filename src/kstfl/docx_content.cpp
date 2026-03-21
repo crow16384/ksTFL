@@ -311,42 +311,45 @@ void DocxEmitter::emit_text_groups(XmlWriter &w, const std::vector<TextGroup> &g
 
     stamp_exact_line_height(style);
 
-    // Parse each text element individually; emit all within one <w:p>
-    // with soft line breaks (<w:br/>) between elements.
-    std::vector<ParsedCell> parsed_elements;
-    parsed_elements.reserve(group.text.size());
-    for (const auto &txt : group.text) {
-      parsed_elements.push_back(parse_inline_markup(txt));
+    // Combine text elements with <br> (matching the measurement path in
+    // paginator.cpp) and parse once.  This correctly handles both soft
+    // line breaks between elements AND <p> paragraph breaks within them.
+    std::string combined;
+    for (size_t i = 0; i < group.text.size(); ++i) {
+      if (i > 0) combined += "<br>";
+      combined += group.text[i];
     }
+    ParsedCell parsed = parse_inline_markup(combined);
 
-    w.start_element("w:p");
     std::optional<std::string> toc_style_id;
     if (group.toc_level > 0) { toc_style_id = find_toc_heading_style_id(toc_headings, style, group.toc_level); }
-    if (toc_style_id.has_value()) {
-      w.start_element("w:pPr");
-      w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+
+    if (parsed.paragraphs.empty()) {
+      w.start_element("w:p");
+      if (toc_style_id.has_value()) {
+        w.start_element("w:pPr");
+        w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+        w.end_element();
+      } else if (style.paragraph.has_value()) {
+        emit_para_props(w, style.paragraph.value());
+      }
       w.end_element();
-    } else if (style.paragraph.has_value()) {
-      emit_para_props(w, style.paragraph.value());
+      continue;
     }
 
-    FontProps base_font = style.font.value_or(FontProps{});
-    bool need_break = false;
-    for (const auto &parsed : parsed_elements) {
-      if (need_break) {
-        // Soft line break between text elements
-        w.start_element("w:r");
-        emit_run_props(w, base_font);
-        w.self_closing_element("w:br");
-        w.end_element(); // w:r
+    for (size_t pi = 0; pi < parsed.paragraphs.size(); ++pi) {
+      w.start_element("w:p");
+      // TOC heading style only on the first paragraph of the group
+      if (pi == 0 && toc_style_id.has_value()) {
+        w.start_element("w:pPr");
+        w.element_with_attr("w:pStyle", "w:val", toc_style_id.value());
+        w.end_element();
+      } else if (style.paragraph.has_value()) {
+        emit_para_props(w, style.paragraph.value());
       }
-      for (const auto &para : parsed.paragraphs) {
-        emit_parsed_paragraph_runs(w, para, style);
-      }
-      need_break = true;
+      emit_parsed_paragraph_runs(w, parsed.paragraphs[pi], style);
+      w.end_element(); // w:p
     }
-
-    w.end_element(); // w:p
   }
 }
 

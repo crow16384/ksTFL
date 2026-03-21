@@ -389,14 +389,15 @@ void DocxEmitter::emit_table(XmlWriter &w, const TFLSpec &spec, const PageSlice 
 
     TableCellProps tcp = cell_style.table_style.value_or(TableCellProps{});
 
-    // Suppress all borders: spacer rows should be visually empty.
+    // Preserve left/right borders from the resolved body style so that
+    // vertical border lines remain continuous through the spacer row.
+    // Only suppress top/bottom borders (the spacer provides visual space,
+    // not a visible horizontal rule).
     Border none_border;
     none_border.line_style = BorderLineStyle::None;
-    Borders spacer_borders;
+    Borders spacer_borders = tcp.borders.value_or(Borders{});
     spacer_borders.top = none_border;
     spacer_borders.bottom = none_border;
-    spacer_borders.left = none_border;
-    spacer_borders.right = none_border;
 
     // When this is the bottom spacer, the structural bottom border must
     // appear AFTER the spacer (table border semantics requested by user).
