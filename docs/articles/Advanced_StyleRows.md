@@ -1,4 +1,4 @@
-# Advanced StyleRows and Conditional Formatting
+# Advanced StyleRows and Conditional Formatting in ksTFL
 
 ![ksTFL logo](figures/ksTFL-logo.svg)
 
@@ -50,7 +50,6 @@ when all specs are finalized and the data context is fully established.
 Apply style references to cells based on conditions:
 
 ``` r
-
 library(ksTFL)
 
 data <- data.frame(
@@ -87,7 +86,6 @@ where `response == "PD"` show red bold text:
 Merge multiple columns into a single display cell:
 
 ``` r
-
 data_groups <- data.frame(
   group = c("Treatment A", "Treatment A", "Treatment A",
             "Placebo", "Placebo"),
@@ -119,7 +117,6 @@ the `cols` sequence.
 Insert new rows based on data patterns:
 
 ``` r
-
 spec <- create_table(data_groups) |>
   compute_cols(
     firstOf(group),  # First row of each group
@@ -140,7 +137,6 @@ Insert a page break at the matching row. This is useful to force a new
 page when a logical grouping or large block ends.
 
 ``` r
-
 spec <- create_table(data_groups) |>
   compute_cols(
     firstOf(group),  # Insert page break starting from first row of each group
@@ -173,7 +169,6 @@ contains:
 > [`compute_cols()`](https://example.com/reference/compute_cols.md).
 
 ``` r
-
 # You can reference any column directly in conditions
 spec <- create_table(data) |>
   compute_cols(
@@ -202,7 +197,6 @@ conditions:
   first row of every n-th block defined by `col`
 
 ``` r
-
 # Highlight first and last rows using helper functions
 spec <- create_table(data) |>
   compute_cols(
@@ -234,7 +228,6 @@ spec <- create_table(data) |>
 Use tidyselect to style multiple columns at once:
 
 ``` r
-
 data_lab <- data.frame(
   patient = sprintf("PAT-%03d", 1:10),
   hemoglobin = rnorm(10, 13.5, 1.5),
@@ -265,7 +258,6 @@ spec <- create_table(data_lab) |>
 Combine multiple conditions:
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "critical_senior",
             s_font(color = "#8B0000", bold = TRUE),
@@ -283,7 +275,6 @@ spec <- create_table(data) |>
 Style entire rows by targeting all columns:
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "alternate_row",
             s_table_style(background_color = "#F0F0F0")) |>
@@ -302,7 +293,6 @@ spec <- create_table(data) |>
 Merge across multiple grouping levels:
 
 ``` r
-
 data_nested <- data.frame(
   study = rep(c("Study A", "Study B"), each = 6),
   phase = rep(c("Phase I", "Phase II", "Phase III"), 4),
@@ -332,7 +322,6 @@ spec <- create_table(data_nested) |>
 Combine merging with conditional styles:
 
 ``` r
-
 spec <- create_table(data_nested) |>
   add_style(id = "merged_header",
             s_font(bold = TRUE),
@@ -356,7 +345,6 @@ spec <- create_table(data_nested) |>
 Insert calculated summary rows:
 
 ``` r
-
 data_sales <- data.frame(
   region = c("North", "North", "South", "South", "West", "West"),
   product = rep(c("A", "B"), 3),
@@ -386,7 +374,6 @@ spec <- create_table(data_sales) |>
 Insert section (group) headers to make a stub:
 
 ``` r
-
 
 data_sales <- data.frame(
   region = c("North", "North", "South", "South", "West", "West"),
@@ -422,7 +409,6 @@ spec <- create_table(data_sales) |>
 More complex example with two-level indents:
 
 ``` r
-
 
 data_sales <- data.frame(
   region = c("North", "North", "North", "South", "South", "South", "West", "West", "West"), 
@@ -487,7 +473,6 @@ exclusive with `text`)
 text (default `NULL`)
 
 ``` r
-
 data_units <- data.frame(
   parameter = c("Hemoglobin", "Glucose", "Cholesterol"),
   value     = c(13.5,          95.0,      200.0),
@@ -521,7 +506,6 @@ column or affecting layout. Useful for conditional deduplication, when a
 `dedupe` parameter of `define_col()` is not enough.
 
 ``` r
-
 data_groups <- data.frame(
   group  = c("Treatment A", "Treatment A", "Treatment A", "Placebo", "Placebo"),
   visit  = c("Week 0", "Week 4", "Week 8", "Week 0", "Week 4"),
@@ -552,7 +536,6 @@ Chain multiple
 and `c_*` actions to build a fully formatted table:
 
 ``` r
-
 data_sales <- data.frame(
   region = c("North", "North", "North", 
              "South", "South", "South", 
@@ -597,7 +580,7 @@ Here we can see how a simple planar data frame:
 
 ![](images/data-simple-planar-dataframe.png)
 
-become a production ready table:\
+become a production ready table:  
 ![](images/result-production-ready-table.png)
 
 ## Performance Tips
@@ -607,7 +590,6 @@ become a production ready table:\
 Each call adds evaluation overhead. Combine conditions when possible:
 
 ``` r
-
 # ❌ Less efficient:
 spec <- create_table(data) |>
   compute_cols(age < 30, c_style(age, styleRef = "young")) |>
@@ -640,7 +622,6 @@ spec <- create_table(data) |>
 Avoid row-by-row operations in custom functions:
 
 ``` r
-
 # ❌ Slower (scalar logic):
 spec <- create_table(data) |>
   compute_cols(
@@ -661,7 +642,6 @@ spec <- create_table(data) |>
 If conditions apply to a small subset, consider filtering data upfront:
 
 ``` r
-
 # If only 5% of rows need special formatting:
 # Consider creating separate tables and combining in report
 
@@ -684,7 +664,6 @@ ksTFL automatically consolidates identical styles, but you can help by
 reusing style references:
 
 ``` r
-
 # ✅ Define once, use many times:
 spec <- create_table(data) |>
   add_style(id = "critical", s_font(color = "#FF0000", bold = TRUE)) |>
@@ -707,7 +686,6 @@ Inspect what
 stored:
 
 ``` r
-
 spec <- create_table(data) |>
   compute_cols(
     age > 60,
@@ -724,7 +702,6 @@ str(spec$.metadata$compute_cols)
 Test conditions on your data frame before adding to spec:
 
 ``` r
-
 # Test your condition directly on the data before passing to compute_cols()
 test_condition <- with(data, age > 60)
 sum(test_condition)   # How many rows match?
@@ -741,7 +718,6 @@ Add [`compute_cols()`](https://example.com/reference/compute_cols.md)
 one at a time and inspect results:
 
 ``` r
-
 spec <- create_table(data)
 
 # Add first action
@@ -760,7 +736,6 @@ print(spec)  # Check again
 ### Pattern 1: Alternating Row Colors
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "gray_bg", s_table_style(background_color = "#F5F5F5")) |>
   compute_cols(
@@ -772,7 +747,6 @@ spec <- create_table(data) |>
 ### Pattern 2: Grouped Section Headers with Merging
 
 ``` r
-
 spec <- create_table(data_groups) |>
   add_style(id = "group_header",
             s_font(bold = TRUE, font_size = "11pt"),
@@ -792,7 +766,6 @@ spec <- create_table(data_groups) |>
 ### Pattern 3: Conditional Highlighting with Thresholds
 
 ``` r
-
 spec <- create_table(data_lab) |>
   add_style(id = "low",    s_font(color = "#0000FF")) |>
   add_style(id = "normal", s_font(color = "#008000")) |>
@@ -814,7 +787,6 @@ spec <- create_table(data_lab) |>
 ### Pattern 4: Summary Rows with Totals
 
 ``` r
-
 spec <- create_table(data_sales) |>
   add_style(id = "total_row",
             s_font(bold = TRUE),
@@ -834,7 +806,6 @@ You can’t use [`sum()`](https://rdrr.io/r/base/sum.html),
 conditions:
 
 ``` r
-
 # ❌ This won't work as expected:
 spec <- create_table(data) |>
   compute_cols(
@@ -846,7 +817,6 @@ spec <- create_table(data) |>
 **Workaround:** Pre-calculate and add as a column:
 
 ``` r
-
 data$age_above_avg <- data$age > mean(data$age)
 
 spec <- create_table(data) |>
@@ -861,7 +831,6 @@ spec <- create_table(data) |>
 You can’t nest action functions:
 
 ``` r
-
 # ❌ This is invalid:
 spec <- create_table(data) |>
   compute_cols(
@@ -874,7 +843,6 @@ spec <- create_table(data) |>
 [`compute_cols()`](https://example.com/reference/compute_cols.md) calls:
 
 ``` r
-
 spec <- create_table(data) |>
   compute_cols(age > 60, c_style(age, styleRef = "elderly")) |>
   compute_cols(age > 60, c_merge(c(patient, age)))
@@ -885,7 +853,6 @@ spec <- create_table(data) |>
 `styleRef` must reference a previously defined style:
 
 ``` r
-
 # ❌ This will error at evaluation time:
 spec <- create_table(data) |>
   compute_cols(age > 60, c_style(age, styleRef = "undefined_style"))
@@ -894,7 +861,6 @@ spec <- create_table(data) |>
 **Workaround:** Always define styles before using them:
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "elderly", s_font(bold = TRUE)) |>  # Define first
   compute_cols(age > 60, c_style(age, styleRef = "elderly"))
@@ -908,7 +874,6 @@ spec <- create_table(data) |>
 alongside column definitions:
 
 ``` r
-
 spec <- create_table(data) |>
   define_cols(age, type = "numeric", format = "0.0", colWidth = "15%") |>
   compute_cols(
@@ -922,7 +887,6 @@ spec <- create_table(data) |>
 Reference invisible columns in conditions:
 
 ``` r
-
 data$flag <- sample(c(TRUE, FALSE), nrow(data), replace = TRUE)
 
 spec <- create_table(data) |>
@@ -939,7 +903,6 @@ Each spec can have independent
 [`compute_cols()`](https://example.com/reference/compute_cols.md) logic:
 
 ``` r
-
 spec1 <- create_table(data[1:10, ]) |>
   add_style(id = "elderly", s_font(bold = TRUE)) |>
   compute_cols(age > 60, c_style(age, styleRef = "elderly"))

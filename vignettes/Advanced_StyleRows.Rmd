@@ -1,5 +1,5 @@
 ---
-title: "Advanced StyleRows and Conditional Formatting"
+title: "Advanced StyleRows and Conditional Formatting in ksTFL"
 author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
 output: 
@@ -11,7 +11,7 @@ output:
 resource_files:
   - images/
 vignette: >
-  %\VignetteIndexEntry{Advanced StyleRows and Conditional Formatting}
+  %\VignetteIndexEntry{Advanced StyleRows and Conditional Formatting in ksTFL}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

@@ -67,7 +67,6 @@ these options are set once at the session level, individual specs don’t
 need to repeat them — they inherit the defaults automatically:
 
 ``` r
-
 library(ksTFL)
 library(dplyr)
 
@@ -123,7 +122,6 @@ rows — it is `NA` everywhere else, which is how we target those rows in
 and page-break logic:
 
 ``` r
-
 raw <- tibble(
   SECTION = c(
     rep("Age (years)", 6),
@@ -175,7 +173,6 @@ The first few rows of `raw`:
 ### Building the specification
 
 ``` r
-
 spec <- create_table(raw) %>%
 
   # --- Titles and footnotes ---
@@ -258,7 +255,6 @@ spec <- create_table(raw) %>%
 ### Render
 
 ``` r
-
 create_report(spec) %>% write_doc("example_01")
 ```
 
@@ -276,7 +272,6 @@ single parameter on an already-built spec, without touching any of the
 data or conditional logic:
 
 ``` r
-
 spec <- set_document(spec, docTemplate = 'Navy_Pro')
 create_report(spec) %>% write_doc("example_01_navy")
 ```
@@ -342,7 +337,6 @@ comments below alongside Example 1 will help you see the one-to-one
 correspondence:
 
 ``` r
-
 ### Build the specification object
 
 drg_N   <- 16
@@ -483,7 +477,6 @@ This example demonstrates:
 ### Code
 
 ``` r
-
 # --- Build the table specification ---
 spec <- create_table(tbl) %>%
 
@@ -696,7 +689,6 @@ become essential. This example demonstrates:
 ### Code
 
 ``` r
-
 spec_lbl_01 <- create_table(data) %>%
 
   # --- Title and dynamic subtitle ---
@@ -795,7 +787,6 @@ column groups — Bilirubin through Nitrites on the first page, and pH
 through White Blood Cells on the second:
 
 ``` r
-
 spec_lbl_02 <- spec_lbl_01 %>%
   # Add a column break at PH — all columns from PH onward move to a new page.
   # The Treatment, Visit, and Date columns (isID = TRUE) repeat automatically.
@@ -832,7 +823,6 @@ landscape document with a TOC page.
 ### Code
 
 ``` r
-
 library(ggplot2)
 
 # --- Figure 1: Fuel efficiency scatter plot from mtcars ---

@@ -1,5 +1,5 @@
 ---
-title: "Font Management"
+title: "Font Management in ksTFL"
 author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
 output: 
@@ -8,7 +8,7 @@ output:
     toc_depth: 3
     css: ksTFL-vignette.css
 vignette: >
-  %\VignetteIndexEntry{Font Management}
+  %\VignetteIndexEntry{Font Management in ksTFL}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

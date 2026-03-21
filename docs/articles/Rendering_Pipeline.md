@@ -1,4 +1,4 @@
-# Rendering Pipeline and Full C++ Architecture
+# Rendering Pipeline and Full C++ Architecture in ksTFL
 
 This document describes the complete C++ renderer architecture used by
 ksTFL to convert JSON report specifications into deterministic DOCX

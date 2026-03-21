@@ -1,5 +1,5 @@
 ---
-title: "Rendering Pipeline and Full C++ Architecture"
+title: "Rendering Pipeline and Full C++ Architecture in ksTFL"
 author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
 output: 
@@ -8,9 +8,9 @@ output:
     toc_depth: 3
     css: ksTFL-vignette.css
 vignette: >
-  %\VignetteIndexEntry{Rendering Pipeline and Full C++ Architecture}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteIndexEntry{Rendering Pipeline and Full C++ Architecture in ksTFL}
+    %\VignetteEncoding{UTF-8}
+    %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   markdown: 
     wrap: 72

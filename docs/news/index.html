@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,17 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.6" id="kstfl-076">ksTFL 0.7.6<a class="anchor" aria-label="anchor" href="#kstfl-076"></a></h2>
+<div class="section level3">
+<h3 id="fixes-0-7-6">Fixes<a class="anchor" aria-label="anchor" href="#fixes-0-7-6"></a></h3>
+<ul><li>Fixed inline markup paragraph handling so
+<p>
+produces real paragraph boundaries in emitted DOCX text groups (titles, subtitles, body text, footnotes), aligned with pagination measurement logic.</p>
+</li>
+<li>Improved spacer-row border behavior: left/right borders are preserved through top/bottom empty spacer rows, while top/bottom lines remain suppressed as intended.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.5" id="kstfl-075">ksTFL 0.7.5<a class="anchor" aria-label="anchor" href="#kstfl-075"></a></h2>
 <div class="section level3">
@@ -94,16 +105,16 @@
 <div class="section level3">
 <h3 id="bundled-fonts-0-6-0">Bundled Fonts<a class="anchor" aria-label="anchor" href="#bundled-fonts-0-6-0"></a></h3>
 <p>Only license-free fallback fonts are included in <code>inst/fonts/</code>:</p>
-<table class="table"><thead><tr><th>Font Family</th>
+<table class="table"><thead><tr class="header"><th>Font Family</th>
 <th>License</th>
 <th>Replaces</th>
-</tr></thead><tbody><tr><td>Liberation Sans (4 styles)</td>
+</tr></thead><tbody><tr class="odd"><td>Liberation Sans (4 styles)</td>
 <td>SIL OFL 1.1</td>
 <td>Arial</td>
-</tr><tr><td>Liberation Serif (4 styles)</td>
+</tr><tr class="even"><td>Liberation Serif (4 styles)</td>
 <td>SIL OFL 1.1</td>
 <td>Times New Roman</td>
-</tr><tr><td>Liberation Mono (4 styles)</td>
+</tr><tr class="odd"><td>Liberation Mono (4 styles)</td>
 <td>SIL OFL 1.1</td>
 <td>Courier New</td>
 </tr></tbody></table></div>

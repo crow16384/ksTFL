@@ -74,7 +74,6 @@ Best practices:
   files while you experiment.
 
 ``` r
-
 # Sample datasets used by multiple sections (run locally before executing examples)
 set.seed(2025)
 
@@ -123,7 +122,6 @@ tfl_set_options(
 ## 1 — Simple minimal table
 
 ``` r
-
 spec_min_table <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 spec_min_table <- add_title(spec_min_table, "Demographics (minimal)")
 
@@ -136,7 +134,6 @@ print() on a TFL_spec provides a readable overview including titles and
 defined columns: ![](images/print-output-minimal-table.png)
 
 ``` r
-
 # End-to-end: wrap single spec into a report and render to DOCX
 rpt_min_table <- create_report(spec_min_table)
 write_doc(rpt_min_table, name = "tbl_min")
@@ -164,7 +161,6 @@ write_doc(rpt_min_table, name = "tbl_min")
 ## 2 — Simple minimal figure
 
 ``` r
-
 spec_min_fig <- create_figure(plot_file)
 spec_min_fig <- add_title(spec_min_fig, "Example: Age vs SBP")
 print(spec_min_fig)
@@ -172,7 +168,6 @@ print(spec_min_fig)
 ```
 
 ``` r
-
 # End-to-end: render the single-figure report to DOCX
 rpt_min_fig <- create_report(spec_min_fig)
 write_doc(rpt_min_fig, name = "fig_min")
@@ -183,7 +178,6 @@ write_doc(rpt_min_fig, name = "fig_min")
 ## 3 — Simple minimal text (narrative)
 
 ``` r
-
 ## Narrative object:
 nartv <- list(
   subj = 'ABC-001',
@@ -206,7 +200,6 @@ text <- sprintf('The subject <b>%s</b> entered study %s and discontinued the stu
 ```
 
 ``` r
-
 # End-to-end: render the narrative report to DOCX
 spec_min_text <- create_text() |> add_title("Sample Narrative Text")
 spec_min_text <- add_body_text(spec_min_text, text)
@@ -238,7 +231,6 @@ recycling** to keep code concise.
 The simplest case — modify one column at a time:
 
 ``` r
-
 # Define one column
 spec_single <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 spec_single <- define_cols(spec_single, subject_id, label = "Subject ID", isID = TRUE)
@@ -259,7 +251,6 @@ Update multiple columns with the **same value** — the value is
 automatically recycled:
 
 ``` r
-
 # Apply single format to multiple columns
 spec_batch <- create_table(data = vitals_tbl, cols = c(sbp, dbp))
 spec_batch <- define_cols(spec_batch, c(sbp, dbp),
@@ -282,7 +273,6 @@ Update multiple columns with **different values** — provide a vector
 matching the number of columns:
 
 ``` r
-
 # Different label and format for each column
 spec_mapped <- create_table(data = demog_tbl, cols = c(age, sex, trt)) |>
 define_cols(c(age, sex, trt),
@@ -310,7 +300,6 @@ calls to layer customizations — each call merges with previous settings
 (last-win strategy):
 
 ``` r
-
 # Start with basic table
 spec_chain <- 
   create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt)) |>
@@ -353,7 +342,6 @@ subtitles
 **Example 1: hasData flag**
 
 ``` r
-
 spec <- create_table(demog_tbl) #automatically detects if dataframe has any rows
 # When data frame does not have any rows, the report will show the default body_text placeholder instead of empty table. 
 #body text can be manually specified
@@ -367,7 +355,6 @@ print(spec)
 **Example 2: Content width and placement**
 
 ``` r
-
 spec <- create_table(demog_tbl)
 
 spec <- set_document(spec,
@@ -389,12 +376,10 @@ earlier ones)
 ## 6 — Combine table/figure/text into a single report
 
 ``` r
-
 report_simple <- create_report(spec_min_table, spec_min_fig, spec_min_text)
 ```
 
 ``` r
-
 # Render combined simple report to DOCX
 write_doc(report_simple, name = "report_simple")
 ```
@@ -437,7 +422,6 @@ proportionally:
 The simplest approach — let the package handle width distribution:
 
 ``` r
-
 # Create table; widths are auto-calculated from data characteristics
 spec_auto <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_auto <- define_cols(spec_auto, c(subject_id, ALT, AST),
@@ -455,7 +439,6 @@ Lock a specific column width while others recalculate to fill remaining
 space:
 
 ``` r
-
 # Lock subject_id at 15%, let ALT and AST split the remaining 85%
 spec_lock1 <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_lock1 <- define_cols(spec_lock1, subject_id, 
@@ -475,7 +458,6 @@ print(spec_lock1)
 Lock several columns and let others auto-adjust:
 
 ``` r
-
 # Lock two columns, let the third auto-adjust
 spec_lock_multi <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_lock_multi <- define_cols(spec_lock_multi, subject_id, 
@@ -497,7 +479,6 @@ print(spec_lock_multi)
 Combine percentage-based widths with absolute units:
 
 ``` r
-
 # Lock subject_id at 2 cm, others in percentages
 spec_mixed <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_mixed <- define_cols(spec_mixed, subject_id,
@@ -521,7 +502,6 @@ from remaining space.
 The package validates column widths to prevent invalid configurations:
 
 ``` r
-
 spec_valid <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 
 # VALID: Set a reasonable relative width
@@ -577,7 +557,6 @@ you exceed limits:
 ## 8 — Table with titles, subtitles and footnotes
 
 ``` r
-
 spec_multi <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_multi <- add_title(spec_multi, "Laboratory Results")
 spec_multi <- add_subtitle(spec_multi, "Selected hepatic enzymes by subject")
@@ -594,7 +573,6 @@ print(spec_multi)
 ```
 
 ``` r
-
 # Render the multilevel table to DOCX
 rpt_multi <- create_report(spec_multi)
 write_doc(rpt_multi, name = "tbl_multi")
@@ -620,7 +598,6 @@ Multiple spans can be stacked at different vertical levels.
 Create one stub that groups related columns:
 
 ``` r
-
 # Start with demographics table
 spec_span_simple <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 spec_span_simple <- define_cols(spec_span_simple, 
@@ -636,7 +613,7 @@ print(spec_span_simple)
 ```
 
 **Result**: A table with column labels on one row and a “Demographics”
-header spanning age+sex columns above it:\
+header spanning age+sex columns above it:  
 ![](images/span-header-single.png)
 
 ### Example 1b: Using tidyselect helpers with spanning headers
@@ -646,7 +623,6 @@ supports all tidyselect expressions — use helpers for flexible column
 selection:
 
 ``` r
-
 # Table with mixed column types
 mixed_data <- data.frame(
   id = 1:10,
@@ -693,7 +669,6 @@ print(spec_tidysel)
 Apply styles to stub labels using `labelStyleRef`:
 
 ``` r
-
 # First, create a style for stub labels
 spec_spans_style <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 
@@ -731,7 +706,6 @@ visually distinct
 [`add_span_header()`](https://example.com/reference/add_span_header.md)
 
 ``` r
-
 # Render stubbed table report to DOCX
 rpt_stub <- create_report(spec_stubs_style)
 write_doc(rpt_stub, name = "tbl_stub", outDir = "./out", metaPath = tempdir())
@@ -763,7 +737,6 @@ an `id`, then reference them by name wherever you need them
 Create atomic styles that focus on one aspect (font, alignment, color):
 
 ``` r
-
 # Create a table spec
 spec_base_styles <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 
@@ -794,7 +767,6 @@ Apply multiple styles to a single element using
 at render time:
 
 ``` r
-
 # Create spec and define base styles
 spec_combined <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
 
@@ -855,7 +827,6 @@ occurrence, threshold-based)
 Apply a style to columns in rows matching a condition:
 
 ``` r
-
 # Sample data with groups
 data <- data.frame(
   group = c("A", "A", "B", "B", "C"),
@@ -885,7 +856,6 @@ Apply multiple styles to a single column using
 [`f_combine()`](https://example.com/reference/f_combine.md):
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "bold",      s_font(bold = TRUE)) |>
   add_style(id = "large",     s_font(font_size = "14pt")) |>
@@ -905,7 +875,6 @@ spec <- spec |>
 Merge adjacent columns for rows matching a condition:
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "group_label", s_table_style(background_color = "#D9D9D9"))
 
@@ -923,7 +892,6 @@ spec <- spec |>
 Insert empty rows (separators) or rows with content from another column:
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "separator", s_table_style(background_color = "#E8E8E8"))
 
@@ -947,7 +915,6 @@ spec <- spec |>
 Force a page break when a group ends (useful for long groups):
 
 ``` r
-
 spec <- spec |>
   compute_cols(lastOf(group),
     c_pageBreak()
@@ -960,7 +927,6 @@ Combine styling, merging, and row insertion in a single
 [`compute_cols()`](https://example.com/reference/compute_cols.md) call:
 
 ``` r
-
 spec <- create_table(data) |>
   add_style(id = "header",    s_font(bold = TRUE)) |>
   add_style(id = "separator", s_table_style(background_color = "#E8E8E8"))
@@ -1033,7 +999,6 @@ primary output function. It combines two lower-level steps into one:
 > to interactively preview and customize templates.
 
 ``` r
-
 # Create multiple specs
 table_spec <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 table_spec <- add_title(table_spec, "Laboratory Results")
@@ -1100,7 +1065,6 @@ settings.
 ### Example 1: Set basic session options
 
 ``` r
-
 # Set session defaults (applies to all NEW specs created after this call)
 tfl_set_options(
   add_header("Study ABC", "Phase II Safety Study", "CONFIDENTIAL"),
@@ -1125,7 +1089,6 @@ are automatically applied to new specs. No need to call
 You can override session defaults on individual specs:
 
 ``` r
-
 # Session options are still in effect from previous example
 
 # Create a spec with session defaults
@@ -1150,7 +1113,6 @@ defaults (last-win strategy).
 Inspect current session options and reset to defaults:
 
 ``` r
-
 # Check current options
 current_options <- tfl_get_options()
 str(current_options)

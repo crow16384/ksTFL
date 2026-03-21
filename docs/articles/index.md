@@ -18,11 +18,12 @@
 
 ### Advanced Workflows
 
-- [Advanced StyleRows and Conditional
-  Formatting](https://example.com/articles/Advanced_StyleRows.md):
+- [Advanced StyleRows and Conditional Formatting in
+  ksTFL](https://example.com/articles/Advanced_StyleRows.md):
 
 ### Internals
 
-- [Rendering Pipeline and Full C++
-  Architecture](https://example.com/articles/Rendering_Pipeline.md):
-- [Font Management](https://example.com/articles/Font_Management.md):
+- [Rendering Pipeline and Full C++ Architecture in
+  ksTFL](https://example.com/articles/Rendering_Pipeline.md):
+- [Font Management in
+  ksTFL](https://example.com/articles/Font_Management.md):

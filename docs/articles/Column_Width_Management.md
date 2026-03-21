@@ -57,7 +57,6 @@ When you create a table, ksTFL automatically:
 4.  Applies minimum width constraints (0.5% for relative widths)
 
 ``` r
-
 library(ksTFL)
 
 # Create sample data
@@ -80,7 +79,6 @@ The `autoColWidth` option (default: `TRUE`) controls whether widths are
 automatically recalculated when you lock columns:
 
 ``` r
-
 # Check current setting
 tfl_get_option("autoColWidth")  # TRUE by default
 
@@ -98,7 +96,6 @@ tfl_set_options(autoColWidth = TRUE)
 When you set `colWidth` for a column, it becomes LOCKED:
 
 ``` r
-
 # Lock the 'id' column at 15%
 spec <- create_table(data) |>
   define_cols(id, colWidth = "15%")
@@ -114,7 +111,6 @@ You can lock multiple columns; unlocked columns fill the remaining
 space:
 
 ``` r
-
 spec <- create_table(data) |>
   define_cols(id, colWidth = "10%") |>           # Lock at 10%
   define_cols(patient_id, colWidth = "20%") |>   # Lock at 20%
@@ -132,7 +128,6 @@ spec <- create_table(data) |>
 You can mix percentage widths with absolute units:
 
 ``` r
-
 spec <- create_table(data) |>
   define_cols(id, colWidth = "2.5cm") |>      # Fixed width (doesn't reduce % space)
   define_cols(patient_id, colWidth = "20%")   # Takes 20% of available
@@ -160,7 +155,6 @@ When `autoColWidth = TRUE` and you lock a column, ksTFL:
 ### Example Walkthrough
 
 ``` r
-
 # Initial auto-distribution (example values):
 # id: 15%, patient_id: 25%, age: 20%, weight_kg: 20%, treatment_group: 20%
 
@@ -191,7 +185,6 @@ This guarantees valid output while maintaining proportions.
 Use `isVisible = FALSE` to hide columns from output:
 
 ``` r
-
 spec <- create_table(data) |>
   define_cols(id, isVisible = FALSE)
 
@@ -205,7 +198,6 @@ spec <- create_table(data) |>
 **You cannot set `colWidth` for invisible columns:**
 
 ``` r
-
 # This will error:
 spec <- create_table(data) |>
   define_cols(id, isVisible = FALSE, colWidth = "15%")
@@ -222,7 +214,6 @@ contradictory.
 Invisible columns are perfect for conditional formatting:
 
 ``` r
-
 spec <- create_table(data) |>
   # Hide the flag column but keep data available
   define_cols(patient_id, isVisible = FALSE) |>
@@ -240,7 +231,6 @@ spec <- create_table(data) |>
 For complete manual control:
 
 ``` r
-
 # Disable auto-recalculation
 tfl_set_options(autoColWidth = FALSE)
 
@@ -274,7 +264,6 @@ ksTFL enforces minimum widths to prevent unreadable columns:
 **Absolute widths (cm, in, mm, pt):** - Minimum: 0.2cm (~0.08in)
 
 ``` r
-
 # This will error:
 spec <- create_table(data) |>
   define_cols(id, colWidth = "0.1%")  # Below 0.5% minimum
@@ -288,7 +277,6 @@ ksTFL prevents you from locking widths that leave insufficient space for
 other columns:
 
 ``` r
-
 # 5 columns with minColWidth = 0.5% (default)
 # Minimum space needed for 4 unlocked columns: 4 × 0.5% = 2%
 
@@ -306,7 +294,6 @@ spec <- create_table(data) |>
 You can customize the minimum width threshold:
 
 ``` r
-
 # Allow tighter columns (use with caution)
 tfl_set_options(minColWidth = 0.3)
 
@@ -323,7 +310,6 @@ tfl_set_options(minColWidth = 0.5)
 ### Pattern 1: ID Column + Auto Widths
 
 ``` r
-
 spec <- create_table(data) |>
   define_cols(id, colWidth = "8%", isID = TRUE) |>
   define_cols(patient_id, colWidth = "15%")
@@ -334,7 +320,6 @@ spec <- create_table(data) |>
 ### Pattern 2: Fixed-Width Text + Flex Numeric
 
 ``` r
-
 spec <- create_table(data) |>
   define_cols(
     c(id, patient_id, treatment_group),
@@ -346,7 +331,6 @@ spec <- create_table(data) |>
 ### Pattern 3: All Manual Widths
 
 ``` r
-
 tfl_set_options(autoColWidth = FALSE)
 
 spec <- create_table(data) |>
@@ -361,7 +345,6 @@ tfl_set_options(autoColWidth = TRUE)
 ### Pattern 4: Progressive Locking
 
 ``` r
-
 # Lock columns one at a time, observing effects
 spec <- create_table(data)
 print(spec)  # See initial distribution
