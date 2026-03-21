@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,7 +53,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-03-19</h4>
+            <h4 data-toc-skip class="date">2026-03-21</h4>
       
 
       <div class="d-none name"><code>Advanced_StyleRows.Rmd</code></div>
@@ -143,7 +143,8 @@ references are resolved when the report structure is complete</li>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Result:</strong> Rows where <code>response == "CR"</code>
 show green bold text; rows where <code>response == "PD"</code> show red
-bold text.</p>
+bold text:</p>
+<p><img src="images/style-conditional-green-red-response.png"></p>
 </div>
 <div class="section level3">
 <h3 id="c_merge-conditional-cell-merging">
@@ -167,11 +168,12 @@ bold text.</p>
 <code>group</code>, their <code>group</code> and <code>visit</code>
 cells merge, displaying the merged content in the <code>group</code>
 column.</p>
+<p><img src="images/merge-group-visit-cells.png"></p>
 <p><strong>Note:</strong> The <code>cols</code> argument to
 <code><a href="../reference/c_merge.html">c_merge()</a></code> must resolve to at least two
 <strong>consecutive</strong> columns in the final report column order.
-The value shown in the merged cell is taken from the first column in the
-<code>cols</code> sequence.</p>
+The value shown in the merged cell is taken <strong>from the
+first</strong> column in the <code>cols</code> sequence.</p>
 </div>
 <div class="section level3">
 <h3 id="c_addrow-conditional-row-insertion">
@@ -188,6 +190,7 @@ The value shown in the merged cell is taken from the first column in the
 each new group. To copy a single column’s value into the inserted row
 use <code>value_from</code> (see later examples). Use
 <code>pos = "below"</code> to insert after the matching row instead.</p>
+<p><img src="images/addrow-separator-above-groups.png"></p>
 </div>
 <div class="section level3">
 <h3 id="c_pagebreak-conditional-page-break">
@@ -202,7 +205,8 @@ new page when a logical grouping or large block ends.</p>
 <span>    <span class="fu"><a href="../reference/c_pageBreak.html">c_pageBreak</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Result:</strong> The renderer will start a new page at rows
-matching the condition.</p>
+matching the condition:</p>
+<p><img src="images/pagebreak-at-group-start.png"></p>
 </div>
 </div>
 <div class="section level2">
@@ -230,7 +234,7 @@ access</li>
 <blockquote>
 <p><strong>Important</strong>: These helper functions are only available
 inside the <code>cond</code> argument of <code><a href="../reference/compute_cols.html">compute_cols()</a></code>.
-They are <strong>not</strong> standalone exported functions — you cannot
+<strong>They are not standalone exported functions</strong> — you cannot
 call them outside of <code><a href="../reference/compute_cols.html">compute_cols()</a></code>.</p>
 </blockquote>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -238,8 +242,9 @@ call them outside of <code><a href="../reference/compute_cols.html">compute_cols
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span> <span class="op">&amp;</span> <span class="va">response</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CR"</span>, <span class="st">"PR"</span><span class="op">)</span>,  <span class="co"># Multi-column condition</span></span>
-<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">response</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"elderly_responder"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">response</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">'b'</span>, <span class="st">'bg_mint'</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/style-multi-column-conditional.png" width="316"></p>
 </div>
 <div class="section level3">
 <h3 id="available-helper-functions">Available Helper Functions<a class="anchor" aria-label="anchor" href="#available-helper-functions"></a>
@@ -325,6 +330,7 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="va">cholesterol</span> <span class="op">&gt;</span> <span class="fl">240</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">cholesterol</span>, styleRef <span class="op">=</span> <span class="st">"out_of_range"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/style-out-of-range-highlight.png"></p>
 </div>
 <div class="section level3">
 <h3 id="conditional-styling-with-complex-logic">Conditional Styling with Complex Logic<a class="anchor" aria-label="anchor" href="#conditional-styling-with-complex-logic"></a>
@@ -336,9 +342,10 @@ logical vector marking first row of every n-th block defined by
 <span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#8B0000"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#FFEBCD"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">70</span> <span class="op">&amp;</span> <span class="va">response</span> <span class="op">==</span> <span class="st">"PD"</span>,</span>
+<span>    <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">60</span> <span class="op">&amp;</span> <span class="va">response</span> <span class="op">==</span> <span class="st">"PD"</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">patient</span>, <span class="va">age</span>, <span class="va">response</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"critical_senior"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/style-critical-senior-age.png"></p>
 </div>
 <div class="section level3">
 <h3 id="row-level-styling">Row-Level Styling<a class="anchor" aria-label="anchor" href="#row-level-styling"></a>
@@ -352,6 +359,7 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="fu">rowNumber</span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">0</span>,  <span class="co"># Even rows</span></span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu">everything</span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"alternate_row"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/style-alternating-row-colors.png"></p>
 </div>
 </div>
 <div class="section level2">
@@ -380,25 +388,17 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">study</span>, <span class="va">phase</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">phase</span>, <span class="va">site</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/merge-multi-column-grouping.png"></p>
 </div>
 <div class="section level3">
 <h3 id="conditional-display-column-content">Conditional Display Column Content<a class="anchor" aria-label="anchor" href="#conditional-display-column-content"></a>
 </h3>
-<p>Merge cells based on grouping:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_groups</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span></span>
-<span>      <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group</span>, <span class="va">visit</span><span class="op">)</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="merging-with-styling">Merging with Styling<a class="anchor" aria-label="anchor" href="#merging-with-styling"></a>
 </h3>
 <p>Combine merging with conditional styles:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_nested</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"merged_header"</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
@@ -411,6 +411,7 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">study</span><span class="op">)</span>,  <span class="co"># First row of group</span></span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">study</span>, styleRef <span class="op">=</span> <span class="st">"merged_header"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/merge-with-styling.png"></p>
 </div>
 </div>
 <div class="section level2">
@@ -420,51 +421,102 @@ logical vector marking first row of every n-th block defined by
 <h3 id="summary-rows">Summary Rows<a class="anchor" aria-label="anchor" href="#summary-rows"></a>
 </h3>
 <p>Insert calculated summary rows:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_sales</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"North"</span>, <span class="st">"South"</span>, <span class="st">"South"</span>, <span class="st">"West"</span>, <span class="st">"West"</span><span class="op">)</span>,</span>
 <span>  product <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  revenue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">200</span>, <span class="fl">120</span>, <span class="fl">180</span>, <span class="fl">160</span><span class="op">)</span></span>
+<span>  revenue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">200</span>, <span class="fl">120</span>, <span class="fl">180</span>, <span class="fl">160</span><span class="op">)</span>,</span>
+<span>  total <span class="op">=</span>   <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">250</span>, <span class="fl">320</span>, <span class="fl">320</span>, <span class="fl">340</span>, <span class="fl">340</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"summary_row"</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#D3D3D3"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># we do not need the `total` column itself - set to invisible</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">total</span>, isVisible <span class="op">=</span> <span class="cn">F</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">lastOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span>,  <span class="co"># Last row of each region</span></span>
-<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span>, styleRef <span class="op">=</span> <span class="st">"summary_row"</span><span class="op">)</span>  <span class="co"># Insert empty subtotal row</span></span>
+<span>    <span class="co"># Insert subtotal row</span></span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span>, </span>
+<span>             value_from <span class="op">=</span> <span class="va">total</span>, <span class="co">#value from total column</span></span>
+<span>             styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"summary_row"</span>, <span class="st">'ar'</span><span class="op">)</span><span class="op">)</span>  </span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/addrow-summary-subtotals.png"></p>
 </div>
 <div class="section level3">
 <h3 id="header-rows">Header Rows<a class="anchor" aria-label="anchor" href="#header-rows"></a>
 </h3>
-<p>Insert section headers:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<p>Insert section (group) headers to make a stub:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">data_sales</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"North"</span>, <span class="st">"South"</span>, <span class="st">"South"</span>, <span class="st">"West"</span>, <span class="st">"West"</span><span class="op">)</span>,</span>
+<span>  product <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gas"</span>, <span class="st">"Oil"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  revenue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">200</span>, <span class="fl">120</span>, <span class="fl">180</span>, <span class="fl">160</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Custom style just for fun</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"section_header"</span>,</span>
-<span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"12pt"</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"10pt"</span>, color <span class="op">=</span> <span class="st">'#FFFFFF'</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#4682B4"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># If you want a header text inserted, precompute a helper column and use</span></span>
-<span>  <span class="co"># `value_from` to copy that single column into the inserted row. Here we</span></span>
-<span>  <span class="co"># demonstrate an empty styled header row.</span></span>
+<span>  <span class="co"># Hide the `region` column as we want to use its value as heading</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">region</span>, isVisible <span class="op">=</span> <span class="cn">F</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Add column labels:</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">product</span>, <span class="va">revenue</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Region&lt;br&gt;  Product'</span>, <span class="st">'Revenue&lt;br&gt;(Million of $)'</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Use embedded indent style to indent the `product` value in a column</span></span>
+<span>    valueStyleRef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'indent_1'</span>, <span class="cn">NA</span><span class="op">)</span> <span class="co"># NA here means we are not using any style for `revenue`</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Use `c_addrow` to add a line with the value from `region` column</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span>,  <span class="co"># First row of each new region</span></span>
-<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>, styleRef <span class="op">=</span> <span class="st">"section_header"</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>, </span>
+<span>             value_from <span class="op">=</span> <span class="va">region</span>,</span>
+<span>             styleRef <span class="op">=</span> <span class="st">"section_header"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="conditional-row-insertion-logic">Conditional Row Insertion Logic<a class="anchor" aria-label="anchor" href="#conditional-row-insertion-logic"></a>
-</h3>
-<p>Insert rows only when specific conditions are met:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<p><img src="images/addrow-header-from-column.png"></p>
+<p>More complex example with two-level indents:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">data_sales</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"North"</span>, <span class="st">"North"</span>, <span class="st">"South"</span>, <span class="st">"South"</span>, <span class="st">"South"</span>, <span class="st">"West"</span>, <span class="st">"West"</span>, <span class="st">"West"</span><span class="op">)</span>, </span>
+<span>  product <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Total"</span>,<span class="st">"Gas"</span>, <span class="st">"Oil"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  revenue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">320</span>, <span class="fl">200</span>, <span class="fl">120</span>, <span class="fl">340</span>, <span class="fl">180</span>, <span class="fl">160</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Hide the `region` column as we want to use its value as heading</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">region</span>, isVisible <span class="op">=</span> <span class="cn">F</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Add column labels:</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">product</span>, <span class="va">revenue</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Region&lt;br&gt;    Product'</span>, <span class="st">'Revenue&lt;br&gt;(Million of $)'</span><span class="op">)</span>,</span>
+<span>    <span class="co"># Use embedded indent style to indent the `product` value in a column</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Use `c_addrow` to add a line with the value from `region` column</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="va">revenue</span> <span class="op">&gt;</span> <span class="fl">150</span> <span class="op">&amp;</span> <span class="va">product</span> <span class="op">==</span> <span class="st">"A"</span>,  <span class="co"># Only for high-revenue product A</span></span>
-<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span></span>
-<span>      pos <span class="op">=</span> <span class="st">"below"</span>  <span class="co"># Insert an empty marker row below high-performance rows</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span>,  <span class="co"># First row of each new region</span></span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>,  </span>
+<span>             value_from <span class="op">=</span> <span class="va">region</span>,</span>
+<span>             styleRef <span class="op">=</span> <span class="st">'b'</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># the `Total` value will be indented 0.5cm</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="va">product</span> <span class="op">==</span> <span class="st">'Total'</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">product</span>, <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">'i'</span>, <span class="st">'indent_1'</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">revenue</span>, <span class="st">'i'</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Other values ('Gas', 'Oil') will be indented by 1cm</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="va">product</span> <span class="op">!=</span> <span class="st">'Total'</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">product</span>, <span class="st">'indent_2'</span><span class="op">)</span> </span>
+<span>  <span class="op">)</span> </span></code></pre></div>
+<p>As a result we are getting two-level stub:</p>
+<p><img src="images/addrow-two-level-stub-indent.png"></p>
 </div>
 </div>
 <div class="section level2">
@@ -475,19 +527,21 @@ logical vector marking first row of every n-th block defined by
 value to the display text of matching cells — useful for appending
 units, prefixing markers, or building composite labels without creating
 extra columns.</p>
-<p><strong>Parameters:</strong> - <code>cols</code>: columns to modify
-(tidyselect) - <code>position</code>: <code>"before"</code> or
-<code>"after"</code> — where to attach the text - <code>glue_col</code>:
-name of a data column whose value to attach (mutually exclusive with
-<code>text</code>) - <code>text</code>: a literal string to attach
-(mutually exclusive with <code>glue_col</code>) -
-<code>separator</code>: string inserted between original value and the
-glued text (default <code>""</code>)</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<p><strong>Parameters:</strong></p>
+<p>- <code>cols</code>: columns to modify (tidyselect)</p>
+<p>- <code>position</code>: <code>"before"</code> or
+<code>"after"</code> — where to attach the text</p>
+<p>- <code>glue_col</code>: name of a data column whose value to attach
+(mutually exclusive with <code>text</code>)</p>
+<p>- <code>text</code>: a literal string to attach (mutually exclusive
+with <code>glue_col</code>)</p>
+<p>- <code>separator</code>: string inserted between original value and
+the glued text (default <code>NULL</code>)</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_units</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Hemoglobin"</span>, <span class="st">"Glucose"</span>, <span class="st">"Cholesterol"</span><span class="op">)</span>,</span>
-<span>  value     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">13.5</span>, <span class="fl">95.0</span>, <span class="fl">200.0</span><span class="op">)</span>,</span>
-<span>  unit      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"g/dL"</span>, <span class="st">"mg/dL"</span>, <span class="st">"mg/dL"</span><span class="op">)</span></span>
+<span>  value     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">13.5</span>,          <span class="fl">95.0</span>,      <span class="fl">200.0</span><span class="op">)</span>,</span>
+<span>  unit      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"g/dL"</span>,        <span class="st">"mg/dL"</span>,   <span class="st">"mg/dL"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_units</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -498,13 +552,7 @@ glued text (default <code>""</code>)</p>
 <span>    <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">value</span>, position <span class="op">=</span> <span class="st">"after"</span>, glue_col <span class="op">=</span> <span class="va">unit</span>, separator <span class="op">=</span> <span class="st">" "</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Prefix a marker to total rows using a literal string</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="fu">lastOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">region</span>, position <span class="op">=</span> <span class="st">"before"</span>, text <span class="op">=</span> <span class="st">"Total: "</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/glue-append-units.png"></p>
 <p><code><a href="../reference/c_glue.html">c_glue()</a></code> is fully compatible with <code><a href="../reference/c_style.html">c_style()</a></code>
 and <code><a href="../reference/c_merge.html">c_merge()</a></code> in the same <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
 call.</p>
@@ -516,9 +564,9 @@ call.</p>
 </h2>
 <p><code><a href="../reference/c_clear.html">c_clear()</a></code> renders specified cells as empty (blank) in
 matching rows without removing the column or affecting layout. Useful
-for deduplication — showing a group label only on its first row and
-blanking it on subsequent rows.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+for conditional deduplication, when a <code>dedupe</code> parameter of
+<code>define_col()</code> is not enough.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  group  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Treatment A"</span>, <span class="st">"Treatment A"</span>, <span class="st">"Treatment A"</span>, <span class="st">"Placebo"</span>, <span class="st">"Placebo"</span><span class="op">)</span>,</span>
 <span>  visit  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Week 0"</span>, <span class="st">"Week 4"</span>, <span class="st">"Week 8"</span>, <span class="st">"Week 0"</span>, <span class="st">"Week 4"</span><span class="op">)</span>,</span>
@@ -531,59 +579,59 @@ blanking it on subsequent rows.</p>
 <span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_clear.html">c_clear</a></span><span class="op">(</span><span class="va">group</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="images/clear-blank-cells.png"></p>
 <p><strong>Note:</strong> <code><a href="../reference/c_clear.html">c_clear()</a></code> only affects the
 rendered display text. The underlying data value is still available for
 conditions in other <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="combining-actions">Combining Actions<a class="anchor" aria-label="anchor" href="#combining-actions"></a>
+<h2 id="combining-actions-together">Combining Actions Together<a class="anchor" aria-label="anchor" href="#combining-actions-together"></a>
 </h2>
-<div class="section level3">
-<h3 id="sequential-actions">Sequential Actions<a class="anchor" aria-label="anchor" href="#sequential-actions"></a>
-</h3>
-<p>Chain multiple <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls for layered
-effects:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># Step 1: Add summary rows</span></span>
+<p>Chain multiple <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls and <code>c_*</code>
+actions to build a fully formatted table:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">data_sales</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"North"</span>, <span class="st">"North"</span>, </span>
+<span>             <span class="st">"South"</span>, <span class="st">"South"</span>, <span class="st">"South"</span>, </span>
+<span>             <span class="st">"West"</span>, <span class="st">"West"</span>, <span class="st">"West"</span><span class="op">)</span>,</span>
+<span>  product <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Oil"</span>, <span class="st">"Gas"</span>, <span class="st">"TOTAL"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  revenue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">250</span>, <span class="fl">200</span>, <span class="fl">120</span>, <span class="fl">320</span>, <span class="fl">180</span>, <span class="fl">160</span>, <span class="fl">340</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"section_header"</span>,</span>
+<span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"11pt"</span>, color <span class="op">=</span> <span class="st">'#FFFFFF'</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#4682B4"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Make Region invisible, since we want to make it as header row</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">region</span>, isVisible <span class="op">=</span> <span class="cn">F</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Define column labels</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">product</span>, <span class="va">revenue</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Product'</span>, <span class="st">'Revenue&lt;br&gt;(Million of $)'</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># Make a header row from the `region` value</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="fu">lastOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># Step 2: Style summary rows</span></span>
-<span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"bold_summary"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span>,  <span class="co"># First row of each new region</span></span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>, </span>
+<span>             value_from <span class="op">=</span> <span class="va">region</span>,</span>
+<span>             styleRef <span class="op">=</span> <span class="st">"section_header"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="co"># Create a summary row for `Total` value</span></span>
+<span>  <span class="co"># Note here how a consecutive calls to `c_*` atomic functions produce final result</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Total$"</span>, <span class="va">region</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">region</span>, styleRef <span class="op">=</span> <span class="st">"bold_summary"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># Step 3: Merge region cells (exclude summary rows)</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Total$"</span>, <span class="va">region</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">region</span>, <span class="va">product</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="multiple-actions-in-one-compute_cols">Multiple Actions in One <code>compute_cols()</code><a class="anchor" aria-label="anchor" href="#multiple-actions-in-one-compute_cols"></a>
-</h3>
-<p><code><a href="../reference/compute_cols.html">compute_cols()</a></code> accepts multiple action functions in a
-single call via <code>...</code>. All actions are applied to every row
-matching the condition:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># Apply style AND insert separator row in one call</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group</span>, <span class="va">value</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"group_header"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span></code></pre></div>
-<p>For independent conditions, use separate <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
-calls:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">65</span>,              <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>,     styleRef <span class="op">=</span> <span class="st">"elderly"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">patient</span><span class="op">)</span>,      <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">patient</span>, styleRef <span class="op">=</span> <span class="st">"first_row"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-</div>
+<span>    <span class="va">product</span> <span class="op">==</span> <span class="st">'TOTAL'</span>,</span>
+<span>    <span class="co"># merge `product` and `revenue` to a single column (the value became value from `product`)</span></span>
+<span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">product</span>, <span class="va">revenue</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">'b'</span>,<span class="st">'i'</span>,<span class="st">'bt_th'</span>,<span class="st">'ar'</span><span class="op">)</span><span class="op">)</span>, </span>
+<span>    <span class="co"># clear the value, since we want to rebuild it:</span></span>
+<span>    <span class="fu"><a href="../reference/c_clear.html">c_clear</a></span><span class="op">(</span><span class="va">product</span><span class="op">)</span>,</span>
+<span>    <span class="co"># take the value of `region` to the merged cells..</span></span>
+<span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">product</span>, <span class="st">'after'</span>, <span class="va">region</span><span class="op">)</span>,</span>
+<span>    <span class="co"># add the word 'total' ...</span></span>
+<span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">product</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">' total: '</span><span class="op">)</span>,</span>
+<span>    <span class="co"># and add the value for `revenue` column to get the final string</span></span>
+<span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">product</span>, <span class="st">'after'</span>, <span class="va">revenue</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> </span></code></pre></div>
+<p>Here we can see how a simple planar data frame:</p>
+<p><img src="images/data-simple-planar-dataframe.png"></p>
+<p>become a production ready table:<br><img src="images/result-production-ready-table.png"></p>
 </div>
 <div class="section level2">
 <h2 id="performance-tips">Performance Tips<a class="anchor" aria-label="anchor" href="#performance-tips"></a>
@@ -593,7 +641,7 @@ calls:</p>
 </h3>
 <p>Each call adds evaluation overhead. Combine conditions when
 possible:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ Less efficient:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&lt;</span> <span class="fl">30</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"young"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -624,7 +672,7 @@ possible:</p>
 <h3 id="use-vectorized-conditions">2. Use Vectorized Conditions<a class="anchor" aria-label="anchor" href="#use-vectorized-conditions"></a>
 </h3>
 <p>Avoid row-by-row operations in custom functions:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ Slower (scalar logic):</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -644,7 +692,7 @@ possible:</p>
 </h3>
 <p>If conditions apply to a small subset, consider filtering data
 upfront:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># If only 5% of rows need special formatting:</span></span>
 <span><span class="co"># Consider creating separate tables and combining in report</span></span>
 <span></span>
@@ -665,7 +713,7 @@ upfront:</p>
 </h3>
 <p>ksTFL automatically consolidates identical styles, but you can help
 by reusing style references:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ✅ Define once, use many times:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"critical"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#FF0000"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -686,7 +734,7 @@ by reusing style references:</p>
 <h3 id="viewing-captured-actions">Viewing Captured Actions<a class="anchor" aria-label="anchor" href="#viewing-captured-actions"></a>
 </h3>
 <p>Inspect what <code><a href="../reference/compute_cols.html">compute_cols()</a></code> has stored:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>,</span>
@@ -701,7 +749,7 @@ by reusing style references:</p>
 <h3 id="testing-conditions-manually">Testing Conditions Manually<a class="anchor" aria-label="anchor" href="#testing-conditions-manually"></a>
 </h3>
 <p>Test conditions on your data frame before adding to spec:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Test your condition directly on the data before passing to compute_cols()</span></span>
 <span><span class="va">test_condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">test_condition</span><span class="op">)</span>   <span class="co"># How many rows match?</span></span>
@@ -716,7 +764,7 @@ by reusing style references:</p>
 </h3>
 <p>Add <code><a href="../reference/compute_cols.html">compute_cols()</a></code> one at a time and inspect
 results:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Add first action</span></span>
@@ -736,7 +784,7 @@ results:</p>
 <div class="section level3">
 <h3 id="pattern-1-alternating-row-colors">Pattern 1: Alternating Row Colors<a class="anchor" aria-label="anchor" href="#pattern-1-alternating-row-colors"></a>
 </h3>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"gray_bg"</span>, <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#F5F5F5"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -747,7 +795,7 @@ results:</p>
 <div class="section level3">
 <h3 id="pattern-2-grouped-section-headers-with-merging">Pattern 2: Grouped Section Headers with Merging<a class="anchor" aria-label="anchor" href="#pattern-2-grouped-section-headers-with-merging"></a>
 </h3>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_groups</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"group_header"</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"11pt"</span><span class="op">)</span>,</span>
@@ -766,7 +814,7 @@ results:</p>
 <div class="section level3">
 <h3 id="pattern-3-conditional-highlighting-with-thresholds">Pattern 3: Conditional Highlighting with Thresholds<a class="anchor" aria-label="anchor" href="#pattern-3-conditional-highlighting-with-thresholds"></a>
 </h3>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_lab</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"low"</span>,    <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#0000FF"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"normal"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#008000"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -787,7 +835,7 @@ results:</p>
 <div class="section level3">
 <h3 id="pattern-4-summary-rows-with-totals">Pattern 4: Summary Rows with Totals<a class="anchor" aria-label="anchor" href="#pattern-4-summary-rows-with-totals"></a>
 </h3>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"total_row"</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
@@ -806,7 +854,7 @@ results:</p>
 </h3>
 <p>You can’t use <code><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum()</a></code>, <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>, etc. directly
 in conditions:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ This won't work as expected:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -814,7 +862,7 @@ in conditions:</p>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"above_average"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Workaround:</strong> Pre-calculate and add as a column:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span><span class="op">$</span><span class="va">age_above_avg</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">age</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -827,7 +875,7 @@ in conditions:</p>
 <h3 id="limitation-2-no-nested-c_-functions">Limitation 2: No Nested <code>c_*()</code> Functions<a class="anchor" aria-label="anchor" href="#limitation-2-no-nested-c_-functions"></a>
 </h3>
 <p>You can’t nest action functions:</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ This is invalid:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -836,7 +884,7 @@ in conditions:</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Workaround:</strong> Use separate <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
 calls:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"elderly"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">patient</span>, <span class="va">age</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -845,13 +893,13 @@ calls:</p>
 <h3 id="limitation-3-style-references-must-exist">Limitation 3: Style References Must Exist<a class="anchor" aria-label="anchor" href="#limitation-3-style-references-must-exist"></a>
 </h3>
 <p><code>styleRef</code> must reference a previously defined style:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ This will error at evaluation time:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"undefined_style"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Workaround:</strong> Always define styles before using
 them:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"elderly"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="co"># Define first</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"elderly"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -864,7 +912,7 @@ them:</p>
 <h3 id="using-with-define_cols">Using with <code>define_cols()</code><a class="anchor" aria-label="anchor" href="#using-with-define_cols"></a>
 </h3>
 <p><code><a href="../reference/compute_cols.html">compute_cols()</a></code> works alongside column definitions:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">age</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"0.0"</span>, colWidth <span class="op">=</span> <span class="st">"15%"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -876,7 +924,7 @@ them:</p>
 <h3 id="using-with-invisible-columns">Using with Invisible Columns<a class="anchor" aria-label="anchor" href="#using-with-invisible-columns"></a>
 </h3>
 <p>Reference invisible columns in conditions:</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span><span class="op">$</span><span class="va">flag</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -890,7 +938,7 @@ them:</p>
 <h3 id="using-in-multi-spec-reports">Using in Multi-Spec Reports<a class="anchor" aria-label="anchor" href="#using-in-multi-spec-reports"></a>
 </h3>
 <p>Each spec can have independent <code><a href="../reference/compute_cols.html">compute_cols()</a></code> logic:</p>
-<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"elderly"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"elderly"</span><span class="op">)</span><span class="op">)</span></span>

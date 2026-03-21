@@ -121,18 +121,18 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)
 
 Each `TFL_spec` contains:
 
-| Component       | Purpose                                     | How to modify                        |
-| --------------- | ------------------------------------------- | ------------------------------------ |
-| **document**    | Metadata (docType, title, page settings)    | `set_document()`, `set_page_style()` |
-| **columns**     | Column definitions, labels, formats, styles | `define_cols()`                      |
-| **stubColumns** | Spanning headers above column groups        | `add_span_header()`                  |
-| **headers**     | Page header text (left/center/right)        | `add_header()`                       |
-| **titles**      | Main document titles                        | `add_title()`                        |
-| **subtitles**   | Secondary titles                            | `add_subtitle()`                     |
-| **bodyText**    | Narrative content                           | `add_body_text()`                    |
-| **footnotes**   | Document footnotes                          | `add_footnote()`                     |
-| **footers**     | Page footer text                            | `add_footer()`                       |
-| **styles**      | Named styles defined with `add_style()`     | `add_style()`                        |
+| Component | Purpose | How to modify |
+|----|----|----|
+| **document** | Metadata (docType, title, page settings) | `set_document()`, `set_page_style()` |
+| **columns** | Column definitions, labels, formats, styles | `define_cols()` |
+| **stubColumns** | Spanning headers above column groups | `add_span_header()` |
+| **headers** | Page header text (left/center/right) | `add_header()` |
+| **titles** | Main document titles | `add_title()` |
+| **subtitles** | Secondary titles | `add_subtitle()` |
+| **bodyText** | Narrative content | `add_body_text()` |
+| **footnotes** | Document footnotes | `add_footnote()` |
+| **footers** | Page footer text | `add_footer()` |
+| **styles** | Named styles defined with `add_style()` | `add_style()` |
 
 ------------------------------------------------------------------------
 
@@ -155,11 +155,10 @@ spec <- define_cols(spec, c(mpg, cyl, hp),
   label = c("MPG", "Cylinders", "HP"),
   type = c("numeric", "numeric", "numeric"),
   format = c("%.1f", "%.0f", "%.0f"),
-  labelStyleRef = "header_bold")
-
-# 4. Add titles
-spec <- add_title(spec, "Motor Trends Dataset")
-spec <- add_footnote(spec, "Data from mtcars (1974).")
+  labelStyleRef = "header_bold") |>
+# 4. Add titles and footnotes
+add_title("Motor Trends Dataset") |>
+add_footnote("Data from mtcars (1974).")
 
 # 5. Inspect the spec
 print(spec)
@@ -186,10 +185,44 @@ spec_tbl <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
 
 ```
 
-**What happens**: - Data is shadow-copied into the spec's internal
-environment (not modifiable) - Columns are auto-analyzed (type
-detection, width calculation) - A `TFL_spec` object is returned ready
-for customization
+**What happens**:
+
+\- Data is shadow-copied into the spec's internal environment (not
+modifiable)
+
+\- Columns are auto-analyzed (type detection, width calculation)
+
+\- A `TFL_spec` object is returned ready for customization
+
+**Understanding the `cols` parameter**:
+
+The `cols` argument controls which columns appear in the rendered
+document and in what order — it does **not** filter or mutate the input
+data frame. Think of it as a *presentation lens*: the full dataset is
+still stored inside the spec, but only the columns listed in `cols` are
+emitted to the final report.
+
+This distinction matters when you use `compute_cols()` later in the
+pipeline. Because the original data frame is preserved intact,
+`compute_cols()` conditions can reference **any** column in the data —
+including columns that are **not** listed in `cols` and will never
+appear in the output. For example, you might exclude a `flag` column
+from the report but still use it to drive conditional styling:
+
+```{r cols_concept, eval = FALSE}
+# Only age, sex, trt go to the document; flag stays hidden
+spec <- create_table(demog, cols = c(age, sex, trt))
+
+# But flag is still available for conditional logic
+spec <- compute_cols(spec, trt,
+  c_style("highlight"),
+  when = flag == "Y")
+```
+
+The order in which columns are passed to `cols` also determines their
+left-to-right order in the rendered table, so `cols` doubles as a
+convenient column-reordering mechanism — no need to rearrange the
+underlying data frame.
 
 ### Figure spec (from image file)
 
@@ -208,14 +241,19 @@ spec_fig <- create_figure(p, dpi = 150L) # custom resolution (dpi)
 # spec_fig <- create_figure(p)
 ```
 
-**What happens**: - If a **file path** is given: it is validated (must
-exist and be readable); the file is used as-is - If a **ggplot2 object**
-is given: rendered via `ggplot2::ggsave()` to `tempdir()` using package
-defaults (`figureWidth`, `figureHeight`, `figureDevice`); the resulting
-path is stored in the spec - The `dpi` parameter applies when a ggplot2
-object is passed; width/height/device are configured through package
-options - The image file is copied to `metaPath` when the report is
-saved
+**What happens**:
+
+\- If a **file path** is given: it is validated (must exist and be
+readable); the file is used as-is
+
+\- If a **ggplot2 object** is given: rendered via `ggplot2::ggsave()` to
+`tempdir()` using package defaults (`figureWidth`, `figureHeight`,
+`figureDevice`); the resulting path is stored in the spec
+
+\- The `dpi` parameter applies when a ggplot2 object is passed;
+width/height/device are configured through package options
+
+\- The image file is copied to `metaPath` when the report is saved
 
 ### Text spec (narrative content)
 
@@ -593,12 +631,12 @@ groups - **Merge columns**: Create group headers by merging columns -
 
 **Key action functions** (used inside `compute_cols()`):
 
-| Function                                            | Purpose                                           | Example                                       |
-| --------------------------------------------------- | ------------------------------------------------- | --------------------------------------------- |
-| `c_style(cols, styleRef)`                           | Apply style to columns in matching rows           | `c_style(c(mpg, hp), styleRef = "bold")`      |
-| `c_merge(cols, styleRef = NULL)`                    | Merge adjacent columns                            | `c_merge(c(col1, col2), styleRef = "header")` |
-| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below                            | `c_addrow(pos = "above")` for empty separator |
-| `c_pageBreak()`                                     | Insert a page break at the matching row (no args) | `c_pageBreak()`                               |
+| Function | Purpose | Example |
+|----|----|----|
+| `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
+| `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
+| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
+| `c_pageBreak()` | Insert a page break at the matching row (no args) | `c_pageBreak()` |
 
 **Condition syntax**:
 
@@ -910,15 +948,92 @@ report <- create_report(spec) |>  write_doc('demographics')
 
 ## Key gotchas and tips
 
-| Gotcha                                              | Solution                                                                            |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| **Calling s\_\* helpers outside add_style()**       | Always use s\_\* inside `add_style()` — they validate context                       |
-| **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns                              |
-| **Styles from f_combine() not consolidated**        | Call `create_report()` before `write_doc()`                                         |
-| **Multiple add_header() calls stack**               | Each call **appends** a new header level; use `level =` to replace a specific level |
-| **Figure file not found**                           | Check path is absolute or relative to current working directory                     |
-| **create_text() does not accept data**              | `create_text()` takes no arguments — add content via `add_body_text()`              |
-| **Overlapping stubs at same stubOrder**             | Error; use different `stubOrder` or non-overlapping column sets                     |
+| Gotcha | Solution |
+|----|----|
+| **Calling s\_\* helpers outside add_style()** | Always use s\_\* inside `add_style()` — they validate context |
+| **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
+| **Styles from f_combine() not consolidated** | Call `create_report()` before `write_doc()` |
+| **Multiple add_header() calls stack** | Each call **appends** a new header level; use `level =` to replace a specific level |
+| **Figure file not found** | Check path is absolute or relative to current working directory |
+| **create_text() does not accept data** | `create_text()` takes no arguments — add content via `add_body_text()` |
+| **Overlapping stubs at same stubOrder** | Error; use different `stubOrder` or non-overlapping column sets |
+
+------------------------------------------------------------------------
+
+## RStudio Addins
+
+ksTFL ships with five RStudio Addins (available from the **Addins**
+drop-down in the RStudio toolbar). They provide interactive shortcuts
+for tasks that would otherwise require remembering function names or
+switching to the console.
+
+### Styles Editor
+
+Launches a Shiny application for creating and editing style templates
+interactively. You can load any bundled template from
+`tfl_list_templates()`, modify fonts, borders, spacing, and colours in a
+WYSIWYG editor, then download the result as a JSON file ready for use
+with `set_page_style()` or `write_doc()`. This is especially useful when
+you need to fine-tune a template visually rather than writing `s_font()`
+/ `s_paragraph()` / `s_table_style()` calls by hand.
+
+Requires the `shiny` package.
+
+```{r addin_styles_editor, eval = FALSE}
+# Equivalent programmatic call:
+run_styles_editor()
+```
+
+### Replay Reports
+
+Opens a Shiny application for selecting, reordering, and combining
+previously saved reports into a single DOCX document. You point the app
+at one or more meta-data folders (produced by `save_report()` or
+`write_doc()`), drag-and-drop reports into the desired order, optionally
+enable a table of contents, and render the combined output — all without
+writing any R code.
+
+Requires `shiny`, `sortable`, and `shinyFiles` packages.
+
+```{r addin_replay_app, eval = FALSE}
+# Equivalent programmatic call:
+run_replay_app()
+
+# Pre-populate a meta folder:
+run_replay_app(meta_dir = "./output/meta")
+```
+
+### TFL Spec Preview (Selection)
+
+Evaluates the currently selected code in the source editor and, if the
+result is a `TFL_spec`, renders an HTML preview in the RStudio Viewer
+pane. This lets you highlight a pipeline expression (e.g.,
+`create_table(...) |> add_title(...)`) and instantly see what the spec
+looks like — a quick visual check without saving or rendering to DOCX.
+
+### TFL Spec Preview (by name)
+
+Same HTML preview, but instead of evaluating selected text the addin
+prompts you for the name of a `TFL_spec` object that already exists in
+`.GlobalEnv`. Handy when the spec was built interactively in the console
+and you want to preview it without re-selecting code.
+
+### Style Atoms Catalog
+
+Prints all built-in style atoms to the console with colour-coded
+categories (font decoration, font family, font size, text colour,
+highlight, alignment, indentation, spacing, borders, backgrounds, row
+height, and more). Each atom is a short name you can reference directly
+in `add_style()` or `define_cols()` via `f_combine()`. Running this
+catalog helps you discover what is available without consulting
+documentation.
+
+```{r addin_atoms_catalog, eval = FALSE}
+# Equivalent programmatic call:
+tfl_style_atoms_catalog()
+# — or —
+tfl_print_style_atoms()
+```
 
 ------------------------------------------------------------------------
 
@@ -952,27 +1067,27 @@ You now understand ksTFL's core workflow. Next steps:
 
 ## Quick reference table
 
-| Task                     | Function                                                                   | Notes                                                                                |
-| ------------------------ | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Create table spec        | `create_table(data, cols = ...)`                                           | Auto-detects columns, types, widths                                                  |
-| Create figure spec       | `create_figure(plot_or_path, dpi = 300L)`                                  | File path or ggplot2 object; path must be readable                                   |
-| Create text spec         | `create_text()`                                                            | For narrative content only                                                           |
-| Set document properties  | `set_document(spec, hasData = ...)`                                        | Optional: configure content width, placement                                         |
-| Customize columns        | `define_cols(spec, cols, ...)`                                             | Use `c()` for multiple columns                                                       |
-| Define styles            | `add_style(spec, id = "name", ...)`                                        | Use `s_font()`, `s_paragraph()`, `s_table_style()`                                   |
-| Add spanning header      | `add_span_header(spec, cols, label, ...)`                                  | Supports tidyselect; multi-level headers                                             |
-| Add titles/content       | `add_title()`, `add_footnote()`, `add_body_text()`                         | Layer document content                                                               |
-| Add page headers/footers | `add_header()`, `add_footer()`                                             | 3 parts: left/center/right                                                           |
-| Conditional row actions  | `compute_cols(spec, cond, ...)`                                            | Use `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`, `c_pageBreak()` |
-| Set page style           | `set_page_style(spec, page = p_page(...))`                                 | Configure page size, orientation, margins                                            |
-| Page settings helper     | `p_page(size, orientation, margins)`                                       | `"A4"` / `"Letter"` / `"Legal"`, margins via `p_margins()`                           |
-| List templates           | `tfl_list_templates()`                                                     | Shows all bundled template names                                                     |
-| Discover style atoms     | `tfl_print_style_atoms()`                                                  | Prints all built-in style atoms grouped by category                                  |
-| Font status              | `tfl_font_status()`, `tfl_rescan_fonts()`                                  | Check or re-run font discovery                                                       |
-| Combine specs            | `create_report(spec1, spec2, ...)`                                         | Consolidates styles, assigns order                                                   |
-| Save + render (one step) | `write_doc(report, name, ...)`                                             | Recommended: saves JSON + renders DOCX                                               |
-| Save only                | `save_report(report, ...)`                                                 | Writes JSON + data files for manual rendering                                        |
-| Render from JSON         | `replay_report(spec_json, meta_dir, output_path, overrideTemplate = NULL)` | C++ renderer: JSON → styled DOCX                                                     |
-| Set session defaults     | `tfl_set_options(...)`                                                     | Inherited by new specs in session                                                    |
-| Check options            | `tfl_get_options()`, `tfl_get_option(name)`                                | View current session settings                                                        |
-| Reset options            | `tfl_reset_options()`                                                      | Back to package defaults                                                             |
+| Task | Function | Notes |
+|----|----|----|
+| Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
+| Create figure spec | `create_figure(plot_or_path, dpi = 300L)` | File path or ggplot2 object; path must be readable |
+| Create text spec | `create_text()` | For narrative content only |
+| Set document properties | `set_document(spec, hasData = ...)` | Optional: configure content width, placement |
+| Customize columns | `define_cols(spec, cols, ...)` | Use `c()` for multiple columns |
+| Define styles | `add_style(spec, id = "name", ...)` | Use `s_font()`, `s_paragraph()`, `s_table_style()` |
+| Add spanning header | `add_span_header(spec, cols, label, ...)` | Supports tidyselect; multi-level headers |
+| Add titles/content | `add_title()`, `add_footnote()`, `add_body_text()` | Layer document content |
+| Add page headers/footers | `add_header()`, `add_footer()` | 3 parts: left/center/right |
+| Conditional row actions | `compute_cols(spec, cond, ...)` | Use `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`, `c_pageBreak()` |
+| Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |
+| Page settings helper | `p_page(size, orientation, margins)` | `"A4"` / `"Letter"` / `"Legal"`, margins via `p_margins()` |
+| List templates | `tfl_list_templates()` | Shows all bundled template names |
+| Discover style atoms | `tfl_print_style_atoms()` | Prints all built-in style atoms grouped by category |
+| Font status | `tfl_font_status()`, `tfl_rescan_fonts()` | Check or re-run font discovery |
+| Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
+| Save + render (one step) | `write_doc(report, name, ...)` | Recommended: saves JSON + renders DOCX |
+| Save only | `save_report(report, ...)` | Writes JSON + data files for manual rendering |
+| Render from JSON | `replay_report(spec_json, meta_dir, output_path, overrideTemplate = NULL)` | C++ renderer: JSON → styled DOCX |
+| Set session defaults | `tfl_set_options(...)` | Inherited by new specs in session |
+| Check options | `tfl_get_options()`, `tfl_get_option(name)` | View current session settings |
+| Reset options | `tfl_reset_options()` | Back to package defaults |

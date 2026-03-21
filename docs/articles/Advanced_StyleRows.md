@@ -78,7 +78,9 @@ spec <- spec |>
 ```
 
 **Result:** Rows where `response == "CR"` show green bold text; rows
-where `response == "PD"` show red bold text.
+where `response == "PD"` show red bold text:
+
+![](images/style-conditional-green-red-response.png)
 
 ### `c_merge()`: Conditional Cell Merging
 
@@ -104,11 +106,13 @@ spec <- create_table(data_groups) |>
 and `visit` cells merge, displaying the merged content in the `group`
 column.
 
+![](images/merge-group-visit-cells.png)
+
 **Note:** The `cols` argument to
 [`c_merge()`](https://example.com/reference/c_merge.md) must resolve to
 at least two **consecutive** columns in the final report column order.
-The value shown in the merged cell is taken from the first column in the
-`cols` sequence.
+The value shown in the merged cell is taken **from the first** column in
+the `cols` sequence.
 
 ### `c_addrow()`: Conditional Row Insertion
 
@@ -128,6 +132,8 @@ copy a single column’s value into the inserted row use `value_from` (see
 later examples). Use `pos = "below"` to insert after the matching row
 instead.
 
+![](images/addrow-separator-above-groups.png)
+
 ### `c_pageBreak()`: Conditional Page Break
 
 Insert a page break at the matching row. This is useful to force a new
@@ -143,7 +149,9 @@ spec <- create_table(data_groups) |>
 ```
 
 **Result:** The renderer will start a new page at rows matching the
-condition.
+condition:
+
+![](images/pagebreak-at-group-start.png)
 
 ## Evaluation Context
 
@@ -160,7 +168,7 @@ contains:
 > **Important**: These helper functions are only available inside the
 > `cond` argument of
 > [`compute_cols()`](https://example.com/reference/compute_cols.md).
-> They are **not** standalone exported functions — you cannot call them
+> **They are not standalone exported functions** — you cannot call them
 > outside of
 > [`compute_cols()`](https://example.com/reference/compute_cols.md).
 
@@ -170,9 +178,11 @@ contains:
 spec <- create_table(data) |>
   compute_cols(
     age > 60 & response %in% c("CR", "PR"),  # Multi-column condition
-    c_style(c(age, response), styleRef = "elderly_responder")
+    c_style(c(age, response), styleRef = f_combine('b', 'bg_mint'))
   )
 ```
+
+![](images/style-multi-column-conditional.png)
 
 ### Available Helper Functions
 
@@ -248,6 +258,8 @@ spec <- create_table(data_lab) |>
   )
 ```
 
+![](images/style-out-of-range-highlight.png)
+
 ### Conditional Styling with Complex Logic
 
 Combine multiple conditions:
@@ -259,10 +271,12 @@ spec <- create_table(data) |>
             s_font(color = "#8B0000", bold = TRUE),
             s_table_style(background_color = "#FFEBCD")) |>
   compute_cols(
-    age >= 70 & response == "PD",
+    age >= 60 & response == "PD",
     c_style(c(patient, age, response), styleRef = "critical_senior")
   )
 ```
+
+![](images/style-critical-senior-age.png)
 
 ### Row-Level Styling
 
@@ -278,6 +292,8 @@ spec <- create_table(data) |>
     c_style(everything(), styleRef = "alternate_row")
   )
 ```
+
+![](images/style-alternating-row-colors.png)
 
 ## Advanced `c_merge()` Patterns
 
@@ -307,20 +323,9 @@ spec <- create_table(data_nested) |>
   )
 ```
 
+![](images/merge-multi-column-grouping.png)
+
 ### Conditional Display Column Content
-
-Merge cells based on grouping:
-
-``` r
-
-spec <- create_table(data_groups) |>
-  compute_cols(
-    !firstOf(group),
-    c_merge(
-      c(group, visit)
-    )
-  )
-```
 
 ### Merging with Styling
 
@@ -342,6 +347,8 @@ spec <- create_table(data_nested) |>
   )
 ```
 
+![](images/merge-with-styling.png)
+
 ## Advanced `c_addrow()` Patterns
 
 ### Summary Rows
@@ -353,52 +360,109 @@ Insert calculated summary rows:
 data_sales <- data.frame(
   region = c("North", "North", "South", "South", "West", "West"),
   product = rep(c("A", "B"), 3),
-  revenue = c(100, 150, 200, 120, 180, 160)
+  revenue = c(100, 150, 200, 120, 180, 160),
+  total =   c(250, 250, 320, 320, 340, 340)
 )
 
 spec <- create_table(data_sales) |>
   add_style(id = "summary_row",
             s_font(bold = TRUE),
             s_table_style(background_color = "#D3D3D3")) |>
+  # we do not need the `total` column itself - set to invisible
+  define_cols(total, isVisible = F) |> 
   compute_cols(
     lastOf(region),  # Last row of each region
-    c_addrow(pos = "below", styleRef = "summary_row")  # Insert empty subtotal row
+    # Insert subtotal row
+    c_addrow(pos = "below", 
+             value_from = total, #value from total column
+             styleRef = f_combine("summary_row", 'ar'))  
   )
 ```
+
+![](images/addrow-summary-subtotals.png)
 
 ### Header Rows
 
-Insert section headers:
+Insert section (group) headers to make a stub:
 
 ``` r
 
+
+data_sales <- data.frame(
+  region = c("North", "North", "South", "South", "West", "West"),
+  product = rep(c("Gas", "Oil"), 3),
+  revenue = c(100, 150, 200, 120, 180, 160)
+)
+
 spec <- create_table(data_sales) |>
+  # Custom style just for fun
   add_style(id = "section_header",
-            s_font(bold = TRUE, font_size = "12pt"),
+            s_font(bold = TRUE, font_size = "10pt", color = '#FFFFFF'),
             s_table_style(background_color = "#4682B4")) |>
-  # If you want a header text inserted, precompute a helper column and use
-  # `value_from` to copy that single column into the inserted row. Here we
-  # demonstrate an empty styled header row.
+  # Hide the `region` column as we want to use its value as heading
+  define_cols(region, isVisible = F) |>
+  # Add column labels:
+  define_cols(
+    c(product, revenue),
+    label = c('Region<br>  Product', 'Revenue<br>(Million of $)'),
+    # Use embedded indent style to indent the `product` value in a column
+    valueStyleRef = c('indent_1', NA) # NA here means we are not using any style for `revenue`
+  ) |>
+  # Use `c_addrow` to add a line with the value from `region` column
   compute_cols(
     firstOf(region),  # First row of each new region
-    c_addrow(pos = "above", styleRef = "section_header")
+    c_addrow(pos = "above", 
+             value_from = region,
+             styleRef = "section_header")
   )
 ```
 
-### Conditional Row Insertion Logic
+![](images/addrow-header-from-column.png)
 
-Insert rows only when specific conditions are met:
+More complex example with two-level indents:
 
 ``` r
 
+
+data_sales <- data.frame(
+  region = c("North", "North", "North", "South", "South", "South", "West", "West", "West"), 
+  product = rep(c("Total","Gas", "Oil"), 3),
+  revenue = c(250, 100, 150, 320, 200, 120, 340, 180, 160)
+)
+
+
 spec <- create_table(data_sales) |>
+  # Hide the `region` column as we want to use its value as heading
+  define_cols(region, isVisible = F) |>
+  # Add column labels:
+  define_cols(
+    c(product, revenue),
+    label = c('Region<br>    Product', 'Revenue<br>(Million of $)'),
+    # Use embedded indent style to indent the `product` value in a column
+  ) |>
+  # Use `c_addrow` to add a line with the value from `region` column
   compute_cols(
-    revenue > 150 & product == "A",  # Only for high-revenue product A
-    c_addrow(
-      pos = "below"  # Insert an empty marker row below high-performance rows
-    )
-  )
+    firstOf(region),  # First row of each new region
+    c_addrow(pos = "above",  
+             value_from = region,
+             styleRef = 'b')
+  ) |>
+  # the `Total` value will be indented 0.5cm
+  compute_cols(
+    product == 'Total',
+    c_style(product, f_combine('i', 'indent_1')),
+    c_style(revenue, 'i')
+  ) |>
+  # Other values ('Gas', 'Oil') will be indented by 1cm
+  compute_cols(
+    product != 'Total',
+    c_style(product, 'indent_2') 
+  ) 
 ```
+
+As a result we are getting two-level stub:
+
+![](images/addrow-two-level-stub-indent.png)
 
 ## `c_glue()`: Append or Prepend Text to Cell Values
 
@@ -407,19 +471,27 @@ literal string or a data column value to the display text of matching
 cells — useful for appending units, prefixing markers, or building
 composite labels without creating extra columns.
 
-**Parameters:** - `cols`: columns to modify (tidyselect) - `position`:
-`"before"` or `"after"` — where to attach the text - `glue_col`: name of
-a data column whose value to attach (mutually exclusive with `text`) -
-`text`: a literal string to attach (mutually exclusive with
-`glue_col`) - `separator`: string inserted between original value and
-the glued text (default `""`)
+**Parameters:**
+
+\- `cols`: columns to modify (tidyselect)
+
+\- `position`: `"before"` or `"after"` — where to attach the text
+
+\- `glue_col`: name of a data column whose value to attach (mutually
+exclusive with `text`)
+
+\- `text`: a literal string to attach (mutually exclusive with
+`glue_col`)
+
+\- `separator`: string inserted between original value and the glued
+text (default `NULL`)
 
 ``` r
 
 data_units <- data.frame(
   parameter = c("Hemoglobin", "Glucose", "Cholesterol"),
-  value     = c(13.5, 95.0, 200.0),
-  unit      = c("g/dL", "mg/dL", "mg/dL")
+  value     = c(13.5,          95.0,      200.0),
+  unit      = c("g/dL",        "mg/dL",   "mg/dL")
 )
 
 spec <- create_table(data_units) |>
@@ -432,15 +504,7 @@ spec <- create_table(data_units) |>
   )
 ```
 
-``` r
-
-# Prefix a marker to total rows using a literal string
-spec <- create_table(data_sales) |>
-  compute_cols(
-    lastOf(region),
-    c_glue(region, position = "before", text = "Total: ")
-  )
-```
+![](images/glue-append-units.png)
 
 [`c_glue()`](https://example.com/reference/c_glue.md) is fully
 compatible with [`c_style()`](https://example.com/reference/c_style.md)
@@ -453,8 +517,8 @@ and [`c_merge()`](https://example.com/reference/c_merge.md) in the same
 
 [`c_clear()`](https://example.com/reference/c_clear.md) renders
 specified cells as empty (blank) in matching rows without removing the
-column or affecting layout. Useful for deduplication — showing a group
-label only on its first row and blanking it on subsequent rows.
+column or affecting layout. Useful for conditional deduplication, when a
+`dedupe` parameter of `define_col()` is not enough.
 
 ``` r
 
@@ -472,6 +536,8 @@ spec <- create_table(data_groups) |>
   )
 ```
 
+![](images/clear-blank-cells.png)
+
 **Note:** [`c_clear()`](https://example.com/reference/c_clear.md) only
 affects the rendered display text. The underlying data value is still
 available for conditions in other
@@ -479,61 +545,60 @@ available for conditions in other
 
 ------------------------------------------------------------------------
 
-## Combining Actions
-
-### Sequential Actions
+## Combining Actions Together
 
 Chain multiple
 [`compute_cols()`](https://example.com/reference/compute_cols.md) calls
-for layered effects:
+and `c_*` actions to build a fully formatted table:
 
 ``` r
+
+data_sales <- data.frame(
+  region = c("North", "North", "North", 
+             "South", "South", "South", 
+             "West", "West", "West"),
+  product = rep(c("Oil", "Gas", "TOTAL"), 3),
+  revenue = c(100, 150, 250, 200, 120, 320, 180, 160, 340)
+)
 
 spec <- create_table(data_sales) |>
-  # Step 1: Add summary rows
+  add_style(id = "section_header",
+            s_font(bold = TRUE, font_size = "11pt", color = '#FFFFFF'),
+            s_table_style(background_color = "#4682B4")) |>
+  # Make Region invisible, since we want to make it as header row
+  define_cols(region, isVisible = F) |>
+  # Define column labels
+  define_cols(c(product, revenue), label = c('Product', 'Revenue<br>(Million of $)')) |>
+  # Make a header row from the `region` value
   compute_cols(
-    lastOf(region),
-    c_addrow(pos = "below")
-  ) |>
-  # Step 2: Style summary rows
-  add_style(id = "bold_summary", s_font(bold = TRUE)) |>
+    firstOf(region),  # First row of each new region
+    c_addrow(pos = "above", 
+             value_from = region,
+             styleRef = "section_header")
+  ) |> 
+  # Create a summary row for `Total` value
+  # Note here how a consecutive calls to `c_*` atomic functions produce final result
   compute_cols(
-    grepl("Total$", region),
-    c_style(region, styleRef = "bold_summary")
-  ) |>
-  # Step 3: Merge region cells (exclude summary rows)
-  compute_cols(
-    !firstOf(region) & !grepl("Total$", region),
-    c_merge(c(region, product))
-  )
+    product == 'TOTAL',
+    # merge `product` and `revenue` to a single column (the value became value from `product`)
+    c_merge(c(product, revenue), styleRef = f_combine('b','i','bt_th','ar')), 
+    # clear the value, since we want to rebuild it:
+    c_clear(product),
+    # take the value of `region` to the merged cells..
+    c_glue(product, 'after', region),
+    # add the word 'total' ...
+    c_glue(product, 'after', text = ' total: '),
+    # and add the value for `revenue` column to get the final string
+    c_glue(product, 'after', revenue)
+  ) 
 ```
 
-### Multiple Actions in One `compute_cols()`
+Here we can see how a simple planar data frame:
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
-accepts multiple action functions in a single call via `...`. All
-actions are applied to every row matching the condition:
+![](images/data-simple-planar-dataframe.png)
 
-``` r
-
-spec <- create_table(data) |>
-  # Apply style AND insert separator row in one call
-  compute_cols(
-    firstOf(group),
-    c_addrow(pos = "above"),
-    c_style(c(group, value), styleRef = "group_header")
-  )
-```
-
-For independent conditions, use separate
-[`compute_cols()`](https://example.com/reference/compute_cols.md) calls:
-
-``` r
-
-spec <- create_table(data) |>
-  compute_cols(age > 65,              c_style(age,     styleRef = "elderly")) |>
-  compute_cols(firstOf(patient),      c_style(patient, styleRef = "first_row"))
-```
+become a production ready table:\
+![](images/result-production-ready-table.png)
 
 ## Performance Tips
 

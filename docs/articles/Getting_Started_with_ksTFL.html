@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,24 +67,29 @@
 <p>ksTFL is a lightweight R toolkit for building metadata specifications
 for clinical Tables, Figures, and Text (TFLs). Unlike traditional table
 formatters (flextable, huxtable, officer), ksTFL separates <em>metadata
-generation</em> from <em>rendering</em>: - <strong>You define</strong>:
-Document structure, content, column formats, and styles in R -
-<strong>ksTFL generates</strong>: A structured specification (JSON
-metadata + data files) - <strong>Built-in C++ renderer</strong>:
-Produces submission-quality DOCX documents with deterministic
-HarfBuzz-based pagination via <code><a href="../reference/write_doc.html">write_doc()</a></code> /
-<code><a href="../reference/replay_report.html">replay_report()</a></code></p>
-<p>This separation enables: - <strong>Consistency</strong>: All tables
-follow the same style templates - <strong>Automation</strong>: Generate
-50+ tables with consistent formatting and minimal code -
-<strong>Reproducibility</strong>: Specifications are
-version-controllable and auditable - <strong>Flexibility</strong>: Swap
-renderers without changing your R code</p>
-<p><strong>When to use ksTFL:</strong> - Regulatory clinical reporting
-(FDA, EMA submissions) - Large-scale automated reporting (100+ tables
-from common data sources) - Complex styling requirements (multi-level
-headers, spanning columns, conditional formatting) - When you need JSON
-metadata for downstream processing</p>
+generation</em> from <em>rendering</em>:</p>
+<p>- <strong>You define</strong>: Document structure, content, column
+formats, and styles in R</p>
+<p>- <strong>ksTFL generates</strong>: A structured specification (JSON
+metadata + data files)</p>
+<p>- <strong>Built-in C++ renderer</strong>: Produces submission-quality
+DOCX documents with deterministic HarfBuzz-based pagination via
+<code><a href="../reference/write_doc.html">write_doc()</a></code> / <code><a href="../reference/replay_report.html">replay_report()</a></code></p>
+<p>This separation enables:</p>
+<p>- <strong>Consistency</strong>: All tables follow the same style
+templates</p>
+<p>- <strong>Automation</strong>: Generate 50+ tables with consistent
+formatting and minimal code</p>
+<p>- <strong>Reproducibility</strong>: Specifications are
+version-controllable and auditable</p>
+<p>- <strong>Flexibility</strong>: Swap renderers without changing your
+R code</p>
+<p><strong>When to use ksTFL:</strong></p>
+<p>- Regulatory clinical reporting (FDA, EMA submissions) - Large-scale
+automated reporting (100+ tables from common data sources)</p>
+<p>- Complex styling requirements (multi-level headers, spanning
+columns, conditional formatting) - When you need JSON metadata for
+downstream processing</p>
 </div>
 <div class="section level2">
 <h2 id="how-to-use-this-guide">How to use this guide<a class="anchor" aria-label="anchor" href="#how-to-use-this-guide"></a>
@@ -99,13 +104,19 @@ examples</li>
 <li>Outcome: ability to create, assemble, and render reports
 confidently</li>
 </ul>
-<p>Recommended reading order after this vignette: 1. <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a> for
-realistic workflow patterns. 2. <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> for style
-primitives and reusable style systems. 3. <a href="Column_Width_Management.Rmd">Column Width Management</a> for
-layout tuning. 4. <a href="Advanced_StyleRows.Rmd">Advanced
-StyleRows</a> for conditional row actions. 5. <a href="Font_Management.Rmd">Font Management</a> for system font
-discovery, custom font directories, and fallback behavior. 6. <a href="Rendering_Pipeline.Rmd">Rendering Pipeline</a> for detailed C++
-architecture and DOCX emission internals.</p>
+<p>Recommended reading order after this vignette:</p>
+<p>1. <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a>
+for realistic workflow patterns.</p>
+<p>2. <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> for style
+primitives and reusable style systems.</p>
+<p>3. <a href="Column_Width_Management.Rmd">Column Width Management</a>
+for layout tuning.</p>
+<p>4. <a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a> for
+conditional row actions.</p>
+<p>5. <a href="Font_Management.Rmd">Font Management</a> for system font
+discovery, custom font directories, and fallback behavior.</p>
+<p>6. <a href="Rendering_Pipeline.Rmd">Rendering Pipeline</a> for
+detailed C++ architecture and DOCX emission internals.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -136,9 +147,9 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)</code></pre>
 <p>Each <code>TFL_spec</code> contains:</p>
 <table class="table">
 <colgroup>
-<col width="15%">
-<col width="45%">
-<col width="38%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
 <th>Component</th>
@@ -223,11 +234,10 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)</code></pre>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MPG"</span>, <span class="st">"Cylinders"</span>, <span class="st">"HP"</span><span class="op">)</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"numeric"</span>, <span class="st">"numeric"</span>, <span class="st">"numeric"</span><span class="op">)</span>,</span>
 <span>  format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"%.1f"</span>, <span class="st">"%.0f"</span>, <span class="st">"%.0f"</span><span class="op">)</span>,</span>
-<span>  labelStyleRef <span class="op">=</span> <span class="st">"header_bold"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 4. Add titles</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Motor Trends Dataset"</span><span class="op">)</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Data from mtcars (1974)."</span><span class="op">)</span></span>
+<span>  labelStyleRef <span class="op">=</span> <span class="st">"header_bold"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="co"># 4. Add titles and footnotes</span></span>
+<span><span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Motor Trends Dataset"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Data from mtcars (1974)."</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 5. Inspect the spec</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
@@ -250,15 +260,43 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)</code></pre>
 <span></span>
 <span><span class="co"># Select specific columns with tidyselect</span></span>
 <span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><strong>What happens</strong>: - Data is copied into the spec’s
-internal environment (not modifiable) - Columns are auto-analyzed (type
-detection, width calculation) - A <code>TFL_spec</code> object is
-returned ready for customization</p>
+<p><strong>What happens</strong>:</p>
+<p>- Data is shadow-copied into the spec’s internal environment (not
+modifiable)</p>
+<p>- Columns are auto-analyzed (type detection, width calculation)</p>
+<p>- A <code>TFL_spec</code> object is returned ready for
+customization</p>
+<p><strong>Understanding the <code>cols</code> parameter</strong>:</p>
+<p>The <code>cols</code> argument controls which columns appear in the
+rendered document and in what order — it does <strong>not</strong>
+filter or mutate the input data frame. Think of it as a <em>presentation
+lens</em>: the full dataset is still stored inside the spec, but only
+the columns listed in <code>cols</code> are emitted to the final
+report.</p>
+<p>This distinction matters when you use <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
+later in the pipeline. Because the original data frame is preserved
+intact, <code><a href="../reference/compute_cols.html">compute_cols()</a></code> conditions can reference
+<strong>any</strong> column in the data — including columns that are
+<strong>not</strong> listed in <code>cols</code> and will never appear
+in the output. For example, you might exclude a <code>flag</code> column
+from the report but still use it to drive conditional styling:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Only age, sex, trt go to the document; flag stays hidden</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demog</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span>, <span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># But flag is still available for conditional logic</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">trt</span>,</span>
+<span>  <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="st">"highlight"</span><span class="op">)</span>,</span>
+<span>  when <span class="op">=</span> <span class="va">flag</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span></span></code></pre></div>
+<p>The order in which columns are passed to <code>cols</code> also
+determines their left-to-right order in the rendered table, so
+<code>cols</code> doubles as a convenient column-reordering mechanism —
+no need to rearrange the underlying data frame.</p>
 </div>
 <div class="section level3">
 <h3 id="figure-spec-from-image-file">Figure spec (from image file)<a class="anchor" aria-label="anchor" href="#figure-spec-from-image-file"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># From a file path — any image format your renderer supports (PNG, JPEG, etc.)</span></span>
 <span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="st">"path/to/plot.png"</span><span class="op">)</span></span>
 <span></span>
@@ -271,20 +309,22 @@ returned ready for customization</p>
 <span><span class="co"># Control output size/format via options</span></span>
 <span><span class="co"># tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "jpeg")</span></span>
 <span><span class="co"># spec_fig &lt;- create_figure(p)</span></span></code></pre></div>
-<p><strong>What happens</strong>: - If a <strong>file path</strong> is
-given: it is validated (must exist and be readable); the file is used
-as-is - If a <strong>ggplot2 object</strong> is given: rendered via
+<p><strong>What happens</strong>:</p>
+<p>- If a <strong>file path</strong> is given: it is validated (must
+exist and be readable); the file is used as-is</p>
+<p>- If a <strong>ggplot2 object</strong> is given: rendered via
 <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> to <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> using package
 defaults (<code>figureWidth</code>, <code>figureHeight</code>,
-<code>figureDevice</code>); the resulting path is stored in the spec -
-The <code>dpi</code> parameter applies when a ggplot2 object is passed;
-width/height/device are configured through package options - The image
-file is copied to <code>metaPath</code> when the report is saved</p>
+<code>figureDevice</code>); the resulting path is stored in the spec</p>
+<p>- The <code>dpi</code> parameter applies when a ggplot2 object is
+passed; width/height/device are configured through package options</p>
+<p>- The image file is copied to <code>metaPath</code> when the report
+is saved</p>
 </div>
 <div class="section level3">
 <h3 id="text-spec-narrative-content">Text spec (narrative content)<a class="anchor" aria-label="anchor" href="#text-spec-narrative-content"></a>
 </h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_txt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Add narrative content</span></span>
@@ -302,7 +342,7 @@ narrative content via <code><a href="../reference/add_body_text.html">add_body_t
 <div class="section level3">
 <h3 id="single-column">Single column<a class="anchor" aria-label="anchor" href="#single-column"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">mpg</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"Miles per Gallon"</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"numeric"</span>,</span>
@@ -312,7 +352,7 @@ narrative content via <code><a href="../reference/add_body_text.html">add_body_t
 <div class="section level3">
 <h3 id="batch-update-multiple-columns-with-single-values">Batch update (multiple columns with single values)<a class="anchor" aria-label="anchor" href="#batch-update-multiple-columns-with-single-values"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Apply same label format to all columns</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MPG"</span>, <span class="st">"Cylinders"</span>, <span class="st">"HP"</span><span class="op">)</span>,</span>
@@ -322,27 +362,34 @@ narrative content via <code><a href="../reference/add_body_text.html">add_body_t
 <div class="section level3">
 <h3 id="per-column-customization">Per-column customization<a class="anchor" aria-label="anchor" href="#per-column-customization"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Different format for each column</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MPG"</span>, <span class="st">"Cylinders"</span>, <span class="st">"HP"</span><span class="op">)</span>,</span>
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"numeric"</span>, <span class="st">"numeric"</span>, <span class="st">"numeric"</span><span class="op">)</span>,</span>
 <span>  format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"%.1f"</span>, <span class="st">"%.0f"</span>, <span class="st">"%.0f"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Key parameters</strong>: - <code>label</code>: Column header
-text - <code>type</code>: “numeric” or “string” (auto-detected if
-omitted) - <code>format</code>: Format string (e.g., “%.2f”, “0.00”) -
-<code>colWidth</code>: Column width (e.g., “20%”, “2cm”) - When set,
-column is locked to that width - Other unlocked columns auto-recalculate
-to sum to 100% - Disable auto-recalculation with
-<code>tfl_set_options(autoColWidth = FALSE)</code> -
-<code>isVisible</code>: TRUE (default) or FALSE - Set to FALSE to hide
-column from output - Invisible columns show width “0.0cm” - Cannot set
-colWidth on invisible columns - Invisible columns excluded from width
-recalculation - <code>isID</code>: TRUE if column repeats on page breaks
-- <code>labelStyleRef</code>: Style(s) to apply to column header -
-<code>valueStyleRef</code>: Style(s) to apply to cell values</p>
+<p><strong>Key parameters</strong>:</p>
+<p>- <code>label</code>: Column header text</p>
+<p>- <code>type</code>: “numeric” or “string” (auto-detected if
+omitted)</p>
+<p>- <code>format</code>: Format string (e.g., “%.2f”, “0.00”)</p>
+<p>- <code>colWidth</code>: Column width (e.g., “20%”, “2cm”) - When
+set, column is locked to that width - Other unlocked columns
+auto-recalculate to sum to 100% - Disable auto-recalculation with
+<code>tfl_set_options(autoColWidth = FALSE)</code></p>
+<p>- <code>isVisible</code>: TRUE (default) or FALSE - Set to FALSE to
+hide column from output - Invisible columns show width “0.0cm” - Cannot
+set colWidth on invisible columns - Invisible columns excluded from
+width recalculation</p>
+<p>- <code>isID</code>: TRUE if column repeats on page breaks</p>
+<p>- <code>dedupe</code>: TRUE to clear consecutive repeating values in
+a column</p>
+<p>- <code>isColBreak</code>: TRUE on a column that needs to be moved on
+the next page (break long tables)</p>
+<p>- <code>labelStyleRef</code>: Style(s) to apply to column header</p>
+<p>- <code>valueStyleRef</code>: Style(s) to apply to cell values</p>
 <p><strong>Hiding Columns</strong>:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Hide a column (e.g., for conditional logic that doesn't display)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">group_id</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -356,7 +403,7 @@ Examples</a> for detailed column customization patterns.</p>
 <h2 id="step-3-define-styles-add_style">Step 3: Define styles (add_style)<a class="anchor" aria-label="anchor" href="#step-3-define-styles-add_style"></a>
 </h2>
 <p>Create reusable named styles with <code><a href="../reference/add_style.html">add_style()</a></code>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Header style: bold, 12pt, centered, gray background</span></span>
@@ -374,7 +421,9 @@ Examples</a> for detailed column customization patterns.</p>
 <span>  labelStyleRef <span class="op">=</span> <span class="st">"table_header"</span>,</span>
 <span>  valueStyleRef <span class="op">=</span> <span class="st">"numeric_right"</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Best practice</strong>: Define styles once, reference by id
-(name) throughout your spec.</p>
+(name) throughout your spec. If style needs to be used across many
+tables define it thru <code><a href="../reference/tfl_set_options.html">tfl_set_options()</a></code> to make it
+available session-wide.</p>
 <p>For comprehensive styling details see <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a>.</p>
 <hr>
 </div>
@@ -383,7 +432,7 @@ Examples</a> for detailed column customization patterns.</p>
 </h2>
 <p>Create multi-level headers with <code><a href="../reference/add_span_header.html">add_span_header()</a></code> using
 tidyselect expressions:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MPG"</span>, <span class="st">"Cyl"</span>, <span class="st">"HP"</span>, <span class="st">"Weight"</span><span class="op">)</span><span class="op">)</span></span>
@@ -401,28 +450,36 @@ tidyselect expressions:</p>
 <span>  stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Tidyselect support</strong>: <code><a href="../reference/add_span_header.html">add_span_header()</a></code>
 accepts all tidyselect expressions:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Using column ranges and helpers</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>, cols <span class="op">=</span> <span class="va">mpg</span><span class="op">:</span><span class="va">hp</span>, label <span class="op">=</span> <span class="st">"First"</span>, stubOrder <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu">starts_with</span><span class="op">(</span><span class="st">"c"</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"C-columns"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">mpg</span>, label <span class="op">=</span> <span class="st">"Non-MPG"</span>, stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Key concepts</strong>: - <code>cols</code>: Column names
-(from <code>spec$columns</code>) to span. Accepts: - <strong>Unquoted
-names</strong>: <code>c(mpg, cyl, hp)</code> - <strong>Quoted
-names</strong>: <code>c("mpg", "cyl", "hp")</code> -
-<strong>Ranges</strong>: <code>mpg:hp</code> - <strong>Helpers</strong>:
-<code>starts_with("c")</code>, <code>contains("w")</code>,
-<code>matches("^m")</code> - <strong>Negation</strong>:
-<code>-mpg</code> (all columns except mpg) - <code>label</code>:
-Spanning header text - <code>stubOrder</code>: Vertical stacking order
-(0 = top, 1 = next, etc.; auto-generated if NULL) -
-<code>labelStyleRef</code>: Style(s) for the header label</p>
-<p><strong>Rules</strong>: - Stubs at the <strong>same</strong>
-<code>stubOrder</code> cannot share columns (prevents ambiguous headers)
-- Stubs at <strong>different</strong> <code>stubOrder</code> values can
-overlap freely (enables hierarchical structure) - Multiple stubs at the
-same order are allowed as long as their column sets don’t overlap - Use
-<code><a href="../reference/add_style.html">add_style()</a></code> to style stub labels</p>
+<p><strong>Key concepts</strong>:</p>
+<p>- <code>cols</code>: Column names (from <code>spec$columns</code>) to
+span.</p>
+<p>Accepts:</p>
+<p>- <strong>Unquoted names</strong>: <code>c(mpg, cyl, hp)</code></p>
+<p>- <strong>Quoted names</strong>:
+<code>c("mpg", "cyl", "hp")</code></p>
+<p>- <strong>Ranges</strong>: <code>mpg:hp</code></p>
+<p>- <strong>Helpers</strong>: <code>starts_with("c")</code>,
+<code>contains("w")</code>, <code>matches("^m")</code></p>
+<p>- <strong>Negation</strong>: <code>-mpg</code> (all columns except
+mpg)</p>
+<p>- <code>label</code>: Spanning header text</p>
+<p>- <code>stubOrder</code>: Vertical stacking order (1 = top, 2 = next,
+etc.; auto-generated if NULL)</p>
+<p>- <code>labelStyleRef</code>: Style(s) for the header label</p>
+<p><strong>Rules</strong>:</p>
+<p>- Stubs at the <strong>same</strong> <code>stubOrder</code> cannot
+share columns (prevents ambiguous headers)</p>
+<p>- Stubs at <strong>different</strong> <code>stubOrder</code> values
+can overlap freely (enables hierarchical structure)</p>
+<p>- Multiple stubs at the same order are allowed as long as their
+column sets don’t overlap</p>
+<p>- Use <code><a href="../reference/add_style.html">add_style()</a></code> to style stub labels or use embedded
+atomic styles</p>
 <p>See <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> for
 styling stubs.</p>
 <hr>
@@ -431,7 +488,7 @@ styling stubs.</p>
 <h2 id="step-5-add-titles-footnotes-headers-footers">Step 5: Add titles, footnotes, headers, footers<a class="anchor" aria-label="anchor" href="#step-5-add-titles-footnotes-headers-footers"></a>
 </h2>
 <p>Add document content layers:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Titles and subtitles</span></span>
@@ -442,23 +499,24 @@ styling stubs.</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Values are from 1974 Motor Trend magazine."</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Page headers (left/center/right) — three separate string arguments</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_header.html">add_header</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Study ABC"</span>, <span class="st">"CONFIDENTIAL"</span>, <span class="st">"Page {page}"</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_header.html">add_header</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Study ABC"</span>, <span class="st">"CONFIDENTIAL"</span>, <span class="st">"Page {PAGE}"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Page footers (left/center/right) — three separate string arguments</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Company"</span>, <span class="st">"Locked DB"</span>, <span class="st">"2025"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Body text (narrative)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"This analysis includes all subjects in the safety population."</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Notes</strong>: - <code><a href="../reference/add_header.html">add_header()</a></code> and
-<code><a href="../reference/add_footer.html">add_footer()</a></code> take up to 3 separate string arguments: left,
-center, right - Placeholders like <code>{page}</code> and
-<code>{numpages}</code> are filled in by the renderer - Multiple
-<code><a href="../reference/add_header.html">add_header()</a></code> calls append additional header rows; use the
-<code>level</code> parameter to replace a specific row - Multiple
-<code><a href="../reference/add_footnote.html">add_footnote()</a></code> calls stack in order -
-<code><a href="../reference/add_title.html">add_title()</a></code> and <code><a href="../reference/add_subtitle.html">add_subtitle()</a></code> accept an
-optional <code>toclevel</code> parameter (integer, e.g. <code>1</code>
-or <code>2</code>). When set, the title is included in the Table of
+<p><strong>Notes</strong>:</p>
+<p>- <code><a href="../reference/add_header.html">add_header()</a></code> and <code><a href="../reference/add_footer.html">add_footer()</a></code> take up to
+3 separate string arguments: left, center, right</p>
+<p>- Placeholders like <code>{PAGE}</code> and <code>{NUMPAGES}</code>
+are filled in by the renderer</p>
+<p>- Multiple <code><a href="../reference/add_header.html">add_header()</a></code> calls append additional header
+rows; use the <code>level</code> parameter to replace a specific row</p>
+<p>- Multiple <code><a href="../reference/add_footnote.html">add_footnote()</a></code> calls stack in order</p>
+<p>- <code><a href="../reference/add_title.html">add_title()</a></code> and <code><a href="../reference/add_subtitle.html">add_subtitle()</a></code> accept an
+optional <code>toclevel</code> parameter (integer, <code>1</code> to
+<code>9</code>). When set, the title is included in the Table of
 Contents generated by <code>write_doc(toc = TRUE)</code>. See
 <code><a href="../reference/add_title.html">?add_title</a></code> for details.</p>
 <hr>
@@ -471,7 +529,7 @@ Contents generated by <code>write_doc(toc = TRUE)</code>. See
 </h3>
 <p>Use <code><a href="../reference/set_page_style.html">set_page_style()</a></code> with <code><a href="../reference/p_page.html">p_page()</a></code> and
 <code><a href="../reference/p_margins.html">p_margins()</a></code> to control the physical page layout:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span></span>
 <span>    page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span></span>
@@ -487,25 +545,27 @@ Contents generated by <code>write_doc(toc = TRUE)</code>. See
 <span>      <span class="op">)</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><strong><code><a href="../reference/p_page.html">p_page()</a></code> parameters</strong>: -
-<code>size</code>: Page size — <code>"A4"</code> (default),
-<code>"Letter"</code>, or <code>"Legal"</code> -
-<code>orientation</code>: <code>"portrait"</code> (default) or
-<code>"landscape"</code> - <code>margins</code>: A margins object from
+<p><strong><code><a href="../reference/p_page.html">p_page()</a></code> parameters</strong>:</p>
+<p>- <code>size</code>: Page size — <code>"A4"</code> (default),
+<code>"Letter"</code>, or <code>"Legal"</code></p>
+<p>- <code>orientation</code>: <code>"portrait"</code> (default) or
+<code>"landscape"</code></p>
+<p>- <code>margins</code>: A margins object from
 <code><a href="../reference/p_margins.html">p_margins()</a></code></p>
 <p><strong><code><a href="../reference/p_margins.html">p_margins()</a></code> parameters</strong> (all accept
 dimension strings like <code>"1in"</code>, <code>"2.54cm"</code>,
-<code>"72pt"</code>, <code>"25.4mm"</code>): - <code>top</code>,
-<code>bottom</code>, <code>left</code>, <code>right</code>: Page margins
-- <code>header</code>, <code>footer</code>: Distance from page edge to
-header/footer content</p>
+<code>"72pt"</code>, <code>"25.4mm"</code>):</p>
+<p>- <code>top</code>, <code>bottom</code>, <code>left</code>,
+<code>right</code>: Page margins</p>
+<p>- <code>header</code>, <code>footer</code>: Distance from page edge
+to header/footer content</p>
 </div>
 <div class="section level3">
 <h3 id="document-templates">Document templates<a class="anchor" aria-label="anchor" href="#document-templates"></a>
 </h3>
 <p>Templates control the visual appearance (colours, fonts, borders) of
 the rendered DOCX:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># List all bundled templates</span></span>
 <span><span class="fu"><a href="../reference/tfl_list_templates.html">tfl_list_templates</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -529,7 +589,7 @@ template JSON files.</p>
 <h2 id="step-6-combine-specs-into-a-report">Step 6: Combine specs into a report<a class="anchor" aria-label="anchor" href="#step-6-combine-specs-into-a-report"></a>
 </h2>
 <p>Assemble multiple specs with <code><a href="../reference/create_report.html">create_report()</a></code>:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create multiple specs</span></span>
 <span><span class="va">spec_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
 <span><span class="va">spec_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec_table</span>, <span class="st">"Table 1: Demographics"</span><span class="op">)</span></span>
@@ -544,14 +604,17 @@ template JSON files.</p>
 <span></span>
 <span><span class="co"># Inspect combined report</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">report</span><span class="op">)</span></span></code></pre></div>
-<p><strong>What <code><a href="../reference/create_report.html">create_report()</a></code> does</strong>: 1. Flattens
-inputs (supports nested reports) 2. Validates structure 3. Consolidates
-combined styles (if any used <code><a href="../reference/f_combine.html">f_combine()</a></code>) 4. Assigns
-sequential <code>docOrder</code> (1, 2, 3, …) 5. Creates
-<code>dataRef</code> names for new specs 6. Returns a
-<code>TFL_report</code> object</p>
+<p><strong>What <code><a href="../reference/create_report.html">create_report()</a></code> does</strong>:</p>
+<p>1. Flattens inputs (supports nested reports)</p>
+<p>2. Validates structure</p>
+<p>3. Consolidates combined styles (if any used
+<code><a href="../reference/f_combine.html">f_combine()</a></code>)</p>
+<p>4. Assigns sequential <code>docOrder</code> (1, 2, 3, …)</p>
+<p>5. Creates <code>dataRef</code> names for new specs</p>
+<p>6. Returns a <code>TFL_report</code> object</p>
 <p><strong>Result</strong>: A single report combining all specs in input
-order.</p>
+order. Additionally a Table of Contents can be auto-generated in such
+documents that allows to create a production ready TFL reports.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -559,7 +622,7 @@ order.</p>
 </h2>
 <p>Beyond global column styling, apply <strong>conditional
 actions</strong> to specific rows that match a condition:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Define a style for first group occurrences</span></span>
@@ -582,9 +645,9 @@ columns</strong>: Create group headers by merging columns -
 <code><a href="../reference/compute_cols.html">compute_cols()</a></code>):</p>
 <table class="table">
 <colgroup>
-<col width="35%">
 <col width="33%">
-<col width="31%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
 <th>Function</th>
@@ -616,7 +679,7 @@ columns</strong>: Create group headers by merging columns -
 </tbody>
 </table>
 <p><strong>Condition syntax</strong>:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Direct column comparison</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cyl</span> <span class="op">&gt;</span> <span class="fl">6</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">mpg</span>, styleRef <span class="op">=</span> <span class="st">"emphasize"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -640,13 +703,15 @@ columns</strong>: Create group headers by merging columns -
 <span></span>
 <span><span class="co"># Combine conditions</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cyl</span> <span class="op">==</span> <span class="fl">8</span> <span class="op">&amp;</span> <span class="va">hp</span> <span class="op">&gt;</span> <span class="fl">100</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">mpg</span>, styleRef <span class="op">=</span> <span class="st">"high_power"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><strong>Key concepts</strong>: - Conditions are evaluated during
-<code><a href="../reference/create_report.html">create_report()</a></code> — at that point, all data is available -
-Multiple <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls accumulate on the same spec -
-Actions on the same row from different <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
-blocks are combined (styles merge automatically) -
-<code>value_from = NULL</code> in <code><a href="../reference/c_addrow.html">c_addrow()</a></code> creates an
-empty separator row</p>
+<p><strong>Key concepts</strong>:</p>
+<p>- Conditions are evaluated during <code><a href="../reference/create_report.html">create_report()</a></code> — at
+that point, all data is available</p>
+<p>- Multiple <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls accumulate on the same
+spec</p>
+<p>- Actions on the same row from different <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
+blocks are combined</p>
+<p>- <code>value_from = NULL</code> in <code><a href="../reference/c_addrow.html">c_addrow()</a></code> creates
+an empty separator row</p>
 <p>For detailed examples see <a href="Reporting_Examples_with_ksTFL.Rmd#conditional-row-actions">Reporting
 Examples: Conditional Row Actions</a>.</p>
 <hr>
@@ -659,7 +724,7 @@ Examples: Conditional Row Actions</a>.</p>
 </h3>
 <p><code><a href="../reference/write_doc.html">write_doc()</a></code> combines save + render into a single
 call:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_table</span>, <span class="va">spec_text</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Returns the full path to the generated .docx (invisibly)</span></span>
@@ -667,17 +732,19 @@ call:</p>
 <span>  name     <span class="op">=</span> <span class="st">"demographics"</span>,          <span class="co"># Output file name (no extension)</span></span>
 <span>  outDir   <span class="op">=</span> <span class="st">"./output"</span>,              <span class="co"># Where the final .docx is written</span></span>
 <span>  metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span>               <span class="co"># Where JSON metadata is written (temp is fine)</span></span></code></pre></div>
-<p><strong>Additional parameters</strong>: - <code>toc</code>: If
-<code>TRUE</code>, prepends a Table of Contents page (requires
-<code>toclevel</code> on titles — see <code><a href="../reference/add_title.html">?add_title</a></code>) -
-<code>tocTitle</code>: Heading above the TOC field (default
-<code>"Table of Contents"</code>) - <code>prettify</code>: If
-<code>TRUE</code>, writes human-readable JSON (useful for debugging) -
-<code>verbose</code>: If <code>TRUE</code>, prints renderer progress
-messages</p>
+<p><strong>Additional parameters</strong>:</p>
+<p>- <code>toc</code>: If <code>TRUE</code>, prepends a Table of
+Contents page (requires <code>toclevel</code> on titles - see
+<code><a href="../reference/add_title.html">?add_title</a></code>)</p>
+<p>- <code>tocTitle</code>: Heading above the TOC field (default
+<code>"Table of Contents"</code>)</p>
+<p>- <code>prettify</code>: If <code>TRUE</code>, writes human-readable
+JSON (useful for debugging)</p>
+<p>- <code>verbose</code>: If <code>TRUE</code>, prints renderer
+progress messages to R console</p>
 <p>This is the recommended approach for production use. Set session
 defaults once:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
 <span>  output_directory <span class="op">=</span> <span class="st">"./output"</span>,</span>
 <span>  meta_directory   <span class="op">=</span> <span class="st">"./meta"</span></span>
@@ -692,7 +759,7 @@ defaults once:</p>
 </h3>
 <p>Use this when you need to inspect or version-control the JSON
 metadata separately:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_table</span>, <span class="va">spec_text</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Step 1: Serialize to JSON + data files</span></span>
@@ -707,11 +774,11 @@ metadata separately:</p>
 <span>  spec_json   <span class="op">=</span> <span class="va">result</span><span class="op">$</span><span class="va">spec_file</span>,</span>
 <span>  meta_dir    <span class="op">=</span> <span class="va">result</span><span class="op">$</span><span class="va">metaPath</span>,</span>
 <span>  output_path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"./output"</span>, <span class="st">"my_report.docx"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><strong><code><a href="../reference/save_report.html">save_report()</a></code> output files</strong>: -
-<code>{metaPath}/{spec_hash}.json</code> — Main specification (consumed
-by renderer) - <code>{metaPath}/{dataRef}.json</code> — Table data files
-(one per table spec) - Figure files copied to <code>metaPath</code>
-as-is</p>
+<p><strong><code><a href="../reference/save_report.html">save_report()</a></code> output files</strong>:</p>
+<p>- <code>{metaPath}/{spec_hash}.json</code> — Main specification
+(consumed by renderer)</p>
+<p>- <code>{metaPath}/{dataRef}.json</code> — Table data files (one per
+table spec) - Figure files copied to <code>metaPath</code> as-is</p>
 <hr>
 </div>
 </div>
@@ -762,7 +829,7 @@ and compare them.</p>
 <div class="section level3">
 <h3 id="managing-metadata-files">Managing metadata files<a class="anchor" aria-label="anchor" href="#managing-metadata-files"></a>
 </h3>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">meta_dir</span> <span class="op">&lt;-</span> <span class="st">"./meta"</span></span>
 <span></span>
 <span><span class="co"># List all spec JSONs in the meta folder</span></span>
@@ -795,7 +862,7 @@ files. By default keeps 1 version per document
 <div class="section level3">
 <h3 id="recommended-production-setup">Recommended production setup<a class="anchor" aria-label="anchor" href="#recommended-production-setup"></a>
 </h3>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set persistent meta directory once per session</span></span>
 <span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
 <span>  output_directory <span class="op">=</span> <span class="st">"./output"</span>,</span>
@@ -819,7 +886,7 @@ files. By default keeps 1 version per document
 </h3>
 <p>When you create a table, widths are auto-calculated based on data
 characteristics:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Auto-calculated widths (example)</span></span>
 <span><span class="co"># id = 20%, description = 50%, value = 30%</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">my_data</span><span class="op">)</span></span>
@@ -834,7 +901,7 @@ Examples</a> for detailed width customization.</p>
 </h3>
 <p>Each table spec gets a <code>dataRef</code> name for its data
 file:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Auto-generated: "0001_abc123def456" (docOrder + hash)</span></span>
 <span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_table1</span>, <span class="va">spec_table2</span><span class="op">)</span></span>
 <span></span>
@@ -847,11 +914,11 @@ file:</p>
 <h2 id="session-wide-defaults-with-tfl_options">Session-wide defaults with <code>tfl_options</code><a class="anchor" aria-label="anchor" href="#session-wide-defaults-with-tfl_options"></a>
 </h2>
 <p>Set defaults once, inherited by all new specs:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set session defaults</span></span>
 <span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/add_header.html">add_header</a></span><span class="op">(</span><span class="st">"Study ABC"</span>, <span class="st">"Locked Database"</span>, <span class="st">"CONFIDENTIAL"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="../reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="st">"Company Name"</span>, <span class="st">"Page {page}"</span>, <span class="st">"2025"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="st">"Company Name"</span>, <span class="st">"Page {PAGE}"</span>, <span class="st">"2025"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="../reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="st">"Analysis performed in R with ksTFL."</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># All new specs created afterward inherit these settings</span></span>
@@ -868,7 +935,7 @@ file:</p>
 <div class="section level2">
 <h2 id="complete-example-from-data-to-document">Complete example: From data to document<a class="anchor" aria-label="anchor" href="#complete-example-from-data-to-document"></a>
 </h2>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://example.com">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- Setup ---</span></span>
@@ -882,13 +949,13 @@ file:</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject</span>, <span class="va">age</span>, <span class="va">sex</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"header"</span>,</span>
-<span>  <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"11pt"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="../reference/s_paragraph.html">s_paragraph</a></span><span class="op">(</span>alignment <span class="op">=</span> <span class="st">"center"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#DDDDDD"</span><span class="op">)</span><span class="op">)</span></span>
+<span>                  <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"11pt"</span><span class="op">)</span>,</span>
+<span>                  <span class="fu"><a href="../reference/s_paragraph.html">s_paragraph</a></span><span class="op">(</span>alignment <span class="op">=</span> <span class="st">"center"</span><span class="op">)</span>,</span>
+<span>                  <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#DDDDDD"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject</span>, <span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>,</span>
-<span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Subject ID"</span>, <span class="st">"Age (years)"</span>, <span class="st">"Sex"</span><span class="op">)</span>,</span>
-<span>  labelStyleRef <span class="op">=</span> <span class="st">"header"</span><span class="op">)</span></span>
+<span>                    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Subject ID"</span>, <span class="st">"Age (years)"</span>, <span class="st">"Sex"</span><span class="op">)</span>,</span>
+<span>                    labelStyleRef <span class="op">=</span> <span class="st">"header"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">age</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.0f"</span><span class="op">)</span></span>
 <span></span>
@@ -896,20 +963,26 @@ file:</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"All subjects in safety population"</span><span class="op">)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Data are shown as observed."</span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, <span class="st">'Characteristic'</span>, </span>
+<span>                        labelStyleRef <span class="op">=</span> <span class="st">"header"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject</span>, <span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, <span class="st">'Treatment A (N=10)'</span>, </span>
+<span>                        labelStyleRef <span class="op">=</span> <span class="st">"header"</span>, stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec</span>, contentWidth <span class="op">=</span> <span class="st">'40%'</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># --- Export ---</span></span>
-<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"demographics"</span>, outDir <span class="op">=</span> <span class="st">"./output"</span>, metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'demographics'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Done!</span></span></code></pre></div>
-<hr>
+<p><img src="images/example-complete-demographics.png"></p>
 </div>
 <div class="section level2">
 <h2 id="key-gotchas-and-tips">Key gotchas and tips<a class="anchor" aria-label="anchor" href="#key-gotchas-and-tips"></a>
 </h2>
 <table class="table">
 <colgroup>
-<col width="38%">
-<col width="61%">
+<col width="50%">
+<col width="50%">
 </colgroup>
 <thead><tr class="header">
 <th>Gotcha</th>
@@ -942,10 +1015,11 @@ lengths</strong></td>
 <td>Check path is absolute or relative to current working directory</td>
 </tr>
 <tr class="even">
-<td><strong>create_text() with data argument</strong></td>
+<td><strong>create_text() does not accept data</strong></td>
 <td>
-<code><a href="../reference/create_text.html">create_text()</a></code> requires <code>data = NULL</code> — no
-data for text specs</td>
+<code><a href="../reference/create_text.html">create_text()</a></code> takes no arguments — add content via
+<code><a href="../reference/add_body_text.html">add_body_text()</a></code>
+</td>
 </tr>
 <tr class="odd">
 <td><strong>Overlapping stubs at same stubOrder</strong></td>
@@ -955,6 +1029,85 @@ column sets</td>
 </tbody>
 </table>
 <hr>
+</div>
+<div class="section level2">
+<h2 id="rstudio-addins">RStudio Addins<a class="anchor" aria-label="anchor" href="#rstudio-addins"></a>
+</h2>
+<p>ksTFL ships with five RStudio Addins (available from the
+<strong>Addins</strong> drop-down in the RStudio toolbar). They provide
+interactive shortcuts for tasks that would otherwise require remembering
+function names or switching to the console.</p>
+<div class="section level3">
+<h3 id="styles-editor">Styles Editor<a class="anchor" aria-label="anchor" href="#styles-editor"></a>
+</h3>
+<p>Launches a Shiny application for creating and editing style templates
+interactively. You can load any bundled template from
+<code><a href="../reference/tfl_list_templates.html">tfl_list_templates()</a></code>, modify fonts, borders, spacing, and
+colours in a WYSIWYG editor, then download the result as a JSON file
+ready for use with <code><a href="../reference/set_page_style.html">set_page_style()</a></code> or
+<code><a href="../reference/write_doc.html">write_doc()</a></code>. This is especially useful when you need to
+fine-tune a template visually rather than writing <code><a href="../reference/s_font.html">s_font()</a></code>
+/ <code><a href="../reference/s_paragraph.html">s_paragraph()</a></code> / <code><a href="../reference/s_table_style.html">s_table_style()</a></code> calls by
+hand.</p>
+<p>Requires the <code>shiny</code> package.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Equivalent programmatic call:</span></span>
+<span><span class="fu"><a href="../reference/run_styles_editor.html">run_styles_editor</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="replay-reports">Replay Reports<a class="anchor" aria-label="anchor" href="#replay-reports"></a>
+</h3>
+<p>Opens a Shiny application for selecting, reordering, and combining
+previously saved reports into a single DOCX document. You point the app
+at one or more meta-data folders (produced by <code><a href="../reference/save_report.html">save_report()</a></code>
+or <code><a href="../reference/write_doc.html">write_doc()</a></code>), drag-and-drop reports into the desired
+order, optionally enable a table of contents, and render the combined
+output — all without writing any R code.</p>
+<p>Requires <code>shiny</code>, <code>sortable</code>, and
+<code>shinyFiles</code> packages.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Equivalent programmatic call:</span></span>
+<span><span class="fu"><a href="../reference/run_replay_app.html">run_replay_app</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Pre-populate a meta folder:</span></span>
+<span><span class="fu"><a href="../reference/run_replay_app.html">run_replay_app</a></span><span class="op">(</span>meta_dir <span class="op">=</span> <span class="st">"./output/meta"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="tfl-spec-preview-selection">TFL Spec Preview (Selection)<a class="anchor" aria-label="anchor" href="#tfl-spec-preview-selection"></a>
+</h3>
+<p>Evaluates the currently selected code in the source editor and, if
+the result is a <code>TFL_spec</code>, renders an HTML preview in the
+RStudio Viewer pane. This lets you highlight a pipeline expression
+(e.g., <code>create_table(...) |&gt; add_title(...)</code>) and
+instantly see what the spec looks like — a quick visual check without
+saving or rendering to DOCX.</p>
+</div>
+<div class="section level3">
+<h3 id="tfl-spec-preview-by-name">TFL Spec Preview (by name)<a class="anchor" aria-label="anchor" href="#tfl-spec-preview-by-name"></a>
+</h3>
+<p>Same HTML preview, but instead of evaluating selected text the addin
+prompts you for the name of a <code>TFL_spec</code> object that already
+exists in <code>.GlobalEnv</code>. Handy when the spec was built
+interactively in the console and you want to preview it without
+re-selecting code.</p>
+</div>
+<div class="section level3">
+<h3 id="style-atoms-catalog">Style Atoms Catalog<a class="anchor" aria-label="anchor" href="#style-atoms-catalog"></a>
+</h3>
+<p>Prints all built-in style atoms to the console with colour-coded
+categories (font decoration, font family, font size, text colour,
+highlight, alignment, indentation, spacing, borders, backgrounds, row
+height, and more). Each atom is a short name you can reference directly
+in <code><a href="../reference/add_style.html">add_style()</a></code> or <code><a href="../reference/define_cols.html">define_cols()</a></code> via
+<code><a href="../reference/f_combine.html">f_combine()</a></code>. Running this catalog helps you discover what
+is available without consulting documentation.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Equivalent programmatic call:</span></span>
+<span><span class="fu"><a href="../reference/tfl_print_style_atoms.html">tfl_style_atoms_catalog</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># — or —</span></span>
+<span><span class="fu"><a href="../reference/tfl_print_style_atoms.html">tfl_print_style_atoms</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="next-steps">Next steps<a class="anchor" aria-label="anchor" href="#next-steps"></a>
@@ -1008,9 +1161,9 @@ repository</a>
 </h2>
 <table class="table">
 <colgroup>
-<col width="13%">
-<col width="40%">
-<col width="46%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
 <th>Task</th>

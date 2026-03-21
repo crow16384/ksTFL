@@ -34,6 +34,7 @@ articles:
     contents:
       - Getting_Started_with_ksTFL
       - Reporting_Examples_with_ksTFL
+      - Real_Examples_with_ksTFL
   - title: Styling And Layout
     navbar: Styling and Layout
     contents:

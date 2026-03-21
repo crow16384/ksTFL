@@ -159,8 +159,7 @@ occurrence of each value combination - `firstRow()`: TRUE only for first
 data row - `lastRow()`: TRUE only for last data row - `everyNth(n)`:
 TRUE every n-th row (e.g., `everyNth(3)` for rows 1, 4, 7, …) -
 `rowNumber()`: Row index (1-based) - `firstOfBlock(col, n, offset)`:
-Logical vector marking first row of every n-th block defined by `col` -
-`eval(expr)`: Evaluate expression with data masking
+Logical vector marking first row of every n-th block defined by `col`
 
 Note: The `cols` argument passed to
 [`c_merge()`](https://example.com/reference/c_merge.md) must resolve to
@@ -410,7 +409,82 @@ missing does the package fall back to a bundled open-source alternative.
 | Verdana         | Liberation Sans    | SIL OFL 1.1 |
 | Trebuchet MS    | Liberation Sans    | SIL OFL 1.1 |
 
-**Custom font directories:**
+#### Why proprietary fonts are not bundled
+
+Arial, Times New Roman, Courier New, Georgia, Verdana, and Trebuchet MS
+are proprietary fonts owned by Microsoft and/or Monotype. Their license
+prohibits redistribution inside open-source packages. ksTFL therefore
+bundles only the Liberation family (SIL OFL 1.1) as metrically
+compatible fallbacks. For pixel-perfect output matching corporate
+templates, install the original Microsoft fonts on the host system.
+
+#### Installing Microsoft core fonts on Linux
+
+The **`ttf-mscorefonts-installer`** package downloads and installs the
+Microsoft TrueType core fonts (Arial, Times New Roman, Courier New,
+Georgia, Verdana, Trebuchet MS, and others) from SourceForge. It is
+available in most Linux distribution repositories.
+
+**Debian / Ubuntu:**
+
+``` bash
+sudo apt-get update
+sudo apt-get install -y ttf-mscorefonts-installer
+sudo fc-cache -f
+```
+
+**Fedora / RHEL / CentOS (via RPM Fusion or manual SPEC):**
+
+``` bash
+# Fedora (requires RPM Fusion free repository to be enabled)
+sudo dnf install -y curl cabextract xorg-x11-font-utils fontconfig
+sudo rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
+sudo fc-cache -f
+```
+
+**openSUSE:**
+
+``` bash
+sudo zypper install -y fetchmsttfonts
+sudo fc-cache -f
+```
+
+**Arch Linux:**
+
+``` bash
+# Available from the AUR
+yay -S ttf-ms-fonts
+sudo fc-cache -f
+```
+
+After installing, restart R (or call
+[`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)
+in a running session) so ksTFL picks up the new fonts.
+
+#### Rocker Docker images
+
+[Rocker](https://rocker-project.org/) images are Debian-based, so
+`ttf-mscorefonts-installer` can be added directly. Include the following
+in your Dockerfile:
+
+``` dockerfile
+FROM rocker/r-ver:4.4
+
+# Accept the Microsoft EULA non-interactively and install core fonts
+RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" \
+      | debconf-set-selections \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends ttf-mscorefonts-installer fontconfig \
+    && fc-cache -f \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+> **Tip:** The `debconf-set-selections` line automatically accepts the
+> Microsoft EULA, which is required for non-interactive installs (CI/CD
+> pipelines, Docker builds).
+
+#### Custom font directories
 
 Point the `ksTFL.font_dirs` option to directories containing proprietary
 or additional fonts. These are scanned alongside system directories:

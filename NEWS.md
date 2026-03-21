@@ -1,3 +1,11 @@
+# ksTFL 0.7.5
+
+## Documentation
+
+* New vignette: "Real Examples with ksTFL" — five end-to-end clinical reporting examples (demographics table, UTF-8/multilingual table, AE spanning-header table, data listing with two-level TOC, and multi-figure combined report), each with embedded PDF output.
+* Improved code comments and narrative descriptions across all example vignettes.
+* Translated example scripts (`lb_lst_01_en.R`, `ae_tbl_exmpl.R`, `tmp_example.R`) from Russian to English.
+
 # ksTFL 0.7.0
 
 ## New Features

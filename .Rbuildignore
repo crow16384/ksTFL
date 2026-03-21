@@ -29,3 +29,5 @@
 ^compile_commands\.json$
 cclsp.json$
 ^\.Rhistory$
+^doc$
+^Meta$

@@ -148,6 +148,19 @@ write_doc(rpt_min_table, name = "tbl_min")
 
 ## ![](images/rendered-minimal-table.png)
 
+> **A note on the `cols` parameter** — The `cols` argument in
+> `create_table()` specifies which columns are rendered in the document
+> and their left-to-right order. It acts purely as a *presentation
+> directive*: the underlying data frame is stored in full, so columns
+> omitted from `cols` are **not** dropped from the spec. They remain
+> available for conditional logic in `compute_cols()`. For instance, you
+> could exclude a helper column like `flag` from the report
+> (`cols = c(subject_id, age, sex, trt)`) yet still reference `flag` in
+> a `compute_cols()` condition to drive styling or value
+> transformations. This design means you never need to pre-filter or
+> reorder your data frame before passing it to ksTFL — `cols` handles
+> column selection and ordering in one place.
+
 ## 2 — Simple minimal figure
 
 ```{r example_minimal_figure, eval = FALSE}
@@ -262,12 +275,11 @@ matching the number of columns:
 
 ```{r example_define_batch_mapped, eval = FALSE}
 # Different label and format for each column
-spec_mapped <- create_table(data = demog_tbl, cols = c(age, sex, trt))
-spec_mapped <- define_cols(
-                spec_mapped, c(age, sex, trt),
-                label = c("Age (years)", "Biological Sex", "Treatment Group"),
-                type = c("numeric", "string", "string"),
-                format = c("%.0f", NA, NA) #format not applicable for strings -> NA
+spec_mapped <- create_table(data = demog_tbl, cols = c(age, sex, trt)) |>
+define_cols(c(age, sex, trt),
+            label = c("Age (years)", "Biological Sex", "Treatment Group"),
+            type = c("numeric", "string", "string"),
+            format = c("%.0f", NA, NA) #format not applicable for strings -> NA
 )
 
 print(spec_mapped)
@@ -520,8 +532,8 @@ print(spec_valid)
 
 \- **Relative width (%)**: Must be ≥ `minColWidth` (default 0.5%)
 
--   **Relative width (%)**: Cannot exceed max allowed considering locked
-    columns and other column minimums
+\- **Relative width (%)**: Cannot exceed max allowed considering locked
+columns and other column minimums
 
 \- **Fixed width**: Must be ≥ 0.2cm (all units: cm, in, pt, mm
 automatically converted)

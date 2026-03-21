@@ -4,14 +4,20 @@
 
 ## Overview
 
-This guide covers the complete styling system in ksTFL: - **Style
-primitives** (`s_*` helpers) for fonts, paragraphs, spacing,
-indentation, tables, and borders - **Declaring named styles** with
-[`add_style()`](https://example.com/reference/add_style.md) -
-**Referencing and combining styles** with style references and
-[`f_combine()`](https://example.com/reference/f_combine.md) - **Applying
-styles** to columns, labels, stubs, and content - **Best practices** for
-maintainable, reusable style systems
+This guide covers the complete styling system in ksTFL:
+
+\- **Style primitives** (`s_*` helpers) for fonts, paragraphs, spacing,
+indentation, tables, and borders
+
+\- **Declaring named styles** with
+[`add_style()`](https://example.com/reference/add_style.md)
+
+\- **Referencing and combining styles** with style references and
+[`f_combine()`](https://example.com/reference/f_combine.md)
+
+\- **Applying styles** to columns, labels, stubs, and content
+
+\- **Best practices** for maintainable, reusable style systems
 
 For runnable reporting examples integrating styles see [Reporting
 Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd).
@@ -33,13 +39,19 @@ This is a styling-system vignette.
 
 ### Why declarative styles?
 
-Professional clinical documents require: - **Consistency**: All headers
-look the same, all numeric columns align right, all subtitles use the
-same font - **Maintainability**: Change one style definition, all
-references update automatically - **Composability**: Build complex
-styles from simple building blocks (font + paragraph alignment + table
-background) - **Separation of concerns**: Define styles once, apply them
-many times without repeating details
+Professional clinical documents require:
+
+\- **Consistency**: All headers look the same, all numeric columns align
+right, all subtitles use the same font
+
+\- **Maintainability**: Change one style definition, all references
+update automatically
+
+\- **Composability**: Build complex styles from simple building blocks
+(font + paragraph alignment + table background)
+
+\- **Separation of concerns**: Define styles once, apply them many times
+without repeating details
 
 ksTFL uses a **named style system**: you declare styles with
 [`add_style()`](https://example.com/reference/add_style.md) giving each
@@ -80,13 +92,22 @@ if used incorrectly.
 
 Control font appearance (name, size, weight, color, decorations).
 
-**Parameters**: - `font_name`: Font family (e.g., “Arial”, “Courier
-New”, “Times New Roman”, “Georgia”) - `font_size`: Size with units
-(e.g., “12pt”, “11pt”) - `bold`: Logical (TRUE/FALSE) - `italic`:
-Logical (TRUE/FALSE) - `underline`: Logical (TRUE/FALSE) - `color`:
-Color as hex code (e.g., “#000000”, “#FF0000”) or color name (e.g.,
-“red”, “black”, “blue”) - `highlight`: Background highlight color as hex
-code or color name
+**Parameters**:
+
+\- `font_name`: Font family (e.g., “Arial”, “Courier New”, “Times New
+Roman”, “Georgia”)
+
+\- `font_size`: Size with units (e.g., “12pt”, “11pt”) - `bold`: Logical
+(TRUE/FALSE)
+
+\- `italic`: Logical (TRUE/FALSE)
+
+\- `underline`: Logical (TRUE/FALSE)
+
+\- `color`: Color as hex code (e.g., “#000000”, “#FF0000”) or color name
+(e.g., “red”, “black”, “blue”)
+
+\- `highlight`: Background highlight color as hex code or color name
 
 **Example**:
 
@@ -112,10 +133,15 @@ spec <- add_style(spec, id = "highlighted",
 Control text alignment, spacing before/after, line spacing, and
 indentation.
 
-**Parameters**: - `alignment`: Text alignment — “left”, “right”,
-“center”, “justify”, “distributed” - `spacing`: Spacing before/after
-(use `s_spacing(...)`) - `indents`: Left/right indentation, first-line
-indent (use `s_indents(...)`)
+**Parameters**:
+
+\- `alignment`: Text alignment — “left”, “right”, “center”, “justify”,
+“distributed”
+
+\- `spacing`: Spacing before/after (use `s_spacing(...)`)
+
+\- `indents`: Left/right indentation, first-line indent (use
+`s_indents(...)`)
 
 **Example**:
 
@@ -139,9 +165,13 @@ spec <- add_style(spec, id = "right_indented",
 Controls spacing **before** a paragraph, **after** a paragraph, and
 **between lines**.
 
-**Parameters**: - `before`: Space before paragraph (e.g., “6pt”,
-“12pt”) - `after`: Space after paragraph (e.g., “6pt”, “12pt”) -
-`line_spacing`: Line spacing multiplier (e.g., 1.0, 1.5, 2.0 for
+**Parameters**:
+
+\- `before`: Space before paragraph (e.g., “6pt”, “12pt”)
+
+\- `after`: Space after paragraph (e.g., “6pt”, “12pt”)
+
+\- `line_spacing`: Line spacing multiplier (e.g., 1.0, 1.5, 2.0 for
 single/1.5-line/double spacing)
 
 **Note**: [`s_spacing()`](https://example.com/reference/s_spacing.md) is
@@ -165,9 +195,13 @@ spec <- add_style(spec, id = "double_spaced",
 Controls left/right margins and first-line indentation within a
 paragraph.
 
-**Parameters**: - `left`: Left indent (e.g., “10pt”, “1cm”) - `right`:
-Right indent (e.g., “10pt”) - `first_line`: First-line indent (e.g.,
-“20pt” for hanging indent)
+**Parameters**:
+
+\- `left`: Left indent (e.g., “10pt”, “1cm”)
+
+\- `right`: Right indent (e.g., “10pt”)
+
+\- `first_line`: First-line indent (e.g., “20pt” for hanging indent)
 
 **Note**: [`s_indents()`](https://example.com/reference/s_indents.md) is
 always used **inside
@@ -194,14 +228,23 @@ spec <- add_style(spec, id = "block_indent",
 Control cell background, row height, vertical alignment, text
 orientation, and borders.
 
-**Parameters**: - `background_color`: Cell background color (hex, e.g.,
-“#E8E8E8”) - `row_height`: Height of table row (e.g., “25pt”) -
-`topEmptyLine`: Optional empty spacer row after header (e.g., “6pt”, use
-`NULL` or `0pt` to disable) - `bottomEmptyLine`: Optional empty spacer
-row before the bottom border (e.g., “6pt”, use `NULL` or `0pt` to
-disable) - `vertical_alignment`: “top”, “center”, “bottom” -
-`text_orientation`: “horizontal”, “vertical_90”, “vertical_270” -
-`borders`: Border specification (use `s_borders(...)`)
+**Parameters**:
+
+\- `background_color`: Cell background color (hex, e.g., “#E8E8E8”)
+
+\- `row_height`: Height of table row (e.g., “25pt”)
+
+\- `topEmptyLine`: Optional empty spacer row after header (e.g., “6pt”,
+use `NULL` or `0pt` to disable)
+
+\- `bottomEmptyLine`: Optional empty spacer row before the bottom border
+(e.g., “6pt”, use `NULL` or `0pt` to disable)
+
+\- `vertical_alignment`: “top”, “center”, “bottom”
+
+\- `text_orientation`: “horizontal”, “vertical_90”, “vertical_270”
+
+\- `borders`: Border specification (use `s_borders(...)`)
 
 **Example**:
 
@@ -233,9 +276,15 @@ Define borders for all four sides of a cell. Each side takes
 [`s_border()`](https://example.com/reference/s_border.md) with line
 style, width, and color.
 
-**Parameters** (each side): - `top`: Top border (use `s_border(...)`) -
-`bottom`: Bottom border (use `s_border(...)`) - `left`: Left border (use
-`s_border(...)`) - `right`: Right border (use `s_border(...)`)
+**Parameters** (each side):
+
+\- `top`: Top border (use `s_border(...)`)
+
+\- `bottom`: Bottom border (use `s_border(...)`)
+
+\- `left`: Left border (use `s_border(...)`)
+
+\- `right`: Right border (use `s_border(...)`)
 
 **Note**: [`s_borders()`](https://example.com/reference/s_borders.md) is
 always used **inside
@@ -246,10 +295,14 @@ never standalone.
 
 Defines a single border line with style, width, and color.
 
-**Parameters**: - `color`: Color as hex code (e.g., “#000000”) or color
-name (e.g., “black”, “red”) - `width`: Line width (e.g., “1pt”, “2pt”,
-“0.5pt”) - `line_style`: “single”, “double”, “dashed”, “dotted”,
-“thick”, “none”
+**Parameters**:
+
+\- `color`: Color as hex code (e.g., “#000000”) or color name (e.g.,
+“black”, “red”)
+
+\- `width`: Line width (e.g., “1pt”, “2pt”, “0.5pt”)
+
+\- `line_style`: “single”, “double”, “dashed”, “dotted”, “thick”, “none”
 
 **Example**:
 
@@ -297,9 +350,15 @@ spec <- add_style(spec, id = "style_name",
 )
 ```
 
-**Parameters**: - `spec`: A `TFL_spec` object - `id`: Unique name for
-the style (e.g., “header_bold”, “numeric_right”) - `...`: One or more
-style primitives ([`s_font()`](https://example.com/reference/s_font.md),
+**Parameters**:
+
+\- `spec`: A `TFL_spec` object
+
+\- `id`: Unique name for the style (e.g., “header_bold”,
+“numeric_right”)
+
+\- `...`: One or more style primitives
+([`s_font()`](https://example.com/reference/s_font.md),
 [`s_paragraph()`](https://example.com/reference/s_paragraph.md),
 [`s_table_style()`](https://example.com/reference/s_table_style.md),
 etc.)
@@ -665,23 +724,33 @@ properties. Contact your renderer maintainer for constraints.
 
 When you call
 [`create_report()`](https://example.com/reference/create_report.md), the
-package: 1. Collects all specs 2. For each spec, finds all style
-references used with
-[`f_combine()`](https://example.com/reference/f_combine.md) 3. Merges
-those combined styles into single consolidated styles 4. Generates
-unique hash-based names for consolidated styles 5. Updates all
-references to point to the consolidated style
+package:
+
+1\. Collects all specs
+
+2\. For each spec, finds all style references used with
+[`f_combine()`](https://example.com/reference/f_combine.md)
+
+3\. Merges those combined styles into single consolidated styles
+
+4\. Generates unique hash-based names for consolidated styles
+
+5\. Updates all references to point to the consolidated style
 
 You don’t need to inspect or manipulate `spec$attribs$styles` — the
 consolidation is automatic and transparent.
 
 ### Style reference resolution
 
-Style references are resolved in this order: 1. **Named styles** defined
-in the same spec with
-[`add_style()`](https://example.com/reference/add_style.md) 2.
-**Built-in style atoms** shipped with the package (e.g., `"b"`,
-`"tw_80"`, `"grp_hdr"`) 3. **Error**: If reference not found,
+Style references are resolved in this order:
+
+1\. **Named styles** defined in the same spec with
+[`add_style()`](https://example.com/reference/add_style.md)
+
+2\. **Built-in style atoms** shipped with the package (e.g., `"b"`,
+`"tw_80"`, `"grp_hdr"`)
+
+3\. **Error**: If reference not found,
 [`create_report()`](https://example.com/reference/create_report.md) will
 error with an informative message
 

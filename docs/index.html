@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -357,7 +357,7 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Helper Functions for Conditions</strong>: - <code>firstOf(...)</code>: TRUE for first occurrence of each value combination - <code>lastOf(...)</code>: TRUE for last occurrence of each value combination - <code>firstRow()</code>: TRUE only for first data row - <code>lastRow()</code>: TRUE only for last data row - <code>everyNth(n)</code>: TRUE every n-th row (e.g., <code>everyNth(3)</code> for rows 1, 4, 7, …) - <code>rowNumber()</code>: Row index (1-based) - <code>firstOfBlock(col, n, offset)</code>: Logical vector marking first row of every n-th block defined by <code>col</code> - <code>eval(expr)</code>: Evaluate expression with data masking</p>
+<p><strong>Helper Functions for Conditions</strong>: - <code>firstOf(...)</code>: TRUE for first occurrence of each value combination - <code>lastOf(...)</code>: TRUE for last occurrence of each value combination - <code>firstRow()</code>: TRUE only for first data row - <code>lastRow()</code>: TRUE only for last data row - <code>everyNth(n)</code>: TRUE every n-th row (e.g., <code>everyNth(3)</code> for rows 1, 4, 7, …) - <code>rowNumber()</code>: Row index (1-based) - <code>firstOfBlock(col, n, offset)</code>: Logical vector marking first row of every n-th block defined by <code>col</code></p>
 <p>Note: The <code>cols</code> argument passed to <code><a href="reference/c_merge.html">c_merge()</a></code> must resolve to at least two consecutive columns in the final report column order. The merged cell’s displayed value is taken from the first column in the <code>cols</code> sequence.</p>
 </div>
 <div class="section level3">
@@ -714,9 +714,56 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Custom font directories:</strong></p>
+<div class="section level4">
+<h4 id="why-proprietary-fonts-are-not-bundled">Why proprietary fonts are not bundled<a class="anchor" aria-label="anchor" href="#why-proprietary-fonts-are-not-bundled"></a>
+</h4>
+<p>Arial, Times New Roman, Courier New, Georgia, Verdana, and Trebuchet MS are proprietary fonts owned by Microsoft and/or Monotype. Their license prohibits redistribution inside open-source packages. ksTFL therefore bundles only the Liberation family (SIL OFL 1.1) as metrically compatible fallbacks. For pixel-perfect output matching corporate templates, install the original Microsoft fonts on the host system.</p>
+</div>
+<div class="section level4">
+<h4 id="installing-microsoft-core-fonts-on-linux">Installing Microsoft core fonts on Linux<a class="anchor" aria-label="anchor" href="#installing-microsoft-core-fonts-on-linux"></a>
+</h4>
+<p>The <strong><code>ttf-mscorefonts-installer</code></strong> package downloads and installs the Microsoft TrueType core fonts (Arial, Times New Roman, Courier New, Georgia, Verdana, Trebuchet MS, and others) from SourceForge. It is available in most Linux distribution repositories.</p>
+<p><strong>Debian / Ubuntu:</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> ttf-mscorefonts-installer</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<p><strong>Fedora / RHEL / CentOS (via RPM Fusion or manual SPEC):</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Fedora (requires RPM Fusion free repository to be enabled)</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> curl cabextract xorg-x11-font-utils fontconfig</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<p><strong>openSUSE:</strong></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install <span class="at">-y</span> fetchmsttfonts</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<p><strong>Arch Linux:</strong></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Available from the AUR</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="ex">yay</span> <span class="at">-S</span> ttf-ms-fonts</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<p>After installing, restart R (or call <code><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code> in a running session) so ksTFL picks up the new fonts.</p>
+</div>
+<div class="section level4">
+<h4 id="rocker-docker-images">Rocker Docker images<a class="anchor" aria-label="anchor" href="#rocker-docker-images"></a>
+</h4>
+<p><a href="https://rocker-project.org/" class="external-link">Rocker</a> images are Debian-based, so <code>ttf-mscorefonts-installer</code> can be added directly. Include the following in your Dockerfile:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.4</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co"># Accept the Microsoft EULA non-interactively and install core fonts</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="kw">RUN</span> <span class="bu">echo</span> <span class="st">"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"</span> <span class="dt">\</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>      <span class="kw">|</span> <span class="ex">debconf-set-selections</span> <span class="dt">\</span></span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> update <span class="dt">\</span></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> ttf-mscorefonts-installer fontconfig <span class="dt">\</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">fc-cache</span> <span class="at">-f</span> <span class="dt">\</span></span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> clean <span class="dt">\</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span></code></pre></div>
+<blockquote>
+<p><strong>Tip:</strong> The <code>debconf-set-selections</code> line automatically accepts the Microsoft EULA, which is required for non-interactive installs (CI/CD pipelines, Docker builds).</p>
+</blockquote>
+</div>
+<div class="section level4">
+<h4 id="custom-font-directories">Custom font directories<a class="anchor" aria-label="anchor" href="#custom-font-directories"></a>
+</h4>
 <p>Point the <code>ksTFL.font_dirs</code> option to directories containing proprietary or additional fonts. These are scanned alongside system directories:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/opt/company-fonts"</span>, <span class="st">"~/my-fonts"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Font management functions:</strong></p>
@@ -743,10 +790,11 @@
 <hr>
 </div>
 </div>
+</div>
 <div class="section level2">
 <h2 id="full-pipeline-example">Full Pipeline Example<a class="anchor" aria-label="anchor" href="#full-pipeline-example"></a>
 </h2>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://example.com">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Create and customize spec</span></span>
@@ -855,7 +903,7 @@
 <h2 id="building-the-pkgdown-site">Building the pkgdown site<a class="anchor" aria-label="anchor" href="#building-the-pkgdown-site"></a>
 </h2>
 <p>From the package root in R:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Optional: longer timeout if CRAN is slow (downlit fetches packages.rds when building articles)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>timeout <span class="op">=</span> <span class="fl">120</span><span class="op">)</span></span>
 <span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span>pkg <span class="op">=</span> <span class="st">"."</span>, install <span class="op">=</span> <span class="cn">FALSE</span>, preview <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>

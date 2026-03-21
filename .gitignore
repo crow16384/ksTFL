@@ -76,3 +76,4 @@ core
 
 # Pkgdown / doc build output
 docs/reference/output/
+/doc/
