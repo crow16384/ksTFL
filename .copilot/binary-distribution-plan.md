@@ -81,8 +81,9 @@ Per job:
    - Linux: `sudo apt-get install -y libharfbuzz-dev libfreetype-dev libminizip-dev pkg-config`
    - Windows: handled by Rtools automatically
 4. Install R dependencies via `r-lib/actions/setup-r-dependencies@v2`
-5. `R CMD INSTALL --build .` → produces `.zip` (Windows) or `.tar.gz` (Linux)
-6. Upload artifact via `actions/upload-artifact@v4`
+5. `R CMD build .` → builds vignettes, produces `ksTFL_<version>.tar.gz` source tarball
+6. `R CMD INSTALL --build ksTFL_<version>.tar.gz` → produces `.zip` (Windows) or `ksTFL_<version>_R_<arch>.tar.gz` (Linux binary)
+7. Upload artifact via `actions/upload-artifact@v4`
 
 #### Job 2: `deploy` (after all builds)
 
@@ -95,7 +96,7 @@ Per job:
 5. Generate `PACKAGES` / `PACKAGES.gz` / `PACKAGES.rds` indexes via `tools::write_PACKAGES()`
 6. Place Linux binaries in `releases/` directory
 7. Prune old versions (keep last 2)
-8. Ensure `.nojekyll` exists, update `README.md`
+8. Ensure `.nojekyll` exists
 9. Commit and push to public repo
 
 #### Job 3: `release`

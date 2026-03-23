@@ -39,15 +39,21 @@ jobs:
         with:
           extra-packages: local::.
 
-      - name: Build binary package
+      - name: Build source package (with vignettes)
         shell: bash
-        run: R CMD INSTALL --build .
+        run: R CMD build .
+
+      - name: Build binary package (from source tarball)
+        shell: bash
+        run: |
+          PKG_TARBALL=$(ls ksTFL_*.tar.gz)
+          R CMD INSTALL --build "$PKG_TARBALL"
 
       - name: Find built package (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          PKG_FILE=$(ls ksTFL_*.tar.gz)
+          PKG_FILE=$(ls ksTFL_*_R_*.tar.gz)
           echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
 
       - name: Find built package (Windows)
@@ -69,7 +75,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout private repo (for docs/)
+      - name: Checkout source (for pkgdown)
         uses: actions/checkout@v4
         with:
           path: private-repo
@@ -99,7 +105,7 @@ jobs:
         with:
           r-version: 'release'
 
-      - name: Install system dependencies (for pkgdown build)
+      - name: Install system dependencies (for pkgdown)
         run: |
           sudo apt-get update -y
           sudo apt-get install -y \
@@ -168,8 +174,8 @@ jobs:
         run: touch public-repo/.nojekyll
 
       - name: Copy pkgdown site to public repo
-        run: |
-          # site/ was built fresh by pkgdown; bin/ and releases/ are safe — pkgdown never touches them.
+        run: |  
+          # bin/ and releases/ are untouched — pkgdown writes only HTML/CSS/JS
           cp -r site/. public-repo/
 
       - name: Commit and push
@@ -195,7 +201,8 @@ jobs:
       - name: Collect all binaries
         run: |
           mkdir release-files
-          find artifacts/ -type f \( -name "*.zip" -o -name "*.tar.gz" \) \
+          # *.zip = Windows binaries; *_R_*.tar.gz = Linux binaries (never source tarballs)
+          find artifacts/ -type f \( -name "*.zip" -o -name "*_R_*.tar.gz" \) \
             -exec cp {} release-files/ \;
 
       - name: Create GitHub Release
