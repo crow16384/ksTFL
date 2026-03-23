@@ -197,7 +197,7 @@ tfl_print_style_atoms <- function() {
     "fc_grey",
     "hl_grey",
     "text_left", "text_right", "text_center",
-    "indent_1", "indent_2", "indent_3", "indent_4",
+    "indent_0", "indent_1", "indent_2", "indent_3", "indent_4",
     "va_top", "va_center", "va_bottom",
     "text_horizontal", "text_vertical_90", "text_vertical_270",
     "bg_grey",

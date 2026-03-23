@@ -517,12 +517,15 @@ NULL
     #   ind2 = first sub-group           e.g. "  < 18"
     #   ind3 = second sub-group          e.g. "    Missing"
     #   ind4 = third sub-group / detail
+    #   ind0 = no indent (reset to left margin)
     # -------------------------------------------------------------------------
+    ind0    = list(paragraph = list(indents = list(left = "0cm"))),
     ind1    = list(paragraph = list(indents = list(left = "0.5cm"))),
     ind2    = list(paragraph = list(indents = list(left = "1.0cm"))),
     ind3    = list(paragraph = list(indents = list(left = "1.5cm"))),
     ind4    = list(paragraph = list(indents = list(left = "2.0cm"))),
     # aliases
+    indent_0 = list(paragraph = list(indents = list(left = "0cm"))),
     indent_1 = list(paragraph = list(indents = list(left = "0.5cm"))),
     indent_2 = list(paragraph = list(indents = list(left = "1.0cm"))),
     indent_3 = list(paragraph = list(indents = list(left = "1.5cm"))),
