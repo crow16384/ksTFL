@@ -272,7 +272,7 @@ std::vector<Length> Paginator::compute_segment_row_heights(const std::vector<Log
 
 Length Paginator::compute_available_height(const PageConfig &page, Length header_section_height, Length titles_height,
                                            Length subtitles_height, Length table_header_height, Length footnotes_height,
-                                           Length footer_section_height) {
+                                           Length footer_section_height, Length spacer_height) {
 
   Length available = page.usable_height();
 
@@ -315,6 +315,10 @@ Length Paginator::compute_available_height(const PageConfig &page, Length header
   // On non-last pages the emitter does not emit footnotes, so there
   // is simply a small extra whitespace at the bottom — acceptable.
   available = available - footnotes_height;
+
+  // Table spacer rows (topEmptyLine / bottomEmptyLine) emitted by the
+  // table renderer on every page that has body rows.
+  available = available - spacer_height;
 
   if (available.emu < 0) available.emu = 0;
   return available;
@@ -462,6 +466,19 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
   // footer section so pagination reserves the correct total footer space.
   if (fn_place == FootnotePlace::DocFooter) { footer_section_height = footer_section_height + footnotes_height; }
 
+  // Resolve table spacer heights (topEmptyLine / bottomEmptyLine).
+  // Per-spec override wins over template default (same logic as emitter).
+  Length spacer_height{0};
+  {
+    const auto &tmpl_ts = resolver.template_styles().table_style;
+    std::optional<Length> top_el =
+        spec.document.top_empty_line.has_value() ? spec.document.top_empty_line : tmpl_ts.top_empty_line;
+    std::optional<Length> bot_el =
+        spec.document.bottom_empty_line.has_value() ? spec.document.bottom_empty_line : tmpl_ts.bottom_empty_line;
+    if (top_el.has_value() && top_el->emu > 0) spacer_height = spacer_height + *top_el;
+    if (bot_el.has_value() && bot_el->emu > 0) spacer_height = spacer_height + *bot_el;
+  }
+
   bool is_continues = spec.document.is_continues;
 
   // When is_continues=false (default), titles repeat on every page.
@@ -516,7 +533,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
       Length hdr_reserve = (is_first || repeat_header) ? table_header_height : Length{0};
       Length available =
           compute_available_height(page_config, header_section_height, show_titles ? titles_height : Length{0},
-                                   page_subtitle_h, hdr_reserve, fn_reserve, footer_section_height);
+                                   page_subtitle_h, hdr_reserve, fn_reserve, footer_section_height, spacer_height);
 
       Length used_height{0};
       size_t first_row = row_idx;
@@ -645,9 +662,9 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
         bool show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
         Length last_hdr_h = (segment.pages[last_idx].is_first_page || repeat_header) ? table_header_height : Length{0};
 
-        Length avail_with_fn =
-            compute_available_height(page_config, header_section_height, show_titles_last ? titles_height : Length{0},
-                                     subtitles_height, last_hdr_h, footnotes_height, footer_section_height);
+        Length avail_with_fn = compute_available_height(
+            page_config, header_section_height, show_titles_last ? titles_height : Length{0}, subtitles_height,
+            last_hdr_h, footnotes_height, footer_section_height, spacer_height);
 
         while (segment.pages[last_idx].body_height > avail_with_fn &&
                segment.pages[last_idx].last_row > segment.pages[last_idx].first_row) {
@@ -681,9 +698,9 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
 
           show_titles_last = segment.pages[last_idx].is_first_page || repeat_titles;
           last_hdr_h = (segment.pages[last_idx].is_first_page || repeat_header) ? table_header_height : Length{0};
-          avail_with_fn =
-              compute_available_height(page_config, header_section_height, show_titles_last ? titles_height : Length{0},
-                                       subtitles_height, last_hdr_h, footnotes_height, footer_section_height);
+          avail_with_fn = compute_available_height(page_config, header_section_height,
+                                                   show_titles_last ? titles_height : Length{0}, subtitles_height,
+                                                   last_hdr_h, footnotes_height, footer_section_height, spacer_height);
         }
 
         auto &final_page = segment.pages.back();
@@ -691,7 +708,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
         Length fill_avail = compute_available_height(
             page_config, header_section_height, (final_page.is_first_page || repeat_titles) ? titles_height : Length{0},
             subtitles_height, (final_page.is_first_page || repeat_header) ? table_header_height : Length{0},
-            footnotes_height, footer_section_height);
+            footnotes_height, footer_section_height, spacer_height);
 
         while (fill_start < rows.size() && !rows[fill_start].force_page_break &&
                (final_page.body_height + segment.row_heights[fill_start]) <= fill_avail) {
@@ -719,7 +736,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
 
           Length ov_avail = compute_available_height(
               page_config, header_section_height, repeat_titles ? titles_height : Length{0}, subtitles_height,
-              repeat_header ? table_header_height : Length{0}, footnotes_height, footer_section_height);
+              repeat_header ? table_header_height : Length{0}, footnotes_height, footer_section_height, spacer_height);
 
           while (
               fill_start < rows.size() && !rows[fill_start].force_page_break &&

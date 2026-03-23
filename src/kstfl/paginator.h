@@ -38,7 +38,7 @@ private:
   /// whether to pass footnotes_height or Length{0}).
   static Length compute_available_height(const PageConfig &page, Length header_section_height, Length titles_height,
                                          Length subtitles_height, Length table_header_height, Length footnotes_height,
-                                         Length footer_section_height);
+                                         Length footer_section_height, Length spacer_height);
 
   /// Compute row heights for the full logical row set (all columns).
   /// Row heights are shared across horizontal segments.
