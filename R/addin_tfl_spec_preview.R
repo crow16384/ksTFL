@@ -124,7 +124,9 @@ tfl_spec_preview_prompt <- function() {
   if (nm %in% c("al", "ar", "ac", "text_left", "text_right", "text_center"))
     return("Paragraph \u2014 alignment")
   if (grepl("^ind", nm) || grepl("^indent_", nm))
-    return("Paragraph \u2014 indentation")
+    return("Paragraph \u2014 left indentation")
+  if (grepl("^rind", nm) || grepl("^rindent_", nm))
+    return("Paragraph \u2014 right indentation")
   if (grepl("^tw_", nm))    return("Paragraph \u2014 table-width shrink")
   if (grepl("^sp_", nm))    return("Paragraph \u2014 spacing")
   if (nm %in% c("kl", "kn")) return("Paragraph \u2014 pagination")
@@ -198,6 +200,7 @@ tfl_print_style_atoms <- function() {
     "hl_grey",
     "text_left", "text_right", "text_center",
     "indent_0", "indent_1", "indent_2", "indent_3", "indent_4",
+    "rindent_0", "rindent_1", "rindent_2", "rindent_3", "rindent_4",
     "va_top", "va_center", "va_bottom",
     "text_horizontal", "text_vertical_90", "text_vertical_270",
     "bg_grey",

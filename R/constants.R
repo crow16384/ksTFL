@@ -413,8 +413,10 @@ NULL
 #  hl_<colour>          cell text highlight / shading
 #  al / ar / ac         paragraph alignment: left / right / centre
 #                        aliases: text_left / text_right / text_center
-#  ind1 … ind4          left-indent levels (0.5 cm steps)
-#                        aliases: indent_1 … indent_4
+#  ind0 … ind4          left-indent levels (0.5 cm steps)
+#                        aliases: indent_0 … indent_4
+#  rind0 … rind4         right-indent levels (0.5 cm steps)
+#                        aliases: rindent_0 … rindent_4
 #  tw_95 … tw_50        symmetric left+right indent to match table at 95/90/85/…/50 %
 #                        of content width, 5 % steps (A4 landscape, 0.5 in margins)
 #  sp_0 / sp_2 / sp_4   paragraph spacing before+after: 0 / 2 / 4 pt
@@ -512,12 +514,12 @@ NULL
     text_center = list(paragraph = list(alignment = "center")),
 
     # -------------------------------------------------------------------------
-    # Paragraph — indentation  (stub / sub-group hierarchy)
+    # Paragraph — left indentation  (stub / sub-group hierarchy)
+    #   ind0 = no indent (reset to left margin)
     #   ind1 = top-level category label  e.g. "Age (years)"
     #   ind2 = first sub-group           e.g. "  < 18"
     #   ind3 = second sub-group          e.g. "    Missing"
     #   ind4 = third sub-group / detail
-    #   ind0 = no indent (reset to left margin)
     # -------------------------------------------------------------------------
     ind0    = list(paragraph = list(indents = list(left = "0cm"))),
     ind1    = list(paragraph = list(indents = list(left = "0.5cm"))),
@@ -530,6 +532,26 @@ NULL
     indent_2 = list(paragraph = list(indents = list(left = "1.0cm"))),
     indent_3 = list(paragraph = list(indents = list(left = "1.5cm"))),
     indent_4 = list(paragraph = list(indents = list(left = "2.0cm"))),
+
+    # -------------------------------------------------------------------------
+    # Paragraph — right indentation
+    #   rind0 = no right indent (reset to right margin)
+    #   rind1 = 0.5 cm right indent
+    #   rind2 = 1.0 cm right indent
+    #   rind3 = 1.5 cm right indent
+    #   rind4 = 2.0 cm right indent
+    # -------------------------------------------------------------------------
+    rind0    = list(paragraph = list(indents = list(right = "0cm"))),
+    rind1    = list(paragraph = list(indents = list(right = "0.5cm"))),
+    rind2    = list(paragraph = list(indents = list(right = "1.0cm"))),
+    rind3    = list(paragraph = list(indents = list(right = "1.5cm"))),
+    rind4    = list(paragraph = list(indents = list(right = "2.0cm"))),
+    # aliases
+    rindent_0 = list(paragraph = list(indents = list(right = "0cm"))),
+    rindent_1 = list(paragraph = list(indents = list(right = "0.5cm"))),
+    rindent_2 = list(paragraph = list(indents = list(right = "1.0cm"))),
+    rindent_3 = list(paragraph = list(indents = list(right = "1.5cm"))),
+    rindent_4 = list(paragraph = list(indents = list(right = "2.0cm"))),
 
     # -------------------------------------------------------------------------
     # Paragraph — table-width shrink atoms  (left + right symmetric indent)
