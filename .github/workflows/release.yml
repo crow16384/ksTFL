@@ -1,0 +1,191 @@
+name: Build and Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }}, R ${{ matrix.r-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        r-version: ['4.4', '4.5']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup R ${{ matrix.r-version }}
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r-version }}
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libharfbuzz-dev \
+            libfreetype-dev \
+            libminizip-dev \
+            pkg-config
+
+      - name: Install R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: local::.
+
+      - name: Build binary package
+        shell: bash
+        run: R CMD INSTALL --build .
+
+      - name: Find built package (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          PKG_FILE=$(ls ksTFL_*.tar.gz)
+          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+
+      - name: Find built package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          PKG_FILE=$(ls ksTFL_*.zip)
+          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-${{ matrix.os }}-r${{ matrix.r-version }}
+          path: ${{ env.PKG_FILE }}
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy to public repo
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Clone public repo
+        run: |
+          git clone git@github.com:${{ vars.PUBLIC_REPO }}.git public-repo
+
+      - name: Setup git identity
+        working-directory: public-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Organize Windows binaries and generate PACKAGES indexes
+        shell: Rscript {0}
+        run: |
+          for (r_ver in c("4.4", "4.5")) {
+            art_dir <- file.path("artifacts", paste0("pkg-windows-latest-r", r_ver))
+            zip_files <- list.files(art_dir, pattern = "\\.zip$", full.names = TRUE)
+            if (length(zip_files) == 0) next
+
+            dest_dir <- file.path("public-repo", "bin", "windows", "contrib", r_ver)
+            dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
+
+            for (f in zip_files) {
+              file.copy(f, file.path(dest_dir, basename(f)), overwrite = TRUE)
+            }
+
+            # Prune old versions — keep last 2
+            all_pkgs <- list.files(dest_dir, pattern = "\\.zip$", full.names = TRUE)
+            pkg_versions <- sort(all_pkgs, decreasing = TRUE)
+            if (length(pkg_versions) > 2) {
+              file.remove(pkg_versions[-(1:2)])
+            }
+
+            tools::write_PACKAGES(dest_dir, type = "win.binary", verbose = TRUE)
+            message("Written PACKAGES for R ", r_ver)
+          }
+
+      - name: Organize Linux binaries
+        run: |
+          mkdir -p public-repo/releases
+          for dir in artifacts/pkg-ubuntu-latest-r*/; do
+            for f in "$dir"*.tar.gz; do
+              [ -f "$f" ] || continue
+              cp "$f" public-repo/releases/
+            done
+          done
+
+          # Prune old Linux releases — keep last 4 (2 R versions × 2 releases)
+          cd public-repo/releases
+          ls -t ksTFL_*.tar.gz | tail -n +5 | xargs -r rm -f
+
+      - name: Ensure .nojekyll exists
+        run: touch public-repo/.nojekyll
+
+      - name: Update README
+        run: |
+          TAG="${{ github.ref_name }}"
+          cat > public-repo/README.md << EOF
+          # ksTFL Binaries
+
+          Pre-built binaries for the [ksTFL](https://github.com/${{ github.repository }}) package.
+
+          Latest release: **${TAG}**
+
+          ## Windows installation
+
+          \`\`\`r
+          install.packages("ksTFL",
+            repos = "https://$(echo '${{ vars.PUBLIC_REPO }}' | cut -d/ -f1).github.io/$(echo '${{ vars.PUBLIC_REPO }}' | cut -d/ -f2)")
+          \`\`\`
+
+          ## Linux installation
+
+          Download the \`.tar.gz\` from the [releases/](releases/) folder, then:
+
+          \`\`\`r
+          install.packages("ksTFL_<version>_R_x86_64-pc-linux-gnu.tar.gz", repos = NULL)
+          \`\`\`
+          EOF
+
+      - name: Commit and push
+        working-directory: public-repo
+        run: |
+          git add -A
+          git diff --cached --quiet && echo "Nothing to commit" && exit 0
+          git commit -m "Release ${{ github.ref_name }}"
+          git push
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Collect all binaries
+        run: |
+          mkdir release-files
+          find artifacts/ -type f \( -name "*.zip" -o -name "*.tar.gz" \) \
+            -exec cp {} release-files/ \;
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+          generate_release_notes: true
