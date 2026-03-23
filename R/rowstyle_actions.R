@@ -1275,7 +1275,7 @@ c_clear <- function(cols) {
         col_styles[[col]] <- list()
       }
 
-      col_styles[[col]][[length(col_styles[[col]]) + 1L]] <- style_action$style
+      col_styles[[col]][[length(col_styles[[col]]) + 1L]] <- style_action$styleRef
     }
   }
 
@@ -1301,7 +1301,7 @@ c_clear <- function(cols) {
     if (length(non_dup_cols) > 0) {
       new_styles[[length(new_styles) + 1L]] <- list(
         cols = non_dup_cols,
-        styleRef = style_action$style
+        styleRef = style_action$styleRef
       )
     }
   }

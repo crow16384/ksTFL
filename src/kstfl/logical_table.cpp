@@ -701,7 +701,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
         cell.is_merge_leader = true;
         cell.merge_span = visible_count;
         cell.merged_width = total_width;
-        if (ar.style_ref.has_value()) { cell.style_ref = ar.style_ref; }
+        if (ar.style_ref.has_value()) { cell.style_refs.push_back(*ar.style_ref); }
         leader_placed = true;
       } else {
         cell.is_merged = true;
@@ -781,7 +781,9 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
     for (const auto &sa : actions->styles) {
       for (const auto &col_id : sa.cols) {
         auto it = col_to_idx.find(col_id);
-        if (it != col_to_idx.end() && it->second < row.cells.size()) { row.cells[it->second].style_ref = sa.style_ref; }
+        if (it != col_to_idx.end() && it->second < row.cells.size()) {
+          row.cells[it->second].style_refs.push_back(sa.style_ref);
+        }
       }
     }
 
@@ -837,7 +839,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
           }
           row.cells[leader_idx].merged_width = combined;
 
-          if (ma.style_ref.has_value()) { row.cells[leader_idx].style_ref = ma.style_ref; }
+          if (ma.style_ref.has_value()) { row.cells[leader_idx].style_refs.push_back(*ma.style_ref); }
         }
 
         // Mark remaining cells as merged (suppressed)
@@ -849,7 +851,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
         // Only 1 visible column in merge — just apply style if provided
         size_t leader_idx = merge_indices[0];
         if (leader_idx < row.cells.size() && ma.style_ref.has_value()) {
-          row.cells[leader_idx].style_ref = ma.style_ref;
+          row.cells[leader_idx].style_refs.push_back(*ma.style_ref);
         }
       }
     }

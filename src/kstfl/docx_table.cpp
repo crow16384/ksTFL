@@ -146,8 +146,8 @@ void DocxEmitter::emit_table_row(XmlWriter &w, const LogicalRow &row, Length row
       bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
       cell_style = resolver.resolve_body_cell_style(spec.columns[col_idx], row.row_style_ref, std::nullopt,
                                                     std::nullopt, is_addrow);
-      if (cell.style_ref.has_value()) {
-        const StyleDef *override_style = resolver.find_style(cell.style_ref.value());
+      for (const auto &ref : cell.style_refs) {
+        const StyleDef *override_style = resolver.find_style(ref);
         if (override_style) { cell_style.merge_from(*override_style); }
       }
     }

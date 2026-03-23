@@ -20,7 +20,7 @@ spec_lbl_01 <- create_table(data) %>%
   compute_cols(
     (as.numeric(PH) >5) %>% replace_na(F),
     c_style(PH, styleRef = 'fc_red'),
-    c_glue(PH, 'after', text = '➕')
+    c_glue(PH, 'after', text = '⚢')
   ) %>% 
   compute_cols(
     firstOf(col_01),

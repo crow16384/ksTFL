@@ -115,9 +115,9 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
       StyleDef cell_style =
           resolver.resolve_body_cell_style(columns[ci], row.row_style_ref, std::nullopt, std::nullopt, is_addrow);
 
-      // Override with cell-level style if present
-      if (cell.style_ref.has_value()) {
-        const StyleDef *override_style = resolver.find_style(cell.style_ref.value());
+      // Override with cell-level styles if present
+      for (const auto &ref : cell.style_refs) {
+        const StyleDef *override_style = resolver.find_style(ref);
         if (override_style) { cell_style.merge_from(*override_style); }
       }
 
@@ -141,12 +141,15 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
     // 2) Cell-level style overrides (first match wins)
     if (explicit_row_height.emu == 0) {
       for (const auto &cell : row.cells) {
-        if (cell.style_ref.has_value()) {
-          const StyleDef *cs = resolver.find_style(*cell.style_ref);
-          if (cs && cs->table_style.has_value() && cs->table_style->row_height.has_value()) {
-            explicit_row_height = *cs->table_style->row_height;
-            break;
+        if (!cell.style_refs.empty()) {
+          for (const auto &ref : cell.style_refs) {
+            const StyleDef *cs = resolver.find_style(ref);
+            if (cs && cs->table_style.has_value() && cs->table_style->row_height.has_value()) {
+              explicit_row_height = *cs->table_style->row_height;
+              break;
+            }
           }
+          if (explicit_row_height.emu > 0) break;
         }
       }
     }

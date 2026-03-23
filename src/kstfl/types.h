@@ -650,14 +650,14 @@ enum class LogicalRowType {
 
 /// A single cell in the logical row.
 struct LogicalCell {
-  std::string text;                     // display text
-  std::string col_id;                   // which column this cell belongs to
-  bool is_merged = false;               // part of a horizontal merge
-  bool is_merge_leader = false;         // first cell in a merge group
-  int merge_span = 1;                   // number of columns spanned (1 = no merge)
-  Length merged_width;                  // combined width if merge_leader
-  std::optional<std::string> style_ref; // cell-level style override
-  bool is_deduped = false;              // blanked by apply_dedupe() — glue skips these
+  std::string text;                    // display text
+  std::string col_id;                  // which column this cell belongs to
+  bool is_merged = false;              // part of a horizontal merge
+  bool is_merge_leader = false;        // first cell in a merge group
+  int merge_span = 1;                  // number of columns spanned (1 = no merge)
+  Length merged_width;                 // combined width if merge_leader
+  std::vector<std::string> style_refs; // cell-level style overrides (applied in order via merge_from)
+  bool is_deduped = false;             // blanked by apply_dedupe() — glue skips these
 };
 
 /// A row in the logical row stream (after styleRows processing).
