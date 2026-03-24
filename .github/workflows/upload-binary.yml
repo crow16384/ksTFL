@@ -128,15 +128,23 @@ jobs:
           }
 
           for (f in pkg_files) {
-            file.copy(f, file.path(contrib_path, basename(f)), overwrite = TRUE)
-            message("Copied: ", basename(f))
+            dest_name <- basename(f)
+            # For Linux, rename binary tarball to source naming convention:
+            #   ksTFL_0.7.9_R_x86_64-pc-linux-gnu.tar.gz → ksTFL_0.7.9.tar.gz
+            if (pkg_type == "source") {
+              dest_name <- sub("_R_[^.]+\\.tar\\.gz$", ".tar.gz", dest_name)
+            }
+            file.copy(f, file.path(contrib_path, dest_name), overwrite = TRUE)
+            message("Copied: ", basename(f), " -> ", dest_name)
           }
 
           # Prune old versions — keep last 2
           all_pkgs <- list.files(contrib_path, pattern = pkg_pattern, full.names = TRUE)
-          pkg_versions <- sort(all_pkgs, decreasing = TRUE)
-          if (length(pkg_versions) > 2) {
-            file.remove(pkg_versions[-(1:2)])
+          if (length(all_pkgs) > 2) {
+            bnames <- basename(all_pkgs)
+            vers   <- regmatches(bnames, regexpr("[0-9]+\\.[0-9]+\\.[0-9]+", bnames))
+            all_pkgs <- all_pkgs[order(numeric_version(vers), decreasing = TRUE)]
+            file.remove(all_pkgs[-(1:2)])
           }
 
           tools::write_PACKAGES(contrib_path, type = pkg_type, verbose = TRUE)

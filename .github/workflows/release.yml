@@ -7,10 +7,10 @@ on:
 
 jobs:
   # ──────────────────────────────────────────────────────────────────────
-  # Source: build source tarball with vignettes (once)
+  # Source: build source tarball + pkgdown site (once)
   # ──────────────────────────────────────────────────────────────────────
   build-source:
-    name: Build source tarball
+    name: Build source tarball and site
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,21 +31,37 @@ jobs:
             libharfbuzz-dev \
             libfreetype-dev \
             libminizip-dev \
+            libfontconfig1-dev \
+            libcurl4-openssl-dev \
+            libssl-dev \
+            libxml2-dev \
             pkg-config
 
       - name: Install R dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: local::.
+          extra-packages: |
+            any::pkgdown
+            local::.
 
       - name: Build source package (with vignettes)
         run: R CMD build .
+
+      - name: Build pkgdown site
+        run: Rscript -e "pkgdown::build_site(override = list(destination = 'pkgdown-site'))"
 
       - name: Upload source tarball
         uses: actions/upload-artifact@v4
         with:
           name: source-tarball
           path: ksTFL_*.tar.gz
+          if-no-files-found: error
+
+      - name: Upload pkgdown site
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkgdown-site
+          path: pkgdown-site/
           if-no-files-found: error
 
   # ──────────────────────────────────────────────────────────────────────
@@ -85,8 +101,6 @@ jobs:
 
       - name: Install R dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: local::.
 
       - name: Build binary package
         run: |
@@ -109,6 +123,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: fedora:latest
+    env:
+      R_LIBS_USER: /tmp/r-lib
 
     steps:
       - name: Install system tools and R
@@ -136,19 +152,41 @@ jobs:
         with:
           name: source-tarball
 
-      - name: Detect R version
+      - name: Detect R version and extract metadata
         run: |
           R_VER=$(Rscript -e 'cat(paste0(R.version$major, ".", sub("\\..*", "", R.version$minor)))')
           echo "R_VER=$R_VER" >> $GITHUB_ENV
           echo "Building with R $R_VER"
+          tar xzf ksTFL_*.tar.gz ksTFL/DESCRIPTION --strip-components=1
+          echo "DESC_HASH=$(sha256sum DESCRIPTION | cut -d' ' -f1)" >> $GITHUB_ENV
+
+      - name: Create R library directory
+        run: mkdir -p $R_LIBS_USER
+
+      - name: Cache R packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: fedora-r-${{ env.R_VER }}-${{ env.DESC_HASH }}
+          restore-keys: |
+            fedora-r-${{ env.R_VER }}-
 
       - name: Install R dependencies
         run: |
           Rscript -e '
-            options(repos = c(CRAN = "https://cloud.r-project.org"))
-            deps <- c("cli", "checkmate", "jsonlite", "purrr", "rlang",
-                       "tidyselect", "digest", "htmltools", "rstudioapi", "Rcpp")
-            install.packages(deps)
+            desc <- read.dcf("DESCRIPTION")
+            parse_deps <- function(field) {
+              if (is.na(field)) return(character(0))
+              deps <- trimws(unlist(strsplit(field, ",")))
+              sub("\\s*\\(.*\\)", "", deps)
+            }
+            imports  <- parse_deps(desc[, "Imports"])
+            linking  <- parse_deps(desc[, "LinkingTo"])
+            base_pkgs <- rownames(installed.packages(priority = "base"))
+            deps <- setdiff(unique(c(imports, linking)), base_pkgs)
+            message("Installing: ", paste(deps, collapse = ", "))
+            install.packages(deps, repos = "https://cloud.r-project.org",
+                             lib = Sys.getenv("R_LIBS_USER"))
           '
 
       - name: Build binary package
@@ -191,8 +229,6 @@ jobs:
 
       - name: Install R dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          extra-packages: local::.
 
       - name: Build binary package
         shell: bash
@@ -208,22 +244,26 @@ jobs:
           if-no-files-found: error
 
   # ──────────────────────────────────────────────────────────────────────
-  # Deploy: Organize CRAN-like repo + pkgdown site → public repo
+  # Deploy + Release: CRAN-like repo, pkgdown site, GitHub Releases
   # ──────────────────────────────────────────────────────────────────────
-  deploy:
-    name: Deploy to public repo
+  deploy-and-release:
+    name: Deploy and release
     needs: [build-ubuntu, build-redhat, build-windows]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout source (for pkgdown)
-        uses: actions/checkout@v4
-        with:
-          path: private-repo
-
-      - name: Download all artifacts
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: pkg-*
           path: artifacts/
+
+      - name: Download pkgdown site
+        uses: actions/download-artifact@v4
+        with:
+          name: pkgdown-site
+          path: site/
 
       - name: Setup SSH agent
         uses: webfactory/ssh-agent@v0.9.0
@@ -231,8 +271,7 @@ jobs:
           ssh-private-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Clone public repo
-        run: |
-          git clone git@github.com:${{ vars.PUBLIC_REPO }}.git public-repo
+        run: git clone git@github.com:${{ vars.PUBLIC_REPO }}.git public-repo
 
       - name: Setup git identity
         working-directory: public-repo
@@ -245,37 +284,18 @@ jobs:
         with:
           r-version: 'release'
 
-      - name: Setup pandoc
-        uses: r-lib/actions/setup-pandoc@v2
-
-      - name: Install system dependencies (for pkgdown)
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y \
-            libharfbuzz-dev \
-            libfreetype-dev \
-            libminizip-dev \
-            libfontconfig1-dev \
-            libcurl4-openssl-dev \
-            libssl-dev \
-            libxml2-dev \
-            pkg-config
-
-      - name: Install R dependencies + pkgdown
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          working-directory: private-repo
-          extra-packages: |
-            any::pkgdown
-            local::.
-
-      - name: Build pkgdown site
-        working-directory: private-repo
-        run: Rscript -e "pkgdown::build_site(override = list(destination = '../site'))"
-
-      - name: Organize Windows binaries and generate PACKAGES indexes
+      - name: Organize Windows binaries
         shell: Rscript {0}
         run: |
+          prune_old <- function(dir, pattern, keep = 2) {
+            files <- list.files(dir, pattern = pattern, full.names = TRUE)
+            if (length(files) <= keep) return()
+            bnames <- basename(files)
+            vers   <- regmatches(bnames, regexpr("[0-9]+\\.[0-9]+\\.[0-9]+", bnames))
+            files  <- files[order(numeric_version(vers), decreasing = TRUE)]
+            file.remove(files[-(1:keep)])
+          }
+
           for (r_ver in c("4.4", "4.5")) {
             art_dir <- file.path("artifacts", paste0("pkg-windows-r", r_ver))
             zip_files <- list.files(art_dir, pattern = "\\.zip$", full.names = TRUE)
@@ -288,28 +308,22 @@ jobs:
               file.copy(f, file.path(dest_dir, basename(f)), overwrite = TRUE)
             }
 
-            # Prune old versions — keep last 2
-            all_pkgs <- list.files(dest_dir, pattern = "\\.zip$", full.names = TRUE)
-            pkg_versions <- sort(all_pkgs, decreasing = TRUE)
-            if (length(pkg_versions) > 2) {
-              file.remove(pkg_versions[-(1:2)])
-            }
-
+            prune_old(dest_dir, "\\.zip$", keep = 2)
             tools::write_PACKAGES(dest_dir, type = "win.binary", verbose = TRUE)
             message("Written PACKAGES for win.binary R ", r_ver)
           }
 
-      - name: Organize Linux binaries and generate PACKAGES indexes
+      - name: Organize Linux binaries
         shell: Rscript {0}
         run: |
-          # On Linux, install.packages() with the default type ("source") looks
-          # for packages at <repos>/src/contrib/.  Binary .tar.gz packages built
-          # with `R CMD INSTALL --build` install correctly via this path because
-          # R treats them as pre-built archives.
-          #
-          # Each distro gets its own sub-repo root so users can point at e.g.
-          #   repos = "https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble"
-          # and R will resolve src/contrib/<R-ver>/ underneath.
+          prune_old <- function(dir, pattern, keep = 4) {
+            files <- list.files(dir, pattern = pattern, full.names = TRUE)
+            if (length(files) <= keep) return()
+            bnames <- basename(files)
+            vers   <- regmatches(bnames, regexpr("[0-9]+\\.[0-9]+\\.[0-9]+", bnames))
+            files  <- files[order(numeric_version(vers), decreasing = TRUE)]
+            file.remove(files[-(1:keep)])
+          }
 
           distro_map <- list(
             "ubuntu" = "ubuntu-noble",
@@ -319,7 +333,6 @@ jobs:
           for (distro_key in names(distro_map)) {
             distro_label <- distro_map[[distro_key]]
 
-            # Find all artifacts for this distro (artifact names: pkg-ubuntu-r4.4, pkg-redhat-r4.5, etc.)
             art_pattern <- paste0("^pkg-", distro_key, "-r")
             art_dirs <- list.dirs("artifacts", recursive = FALSE, full.names = TRUE)
             art_dirs <- art_dirs[grepl(art_pattern, basename(art_dirs))]
@@ -333,32 +346,27 @@ jobs:
               dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
 
               for (f in tgz_files) {
-                file.copy(f, file.path(dest_dir, basename(f)), overwrite = TRUE)
+                dest_name <- sub("_R_[^.]+\\.tar\\.gz$", ".tar.gz", basename(f))
+                file.copy(f, file.path(dest_dir, dest_name), overwrite = TRUE)
               }
             }
 
             dest_dir <- file.path("public-repo", "bin", "linux", distro_label,
                                   "src", "contrib")
             if (dir.exists(dest_dir)) {
-              # Prune old versions — keep last 4
-              all_pkgs <- list.files(dest_dir, pattern = "\\.tar\\.gz$", full.names = TRUE)
-              pkg_versions <- sort(all_pkgs, decreasing = TRUE)
-              if (length(pkg_versions) > 4) {
-                file.remove(pkg_versions[-(1:4)])
-              }
-
+              prune_old(dest_dir, "\\.tar\\.gz$", keep = 4)
               tools::write_PACKAGES(dest_dir, type = "source", verbose = TRUE)
               message("Written PACKAGES for ", distro_label)
             }
           }
 
-      - name: Ensure .nojekyll exists
-        run: touch public-repo/.nojekyll
-
       - name: Copy pkgdown site to public repo
         run: |
           # bin/ is untouched — pkgdown writes only HTML/CSS/JS
           cp -r site/. public-repo/
+
+      - name: Ensure .nojekyll exists
+        run: touch public-repo/.nojekyll
 
       - name: Commit and push
         working-directory: public-repo
@@ -368,25 +376,9 @@ jobs:
           git commit -m "Release ${{ github.ref_name }}"
           git push
 
-  # ──────────────────────────────────────────────────────────────────────
-  # Release: create GitHub Release on both private and public repos
-  # ──────────────────────────────────────────────────────────────────────
-  release:
-    name: Create GitHub Releases
-    needs: [build-ubuntu, build-redhat, build-windows]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-
-      - name: Collect all binaries
+      - name: Collect release files
         run: |
           mkdir release-files
-          # *.zip = Windows; *_R_*.tar.gz = Linux (never source tarballs)
           find artifacts/ -type f \( -name "*.zip" -o -name "*_R_*.tar.gz" \) \
             -exec cp {} release-files/ \;
 
