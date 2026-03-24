@@ -25,9 +25,9 @@ Under the hood, a built-in **rendering engine** with text shaping converts decla
 
 ## Installation
 
-ksTFL is distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on Linux, Windows, and macOS.
+ksTFL is distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
 
-### From the release repository
+### Windows
 
 ```r
 install.packages("ksTFL",
@@ -35,28 +35,66 @@ install.packages("ksTFL",
                  type  = "binary")
 ```
 
-Release repository: <https://github.com/crow16384/ksTFL-release>
-
-### From a downloaded file
+### Linux — Ubuntu / Debian
 
 ```r
-# Linux
-install.packages("ksTFL_<version>_R_x86_64-pc-linux-gnu.tar.gz", repos = NULL)
+install.packages("ksTFL",
+                 repos = "https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble")
+```
 
-# Windows
-install.packages("ksTFL_<version>.zip", repos = NULL)
+Before installing, make sure system libraries are available (required at runtime):
 
-# macOS
+```bash
+sudo apt-get install -y libharfbuzz0b libfreetype6 libminizip1
+```
+
+### Linux — Fedora / RHEL
+
+```r
+install.packages("ksTFL",
+                 repos = "https://crow16384.github.io/ksTFL-release/bin/linux/fedora")
+```
+
+Before installing, make sure system libraries are available (required at runtime):
+
+```bash
+sudo dnf install -y harfbuzz freetype minizip-ng-compat
+```
+
+### macOS
+
+macOS binaries are published as GitHub Release assets and can be installed from a downloaded `.tgz` file:
+
+```r
 install.packages("ksTFL_<version>.tgz", repos = NULL)
 ```
 
-### Using remotes
+When a macOS binary is available in the CRAN-like repo, you can also use:
 
 ```r
-remotes::install_url(
-  "https://github.com/crow16384/ksTFL-release/raw/main/releases/ksTFL_<version>_R_x86_64-pc-linux-gnu.tar.gz"
-)
+install.packages("ksTFL",
+                 repos = "https://crow16384.github.io/ksTFL-release",
+                 type  = "binary")
 ```
+
+### From a downloaded file
+
+Pre-built packages can be downloaded from the
+[Releases](https://github.com/crow16384/ksTFL-release/releases) page and
+installed directly:
+
+```r
+# Linux (.tar.gz binary)
+install.packages("ksTFL_<version>_R_x86_64-pc-linux-gnu.tar.gz", repos = NULL)
+
+# Windows (.zip)
+install.packages("ksTFL_<version>.zip", repos = NULL)
+
+# macOS (.tgz)
+install.packages("ksTFL_<version>.tgz", repos = NULL)
+```
+
+Release repository: <https://github.com/crow16384/ksTFL-release>
 
 ### Fonts note
 

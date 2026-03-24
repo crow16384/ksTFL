@@ -1,3 +1,14 @@
+# ksTFL 0.7.9
+
+## CI/CD
+
+* Added CRAN-like repository structure for Linux binaries (Ubuntu and Fedora), enabling `install.packages()` from the release repo on Linux.
+* Added Red Hat / Fedora binary build using a Fedora container in CI.
+* GitHub Releases are now published to both the private and public (ksTFL-release) repositories.
+* New manual workflow ("Upload Binary to Release Repo") for adding locally built packages (e.g., macOS) to the release repository.
+* Added explicit pandoc setup to ensure vignettes build correctly on all platforms.
+* Updated README installation instructions with per-platform sections.
+
 # ksTFL 0.7.6
 
 ## Fixes

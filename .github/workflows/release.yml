@@ -6,26 +6,25 @@ on:
       - 'v*'
 
 jobs:
-  build:
-    name: Build (${{ matrix.os }}, R ${{ matrix.r-version }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        r-version: ['4.4', '4.5']
-
+  # ──────────────────────────────────────────────────────────────────────
+  # Source: build source tarball with vignettes (once)
+  # ──────────────────────────────────────────────────────────────────────
+  build-source:
+    name: Build source tarball
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup R ${{ matrix.r-version }}
+      - name: Setup R
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: ${{ matrix.r-version }}
+          r-version: 'release'
 
-      - name: Install system dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Setup pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Install system dependencies
         run: |
           sudo apt-get update -y
           sudo apt-get install -y \
@@ -40,39 +39,180 @@ jobs:
           extra-packages: local::.
 
       - name: Build source package (with vignettes)
-        shell: bash
         run: R CMD build .
 
-      - name: Build binary package (from source tarball)
+      - name: Upload source tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-tarball
+          path: ksTFL_*.tar.gz
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Build: Ubuntu (Debian-based)
+  # ──────────────────────────────────────────────────────────────────────
+  build-ubuntu:
+    name: Build (Ubuntu, R ${{ matrix.r-version }})
+    needs: build-source
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        r-version: ['4.4', '4.5']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download source tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: source-tarball
+
+      - name: Setup R ${{ matrix.r-version }}
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r-version }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            libharfbuzz-dev \
+            libfreetype-dev \
+            libminizip-dev \
+            pkg-config
+
+      - name: Install R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: local::.
+
+      - name: Build binary package
+        run: |
+          PKG_TARBALL=$(ls ksTFL_*.tar.gz)
+          R CMD INSTALL --build "$PKG_TARBALL"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-ubuntu-r${{ matrix.r-version }}
+          path: ksTFL_*_R_*.tar.gz
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Build: Red Hat (Fedora container — single R version from distro)
+  # ──────────────────────────────────────────────────────────────────────
+  build-redhat:
+    name: Build (Red Hat / Fedora)
+    needs: build-source
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+
+    steps:
+      - name: Install system tools and R
+        run: |
+          dnf install -y \
+            git \
+            which \
+            curl \
+            gcc \
+            gcc-c++ \
+            make \
+            harfbuzz-devel \
+            freetype-devel \
+            minizip-ng-compat-devel \
+            zlib-devel \
+            pkgconf-pkg-config \
+            libcurl-devel \
+            openssl-devel \
+            libxml2-devel \
+            fontconfig-devel \
+            R-core-devel
+
+      - name: Download source tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: source-tarball
+
+      - name: Detect R version
+        run: |
+          R_VER=$(Rscript -e 'cat(paste0(R.version$major, ".", sub("\\..*", "", R.version$minor)))')
+          echo "R_VER=$R_VER" >> $GITHUB_ENV
+          echo "Building with R $R_VER"
+
+      - name: Install R dependencies
+        run: |
+          Rscript -e '
+            options(repos = c(CRAN = "https://cloud.r-project.org"))
+            deps <- c("cli", "checkmate", "jsonlite", "purrr", "rlang",
+                       "tidyselect", "digest", "htmltools", "rstudioapi", "Rcpp")
+            install.packages(deps)
+          '
+
+      - name: Build binary package
+        run: |
+          PKG_TARBALL=$(ls ksTFL_*.tar.gz)
+          R CMD INSTALL --build "$PKG_TARBALL"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-redhat-r${{ env.R_VER }}
+          path: ksTFL_*_R_*.tar.gz
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Build: Windows
+  # ──────────────────────────────────────────────────────────────────────
+  build-windows:
+    name: Build (Windows, R ${{ matrix.r-version }})
+    needs: build-source
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        r-version: ['4.4', '4.5']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download source tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: source-tarball
+
+      - name: Setup R ${{ matrix.r-version }}
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r-version }}
+
+      - name: Install R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: local::.
+
+      - name: Build binary package
         shell: bash
         run: |
           PKG_TARBALL=$(ls ksTFL_*.tar.gz)
           R CMD INSTALL --build "$PKG_TARBALL"
 
-      - name: Find built package (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          PKG_FILE=$(ls ksTFL_*_R_*.tar.gz)
-          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
-
-      - name: Find built package (Windows)
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          PKG_FILE=$(ls ksTFL_*.zip)
-          echo "PKG_FILE=$PKG_FILE" >> $GITHUB_ENV
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-${{ matrix.os }}-r${{ matrix.r-version }}
-          path: ${{ env.PKG_FILE }}
+          name: pkg-windows-r${{ matrix.r-version }}
+          path: ksTFL_*.zip
           if-no-files-found: error
 
+  # ──────────────────────────────────────────────────────────────────────
+  # Deploy: Organize CRAN-like repo + pkgdown site → public repo
+  # ──────────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy to public repo
-    needs: build
+    needs: [build-ubuntu, build-redhat, build-windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source (for pkgdown)
@@ -105,6 +245,9 @@ jobs:
         with:
           r-version: 'release'
 
+      - name: Setup pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
       - name: Install system dependencies (for pkgdown)
         run: |
           sudo apt-get update -y
@@ -134,7 +277,7 @@ jobs:
         shell: Rscript {0}
         run: |
           for (r_ver in c("4.4", "4.5")) {
-            art_dir <- file.path("artifacts", paste0("pkg-windows-latest-r", r_ver))
+            art_dir <- file.path("artifacts", paste0("pkg-windows-r", r_ver))
             zip_files <- list.files(art_dir, pattern = "\\.zip$", full.names = TRUE)
             if (length(zip_files) == 0) next
 
@@ -153,29 +296,68 @@ jobs:
             }
 
             tools::write_PACKAGES(dest_dir, type = "win.binary", verbose = TRUE)
-            message("Written PACKAGES for R ", r_ver)
+            message("Written PACKAGES for win.binary R ", r_ver)
           }
 
-      - name: Organize Linux binaries
+      - name: Organize Linux binaries and generate PACKAGES indexes
+        shell: Rscript {0}
         run: |
-          mkdir -p public-repo/releases
-          for dir in artifacts/pkg-ubuntu-latest-r*/; do
-            for f in "$dir"*.tar.gz; do
-              [ -f "$f" ] || continue
-              cp "$f" public-repo/releases/
-            done
-          done
+          # On Linux, install.packages() with the default type ("source") looks
+          # for packages at <repos>/src/contrib/.  Binary .tar.gz packages built
+          # with `R CMD INSTALL --build` install correctly via this path because
+          # R treats them as pre-built archives.
+          #
+          # Each distro gets its own sub-repo root so users can point at e.g.
+          #   repos = "https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble"
+          # and R will resolve src/contrib/<R-ver>/ underneath.
 
-          # Prune old Linux releases — keep last 4 (2 R versions × 2 releases)
-          cd public-repo/releases
-          ls -t ksTFL_*.tar.gz | tail -n +5 | xargs -r rm -f
+          distro_map <- list(
+            "ubuntu" = "ubuntu-noble",
+            "redhat" = "fedora"
+          )
+
+          for (distro_key in names(distro_map)) {
+            distro_label <- distro_map[[distro_key]]
+
+            # Find all artifacts for this distro (artifact names: pkg-ubuntu-r4.4, pkg-redhat-r4.5, etc.)
+            art_pattern <- paste0("^pkg-", distro_key, "-r")
+            art_dirs <- list.dirs("artifacts", recursive = FALSE, full.names = TRUE)
+            art_dirs <- art_dirs[grepl(art_pattern, basename(art_dirs))]
+
+            for (art_dir in art_dirs) {
+              tgz_files <- list.files(art_dir, pattern = "\\.tar\\.gz$", full.names = TRUE)
+              if (length(tgz_files) == 0) next
+
+              dest_dir <- file.path("public-repo", "bin", "linux", distro_label,
+                                    "src", "contrib")
+              dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
+
+              for (f in tgz_files) {
+                file.copy(f, file.path(dest_dir, basename(f)), overwrite = TRUE)
+              }
+            }
+
+            dest_dir <- file.path("public-repo", "bin", "linux", distro_label,
+                                  "src", "contrib")
+            if (dir.exists(dest_dir)) {
+              # Prune old versions — keep last 4
+              all_pkgs <- list.files(dest_dir, pattern = "\\.tar\\.gz$", full.names = TRUE)
+              pkg_versions <- sort(all_pkgs, decreasing = TRUE)
+              if (length(pkg_versions) > 4) {
+                file.remove(pkg_versions[-(1:4)])
+              }
+
+              tools::write_PACKAGES(dest_dir, type = "source", verbose = TRUE)
+              message("Written PACKAGES for ", distro_label)
+            }
+          }
 
       - name: Ensure .nojekyll exists
         run: touch public-repo/.nojekyll
 
       - name: Copy pkgdown site to public repo
-        run: |  
-          # bin/ and releases/ are untouched — pkgdown writes only HTML/CSS/JS
+        run: |
+          # bin/ is untouched — pkgdown writes only HTML/CSS/JS
           cp -r site/. public-repo/
 
       - name: Commit and push
@@ -186,9 +368,12 @@ jobs:
           git commit -m "Release ${{ github.ref_name }}"
           git push
 
+  # ──────────────────────────────────────────────────────────────────────
+  # Release: create GitHub Release on both private and public repos
+  # ──────────────────────────────────────────────────────────────────────
   release:
-    name: Create GitHub Release
-    needs: build
+    name: Create GitHub Releases
+    needs: [build-ubuntu, build-redhat, build-windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -201,12 +386,29 @@ jobs:
       - name: Collect all binaries
         run: |
           mkdir release-files
-          # *.zip = Windows binaries; *_R_*.tar.gz = Linux binaries (never source tarballs)
+          # *.zip = Windows; *_R_*.tar.gz = Linux (never source tarballs)
           find artifacts/ -type f \( -name "*.zip" -o -name "*_R_*.tar.gz" \) \
             -exec cp {} release-files/ \;
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (private repo)
         uses: softprops/action-gh-release@v2
         with:
           files: release-files/*
           generate_release_notes: true
+
+      - name: Create GitHub Release (public repo)
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: ${{ vars.PUBLIC_REPO }}
+          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: release-files/*
+          generate_release_notes: false
+          body: |
+            Binary packages for ksTFL ${{ github.ref_name }}.
+
+            **Platforms:** Ubuntu (Noble), Fedora/RHEL, Windows
+            **R versions:** 4.4, 4.5
+
+            See [installation instructions](https://crow16384.github.io/ksTFL-release/#installation) for details.

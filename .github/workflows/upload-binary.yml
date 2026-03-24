@@ -1,0 +1,169 @@
+name: Upload Binary to Release Repo
+
+# Manually upload a pre-built binary package to the ksTFL-release repo.
+# Use this for locally built packages (e.g., macOS) that aren't part of CI.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v0.7.8)'
+        required: true
+        type: string
+      platform:
+        description: 'Target platform'
+        required: true
+        type: choice
+        options:
+          - macos
+          - ubuntu-noble
+          - fedora
+          - windows
+      r_version:
+        description: 'R version (e.g., 4.4 or 4.5)'
+        required: true
+        type: choice
+        options:
+          - '4.4'
+          - '4.5'
+
+jobs:
+  upload:
+    name: Upload binary to release repo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download release assets from private repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p pkg
+          gh release download "${{ inputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --dir pkg
+
+          echo "All downloaded files:"
+          ls -la pkg/
+
+          # Filter to only the platform-relevant files
+          mkdir -p filtered
+          case "${{ inputs.platform }}" in
+            windows)
+              cp pkg/*.zip filtered/ 2>/dev/null || true
+              ;;
+            macos)
+              cp pkg/*.tgz filtered/ 2>/dev/null || true
+              ;;
+            *)
+              # Linux — copy all binary .tar.gz (those with _R_ in their name)
+              for f in pkg/*_R_*.tar.gz; do
+                [ -f "$f" ] && cp "$f" filtered/
+              done
+              ;;
+          esac
+
+          rm -rf pkg
+          mv filtered pkg
+
+          echo "Filtered files for ${{ inputs.platform }}:"
+          ls -la pkg/
+
+          if [ -z "$(ls -A pkg/)" ]; then
+            echo "::error::No matching files found for platform ${{ inputs.platform }}"
+            exit 1
+          fi
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Clone public repo
+        run: |
+          git clone git@github.com:${{ vars.PUBLIC_REPO }}.git public-repo
+
+      - name: Setup git identity
+        working-directory: public-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Place binary and regenerate PACKAGES index
+        shell: Rscript {0}
+        run: |
+          platform  <- "${{ inputs.platform }}"
+          r_ver     <- "${{ inputs.r_version }}"
+
+          # Determine contrib path and file pattern
+          if (platform == "windows") {
+            contrib_path <- file.path("public-repo", "bin", "windows", "contrib", r_ver)
+            pkg_pattern  <- "\\.zip$"
+            pkg_type     <- "win.binary"
+          } else if (platform == "macos") {
+            contrib_path <- file.path("public-repo", "bin", "macosx", "contrib", r_ver)
+            pkg_pattern  <- "\\.tgz$"
+            pkg_type     <- "mac.binary"
+          } else {
+            # Linux distros: ubuntu-noble, fedora
+            # Binaries are served from src/contrib/ so that the default
+            # install.packages() call (type = "source") finds them.
+            contrib_path <- file.path("public-repo", "bin", "linux", platform,
+                                      "src", "contrib")
+            pkg_pattern  <- "\\.tar\\.gz$"
+            pkg_type     <- "source"
+          }
+
+          dir.create(contrib_path, recursive = TRUE, showWarnings = FALSE)
+
+          # Find matching file in downloaded assets
+          pkg_files <- list.files("pkg", pattern = pkg_pattern, full.names = TRUE)
+          if (length(pkg_files) == 0) {
+            stop("No matching package files found for platform '", platform,
+                 "' (expected pattern: ", pkg_pattern, ")")
+          }
+
+          for (f in pkg_files) {
+            file.copy(f, file.path(contrib_path, basename(f)), overwrite = TRUE)
+            message("Copied: ", basename(f))
+          }
+
+          # Prune old versions — keep last 2
+          all_pkgs <- list.files(contrib_path, pattern = pkg_pattern, full.names = TRUE)
+          pkg_versions <- sort(all_pkgs, decreasing = TRUE)
+          if (length(pkg_versions) > 2) {
+            file.remove(pkg_versions[-(1:2)])
+          }
+
+          tools::write_PACKAGES(contrib_path, type = pkg_type, verbose = TRUE)
+          message("PACKAGES index updated at: ", contrib_path)
+
+      - name: Upload to public repo GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
+        run: |
+          # Create release on public repo if it doesn't exist, then upload files
+          gh release create "${{ inputs.tag }}" \
+            --repo "${{ vars.PUBLIC_REPO }}" \
+            --title "${{ inputs.tag }}" \
+            --notes "Binary packages for ksTFL ${{ inputs.tag }}." \
+            2>/dev/null || true
+
+          for f in pkg/*; do
+            [ -f "$f" ] || continue
+            gh release upload "${{ inputs.tag }}" "$f" \
+              --repo "${{ vars.PUBLIC_REPO }}" \
+              --clobber || true
+          done
+
+      - name: Commit and push CRAN-like repo changes
+        working-directory: public-repo
+        run: |
+          git add -A
+          git diff --cached --quiet && echo "Nothing to commit" && exit 0
+          git commit -m "Add ${{ inputs.platform }} binary for R ${{ inputs.r_version }} (${{ inputs.tag }})"
+          git push
