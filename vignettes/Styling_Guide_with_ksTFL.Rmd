@@ -1,5 +1,5 @@
 ---
-title: "Styling Guide — ksTFL"
+title: "Styling Guide (ksTFL)"
 author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
@@ -7,12 +7,12 @@ output:
     fig_height: 4
     dev: pdf
 vignette: >
-  %\VignetteIndexEntry{Styling Guide — ksTFL}
+  %\VignetteIndexEntry{Styling Guide (ksTFL)}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   markdown: 
-    wrap: 72
+    wrap: 80
 ---
 
 ```{r setup, include=FALSE}

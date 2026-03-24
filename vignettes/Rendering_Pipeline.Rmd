@@ -13,7 +13,7 @@ vignette: >
     %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   markdown: 
-    wrap: 72
+    wrap: 80
 ---
 
 This document describes the complete C++ renderer architecture used by

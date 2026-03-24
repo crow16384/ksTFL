@@ -1,5 +1,5 @@
 ---
-title: "Real Examples — ksTFL"
+title: "Real Examples of Clinical Outputs using ksTFL"
 author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
@@ -8,7 +8,7 @@ output:
 resource_files:
   - pdf/
 vignette: >
-  %\VignetteIndexEntry{Real Examples — ksTFL}
+  %\VignetteIndexEntry{Real Examples of Clinical Outputs using ksTFL}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

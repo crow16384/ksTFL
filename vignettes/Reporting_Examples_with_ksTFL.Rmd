@@ -1,5 +1,5 @@
 ---
-title: "Reporting Examples — ksTFL"
+title: "Reporting Examples using ksTFL"
 author: "ksTFL Team"
 output:
   rmarkdown::html_vignette:
@@ -8,12 +8,12 @@ output:
 resource_files:
   - images/
 vignette: >
-  %\VignetteIndexEntry{Reporting Examples — ksTFL}
+  %\VignetteIndexEntry{Reporting Examples using ksTFL}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   markdown: 
-    wrap: 72
+    wrap: 80
 ---
 
 ```{r setup, include=FALSE}
