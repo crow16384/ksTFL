@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,23 +54,25 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p><strong>ksTFL</strong> is a professional R package for generating structured metadata specifications for clinical Tables, Figures, and Listings (TFLs) in pharmaceutical and clinical research. The package employs a declarative, specification-first architecture to describe document structure, data relationships, styling, and content formatting. Generated specifications are validated against a JSON schema and rendered into submission-quality styled DOCX documents via a built-in C++20 rendering engine with deterministic HarfBuzz-based text measurement.</p>
+<p><strong>ksTFL</strong> is a professional R package designed to fill a long-standing gap in the R ecosystem: the lack of a dedicated, end-to-end solution for producing well-formatted, regulatory-compliant clinical Tables, Figures, and Listings (TFLs). While R excels at statistical analysis, generating submission-quality DOCX outputs that meet pharmaceutical industry standards has traditionally required fragile workarounds or external tooling. ksTFL solves this by distilling the best ideas from existing reporting solutions into a simple, minimalistic, yet highly flexible declarative language — a compact set of composable functions whose combinations can produce virtually any clinical output format.</p>
+<p>The core philosophy is <strong>data–presentation separation</strong>: input data stays clean and planar, free of reporting artefacts such as merged cells, indentation columns, or display-only rows. Formatting, pagination, grouping, and styling are declared independently and applied at render time. This keeps datasets maintainable, traceable, and validation-ready — exactly what regulated environments demand.</p>
+<p>Under the hood, a built-in <strong>rendering engine</strong> with text shaping converts declarative specs into styled DOCX documents with deterministic, pixel-perfect pagination. Rendering is extremely fast even on large datasets, making ksTFL practical for batch production of hundreds of outputs in a single pipeline run.</p>
 <div class="section level3">
 <h3 id="key-design-principles">Key Design Principles<a class="anchor" aria-label="anchor" href="#key-design-principles"></a>
 </h3>
 <ul>
 <li>
-<strong>Separation of Concerns</strong>: Metadata generation (R) is decoupled from document rendering (C++ engine)</li>
+<strong>Separation of Concerns</strong>: Metadata generation (R) is decoupled from document rendering; input data remain clean and analysis-ready</li>
 <li>
-<strong>Schema-Driven Validation</strong>: All specifications conform to a strict JSON schema ensuring consistency</li>
+<strong>Declarative Syntax</strong>: Users describe <em>what</em> to render, not <em>how</em> to render it — a small function vocabulary covers the full range of clinical outputs</li>
 <li>
-<strong>Declarative Syntax</strong>: Users describe <em>what</em> to render, not <em>how</em> to render it</li>
+<strong>Deterministic Pagination</strong>: font shaping guarantees pixel-perfect, reproducible layouts and pagination</li>
 <li>
-<strong>Deterministic Pagination</strong>: HarfBuzz text shaping guarantees pixel-perfect, reproducible layouts</li>
+<strong>High Performance</strong>: C++ engine renders large multi-spec reports in seconds</li>
 <li>
 <strong>Type Safety</strong>: Comprehensive input validation with informative error messages</li>
 <li>
-<strong>Reproducibility</strong>: Specifications are serializable, version-controllable, and deterministic</li>
+<strong>Reproducibility</strong>: Specifications are serializable. That allows to store the metadata for replay without re-runnig of the whole code</li>
 </ul>
 <hr>
 </div>
@@ -78,48 +80,102 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Installed by the system administrator to working environment.</p>
+<p>ksTFL is distributed as <strong>pre-compiled binaries</strong> for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.</p>
 <div class="section level3">
-<h3 id="system-requirements">System Requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
+<h3 id="windows">Windows<a class="anchor" aria-label="anchor" href="#windows"></a>
 </h3>
-<p>The C++ rendering engine requires: - C++20 compiler (g++ 13+ or equivalent) - HarfBuzz (&gt;= 2.0) — Unicode text shaping - FreeType (&gt;= 2.0) — Font loading and glyph metrics - minizip (zlib) — ZIP archive creation for .docx</p>
-<p>These are bundled in the Docker development image.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release"</span>,</span>
+<span>                 type  <span class="op">=</span> <span class="st">"binary"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="linux--ubuntu--debian">Linux — Ubuntu / Debian<a class="anchor" aria-label="anchor" href="#linux--ubuntu--debian"></a>
+</h3>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble"</span><span class="op">)</span></span></code></pre></div>
+<p>Before installing, make sure system libraries are available (required at runtime):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> libharfbuzz0b libfreetype6 libminizip1</span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="linux--fedora--rhel">Linux — Fedora / RHEL<a class="anchor" aria-label="anchor" href="#linux--fedora--rhel"></a>
+</h3>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release/bin/linux/fedora"</span><span class="op">)</span></span></code></pre></div>
+<p>Before installing, make sure system libraries are available (required at runtime):</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> harfbuzz freetype minizip-ng-compat</span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="macos">macOS<a class="anchor" aria-label="anchor" href="#macos"></a>
+</h3>
+<p>macOS binaries are published as GitHub Release assets and can be installed from a downloaded <code>.tgz</code> file:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL_&lt;version&gt;.tgz"</span>, repos <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<p>When a macOS binary is available in the CRAN-like repo, you can also use:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
+<span>                 repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release"</span>,</span>
+<span>                 type  <span class="op">=</span> <span class="st">"binary"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="from-a-downloaded-file">From a downloaded file<a class="anchor" aria-label="anchor" href="#from-a-downloaded-file"></a>
+</h3>
+<p>Pre-built packages can be downloaded from the <a href="https://github.com/crow16384/ksTFL-release/releases" class="external-link">Releases</a> page and installed directly:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Linux (.tar.gz binary)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL_&lt;version&gt;_R_x86_64-pc-linux-gnu.tar.gz"</span>, repos <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Windows (.zip)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL_&lt;version&gt;.zip"</span>, repos <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># macOS (.tgz)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL_&lt;version&gt;.tgz"</span>, repos <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+<p>Release repository: <a href="https://github.com/crow16384/ksTFL-release" class="external-link uri">https://github.com/crow16384/ksTFL-release</a></p>
+</div>
+<div class="section level3">
+<h3 id="fonts-note">Fonts note<a class="anchor" aria-label="anchor" href="#fonts-note"></a>
+</h3>
+<p>Proprietary Microsoft fonts (Arial, Times New Roman, etc.) are <strong>not bundled</strong> due to licensing restrictions; open-source Liberation fonts are included as metrically compatible fallbacks. Windows and macOS systems with Microsoft Office installed typically have the original fonts already available. On Linux, additional steps may be required — see <a href="#id_7-font-management">Font Management</a> for details.</p>
 <hr>
 </div>
 </div>
 <div class="section level2">
 <h2 id="quick-start-example">Quick Start Example<a class="anchor" aria-label="anchor" href="#quick-start-example"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://example.com">ksTFL</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Initialize a table specification</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cyl</span>, <span class="va">mpg</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 2. Add document content</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Motor Trend Car Road Tests"</span>, styleRef <span class="op">=</span> <span class="st">"title_main"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Performance Metrics by Cylinder Count"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Source: 1974 Motor Trend US magazine"</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Motor Trend Car Road Tests"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Performance Metrics by Cylinder Count"</span>, styleRef <span class="op">=</span> <span class="st">'i'</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Number of Cylinders: #ByGroup1"</span>, styleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">'fc_blue'</span>,<span class="st">'tw_50'</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Source: 1974 Motor Trend US magazine"</span>, styleRef <span class="op">=</span> <span class="st">'tw_50'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 3. Define column properties</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">hp</span><span class="op">)</span>, </span>
-<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Miles/(US) gallon"</span>, <span class="st">"Horsepower"</span><span class="op">)</span>,</span>
-<span>              colWidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"25%"</span>, <span class="st">"25%"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span>, </span>
+<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Miles/(US) gallon"</span>, <span class="st">"Horsepower"</span>, <span class="st">"Weight&lt;br&gt;(1000 lbs)"</span><span class="op">)</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">'ac'</span></span>
+<span>              <span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">cyl</span>, </span>
-<span>              label <span class="op">=</span> <span class="st">"Cylinders"</span>, </span>
 <span>              isGrouping <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>              dedupe <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>              isVisible <span class="op">=</span>  <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 4. Apply conditional row styling</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">hp</span> <span class="op">&gt;</span> <span class="fl">200</span>, </span>
-<span>               <span class="fu"><a href="reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">hp</span>, styleRef <span class="op">=</span> <span class="st">"highlight_red"</span><span class="op">)</span><span class="op">)</span></span>
+<span>               <span class="fu"><a href="reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">hp</span>, styleRef <span class="op">=</span> <span class="st">"fc_red"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span> <span class="fu"><a href="reference/set_document.html">set_document</a></span><span class="op">(</span>contentWidth <span class="op">=</span> <span class="st">'50%'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 5. Create report and render to DOCX</span></span>
-<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"mtcars_report"</span>, outDir <span class="op">=</span> <span class="st">"output"</span>, metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
@@ -217,7 +273,7 @@
 <h3 id="column-configuration">Column Configuration<a class="anchor" aria-label="anchor" href="#column-configuration"></a>
 </h3>
 <p>Define column properties and formatting:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cols</span>, <span class="va">label</span>, <span class="va">isVisible</span>, <span class="va">isID</span>, <span class="va">isGrouping</span>, <span class="va">isPaging</span>,</span>
 <span>            <span class="va">labelStyleRef</span>, <span class="va">isColBreak</span>, <span class="va">dedupe</span>, <span class="va">blankAfter</span>,</span>
 <span>            <span class="va">type</span>, <span class="va">format</span>, <span class="va">missings</span>, <span class="va">colWidth</span>, <span class="va">valueStyleRef</span><span class="op">)</span></span></code></pre></div>
@@ -267,50 +323,50 @@
 <td><code>"header_bold"</code></td>
 </tr>
 <tr class="odd">
+<td><code>valueStyleRef</code></td>
+<td>Style reference for cell values</td>
+<td><code>"numeric_right"</code></td>
+</tr>
+<tr class="even">
 <td><code>isColBreak</code></td>
 <td>Mark horizontal pagination break point</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>dedupe</code></td>
 <td>Remove duplicate consecutive values</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>blankAfter</code></td>
 <td>Insert blank row after value change</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>type</code></td>
 <td>Override auto-detected column type</td>
 <td>
 <code>"numeric"</code> / <code>"string"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>format</code></td>
 <td>Override auto-detected display format</td>
 <td>
-<code>"0.00"</code> / <code>"%d"</code>
+<code>"%.1f"</code> / <code>"%d"</code>
 </td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>missings</code></td>
 <td>Custom representation for missing values</td>
 <td><code>"N/A"</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>colWidth</code></td>
 <td>Set width (%, cm, pt, in, mm, auto)</td>
 <td>
 <code>"25%"</code> / <code>"3cm"</code>
 </td>
-</tr>
-<tr class="even">
-<td><code>valueStyleRef</code></td>
-<td>Style reference for cell values</td>
-<td><code>"numeric_right"</code></td>
 </tr>
 </tbody>
 </table>
@@ -333,17 +389,17 @@
 <tbody>
 <tr class="odd">
 <td><code>compute_cols(spec, condition, ...)</code></td>
-<td>Evaluate condition and apply actions</td>
+<td>Evaluate condition and apply set of actions</td>
 <td><code>compute_cols(spec, age &gt; 65, c_style(value, styleRef = "alert"))</code></td>
 </tr>
 <tr class="even">
 <td><code>c_style(cols, styleRef)</code></td>
-<td>Apply style to specified columns</td>
+<td>Apply style to specified cells</td>
 <td><code>c_style(c(col1, col2), styleRef = "bold")</code></td>
 </tr>
 <tr class="odd">
 <td><code>c_merge(cols, styleRef)</code></td>
-<td>Merge specified columns into one cell</td>
+<td>Merge specified cells into one cell</td>
 <td><code>c_merge(c(col1, col2, col3))</code></td>
 </tr>
 <tr class="even">
@@ -358,7 +414,24 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Helper Functions for Conditions</strong>: - <code>firstOf(...)</code>: TRUE for first occurrence of each value combination - <code>lastOf(...)</code>: TRUE for last occurrence of each value combination - <code>firstRow()</code>: TRUE only for first data row - <code>lastRow()</code>: TRUE only for last data row - <code>everyNth(n)</code>: TRUE every n-th row (e.g., <code>everyNth(3)</code> for rows 1, 4, 7, …) - <code>rowNumber()</code>: Row index (1-based) - <code>firstOfBlock(col, n, offset)</code>: Logical vector marking first row of every n-th block defined by <code>col</code></p>
+<p><strong>Helper Functions for Conditions</strong>:</p>
+<ul>
+<li>
+<code>firstOf(...)</code>: TRUE for first occurrence of each value combination</li>
+<li>
+<code>lastOf(...)</code>: TRUE for last occurrence of each value combination</li>
+<li>
+<code>firstRow()</code>: TRUE only for first data row</li>
+<li>
+<code>lastRow()</code>: TRUE only for last data row</li>
+<li>
+<code>everyNth(n)</code>: TRUE every n-th row (e.g., <code>everyNth(3)</code> for rows 1, 4, 7, …)</li>
+<li>
+<code>rowNumber()</code>: Row index (1-based)</li>
+<li>
+<code>firstOfBlock(col, n, offset)</code>: Logical vector marking first row of every n-th block defined by <code>col</code>
+</li>
+</ul>
 <p>Note: The <code>cols</code> argument passed to <code><a href="reference/c_merge.html">c_merge()</a></code> must resolve to at least two consecutive columns in the final report column order. The merged cell’s displayed value is taken from the first column in the <code>cols</code> sequence.</p>
 </div>
 <div class="section level3">
@@ -424,9 +497,22 @@
 </tr>
 </tbody>
 </table>
-<p><strong>Context-Based Nesting Rules</strong>: - <code><a href="reference/s_font.html">s_font()</a></code>, <code><a href="reference/s_paragraph.html">s_paragraph()</a></code>, <code><a href="reference/s_table_style.html">s_table_style()</a></code> — direct children of <code><a href="reference/add_style.html">add_style()</a></code> - <code><a href="reference/s_borders.html">s_borders()</a></code> — must be inside <code>s_table_style(borders = s_borders(...))</code> - <code><a href="reference/s_spacing.html">s_spacing()</a></code>, <code><a href="reference/s_indents.html">s_indents()</a></code> — must be inside <code><a href="reference/s_paragraph.html">s_paragraph()</a></code> - Built-in target font atoms are available for direct <code>styleRef</code> composition: <code>font_arial</code>, <code>font_courier_new</code>, <code>font_times_new_roman</code>, <code>font_georgia</code>, <code>font_verdana</code>, <code>font_trebuchet_ms</code></p>
+<p><strong>Context-Based Nesting Rules</strong>:</p>
+<ul>
+<li>
+<code><a href="reference/s_font.html">s_font()</a></code>, <code><a href="reference/s_paragraph.html">s_paragraph()</a></code>, <code><a href="reference/s_table_style.html">s_table_style()</a></code> — direct children of <code><a href="reference/add_style.html">add_style()</a></code>
+</li>
+<li>
+<code><a href="reference/s_borders.html">s_borders()</a></code> — must be inside <code>s_table_style(borders = s_borders(...))</code>
+</li>
+<li>
+<code><a href="reference/s_spacing.html">s_spacing()</a></code>, <code><a href="reference/s_indents.html">s_indents()</a></code> — must be inside <code><a href="reference/s_paragraph.html">s_paragraph()</a></code>
+</li>
+<li>Built-in target font atoms are available for direct <code>styleRef</code> composition: <code>font_arial</code>, <code>font_courier_new</code>, <code>font_times_new_roman</code>, <code>font_georgia</code>, <code>font_verdana</code>, <code>font_trebuchet_ms</code>
+</li>
+</ul>
 <p><strong>Example Style Definition</strong>:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"header_style"</span>,</span>
 <span>  <span class="fu"><a href="reference/s_font.html">s_font</a></span><span class="op">(</span>font_name <span class="op">=</span> <span class="st">"Arial"</span>, font_size <span class="op">=</span> <span class="st">"12pt"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span>, color <span class="op">=</span> <span class="st">"#333333"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="reference/s_paragraph.html">s_paragraph</a></span><span class="op">(</span>alignment <span class="op">=</span> <span class="st">"center"</span>, spacing <span class="op">=</span> <span class="fu"><a href="reference/s_spacing.html">s_spacing</a></span><span class="op">(</span>after <span class="op">=</span> <span class="st">"6pt"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -565,7 +651,7 @@
 <div class="section level3">
 <h3 id="package-options">Package Options<a class="anchor" aria-label="anchor" href="#package-options"></a>
 </h3>
-<p>Configure global defaults:</p>
+<p>Configure global defaults that apply to all specs in a session:</p>
 <table class="table">
 <colgroup>
 <col width="52%">
@@ -592,9 +678,547 @@
 <td><code><a href="reference/tfl_reset_options.html">tfl_reset_options()</a></code></td>
 <td>Reset all options to defaults</td>
 </tr>
+<tr class="odd">
+<td><code><a href="reference/tfl_list_templates.html">tfl_list_templates()</a></code></td>
+<td>List available bundled document templates</td>
+</tr>
 </tbody>
 </table>
-<p><strong>Configurable Options</strong>: - <code>autoColWidth</code>: Auto-recalculate column widths (default: <code>TRUE</code>) - <code>missings</code>: Default representation for missing values (default: <code>""</code>) - Predefined styles: Define styles once, use across all specs via <code><a href="reference/add_style.html">add_style()</a></code> on options - Default headers/footers: Apply to all documents via <code><a href="reference/add_header.html">add_header()</a></code> / <code><a href="reference/add_footer.html">add_footer()</a></code> on options - Default body text, page style, and document template</p>
+<p><strong>All Configurable Parameters</strong>:</p>
+<table class="table">
+<colgroup>
+<col width="28%">
+<col width="23%">
+<col width="15%">
+<col width="33%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Default</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>docTemplate</code></td>
+<td><code>"CRO Example_default"</code></td>
+<td>Character</td>
+<td>Document style template (bundled name or path to JSON). Use <code><a href="reference/tfl_list_templates.html">tfl_list_templates()</a></code> to list available embedded templates, or use template editor shiny addin to create your own</td>
+</tr>
+<tr class="even">
+<td><code>contentWidth</code></td>
+<td><code>"100%"</code></td>
+<td>Character</td>
+<td>Main content area width (e.g., <code>"95%"</code>, <code>"16.51cm"</code>, <code>"6.5in"</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>footnotePlace</code></td>
+<td><code>"repeated"</code></td>
+<td>Character</td>
+<td>Footnote placement: <code>"repeated"</code> (every page), <code>"last_page"</code>, or <code>"doc_footer"</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>isContinues</code></td>
+<td><code>FALSE</code></td>
+<td>Logical</td>
+<td>Suppress repeating headers on every page of the document</td>
+</tr>
+<tr class="odd">
+<td><code>missings</code></td>
+<td><code>"NA"</code></td>
+<td>Character</td>
+<td>Default representation for missing/NA values (e.g., <code>"."</code>, <code>"---"</code>, <code>"N/A"</code>)</td>
+</tr>
+<tr class="even">
+<td><code>autoColWidth</code></td>
+<td><code>TRUE</code></td>
+<td>Logical</td>
+<td>Auto-recalculate unlocked column widths; when <code>FALSE</code> manage all widths manually</td>
+</tr>
+<tr class="odd">
+<td><code>minColWidth</code></td>
+<td><code>0.5</code></td>
+<td>Numeric</td>
+<td>Minimum relative width (%) for unlocked columns during auto-recalculation</td>
+</tr>
+<tr class="even">
+<td><code>figureWidth</code></td>
+<td><code>"6in"</code></td>
+<td>Character</td>
+<td>Default figure width (e.g., <code>"70%"</code>, <code>"6.5in"</code>, <code>"16.51cm"</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>figureHeight</code></td>
+<td><code>"4in"</code></td>
+<td>Character</td>
+<td>Default figure height (same format as <code>figureWidth</code>)</td>
+</tr>
+<tr class="even">
+<td><code>figureDevice</code></td>
+<td><code>"svg"</code></td>
+<td>Character</td>
+<td>Graphics device for ggplot2 rendering: <code>"svg"</code>, <code>"png"</code>, <code>"jpeg"</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>figureScaleMode</code></td>
+<td><code>"fixed"</code></td>
+<td>Character</td>
+<td>Figure scaling: <code>"fixed"</code>, <code>"fitWidth"</code> (scale to page width), <code>"fitPage"</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>insertTOC</code></td>
+<td><code>FALSE</code></td>
+<td>Logical</td>
+<td>Prepend a Table of Contents page (requires <code>toclevel</code> on titles)</td>
+</tr>
+<tr class="odd">
+<td><code>tocTitle</code></td>
+<td><code>"Table of Contents"</code></td>
+<td>Character</td>
+<td>TOC page heading; use <code>""</code> to omit</td>
+</tr>
+<tr class="even">
+<td><code>output_directory</code></td>
+<td><code>"."</code></td>
+<td>Character</td>
+<td>Default output directory for rendered documents</td>
+</tr>
+<tr class="odd">
+<td><code>meta_directory</code></td>
+<td><code>NULL</code></td>
+<td>Character</td>
+<td>Directory for intermediate metadata files; <code>NULL</code> defaults to output dir or temp</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Page Layout</strong> (via <code><a href="reference/set_page_style.html">set_page_style()</a></code> or <code>tfl_set_options(set_page_style(...))</code>):</p>
+<table class="table">
+<colgroup>
+<col width="32%">
+<col width="26%">
+<col width="41%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter</th>
+<th>Default</th>
+<th>Valid Values</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>page.size</code></td>
+<td><code>"A4"</code></td>
+<td>
+<code>"A4"</code>, <code>"A3"</code>, <code>"Letter"</code>, <code>"Legal"</code>, <code>"Executive"</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>page.orientation</code></td>
+<td><code>"landscape"</code></td>
+<td>
+<code>"portrait"</code>, <code>"landscape"</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>page.margins</code></td>
+<td>Template default</td>
+<td>Created via <code>p_margins(top, bottom, left, right, header, footer)</code> — all accept dimension strings (e.g., <code>"25mm"</code>, <code>"1in"</code>, <code>"2.54cm"</code>, <code>"72pt"</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Shared Content</strong> — define once, applied to every spec:</p>
+<ul>
+<li>Predefined <strong>styles</strong>: <code>tfl_set_options(add_style(id = "my_style", s_font(bold = TRUE)))</code> — available in all specs via <code>styleRef</code>
+</li>
+<li>Default <strong>headers/footers</strong>: <code>tfl_set_options(add_header("Left", "Center", "Right"))</code> — up to 3 cells per row</li>
+<li>Default <strong>body text</strong>: <code>tfl_set_options(add_body_text("No data to report"))</code> — shown when spec has no data</li>
+</ul>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Example: configure session-wide defaults</span></span>
+<span><span class="fu"><a href="reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
+<span>  contentWidth <span class="op">=</span> <span class="st">"95%"</span>,</span>
+<span>  missings     <span class="op">=</span> <span class="st">"."</span>,</span>
+<span>  footnotePlace <span class="op">=</span> <span class="st">"last_page"</span>,</span>
+<span>  <span class="fu"><a href="reference/set_page_style.html">set_page_style</a></span><span class="op">(</span></span>
+<span>    page <span class="op">=</span> <span class="fu"><a href="reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"Letter"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
+<span>                  margins <span class="op">=</span> <span class="fu"><a href="reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"1in"</span>, bottom <span class="op">=</span> <span class="st">"1in"</span>,</span>
+<span>                                      left <span class="op">=</span> <span class="st">"0.75in"</span>, right <span class="op">=</span> <span class="st">"0.75in"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="reference/add_header.html">add_header</a></span><span class="op">(</span><span class="st">"Company Name"</span>, <span class="st">""</span>, <span class="st">"Page {page} of {pages}"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="st">"Confidential"</span>, <span class="st">""</span>, <span class="st">"{date}"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"alert"</span>, <span class="fu"><a href="reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#FF0000"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="atomic-styles-built-in-style-atoms">Atomic Styles (Built-in Style Atoms)<a class="anchor" aria-label="anchor" href="#atomic-styles-built-in-style-atoms"></a>
+</h3>
+<p>ksTFL ships with 100+ <strong>atomic styles</strong> — single-property building blocks that can be used directly as <code>styleRef</code> values or combined with <code><a href="reference/f_combine.html">f_combine()</a></code>. Each atom sets exactly <strong>one</strong> visual property, making styles composable and predictable. Use <code><a href="reference/tfl_print_style_atoms.html">tfl_print_style_atoms()</a></code> to print all avaialbe atomic styles, or use addin to call this function.</p>
+<p><strong>Usage</strong>: pass atom IDs directly to any <code>styleRef</code> parameter, or combine multiple atoms:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Single atom</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Demographics"</span>, styleRef <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Combine atoms with f_combine()</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">mpg</span>,</span>
+<span>  <span class="co"># `f_combine` used to merge atomic style to build the complex style on the fly</span></span>
+<span>  valueStyleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"font_verdana"</span>, <span class="st">"fs_10"</span>, <span class="st">"ar"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Source: study database."</span>,</span>
+<span>  styleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"i"</span>, <span class="st">"fc_gray"</span>, <span class="st">"tw_80"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Font — Decoration</strong></p>
+<table class="table">
+<thead><tr class="header">
+<th>Atom</th>
+<th>Alias</th>
+<th>Effect</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>b</code></td>
+<td><code>font_bold</code></td>
+<td>Bold</td>
+</tr>
+<tr class="even">
+<td><code>i</code></td>
+<td><code>font_italic</code></td>
+<td>Italic</td>
+</tr>
+<tr class="odd">
+<td><code>u</code></td>
+<td><code>font_underline</code></td>
+<td>Underline</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Font — Family</strong></p>
+<table class="table">
+<thead><tr class="header">
+<th>Atom</th>
+<th>Font</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>font_arial</code></td>
+<td>Arial</td>
+</tr>
+<tr class="even">
+<td><code>font_courier_new</code></td>
+<td>Courier New</td>
+</tr>
+<tr class="odd">
+<td><code>font_times_new_roman</code></td>
+<td>Times New Roman</td>
+</tr>
+<tr class="even">
+<td><code>font_georgia</code></td>
+<td>Georgia</td>
+</tr>
+<tr class="odd">
+<td><code>font_verdana</code></td>
+<td>Verdana</td>
+</tr>
+<tr class="even">
+<td><code>font_trebuchet_ms</code></td>
+<td>Trebuchet MS</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Font — Size</strong> (<code>fs_7</code> through <code>fs_11</code>): <code>fs_7</code>, <code>fs_8</code>, <code>fs_9</code>, <code>fs_10</code>, <code>fs_11</code> (7–11 pt)</p>
+<p><strong>Font — Color</strong></p>
+<table class="table">
+<thead><tr class="header">
+<th>Atom</th>
+<th>Hex</th>
+<th>Use Case</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>fc_black</code></td>
+<td>#000000</td>
+<td>Default / reset</td>
+</tr>
+<tr class="even">
+<td><code>fc_red</code></td>
+<td>#FF0000</td>
+<td>Alert / out-of-range</td>
+</tr>
+<tr class="odd">
+<td><code>fc_blue</code></td>
+<td>#0000FF</td>
+<td>Informational</td>
+</tr>
+<tr class="even">
+<td><code>fc_green</code></td>
+<td>#008000</td>
+<td>Within-range / pass</td>
+</tr>
+<tr class="odd">
+<td>
+<code>fc_gray</code> / <code>fc_grey</code>
+</td>
+<td>#595959</td>
+<td>Secondary / reference</td>
+</tr>
+<tr class="even">
+<td><code>fc_navy</code></td>
+<td>#1F3864</td>
+<td>Dark formal headers</td>
+</tr>
+<tr class="odd">
+<td><code>fc_teal</code></td>
+<td>#2E75B6</td>
+<td>Medium blue</td>
+</tr>
+<tr class="even">
+<td><code>fc_olive</code></td>
+<td>#5C7A29</td>
+<td>Muted green</td>
+</tr>
+<tr class="odd">
+<td><code>fc_rust</code></td>
+<td>#C0392B</td>
+<td>Muted red / caution</td>
+</tr>
+<tr class="even">
+<td><code>fc_plum</code></td>
+<td>#7B2D8B</td>
+<td>Purple / special</td>
+</tr>
+<tr class="odd">
+<td><code>fc_slate</code></td>
+<td>#44546A</td>
+<td>Blue-gray / subdued</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Text Highlight</strong> (background shading behind text)</p>
+<table class="table">
+<thead><tr class="header">
+<th>Atom</th>
+<th>Hex</th>
+<th>Atom</th>
+<th>Hex</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>hl_yellow</code></td>
+<td>#FFFF00</td>
+<td><code>hl_peach</code></td>
+<td>#FADADD</td>
+</tr>
+<tr class="even">
+<td><code>hl_red</code></td>
+<td>#FF0000</td>
+<td><code>hl_mint</code></td>
+<td>#D5F5E3</td>
+</tr>
+<tr class="odd">
+<td><code>hl_green</code></td>
+<td>#90EE90</td>
+<td><code>hl_sky</code></td>
+<td>#D6EAF8</td>
+</tr>
+<tr class="even">
+<td>
+<code>hl_gray</code> / <code>hl_grey</code>
+</td>
+<td>#EEEEEE</td>
+<td><code>hl_lemon</code></td>
+<td>#FEFBD8</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td><code>hl_lilac</code></td>
+<td>#E8DAEF</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Paragraph — Alignment</strong></p>
+<table class="table">
+<thead><tr class="header">
+<th>Atom</th>
+<th>Alias</th>
+<th>Alignment</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>al</code></td>
+<td><code>text_left</code></td>
+<td>Left</td>
+</tr>
+<tr class="even">
+<td><code>ac</code></td>
+<td><code>text_center</code></td>
+<td>Center</td>
+</tr>
+<tr class="odd">
+<td><code>ar</code></td>
+<td><code>text_right</code></td>
+<td>Right</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Paragraph — Indentation</strong> (0.5 cm steps): <code>ind0</code>–<code>ind4</code> (left), <code>rind0</code>–<code>rind4</code> (right). Aliases: <code>indent_0</code>–<code>indent_4</code>, <code>rindent_0</code>–<code>rindent_4</code>.</p>
+<p><strong>Paragraph — Table-Width Shrink</strong> (<code>tw_95</code>–<code>tw_50</code> in 5% steps): symmetric left+right indent to align titles/footnotes/body text with a narrower table. Calculated for A4 landscape with 0.5 in margins.</p>
+<p><strong>Paragraph — Spacing</strong>: <code>sp_0</code> (0 pt), <code>sp_2</code> (2 pt), <code>sp_4</code> (4 pt) — before and after, line spacing 1.0.</p>
+<p><strong>Paragraph — Pagination</strong>: <code>kl</code> (keep lines together on same page), <code>kn</code> (keep with next row).</p>
+<p><strong>Cell — Vertical Alignment</strong>: <code>va_t</code> / <code>va_top</code>, <code>va_m</code> / <code>va_center</code>, <code>va_b</code> / <code>va_bottom</code>.</p>
+<p><strong>Cell — Text Orientation</strong>: <code>to_h</code> / <code>text_horizontal</code>, <code>to_90</code> / <code>text_vertical_90</code> (bottom-to-top), <code>to_270</code> / <code>text_vertical_270</code> (top-to-bottom).</p>
+<p><strong>Cell — Background Color</strong></p>
+<table class="table">
+<thead><tr class="header">
+<th>Atom</th>
+<th>Hex</th>
+<th>Atom</th>
+<th>Hex</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>bg_blue</code></td>
+<td>#D9E1F2</td>
+<td><code>bg_peach</code></td>
+<td>#FADADD</td>
+</tr>
+<tr class="even">
+<td>
+<code>bg_gray</code> / <code>bg_grey</code>
+</td>
+<td>#F2F2F2</td>
+<td><code>bg_mint</code></td>
+<td>#D5F5E3</td>
+</tr>
+<tr class="odd">
+<td><code>bg_navy</code></td>
+<td>#1F3864</td>
+<td><code>bg_sky</code></td>
+<td>#D6EAF8</td>
+</tr>
+<tr class="even">
+<td><code>bg_slate</code></td>
+<td>#44546A</td>
+<td><code>bg_lemon</code></td>
+<td>#FEFBD8</td>
+</tr>
+<tr class="odd">
+<td><code>bg_steel</code></td>
+<td>#BDD7EE</td>
+<td><code>bg_lilac</code></td>
+<td>#E8DAEF</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Row Height</strong> (spacer rows): <code>row_h2</code> (2 pt), <code>row_h4</code> (4 pt), <code>row_h6</code> (6 pt).</p>
+<p><strong>Borders</strong>: <code>bt</code>, <code>bb</code>, <code>bl</code>, <code>br</code> (1 pt black, single line); <code>bt_th</code>, <code>bb_th</code> (0.5 pt thin); <code>bc_gray</code>/<code>bc_grey</code> (color override to gray), <code>bc_white</code> (suppress all borders).</p>
+<p><strong>Group Header Composites</strong>: <code>grp_hdr</code> (bold + indent reset + 4 pt space-before), <code>grp_hdr_i</code> (bold + italic + indent reset + 4 pt space-before).</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Compose atoms for a styled separator row</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">lastOf</span><span class="op">(</span><span class="va">category</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"below"</span>, <span class="va">category</span>,</span>
+<span>           styleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"row_h2"</span>, <span class="st">"bb_th"</span>, <span class="st">"bc_gray"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Group header with bold + space above</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">param</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, <span class="va">param</span>, styleRef <span class="op">=</span> <span class="st">"grp_hdr"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="inline-text-markup">Inline Text Markup<a class="anchor" aria-label="anchor" href="#inline-text-markup"></a>
+</h3>
+<p>ksTFL supports HTML-like inline markup tags in any text content — cell values, column labels, titles, subtitles, footnotes, headers, footers, and body text. Tags are parsed by the C++ rendering engine and converted to styled OOXML runs in the output DOCX.</p>
+<p><strong>Supported Tags</strong>:</p>
+<table class="table">
+<colgroup>
+<col width="22%">
+<col width="36%">
+<col width="40%">
+</colgroup>
+<thead><tr class="header">
+<th>Tag</th>
+<th>Effect</th>
+<th>Example</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>&lt;b&gt;...&lt;/b&gt;</code></td>
+<td><strong>Bold</strong></td>
+<td><code>"Total: &lt;b&gt;125&lt;/b&gt; subjects"</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;i&gt;...&lt;/i&gt;</code></td>
+<td><em>Italic</em></td>
+<td><code>"p-value&lt;i&gt;(two-sided)&lt;/i&gt;"</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;u&gt;...&lt;/u&gt;</code></td>
+<td>Underline</td>
+<td><code>"See &lt;u&gt;Table 14.1&lt;/u&gt;"</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;s&gt;...&lt;/s&gt;</code></td>
+<td><del>Strikethrough</del></td>
+<td><code>"&lt;s&gt;Deprecated&lt;/s&gt; Updated"</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;sup&gt;...&lt;/sup&gt;</code></td>
+<td>Superscript</td>
+<td><code>"E=mc&lt;sup&gt;2&lt;/sup&gt;"</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;sub&gt;...&lt;/sub&gt;</code></td>
+<td>Subscript</td>
+<td><code>"H&lt;sub&gt;2&lt;/sub&gt;O"</code></td>
+</tr>
+<tr class="odd">
+<td>
+<code>&lt;br&gt;</code> or <code>&lt;br/&gt;</code>
+</td>
+<td>Line break (soft, within same paragraph)</td>
+<td><code>"Revenue&lt;br&gt;(Millions of $)"</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;p&gt;</code></td>
+<td>Paragraph break (starts a new paragraph)</td>
+<td><code>"First paragraph&lt;p&gt;Second paragraph"</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Characteristics</strong>:</p>
+<ul>
+<li>
+<strong>Nesting</strong>: fully supported — <code>&lt;b&gt;&lt;i&gt;bold italic&lt;/i&gt;&lt;/b&gt;</code>
+</li>
+<li>
+<strong>Case-insensitive</strong>: <code>&lt;B&gt;</code>, <code>&lt;b&gt;</code>, both work</li>
+<li>
+<strong>No attributes</strong>: tags carry no attributes; use the style system for colors, fonts, etc.</li>
+<li>
+<strong>Unknown tags are ignored</strong>: unrecognized tags are silently stripped, content preserved</li>
+<li>
+<strong>Priority</strong>: inline markup overrides all style-system settings (template, column, row styles)</li>
+</ul>
+<p><strong>Common Patterns</strong>:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Multi-line column headers</span></span>
+<span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">drug</span>, <span class="va">placebo</span>, <span class="va">total</span><span class="op">)</span>,</span>
+<span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DrugX&lt;br&gt;(N=160)"</span>, <span class="st">"Placebo&lt;br&gt;(N=158)"</span>, <span class="st">"Total&lt;br&gt;(N=318)"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Superscripts in footnotes</span></span>
+<span><span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"* p&lt;0.05; &lt;sup&gt;†&lt;/sup&gt; adjusted for baseline"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Bold key values in titles</span></span>
+<span><span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Table 14.1: &lt;b&gt;Demographics&lt;/b&gt; and Baseline Characteristics"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Subscript in chemical formulas</span></span>
+<span><span class="fu"><a href="reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Concentration of CO&lt;sub&gt;2&lt;/sub&gt; measured in ppm"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Nested formatting</span></span>
+<span><span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"&lt;b&gt;&lt;i&gt;Note:&lt;/i&gt;&lt;/b&gt; All values are &lt;u&gt;least-squares means&lt;/u&gt;"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Paragraph breaks in body text</span></span>
+<span><span class="fu"><a href="reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Section 1 summary.&lt;p&gt;Section 2 begins here."</span><span class="op">)</span></span></code></pre></div>
+<p>Note: <code>&lt;sup&gt;</code> and <code>&lt;sub&gt;</code> are mutually exclusive — if nested, the innermost tag takes effect.</p>
 <hr>
 </div>
 </div>
@@ -635,7 +1259,7 @@
 <h3 id="id_1-tidyselect-integration">1. Tidyselect Integration<a class="anchor" aria-label="anchor" href="#id_1-tidyselect-integration"></a>
 </h3>
 <p>Use tidyselect expressions for intuitive column selection:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">starts_with</span><span class="op">(</span><span class="st">"lab_"</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"15%"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, isID <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">where</span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span></span></code></pre></div>
@@ -643,7 +1267,14 @@
 <div class="section level3">
 <h3 id="id_2-style-consolidation">2. Style Consolidation<a class="anchor" aria-label="anchor" href="#id_2-style-consolidation"></a>
 </h3>
-<p><code><a href="reference/create_report.html">create_report()</a></code> automatically: - Merges <code>f_combine("style1", "style2")</code> into single <code>style_&lt;hash&gt;</code> - Detects and reuses identical merged styles - Removes unreferenced styles - Validates all style references exist</p>
+<p><code><a href="reference/create_report.html">create_report()</a></code> automatically:</p>
+<ul>
+<li>Merges <code>f_combine("style1", "style2")</code> into single <code>style_&lt;hash&gt;</code>
+</li>
+<li>Detects and reuses identical merged styles</li>
+<li>Removes unreferenced styles</li>
+<li>Validates all style references exist</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_3-schema-validation">3. Schema Validation<a class="anchor" aria-label="anchor" href="#id_3-schema-validation"></a>
@@ -653,13 +1284,13 @@
 <div class="section level3">
 <h3 id="id_4-data-environment">4. Data Environment<a class="anchor" aria-label="anchor" href="#id_4-data-environment"></a>
 </h3>
-<p>Original data preserved in <code>.metadata$data_env</code> for: - Conditional expressions in <code><a href="reference/compute_cols.html">compute_cols()</a></code> - Helper functions (<code>firstOf()</code>, <code>lastOf()</code>, etc.) - Deferred evaluation until <code><a href="reference/create_report.html">create_report()</a></code></p>
+<p>Original data preserved (shadow-copy) in <code>.metadata$data_env</code> for: - Conditional expressions in <code><a href="reference/compute_cols.html">compute_cols()</a></code> - Helper functions (<code>firstOf()</code>, <code>lastOf()</code>, etc.) - Deferred evaluation until <code><a href="reference/create_report.html">create_report()</a></code></p>
 </div>
 <div class="section level3">
 <h3 id="id_5-vectorized-parameters">5. Vectorized Parameters<a class="anchor" aria-label="anchor" href="#id_5-vectorized-parameters"></a>
 </h3>
 <p>Most functions support vectorized inputs:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Single value recycled</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col1</span>, <span class="va">col2</span>, <span class="va">col3</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"33%"</span><span class="op">)</span></span>
 <span></span>
@@ -669,7 +1300,21 @@
 <div class="section level3">
 <h3 id="id_6-built-in-docx-renderer">6. Built-in DOCX Renderer<a class="anchor" aria-label="anchor" href="#id_6-built-in-docx-renderer"></a>
 </h3>
-<p>The C++20 rendering engine provides a complete end-to-end pipeline: - <strong>HarfBuzz text shaping</strong> for deterministic text measurement - <strong>FreeType font loading</strong> with automatic system font scanning and open-source fallback chain (Arial → Liberation Sans, Times New Roman → Liberation Serif, Courier New → Liberation Mono, Georgia → Liberation Serif, Verdana → Liberation Sans, Trebuchet MS → Liberation Sans) - <strong>Vertical &amp; horizontal pagination</strong> with configurable page break rules - <strong>OOXML emission</strong> into valid .docx ZIP packages - Support for all 3 document types (Table, Figure, Text) - <strong>Per-spec template rendering</strong> in multi-spec reports (mixed <code>docTemplate</code> values) - Inline markup: <code>**bold**</code>, <code>*italic*</code>, <code>__underline__</code>, <code>~~strikethrough~~</code> - Structural borders (header top/bottom, table bottom) - Title soft-break rendering (combined paragraph with per-group font styling) - Configurable style templates (<code>CRO Example_default</code> bundled)</p>
+<p>The rendering engine provides a complete end-to-end pipeline:</p>
+<ul>
+<li>
+<strong>Pixel-perfect text shaping</strong> for deterministic text measurement</li>
+<li>
+<strong>FreeType font loading</strong> with automatic system font scanning and open-source fallback chain (Arial → Liberation Sans, Times New Roman → Liberation Serif, Courier New → Liberation Mono, Georgia → Liberation Serif, Verdana → Liberation Sans, Trebuchet MS → Liberation Sans)</li>
+<li>
+<strong>Vertical &amp; horizontal pagination</strong> with configurable page break rules</li>
+<li>Support for all 3 document types (Table, Figure, Text)</li>
+<li>
+<strong>Per-spec template rendering</strong> in multi-spec reports (mixed <code>docTemplate</code> values)</li>
+<li>
+<strong>Automatic TOC embedding</strong> to the created documents</li>
+<li>Configurable style templates (<code>CRO Example_default</code> bundled)</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_7-font-management">7. Font Management<a class="anchor" aria-label="anchor" href="#id_7-font-management"></a>
@@ -725,37 +1370,37 @@
 </h4>
 <p>The <strong><code>ttf-mscorefonts-installer</code></strong> package downloads and installs the Microsoft TrueType core fonts (Arial, Times New Roman, Courier New, Georgia, Verdana, Trebuchet MS, and others) from SourceForge. It is available in most Linux distribution repositories.</p>
 <p><strong>Debian / Ubuntu:</strong></p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> ttf-mscorefonts-installer</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> ttf-mscorefonts-installer</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>Fedora / RHEL / CentOS (via RPM Fusion or manual SPEC):</strong></p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Fedora (requires RPM Fusion free repository to be enabled)</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> curl cabextract xorg-x11-font-utils fontconfig</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Fedora (requires RPM Fusion free repository to be enabled)</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> curl cabextract xorg-x11-font-utils fontconfig</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>openSUSE:</strong></p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install <span class="at">-y</span> fetchmsttfonts</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install <span class="at">-y</span> fetchmsttfonts</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>Arch Linux:</strong></p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Available from the AUR</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="ex">yay</span> <span class="at">-S</span> ttf-ms-fonts</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># Available from the AUR</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="ex">yay</span> <span class="at">-S</span> ttf-ms-fonts</span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p>After installing, restart R (or call <code><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code> in a running session) so ksTFL picks up the new fonts.</p>
 </div>
 <div class="section level4">
 <h4 id="rocker-docker-images">Rocker Docker images<a class="anchor" aria-label="anchor" href="#rocker-docker-images"></a>
 </h4>
 <p><a href="https://rocker-project.org/" class="external-link">Rocker</a> images are Debian-based, so <code>ttf-mscorefonts-installer</code> can be added directly. Include the following in your Dockerfile:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.4</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co"># Accept the Microsoft EULA non-interactively and install core fonts</span></span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="kw">RUN</span> <span class="bu">echo</span> <span class="st">"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"</span> <span class="dt">\</span></span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>      <span class="kw">|</span> <span class="ex">debconf-set-selections</span> <span class="dt">\</span></span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> update <span class="dt">\</span></span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> ttf-mscorefonts-installer fontconfig <span class="dt">\</span></span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">fc-cache</span> <span class="at">-f</span> <span class="dt">\</span></span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> clean <span class="dt">\</span></span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.4</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="co"># Accept the Microsoft EULA non-interactively and install core fonts</span></span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a><span class="kw">RUN</span> <span class="bu">echo</span> <span class="st">"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"</span> <span class="dt">\</span></span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a>      <span class="kw">|</span> <span class="ex">debconf-set-selections</span> <span class="dt">\</span></span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> update <span class="dt">\</span></span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> ttf-mscorefonts-installer fontconfig <span class="dt">\</span></span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">fc-cache</span> <span class="at">-f</span> <span class="dt">\</span></span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> clean <span class="dt">\</span></span>
+<span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span></code></pre></div>
 <blockquote>
 <p><strong>Tip:</strong> The <code>debconf-set-selections</code> line automatically accepts the Microsoft EULA, which is required for non-interactive installs (CI/CD pipelines, Docker builds).</p>
 </blockquote>
@@ -764,7 +1409,7 @@
 <h4 id="custom-font-directories">Custom font directories<a class="anchor" aria-label="anchor" href="#custom-font-directories"></a>
 </h4>
 <p>Point the <code>ksTFL.font_dirs</code> option to directories containing proprietary or additional fonts. These are scanned alongside system directories:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/opt/company-fonts"</span>, <span class="st">"~/my-fonts"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Font management functions:</strong></p>
@@ -795,8 +1440,8 @@
 <div class="section level2">
 <h2 id="full-pipeline-example">Full Pipeline Example<a class="anchor" aria-label="anchor" href="#full-pipeline-example"></a>
 </h2>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://example.com">ksTFL</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Create and customize spec</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -866,55 +1511,8 @@
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section level3">
-<h3 id="system-libraries">System Libraries<a class="anchor" aria-label="anchor" href="#system-libraries"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr class="header">
-<th>Library</th>
-<th>Purpose</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>
-<strong>HarfBuzz</strong> (&gt;= 2.0)</td>
-<td>Unicode text shaping for deterministic measurement</td>
-</tr>
-<tr class="even">
-<td>
-<strong>FreeType</strong> (&gt;= 2.0)</td>
-<td>Font loading and glyph metrics</td>
-</tr>
-<tr class="odd">
-<td>
-<strong>minizip</strong> (zlib)</td>
-<td>ZIP archive creation for .docx output</td>
-</tr>
-</tbody>
-</table>
 <hr>
 </div>
-</div>
-<div class="section level2">
-<h2 id="building-the-pkgdown-site">Building the pkgdown site<a class="anchor" aria-label="anchor" href="#building-the-pkgdown-site"></a>
-</h2>
-<p>From the package root in R:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Optional: longer timeout if CRAN is slow (downlit fetches packages.rds when building articles)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>timeout <span class="op">=</span> <span class="fl">120</span><span class="op">)</span></span>
-<span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span>pkg <span class="op">=</span> <span class="st">"."</span>, install <span class="op">=</span> <span class="cn">FALSE</span>, preview <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<ul>
-<li>
-<strong>X11 / headless</strong>: Vignettes set <code>dev = "cairo_png"</code> so the site builds without an X11 display. Example plots use <code>png(..., type = "cairo")</code> where needed.</li>
-<li>
-<strong>CRAN timeout</strong>: Building articles uses <strong>downlit</strong>, which fetches <code>https://cran.rstudio.com/web/packages/packages.rds</code>. If that times out, run with network access and/or increase <code>options(timeout = 120)</code> (or higher). For fully offline builds, use the <strong>pkgdown.offline</strong> package and call <code>pkgdown.offline::build_site()</code> instead.</li>
-</ul>
-<hr>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>

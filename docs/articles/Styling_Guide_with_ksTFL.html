@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Styling Guide — ksTFL • ksTFL</title>
+<title>Styling Guide (ksTFL) • ksTFL</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="Styling Guide — ksTFL">
+<meta property="og:title" content="Styling Guide (ksTFL)">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,7 +50,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Styling Guide — ksTFL</h1>
+      <h1>Styling Guide (ksTFL)</h1>
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
@@ -945,190 +945,230 @@ grouped by category with colour-coded output in the console:</p>
 </tr>
 <tr class="even">
 <td>
+<code>ind0</code> / <code>indent_0</code>
+</td>
+<td>No indent (reset to left margin)</td>
+</tr>
+<tr class="odd">
+<td>
 <code>ind1</code> / <code>indent_1</code>
 </td>
 <td>0.5 cm left indent (top-level category)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>ind2</code> / <code>indent_2</code>
 </td>
 <td>1.0 cm left indent (first sub-group)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>ind3</code> / <code>indent_3</code>
 </td>
 <td>1.5 cm left indent (second sub-group)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>ind4</code> / <code>indent_4</code>
 </td>
 <td>2.0 cm left indent (detail)</td>
 </tr>
+<tr class="odd">
+<td><strong>Paragraph — right indentation</strong></td>
+<td></td>
+</tr>
 <tr class="even">
+<td>
+<code>rind0</code> / <code>rindent_0</code>
+</td>
+<td>No right indent (reset to right margin)</td>
+</tr>
+<tr class="odd">
+<td>
+<code>rind1</code> / <code>rindent_1</code>
+</td>
+<td>0.5 cm right indent</td>
+</tr>
+<tr class="even">
+<td>
+<code>rind2</code> / <code>rindent_2</code>
+</td>
+<td>1.0 cm right indent</td>
+</tr>
+<tr class="odd">
+<td>
+<code>rind3</code> / <code>rindent_3</code>
+</td>
+<td>1.5 cm right indent</td>
+</tr>
+<tr class="even">
+<td>
+<code>rind4</code> / <code>rindent_4</code>
+</td>
+<td>2.0 cm right indent</td>
+</tr>
+<tr class="odd">
 <td><strong>Paragraph — table-width shrink</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>tw_95</code> … <code>tw_50</code>
 </td>
 <td>Symmetric left+right indent to match table at 95 %…50 % width (5 %
 steps)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Paragraph — spacing</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>sp_0</code></td>
 <td>No space before/after paragraph</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>sp_2</code></td>
 <td>2 pt space before and after</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>sp_4</code></td>
 <td>4 pt space before and after</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Paragraph — pagination</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>kl</code></td>
 <td>Keep all lines of a cell on the same page</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>kn</code></td>
 <td>Keep this row on the same page as the next row</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Group / category header composites</strong></td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>grp_hdr</code></td>
 <td>Bold + 4 pt space above + left indent reset (category header)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>grp_hdr_i</code></td>
 <td>Bold + italic + 4 pt space above + left indent reset</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Cell — vertical alignment</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>va_t</code> / <code>va_top</code>
 </td>
 <td>Top</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>va_m</code> / <code>va_center</code>
 </td>
 <td>Middle</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>va_b</code> / <code>va_bottom</code>
 </td>
 <td>Bottom</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Cell — text orientation</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>to_h</code> / <code>text_horizontal</code>
 </td>
 <td>Horizontal (default)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>to_90</code> / <code>text_vertical_90</code>
 </td>
 <td>Rotated 90° (bottom-to-top)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>to_270</code> / <code>text_vertical_270</code>
 </td>
 <td>Rotated 270° (top-to-bottom)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Cell — background colour</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>bg_blue</code>, <code>bg_gray</code> /
 <code>bg_grey</code>
 </td>
 <td>Standard backgrounds</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>bg_peach</code>, <code>bg_mint</code>, <code>bg_sky</code>,
 <code>bg_lemon</code>, <code>bg_lilac</code>
 </td>
 <td>Pastel backgrounds</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>bg_navy</code>, <code>bg_slate</code>,
 <code>bg_steel</code>
 </td>
 <td>Dark/medium header backgrounds</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Row height</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>row_h2</code>, <code>row_h4</code>, <code>row_h6</code>
 </td>
 <td>Row height 2 / 4 / 6 pt (separator rows)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Border — sides (1 pt black)</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>bt</code>, <code>bb</code>, <code>bl</code>,
 <code>br</code>
 </td>
 <td>Top / bottom / left / right border</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Border — thin sides (0.5 pt black)</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>bt_th</code>, <code>bb_th</code>
 </td>
 <td>Thin top / bottom border</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Border — colour override</strong></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>
 <code>bc_gray</code> / <code>bc_grey</code>
 </td>
 <td>All sides → medium gray (#AAAAAA)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>bc_white</code></td>
 <td>All sides → white / none (suppress borders)</td>
 </tr>

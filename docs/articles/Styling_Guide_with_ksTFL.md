@@ -1,4 +1,4 @@
-# Styling Guide — ksTFL
+# Styling Guide (ksTFL)
 
 ![ksTFL logo](figures/ksTFL-logo.svg)
 
@@ -783,10 +783,17 @@ tfl_print_style_atoms()
 | `ar` / `text_right`                                                | Right-align                                                               |
 | `ac` / `text_center`                                               | Center-align                                                              |
 | **Paragraph — left indentation**                                   |                                                                           |
+| `ind0` / `indent_0`                                                | No indent (reset to left margin)                                          |
 | `ind1` / `indent_1`                                                | 0.5 cm left indent (top-level category)                                   |
 | `ind2` / `indent_2`                                                | 1.0 cm left indent (first sub-group)                                      |
 | `ind3` / `indent_3`                                                | 1.5 cm left indent (second sub-group)                                     |
 | `ind4` / `indent_4`                                                | 2.0 cm left indent (detail)                                               |
+| **Paragraph — right indentation**                                  |                                                                           |
+| `rind0` / `rindent_0`                                              | No right indent (reset to right margin)                                   |
+| `rind1` / `rindent_1`                                              | 0.5 cm right indent                                                       |
+| `rind2` / `rindent_2`                                              | 1.0 cm right indent                                                       |
+| `rind3` / `rindent_3`                                              | 1.5 cm right indent                                                       |
+| `rind4` / `rindent_4`                                              | 2.0 cm right indent                                                       |
 | **Paragraph — table-width shrink**                                 |                                                                           |
 | `tw_95` … `tw_50`                                                  | Symmetric left+right indent to match table at 95 %…50 % width (5 % steps) |
 | **Paragraph — spacing**                                            |                                                                           |

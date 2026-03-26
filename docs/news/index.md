@@ -1,5 +1,58 @@
 # Changelog
 
+## ksTFL 0.8.0
+
+### New Features
+
+- Page settings ([`p_page()`](https://example.com/reference/p_page.md) /
+  [`set_page_style()`](https://example.com/reference/set_page_style.md))
+  now support partial overrides — only explicitly specified fields
+  override the template defaults, enabling lighter per-spec
+  customisation.
+- Per-column style mapping: character vector `style_refs` in
+  [`add_style()`](https://example.com/reference/add_style.md) now
+  accepts a vector of length equal to the number of columns, with `NA`
+  to skip individual columns.
+- New `Listings_times` built-in template (Times New Roman variant of the
+  Listings template).
+
+### Fixes
+
+- [`add_header()`](https://example.com/reference/add_header.md) /
+  [`add_footer()`](https://example.com/reference/add_footer.md) with
+  `level` replacement now correctly returns the right
+  `TFL_options_header` / `TFL_options_footer` class when used via
+  [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md).
+- Default page settings changed from a fixed `A4 / portrait` override to
+  `NULL`, so bare specs inherit all page properties from the active
+  template without unintended overrides.
+
+### Template Updates
+
+- Refined font sizes, spacing, margins, and border widths across Carbon
+  Dark, Classic (landscape/portrait), Default, and Listings templates.
+
+### Documentation
+
+- Added ksTFL cheat sheet (PDF and PowerPoint) to `inst/extdata`.
+
+## ksTFL 0.7.9
+
+### CI/CD
+
+- Added CRAN-like repository structure for Linux binaries (Ubuntu and
+  Fedora), enabling
+  [`install.packages()`](https://rdrr.io/r/utils/install.packages.html)
+  from the release repo on Linux.
+- Added Red Hat / Fedora binary build using a Fedora container in CI.
+- GitHub Releases are now published to both the private and public
+  (ksTFL-release) repositories.
+- New manual workflow (“Upload Binary to Release Repo”) for adding
+  locally built packages (e.g., macOS) to the release repository.
+- Added explicit pandoc setup to ensure vignettes build correctly on all
+  platforms.
+- Updated README installation instructions with per-platform sections.
+
 ## ksTFL 0.7.6
 
 ### Fixes

@@ -4,15 +4,15 @@
 
 - [Getting Started with
   ksTFL](https://example.com/articles/Getting_Started_with_ksTFL.md):
-- [Reporting Examples —
+- [Reporting Examples using
   ksTFL](https://example.com/articles/Reporting_Examples_with_ksTFL.md):
-- [Real Examples —
+- [Real Examples of Clinical Outputs using
   ksTFL](https://example.com/articles/Real_Examples_with_ksTFL.md):
 
 ### Styling And Layout
 
-- [Styling Guide —
-  ksTFL](https://example.com/articles/Styling_Guide_with_ksTFL.md):
+- [Styling Guide
+  (ksTFL)](https://example.com/articles/Styling_Guide_with_ksTFL.md):
 - [Column Width Management in
   ksTFL](https://example.com/articles/Column_Width_Management.md):
 

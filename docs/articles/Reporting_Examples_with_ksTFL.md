@@ -1,4 +1,4 @@
-# Reporting Examples — ksTFL
+# Reporting Examples using ksTFL
 
 ![ksTFL logo](figures/ksTFL-logo.svg)
 

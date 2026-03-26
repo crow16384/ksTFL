@@ -1,4 +1,4 @@
-# Real Examples — ksTFL
+# Real Examples of Clinical Outputs using ksTFL
 
 ![ksTFL logo](figures/ksTFL-logo.svg)
 

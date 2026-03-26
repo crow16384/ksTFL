@@ -1,3 +1,24 @@
+# ksTFL 0.8.0
+
+## New Features
+
+* Page settings (`p_page()` / `set_page_style()`) now support partial overrides — only explicitly specified fields override the template defaults, enabling lighter per-spec customisation.
+* Per-column style mapping: character vector `style_refs` in `add_style()` now accepts a vector of length equal to the number of columns, with `NA` to skip individual columns.
+* New `Listings_times` built-in template (Times New Roman variant of the Listings template).
+
+## Fixes
+
+* `add_header()` / `add_footer()` with `level` replacement now correctly returns the right `TFL_options_header` / `TFL_options_footer` class when used via `tfl_set_options()`.
+* Default page settings changed from a fixed `A4 / portrait` override to `NULL`, so bare specs inherit all page properties from the active template without unintended overrides.
+
+## Template Updates
+
+* Refined font sizes, spacing, margins, and border widths across Carbon Dark, Classic (landscape/portrait), Default, and Listings templates.
+
+## Documentation
+
+* Added ksTFL cheat sheet (PDF and PowerPoint) to `inst/extdata`.
+
 # ksTFL 0.7.9
 
 ## CI/CD

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.7.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.8.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,41 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.8.0" id="kstfl-080">ksTFL 0.8.0<a class="anchor" aria-label="anchor" href="#kstfl-080"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-8-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-8-0"></a></h3>
+<ul><li>Page settings (<code><a href="../reference/p_page.html">p_page()</a></code> / <code><a href="../reference/set_page_style.html">set_page_style()</a></code>) now support partial overrides — only explicitly specified fields override the template defaults, enabling lighter per-spec customisation.</li>
+<li>Per-column style mapping: character vector <code>style_refs</code> in <code><a href="../reference/add_style.html">add_style()</a></code> now accepts a vector of length equal to the number of columns, with <code>NA</code> to skip individual columns.</li>
+<li>New <code>Listings_times</code> built-in template (Times New Roman variant of the Listings template).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="fixes-0-8-0">Fixes<a class="anchor" aria-label="anchor" href="#fixes-0-8-0"></a></h3>
+<ul><li>
+<code><a href="../reference/add_header.html">add_header()</a></code> / <code><a href="../reference/add_footer.html">add_footer()</a></code> with <code>level</code> replacement now correctly returns the right <code>TFL_options_header</code> / <code>TFL_options_footer</code> class when used via <code><a href="../reference/tfl_set_options.html">tfl_set_options()</a></code>.</li>
+<li>Default page settings changed from a fixed <code>A4 / portrait</code> override to <code>NULL</code>, so bare specs inherit all page properties from the active template without unintended overrides.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="template-updates-0-8-0">Template Updates<a class="anchor" aria-label="anchor" href="#template-updates-0-8-0"></a></h3>
+<ul><li>Refined font sizes, spacing, margins, and border widths across Carbon Dark, Classic (landscape/portrait), Default, and Listings templates.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-8-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-8-0"></a></h3>
+<ul><li>Added ksTFL cheat sheet (PDF and PowerPoint) to <code>inst/extdata</code>.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.7.9" id="kstfl-079">ksTFL 0.7.9<a class="anchor" aria-label="anchor" href="#kstfl-079"></a></h2>
+<div class="section level3">
+<h3 id="cicd-0-7-9">CI/CD<a class="anchor" aria-label="anchor" href="#cicd-0-7-9"></a></h3>
+<ul><li>Added CRAN-like repository structure for Linux binaries (Ubuntu and Fedora), enabling <code><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages()</a></code> from the release repo on Linux.</li>
+<li>Added Red Hat / Fedora binary build using a Fedora container in CI.</li>
+<li>GitHub Releases are now published to both the private and public (ksTFL-release) repositories.</li>
+<li>New manual workflow (“Upload Binary to Release Repo”) for adding locally built packages (e.g., macOS) to the release repository.</li>
+<li>Added explicit pandoc setup to ensure vignettes build correctly on all platforms.</li>
+<li>Updated README installation instructions with per-platform sections.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.7.6" id="kstfl-076">ksTFL 0.7.6<a class="anchor" aria-label="anchor" href="#kstfl-076"></a></h2>
 <div class="section level3">
