@@ -295,6 +295,13 @@ struct PageMarginsOverride {
   std::optional<Length> footer_distance;
 };
 
+/// Page config override — optional fields so that spec only overrides
+/// template values for explicitly specified fields.
+struct PageConfigOverride {
+  std::optional<PageSize> size;
+  std::optional<Orientation> orientation;
+};
+
 /// Full page configuration.
 struct PageConfig {
   PageSize size = PageSize::A4;
@@ -569,7 +576,7 @@ struct TFLSpec {
   DocumentInfo document;
 
   // Attributes
-  PageConfig page_override; // overrides from attribs.documentStyle.page
+  PageConfigOverride page_override; // overrides from attribs.documentStyle.page
   bool has_page_override = false;
   PageMarginsOverride margin_overrides; // explicit margin overrides (optional per field)
   StyleMap spec_styles;                 // per-spec style definitions

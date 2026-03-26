@@ -9,7 +9,8 @@ test_that("create_table() initializes with default parameters", {
   expect_equal(spec$document$docType, "Table")
   expect_true(spec$document$hasData)
   expect_equal(length(spec$columns), length(names(large_df)))
-  expect_true(length(spec$attribs$documentStyle$page) > 0)
+  # Page defaults come from template, not spec — bare spec has no page override
+  expect_null(spec$attribs$documentStyle$page)
   expect_equal(spec$columns$idx$format$type, 'numeric')
   expect_true(length(spec$bodyText) > 0)
   

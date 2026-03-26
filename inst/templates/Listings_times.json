@@ -19,7 +19,7 @@
   "textStyles": {
     "default": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "8pt",
         "bold": false,
         "italic": false,
@@ -42,7 +42,7 @@
     },
     "docHeader": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "8pt",
         "bold": false,
         "italic": false,
@@ -60,7 +60,7 @@
     },
     "docFooter": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "8pt",
         "bold": false,
         "italic": false,
@@ -78,8 +78,8 @@
     },
     "titles": {
       "font": {
-        "font_name": "Courier New",
-        "font_size": "9pt",
+        "font_name": "Times New Roman",
+        "font_size": "10pt",
         "bold": true,
         "italic": false,
         "underline": false,
@@ -96,8 +96,8 @@
     },
     "subtitles": {
       "font": {
-        "font_name": "Courier New",
-        "font_size": "8pt",
+        "font_name": "Times New Roman",
+        "font_size": "9pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -114,8 +114,8 @@
     },
     "footnotes": {
       "font": {
-        "font_name": "Courier New",
-        "font_size": "7pt",
+        "font_name": "Times New Roman",
+        "font_size": "8pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -132,7 +132,7 @@
     },
     "tableHeader": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "8pt",
         "bold": true,
         "italic": false,
@@ -150,7 +150,7 @@
     },
     "tableBody": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "8pt",
         "bold": false,
         "italic": false,
@@ -168,7 +168,7 @@
     },
     "tocTitle": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "9pt",
         "bold": true,
         "italic": false,
@@ -186,7 +186,7 @@
     },
     "tocEntry": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "8pt",
         "bold": false,
         "italic": false,
@@ -204,7 +204,7 @@
     },
     "figureCaption": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Times New Roman",
         "font_size": "8pt",
         "bold": false,
         "italic": false,

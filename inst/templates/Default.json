@@ -43,7 +43,7 @@
     "docHeader": {
       "font": {
         "font_name": "Courier New",
-        "font_size": "9pt",
+        "font_size": "8pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -54,14 +54,14 @@
         "spacing": {
           "before": "0pt",
           "after": "0pt",
-          "line_spacing": 0.9
+          "line_spacing": 0.95
         }
       }
     },
     "docFooter": {
       "font": {
         "font_name": "Courier New",
-        "font_size": "9pt",
+        "font_size": "8pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -72,7 +72,7 @@
         "spacing": {
           "before": "0pt",
           "after": "0pt",
-          "line_spacing": 0.9
+          "line_spacing": 0.95
         }
       }
     },
@@ -89,7 +89,7 @@
         "alignment": "center",
         "spacing": {
           "before": "1pt",
-          "after": "1pt",
+          "after": "2pt",
           "line_spacing": 1.0
         }
       }
@@ -97,7 +97,7 @@
     "subtitles": {
       "font": {
         "font_name": "Courier New",
-        "font_size": "9pt",
+        "font_size": "10pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -107,7 +107,7 @@
         "alignment": "left",
         "spacing": {
           "before": "1pt",
-          "after": "1pt",
+          "after": "2pt",
           "line_spacing": 1.0
         }
       }
@@ -168,7 +168,7 @@
     },
     "tocTitle": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Arial",
         "font_size": "10pt",
         "bold": true,
         "italic": false,
@@ -186,7 +186,7 @@
     },
     "tocEntry": {
       "font": {
-        "font_name": "Courier New",
+        "font_name": "Arial",
         "font_size": "9pt",
         "bold": false,
         "italic": false,
@@ -237,7 +237,7 @@
       },
       "header_bottom_border": {
         "color": "000000",
-        "width": "1.5pt",
+        "width": "1pt",
         "line_style": "single"
       },
       "table_bottom_border": {
@@ -275,12 +275,12 @@
         "borders": {
           "top": {
             "color": "000000",
-            "width": "1.2pt",
+            "width": "1pt",
             "line_style": "single"
           },
           "bottom": {
             "color": "000000",
-            "width": "1.2pt",
+            "width": "1pt",
             "line_style": "single"
           },
           "left": {

@@ -90,16 +90,16 @@
         "spacing": {
           "before": "0pt",
           "after": "4pt",
-          "line_spacing": 1.2
+          "line_spacing": 1.1
         }
       }
     },
     "subtitles": {
       "font": {
         "font_name": "Times New Roman",
-        "font_size": "10pt",
+        "font_size": "11pt",
         "bold": false,
-        "italic": true,
+        "italic": false,
         "underline": false,
         "color": "000000"
       },
@@ -256,8 +256,8 @@
       "cell_margins": {
         "top": "2pt",
         "bottom": "2pt",
-        "left": "4pt",
-        "right": "4pt"
+        "left": "2pt",
+        "right": "2pt"
       },
       "vertical_alignment": "center"
     },
@@ -304,8 +304,8 @@
         "cell_margins": {
           "top": "2pt",
           "bottom": "2pt",
-          "left": "4pt",
-          "right": "4pt"
+          "left": "2pt",
+          "right": "2pt"
         },
         "borders": {
           "top": {

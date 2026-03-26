@@ -313,10 +313,15 @@
     spec$bodyText <- unclass(spec$bodyText)
   }
   
-  # Apply page settings from settings if they exist
-  if (!is.null(settings$page)) {
-    spec$attribs$documentStyle$page <- settings$page
-    spec$attribs$documentStyle$page <- unclass(spec$attribs$documentStyle$page)
+  # Apply page settings from settings if they exist and have content.
+  # NULL or empty page means "no override" — template defaults are used.
+  if (!is.null(settings$page) && length(settings$page) > 0) {
+    page_clean <- unclass(settings$page)
+    # Only include non-NULL fields to enable partial overrides
+    page_clean <- page_clean[!vapply(page_clean, is.null, logical(1))]
+    if (length(page_clean) > 0) {
+      spec$attribs$documentStyle$page <- page_clean
+    }
   }
   
   invisible(spec)

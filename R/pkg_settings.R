@@ -385,7 +385,9 @@ tfl_set_options <- function(..., docTemplate = NULL,
         if (inherits(opts, "TFL_options_pagestyle") && length(opts) > 0) {
           .options_env$settings$page <- opts$attribs$documentStyle$page
           .options_env$settings$doc_style_template <- opts$attribs$documentStyle$docTemplate
-          class(.options_env$settings$page) <- "TFL_options"
+          if (!is.null(.options_env$settings$page)) {
+            class(.options_env$settings$page) <- "TFL_options"
+          }
         } 
 
     }

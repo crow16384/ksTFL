@@ -374,13 +374,9 @@ NULL
 # ============================================================
 
 # Page structure default values
-.const_options_page <- structure(
-  list(
-    size = .const_default_page_size,
-    orientation = .const_default_page_orientation
-  ),
-  class = "TFL_options"
-)
+# NULL means "no page override" — template provides all defaults.
+# Only explicit user calls to set_page_style() / p_page() produce overrides.
+.const_options_page <- NULL
 
 .const_options_header_footer <- structure(list(), class = "TFL_options")
 

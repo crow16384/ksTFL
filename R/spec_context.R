@@ -819,9 +819,9 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @return Page specification list
 #' @keywords internal
 #' @noRd
-.page_spec <- function(size = .const_default_page_size, 
-                       orientation = .const_default_page_orientation, 
-                       margins) {
+.page_spec <- function(size = NULL, 
+                       orientation = NULL, 
+                       margins = NULL) {
   .validate_enum(size, .const_page_sizes, "size", "page_spec")
   .validate_enum(orientation, .const_page_orientations, "orientation", "page_spec")
   
@@ -830,7 +830,12 @@ assign("stack", character(0), envir = .context_marker_env)
     .validate_params(margins, "margins", "p_page")
   }
   
-  list(size = size, orientation = orientation, margins = margins)
+  # Only include non-NULL fields so absent fields don't override template defaults
+  spec <- list()
+  if (!is.null(size)) spec$size <- size
+  if (!is.null(orientation)) spec$orientation <- orientation
+  if (!is.null(margins)) spec$margins <- margins
+  spec
 }
 
 #' Internal column format specification builder
@@ -1249,8 +1254,8 @@ p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL,
 #'     )
 #'   )
 #' }
-p_page <- function(size = .const_default_page_size, 
-                   orientation = .const_default_page_orientation, 
+p_page <- function(size = NULL, 
+                   orientation = NULL, 
                    margins = NULL) {
   .assert_context(c("set_page_style"), "p_page")
   
@@ -2384,6 +2389,10 @@ add_header <- function(spec = NULL, ..., level = NULL) {
     level <- as.integer(level)
     if (level <= length(spec[[target]])) {
       spec[[target]][[level]] <- parts
+      if (!is.null(as_options_class) && as_options_class) {
+        if (identical(target, "headers")) class(spec) <- "TFL_options_header"
+        if (identical(target, "footers")) class(spec) <- "TFL_options_footer"
+      }
       return(spec)
     }
     # otherwise fall through and append
@@ -3057,9 +3066,23 @@ set_page_style.TFL_options <- function(spec, docTemplate = NULL, page = NULL) {
     # NULL and bare NA both mean "no style / do nothing for all columns"
     result <- rep(list(NULL), num_cols)
   } else if (is.character(style_refs)) {
-    # Case 1: Character vector (single style name or f_combine result)
-    # Recycle to all columns.  Per-column NA skipping uses a list (see Case 2).
-    result <- rep(list(style_refs), num_cols)
+    # Case 1: Character vector
+    if (inherits(style_refs, "tfl_style_combine") || length(style_refs) == 1L) {
+      # f_combine() result or single style name — recycle to all columns
+      result <- rep(list(style_refs), num_cols)
+    } else if (length(style_refs) == num_cols) {
+      # Per-column mapping: c('style1', NA, 'style2') — same convention as
+      # label, colWidth, etc.  NA means "skip this column".
+      # as.list() on a character vector turns NA into NA_character_;
+      # normalise to logical NA so downstream identical(val, NA) works.
+      result <- lapply(style_refs, function(x) if (is.na(x)) NA else x)
+    } else {
+      cli_abort(c(
+        "Length of {param_name} character vector ({length(style_refs)}) must equal 1 or {num_cols} (number of columns)",
+        i = "Use {.fn f_combine}() to combine multiple styles for recycling to all columns",
+        i = "For explicit per-column mapping, provide exactly {num_cols} elements"
+      ))
+    }
   } else if (is.list(style_refs)) {
     # Case 2: List (assumed to be from f_combine results or explicit mapping)
     # Validate all elements are NULL, NA (skip sentinel), or character vectors.

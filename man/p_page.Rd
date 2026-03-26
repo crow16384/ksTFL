@@ -4,11 +4,7 @@
 \alias{p_page}
 \title{Define page settings}
 \usage{
-p_page(
-  size = .const_default_page_size,
-  orientation = .const_default_page_orientation,
-  margins = NULL
-)
+p_page(size = NULL, orientation = NULL, margins = NULL)
 }
 \arguments{
 \item{size}{Page size: "A4", "A3", "Letter", "Legal", "Executive"}

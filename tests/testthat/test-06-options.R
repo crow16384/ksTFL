@@ -83,6 +83,47 @@ test_that("tfl_set_options() with add_footer helper", {
 })
 
 
+test_that("tfl_set_options() add_header with level replaces existing header", {
+  tfl_reset_options()
+  tfl_set_options(add_header("Original"))
+  opts <- tfl_get_options()
+  expect_length(opts$headers, 1)
+  expect_equal(opts$headers[[1]], "Original")
+
+  tfl_set_options(add_header("Replaced", level = 1))
+  opts <- tfl_get_options()
+  expect_length(opts$headers, 1)
+  expect_equal(opts$headers[[1]], "Replaced")
+})
+
+test_that("tfl_set_options() add_footer with level replaces existing footer", {
+  tfl_reset_options()
+  tfl_set_options(add_footer("Original"))
+  opts <- tfl_get_options()
+  expect_length(opts$footers, 1)
+  expect_equal(opts$footers[[1]], "Original")
+
+  tfl_set_options(add_footer("Replaced", level = 1))
+  opts <- tfl_get_options()
+  expect_length(opts$footers, 1)
+  expect_equal(opts$footers[[1]], "Replaced")
+})
+
+test_that("tfl_set_options() combined header+footer replacement in single call", {
+  tfl_reset_options()
+  tfl_set_options(add_header("H1"), add_footer("F1"))
+  opts <- tfl_get_options()
+  expect_length(opts$headers, 1)
+  expect_length(opts$footers, 1)
+
+  tfl_set_options(add_header("H2", level = 1), add_footer("F2", level = 1))
+  opts <- tfl_get_options()
+  expect_length(opts$headers, 1)
+  expect_equal(opts$headers[[1]], "H2")
+  expect_length(opts$footers, 1)
+  expect_equal(opts$footers[[1]], "F2")
+})
+
 test_that("tfl_set_options() with page configuration object", {
   tfl_set_options(
     set_page_style(page= p_page(
@@ -95,5 +136,33 @@ test_that("tfl_set_options() with page configuration object", {
   
   expect_equal(tfl_get_option("page")$size, "Letter")
   expect_equal(tfl_get_option("page")$orientation, "portrait")
+})
+
+test_that("default page setting is NULL (no override)", {
+  tfl_reset_options()
+  expect_null(tfl_get_option("page"))
+})
+
+test_that("bare spec has no page override — template provides defaults", {
+  tfl_reset_options()
+  spec <- create_text()
+  expect_null(spec$attribs$documentStyle$page)
+})
+
+test_that("p_page() with partial args only includes specified fields", {
+  tfl_reset_options()
+  spec <- create_text()
+  spec2 <- set_page_style(spec, page = p_page(size = "Letter"))
+  expect_equal(spec2$attribs$documentStyle$page$size, "Letter")
+  expect_null(spec2$attribs$documentStyle$page$orientation)
+})
+
+test_that("session-level partial page override flows to spec", {
+  tfl_reset_options()
+  tfl_set_options(set_page_style(page = p_page(orientation = "portrait")))
+  spec <- create_text()
+  expect_null(spec$attribs$documentStyle$page$size)
+  expect_equal(spec$attribs$documentStyle$page$orientation, "portrait")
+  tfl_reset_options()
 })
 

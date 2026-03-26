@@ -143,7 +143,7 @@
         "alignment": "center",
         "spacing": {
           "before": "0pt",
-          "after": "0pt",
+          "after": "2pt",
           "line_spacing": 1
         }
       }
@@ -257,7 +257,7 @@
         "top": "2pt",
         "bottom": "2pt",
         "left": "2pt",
-        "right": "4pt"
+        "right": "2pt"
       },
       "vertical_alignment": "center"
     },
@@ -284,14 +284,14 @@
             "line_style": "single"
           },
           "left": {
-            "color": "AAAAAA",
-            "width": "0.8pt",
-            "line_style": "single"
+            "color": null,
+            "width": "0pt",
+            "line_style": "none"
           },
           "right": {
-            "color": "AAAAAA",
-            "width": "0.8pt",
-            "line_style": "single"
+            "color": null,
+            "width": "0pt",
+            "line_style": "none"
           }
         },
         "text_orientation": "horizontal"
@@ -310,24 +310,24 @@
         },
         "borders": {
           "top": {
-            "color": "AAAAAA",
-            "width": "0.8pt",
-            "line_style": "single"
+            "color": null,
+            "width": "0pt",
+            "line_style": "none"
           },
           "bottom": {
             "color": "AAAAAA",
-            "width": "0.8pt",
+            "width": "0.5pt",
             "line_style": "single"
           },
           "left": {
-            "color": "AAAAAA",
-            "width": "0.8pt",
-            "line_style": "single"
+            "color": null,
+            "width": "0pt",
+            "line_style": "none"
           },
           "right": {
-            "color": "AAAAAA",
-            "width": "0.8pt",
-            "line_style": "single"
+            "color": null,
+            "width": "0pt",
+            "line_style": "none"
           }
         },
         "text_orientation": "horizontal"

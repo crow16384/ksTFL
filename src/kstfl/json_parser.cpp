@@ -353,6 +353,17 @@ static PageConfig parse_page_config(const json &j) {
   return pc;
 }
 
+/// Parse page config from spec JSON as an override — only explicitly present
+/// fields are set, so absent fields don't override template defaults.
+static PageConfigOverride parse_page_config_override(const json &j) {
+  PageConfigOverride ovr;
+  auto sz = jutil::opt<std::string>(j, "size");
+  if (sz.has_value()) ovr.size = parse_page_size(*sz);
+  auto orient = jutil::opt<std::string>(j, "orientation");
+  if (orient.has_value()) ovr.orientation = parse_orientation(*orient);
+  return ovr;
+}
+
 // ---------------------------------------------------------------------------
 // Parse StyleMap (attribs.styles)
 // ---------------------------------------------------------------------------
@@ -662,7 +673,7 @@ static TFLSpec parse_single_spec(const std::string &key, const json &j) {
     if (attribs.contains("documentStyle") && attribs["documentStyle"].is_object()) {
       const auto &ds = attribs["documentStyle"];
       if (ds.contains("page") && ds["page"].is_object()) {
-        spec.page_override = parse_page_config(ds["page"]);
+        spec.page_override = parse_page_config_override(ds["page"]);
         spec.has_page_override = true;
         if (ds["page"].contains("margins") && ds["page"]["margins"].is_object()) {
           spec.margin_overrides = parse_margins_override(ds["page"]["margins"]);

@@ -20,7 +20,7 @@
     "default": {
       "font": {
         "font_name": "Arial",
-        "font_size": "8.5pt",
+        "font_size": "9pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -30,7 +30,7 @@
         "alignment": "left",
         "spacing": {
           "before": "0pt",
-          "after": "0pt",
+          "after": "2pt",
           "line_spacing": 1.0
         },
         "indents": {
@@ -90,14 +90,19 @@
         "spacing": {
           "before": "0pt",
           "after": "3pt",
-          "line_spacing": 1.1
+          "line_spacing": 1
+        },
+        "indents": {
+          "left": "1cm",
+          "right": "0pt",
+          "first_line": "0pt"
         }
       }
     },
     "subtitles": {
       "font": {
         "font_name": "Arial",
-        "font_size": "8.5pt",
+        "font_size": "9pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -109,13 +114,18 @@
           "before": "0pt",
           "after": "2pt",
           "line_spacing": 1.0
+        },
+        "indents": {
+          "left": "1cm",
+          "right": "0pt",
+          "first_line": "0pt"
         }
       }
     },
     "footnotes": {
       "font": {
         "font_name": "Arial",
-        "font_size": "7.5pt",
+        "font_size": "8pt",
         "bold": false,
         "italic": true,
         "underline": false,
@@ -127,13 +137,18 @@
           "before": "3pt",
           "after": "0pt",
           "line_spacing": 1.0
+        },
+        "indents": {
+          "left": "1cm",
+          "right": "0pt",
+          "first_line": "0pt"
         }
       }
     },
     "tableHeader": {
       "font": {
         "font_name": "Arial",
-        "font_size": "8.5pt",
+        "font_size": "9pt",
         "bold": true,
         "italic": false,
         "underline": false,
@@ -143,7 +158,7 @@
         "alignment": "center",
         "spacing": {
           "before": "0pt",
-          "after": "0pt",
+          "after": "1pt",
           "line_spacing": 1.0
         }
       }
@@ -151,7 +166,7 @@
     "tableBody": {
       "font": {
         "font_name": "Arial",
-        "font_size": "8.5pt",
+        "font_size": "9pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -187,7 +202,7 @@
     "tocEntry": {
       "font": {
         "font_name": "Arial",
-        "font_size": "8.5pt",
+        "font_size": "8pt",
         "bold": false,
         "italic": false,
         "underline": false,
@@ -197,7 +212,7 @@
         "alignment": "left",
         "spacing": {
           "before": "0pt",
-          "after": "2pt",
+          "after": "1pt",
           "line_spacing": 1.0
         }
       }
@@ -205,7 +220,7 @@
     "figureCaption": {
       "font": {
         "font_name": "Arial",
-        "font_size": "8.5pt",
+        "font_size": "9pt",
         "bold": false,
         "italic": false,
         "underline": false,

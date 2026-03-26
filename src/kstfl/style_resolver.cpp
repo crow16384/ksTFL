@@ -20,8 +20,9 @@ PageConfig StyleResolver::resolve_page_config(const TFLSpec &spec) const {
   PageConfig result = tmpl_.page; // Start with template defaults
   if (spec.has_page_override) {
     const auto &ovr = spec.page_override;
-    result.size = ovr.size;
-    result.orientation = ovr.orientation;
+    // Apply only explicitly specified fields (partial override)
+    if (ovr.size.has_value()) result.size = *ovr.size;
+    if (ovr.orientation.has_value()) result.orientation = *ovr.orientation;
     // Merge margins — apply only explicitly specified fields (including zero)
     const auto &mo = spec.margin_overrides;
     static constexpr std::array<std::pair<std::optional<Length> PageMarginsOverride::*, Length PageMargins::*>, 6>
