@@ -238,15 +238,21 @@ override earlier ones unless marked structural/non-overridable):
   - `std::to_chars` for double formatting
   - `[[nodiscard]]` on all pure/value-returning functions
 - Core dependencies:
-  - HarfBuzz
-  - FreeType2
-  - minizip or minizip-ng
+  - HarfBuzz (vendored source)
+  - FreeType2 (vendored source)
+  - minizip (vendored source)
   - zlib
   - nlohmann/json (vendored)
   - Rcpp
 - Build files:
   - src/Makevars
   - src/Makevars.win
+- Linux build model:
+  - `src/Makevars` always compiles vendored HarfBuzz, FreeType, and
+    minizip sources under `src/vendor/`
+  - No `pkg-config` probe or system-library fallback is used on Linux
+  - Windows continues to use `src/Makevars.win` with Rtools-provided
+    static libraries
 
 ## 10. Practical Trace (One Table Spec)
 

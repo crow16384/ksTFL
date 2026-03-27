@@ -14,7 +14,8 @@ bundled, and how to configure custom font directories.
 
 ## How Font Discovery Works
 
-When ksTFL is loaded (via [`library(ksTFL)`](https://example.com) or
+When ksTFL is loaded (via
+[`library(ksTFL)`](https://crow16384.github.io/ksTFL-release/) or
 [`devtools::load_all()`](https://devtools.r-lib.org/reference/load_all.html)),
 the following happens:
 

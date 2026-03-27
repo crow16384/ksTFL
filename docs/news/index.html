@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,19 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.9.0" id="kstfl-090">ksTFL 0.9.0<a class="anchor" aria-label="anchor" href="#kstfl-090"></a></h2>
+<div class="section level3">
+<h3 id="build-system-0-9-0">Build System<a class="anchor" aria-label="anchor" href="#build-system-0-9-0"></a></h3>
+<ul><li>HarfBuzz, FreeType, and minizip are now always compiled from vendored source during package installation, removing the runtime dependency on system <code>libharfbuzz</code>, <code>libfreetype</code>, and <code>libminizip</code> packages on Linux.</li>
+<li>The Linux build path now uses a committed vendored-source toolchain (<code>src/vendor/</code> plus <code>src/Makevars</code>) instead of <code>pkg-config</code> detection or optional system-library fallbacks.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-9-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-9-0"></a></h3>
+<ul><li>Updated installation instructions to remove the obsolete Linux runtime-package prerequisite step.</li>
+<li>Updated renderer architecture/build docs to describe vendored static compilation.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.8.0" id="kstfl-080">ksTFL 0.8.0<a class="anchor" aria-label="anchor" href="#kstfl-080"></a></h2>
 <div class="section level3">

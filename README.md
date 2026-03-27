@@ -42,11 +42,8 @@ install.packages("ksTFL",
                  repos = "https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble")
 ```
 
-Before installing, make sure system libraries are available (required at runtime):
-
-```bash
-sudo apt-get install -y libharfbuzz0b libfreetype6 libminizip1
-```
+No extra HarfBuzz, FreeType, or minizip runtime packages are required.
+Linux builds are shipped with those libraries compiled from vendored source.
 
 ### Linux — Fedora / RHEL
 
@@ -55,11 +52,8 @@ install.packages("ksTFL",
                  repos = "https://crow16384.github.io/ksTFL-release/bin/linux/fedora")
 ```
 
-Before installing, make sure system libraries are available (required at runtime):
-
-```bash
-sudo dnf install -y harfbuzz freetype minizip-ng-compat
-```
+No extra HarfBuzz, FreeType, or minizip runtime packages are required.
+Linux builds are shipped with those libraries compiled from vendored source.
 
 ### macOS
 

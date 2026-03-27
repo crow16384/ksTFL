@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,26 +95,24 @@
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
 <span>                 repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble"</span><span class="op">)</span></span></code></pre></div>
-<p>Before installing, make sure system libraries are available (required at runtime):</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> libharfbuzz0b libfreetype6 libminizip1</span></code></pre></div>
+<p>No extra HarfBuzz, FreeType, or minizip runtime packages are required. Linux builds are shipped with those libraries compiled from vendored source.</p>
 </div>
 <div class="section level3">
 <h3 id="linux--fedora--rhel">Linux — Fedora / RHEL<a class="anchor" aria-label="anchor" href="#linux--fedora--rhel"></a>
 </h3>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
 <span>                 repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release/bin/linux/fedora"</span><span class="op">)</span></span></code></pre></div>
-<p>Before installing, make sure system libraries are available (required at runtime):</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> harfbuzz freetype minizip-ng-compat</span></code></pre></div>
+<p>No extra HarfBuzz, FreeType, or minizip runtime packages are required. Linux builds are shipped with those libraries compiled from vendored source.</p>
 </div>
 <div class="section level3">
 <h3 id="macos">macOS<a class="anchor" aria-label="anchor" href="#macos"></a>
 </h3>
 <p>macOS binaries are published as GitHub Release assets and can be installed from a downloaded <code>.tgz</code> file:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL_&lt;version&gt;.tgz"</span>, repos <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
 <p>When a macOS binary is available in the CRAN-like repo, you can also use:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
 <span>                 repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release"</span>,</span>
 <span>                 type  <span class="op">=</span> <span class="st">"binary"</span><span class="op">)</span></span></code></pre></div>
@@ -123,7 +121,7 @@
 <h3 id="from-a-downloaded-file">From a downloaded file<a class="anchor" aria-label="anchor" href="#from-a-downloaded-file"></a>
 </h3>
 <p>Pre-built packages can be downloaded from the <a href="https://github.com/crow16384/ksTFL-release/releases" class="external-link">Releases</a> page and installed directly:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Linux (.tar.gz binary)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL_&lt;version&gt;_R_x86_64-pc-linux-gnu.tar.gz"</span>, repos <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
 <span></span>
@@ -144,7 +142,7 @@
 <div class="section level2">
 <h2 id="quick-start-example">Quick Start Example<a class="anchor" aria-label="anchor" href="#quick-start-example"></a>
 </h2>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Initialize a table specification</span></span>
@@ -273,7 +271,7 @@
 <h3 id="column-configuration">Column Configuration<a class="anchor" aria-label="anchor" href="#column-configuration"></a>
 </h3>
 <p>Define column properties and formatting:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cols</span>, <span class="va">label</span>, <span class="va">isVisible</span>, <span class="va">isID</span>, <span class="va">isGrouping</span>, <span class="va">isPaging</span>,</span>
 <span>            <span class="va">labelStyleRef</span>, <span class="va">isColBreak</span>, <span class="va">dedupe</span>, <span class="va">blankAfter</span>,</span>
 <span>            <span class="va">type</span>, <span class="va">format</span>, <span class="va">missings</span>, <span class="va">colWidth</span>, <span class="va">valueStyleRef</span><span class="op">)</span></span></code></pre></div>
@@ -512,7 +510,7 @@
 </li>
 </ul>
 <p><strong>Example Style Definition</strong>:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"header_style"</span>,</span>
 <span>  <span class="fu"><a href="reference/s_font.html">s_font</a></span><span class="op">(</span>font_name <span class="op">=</span> <span class="st">"Arial"</span>, font_size <span class="op">=</span> <span class="st">"12pt"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span>, color <span class="op">=</span> <span class="st">"#333333"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="reference/s_paragraph.html">s_paragraph</a></span><span class="op">(</span>alignment <span class="op">=</span> <span class="st">"center"</span>, spacing <span class="op">=</span> <span class="fu"><a href="reference/s_spacing.html">s_spacing</a></span><span class="op">(</span>after <span class="op">=</span> <span class="st">"6pt"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -835,7 +833,7 @@
 <li>Default <strong>headers/footers</strong>: <code>tfl_set_options(add_header("Left", "Center", "Right"))</code> — up to 3 cells per row</li>
 <li>Default <strong>body text</strong>: <code>tfl_set_options(add_body_text("No data to report"))</code> — shown when spec has no data</li>
 </ul>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example: configure session-wide defaults</span></span>
 <span><span class="fu"><a href="reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
 <span>  contentWidth <span class="op">=</span> <span class="st">"95%"</span>,</span>
@@ -856,7 +854,7 @@
 </h3>
 <p>ksTFL ships with 100+ <strong>atomic styles</strong> — single-property building blocks that can be used directly as <code>styleRef</code> values or combined with <code><a href="reference/f_combine.html">f_combine()</a></code>. Each atom sets exactly <strong>one</strong> visual property, making styles composable and predictable. Use <code><a href="reference/tfl_print_style_atoms.html">tfl_print_style_atoms()</a></code> to print all avaialbe atomic styles, or use addin to call this function.</p>
 <p><strong>Usage</strong>: pass atom IDs directly to any <code>styleRef</code> parameter, or combine multiple atoms:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Single atom</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Demographics"</span>, styleRef <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span></span>
 <span></span>
@@ -1113,7 +1111,7 @@
 <p><strong>Row Height</strong> (spacer rows): <code>row_h2</code> (2 pt), <code>row_h4</code> (4 pt), <code>row_h6</code> (6 pt).</p>
 <p><strong>Borders</strong>: <code>bt</code>, <code>bb</code>, <code>bl</code>, <code>br</code> (1 pt black, single line); <code>bt_th</code>, <code>bb_th</code> (0.5 pt thin); <code>bc_gray</code>/<code>bc_grey</code> (color override to gray), <code>bc_white</code> (suppress all borders).</p>
 <p><strong>Group Header Composites</strong>: <code>grp_hdr</code> (bold + indent reset + 4 pt space-before), <code>grp_hdr_i</code> (bold + italic + indent reset + 4 pt space-before).</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compose atoms for a styled separator row</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">lastOf</span><span class="op">(</span><span class="va">category</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"below"</span>, <span class="va">category</span>,</span>
@@ -1199,7 +1197,7 @@
 <strong>Priority</strong>: inline markup overrides all style-system settings (template, column, row styles)</li>
 </ul>
 <p><strong>Common Patterns</strong>:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Multi-line column headers</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">drug</span>, <span class="va">placebo</span>, <span class="va">total</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DrugX&lt;br&gt;(N=160)"</span>, <span class="st">"Placebo&lt;br&gt;(N=158)"</span>, <span class="st">"Total&lt;br&gt;(N=318)"</span><span class="op">)</span><span class="op">)</span></span>
@@ -1259,7 +1257,7 @@
 <h3 id="id_1-tidyselect-integration">1. Tidyselect Integration<a class="anchor" aria-label="anchor" href="#id_1-tidyselect-integration"></a>
 </h3>
 <p>Use tidyselect expressions for intuitive column selection:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">starts_with</span><span class="op">(</span><span class="st">"lab_"</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"15%"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, isID <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">where</span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span></span></code></pre></div>
@@ -1290,7 +1288,7 @@
 <h3 id="id_5-vectorized-parameters">5. Vectorized Parameters<a class="anchor" aria-label="anchor" href="#id_5-vectorized-parameters"></a>
 </h3>
 <p>Most functions support vectorized inputs:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Single value recycled</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col1</span>, <span class="va">col2</span>, <span class="va">col3</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"33%"</span><span class="op">)</span></span>
 <span></span>
@@ -1370,37 +1368,37 @@
 </h4>
 <p>The <strong><code>ttf-mscorefonts-installer</code></strong> package downloads and installs the Microsoft TrueType core fonts (Arial, Times New Roman, Courier New, Georgia, Verdana, Trebuchet MS, and others) from SourceForge. It is available in most Linux distribution repositories.</p>
 <p><strong>Debian / Ubuntu:</strong></p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> ttf-mscorefonts-installer</span>
-<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> ttf-mscorefonts-installer</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>Fedora / RHEL / CentOS (via RPM Fusion or manual SPEC):</strong></p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Fedora (requires RPM Fusion free repository to be enabled)</span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> curl cabextract xorg-x11-font-utils fontconfig</span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm</span>
-<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Fedora (requires RPM Fusion free repository to be enabled)</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> curl cabextract xorg-x11-font-utils fontconfig</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>openSUSE:</strong></p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install <span class="at">-y</span> fetchmsttfonts</span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install <span class="at">-y</span> fetchmsttfonts</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>Arch Linux:</strong></p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># Available from the AUR</span></span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="ex">yay</span> <span class="at">-S</span> ttf-ms-fonts</span>
-<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Available from the AUR</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="ex">yay</span> <span class="at">-S</span> ttf-ms-fonts</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p>After installing, restart R (or call <code><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code> in a running session) so ksTFL picks up the new fonts.</p>
 </div>
 <div class="section level4">
 <h4 id="rocker-docker-images">Rocker Docker images<a class="anchor" aria-label="anchor" href="#rocker-docker-images"></a>
 </h4>
 <p><a href="https://rocker-project.org/" class="external-link">Rocker</a> images are Debian-based, so <code>ttf-mscorefonts-installer</code> can be added directly. Include the following in your Dockerfile:</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.4</span>
-<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="co"># Accept the Microsoft EULA non-interactively and install core fonts</span></span>
-<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a><span class="kw">RUN</span> <span class="bu">echo</span> <span class="st">"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"</span> <span class="dt">\</span></span>
-<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a>      <span class="kw">|</span> <span class="ex">debconf-set-selections</span> <span class="dt">\</span></span>
-<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> update <span class="dt">\</span></span>
-<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> ttf-mscorefonts-installer fontconfig <span class="dt">\</span></span>
-<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">fc-cache</span> <span class="at">-f</span> <span class="dt">\</span></span>
-<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> clean <span class="dt">\</span></span>
-<span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.4</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="co"># Accept the Microsoft EULA non-interactively and install core fonts</span></span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="kw">RUN</span> <span class="bu">echo</span> <span class="st">"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"</span> <span class="dt">\</span></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>      <span class="kw">|</span> <span class="ex">debconf-set-selections</span> <span class="dt">\</span></span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> update <span class="dt">\</span></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> ttf-mscorefonts-installer fontconfig <span class="dt">\</span></span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">fc-cache</span> <span class="at">-f</span> <span class="dt">\</span></span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> clean <span class="dt">\</span></span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span></code></pre></div>
 <blockquote>
 <p><strong>Tip:</strong> The <code>debconf-set-selections</code> line automatically accepts the Microsoft EULA, which is required for non-interactive installs (CI/CD pipelines, Docker builds).</p>
 </blockquote>
@@ -1409,7 +1407,7 @@
 <h4 id="custom-font-directories">Custom font directories<a class="anchor" aria-label="anchor" href="#custom-font-directories"></a>
 </h4>
 <p>Point the <code>ksTFL.font_dirs</code> option to directories containing proprietary or additional fonts. These are scanned alongside system directories:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/opt/company-fonts"</span>, <span class="st">"~/my-fonts"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Font management functions:</strong></p>
@@ -1440,7 +1438,7 @@
 <div class="section level2">
 <h2 id="full-pipeline-example">Full Pipeline Example<a class="anchor" aria-label="anchor" href="#full-pipeline-example"></a>
 </h2>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Create and customize spec</span></span>

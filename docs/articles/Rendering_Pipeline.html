@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-03-26</h4>
+            <h4 data-toc-skip class="date">2026-03-27</h4>
       
 
       <div class="d-none name"><code>Rendering_Pipeline.Rmd</code></div>
@@ -415,9 +415,9 @@ functions</li>
 </li>
 <li>Core dependencies:
 <ul>
-<li>HarfBuzz</li>
-<li>FreeType2</li>
-<li>minizip or minizip-ng</li>
+<li>HarfBuzz (vendored source)</li>
+<li>FreeType2 (vendored source)</li>
+<li>minizip (vendored source)</li>
 <li>zlib</li>
 <li>nlohmann/json (vendored)</li>
 <li>Rcpp</li>
@@ -427,6 +427,18 @@ functions</li>
 <ul>
 <li>src/Makevars</li>
 <li>src/Makevars.win</li>
+</ul>
+</li>
+<li>Linux build model:
+<ul>
+<li>
+<code>src/Makevars</code> always compiles vendored HarfBuzz,
+FreeType, and minizip sources under <code>src/vendor/</code>
+</li>
+<li>No <code>pkg-config</code> probe or system-library fallback is used
+on Linux</li>
+<li>Windows continues to use <code>src/Makevars.win</code> with
+Rtools-provided static libraries</li>
 </ul>
 </li>
 </ul>

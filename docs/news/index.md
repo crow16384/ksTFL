@@ -1,5 +1,24 @@
 # Changelog
 
+## ksTFL 0.9.0
+
+### Build System
+
+- HarfBuzz, FreeType, and minizip are now always compiled from vendored
+  source during package installation, removing the runtime dependency on
+  system `libharfbuzz`, `libfreetype`, and `libminizip` packages on
+  Linux.
+- The Linux build path now uses a committed vendored-source toolchain
+  (`src/vendor/` plus `src/Makevars`) instead of `pkg-config` detection
+  or optional system-library fallbacks.
+
+### Documentation
+
+- Updated installation instructions to remove the obsolete Linux
+  runtime-package prerequisite step.
+- Updated renderer architecture/build docs to describe vendored static
+  compilation.
+
 ## ksTFL 0.8.0
 
 ### New Features
