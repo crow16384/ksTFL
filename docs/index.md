@@ -130,6 +130,27 @@ systems with Microsoft Office installed typically have the original
 fonts already available. On Linux, additional steps may be required —
 see [Font Management](#id_7-font-management) for details.
 
+### Dependencies
+
+`install.packages()` resolves and installs declared `Imports`
+automatically from CRAN. If you need to install them manually — for
+example after installing from a local file — run:
+
+``` r
+# Using pak (recommended)
+pak::local_install_deps()
+
+# Using remotes / devtools
+remotes::install_deps(dependencies = TRUE)
+```
+
+Required packages (`Imports`): `cli`, `checkmate`, `jsonlite`, `purrr`,
+`rlang`, `tidyselect`, `digest`, `htmltools`, `rstudioapi`, `Rcpp`
+
+Optional packages (`Suggests`, needed for tests and vignettes):
+`testthat`, `knitr`, `rmarkdown`, `ggplot2`, `shiny`, `colourpicker`,
+`sortable`, `shinyFiles`
+
 ------------------------------------------------------------------------
 
 ## Quick Start Example
