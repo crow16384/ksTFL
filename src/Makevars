@@ -1,26 +1,21 @@
-## ksTFL C++ renderer - Makevars for Linux/macOS
-## Dependencies: HarfBuzz, FreeType, minizip-ng (linked statically or via pkg-config)
+## ksTFL C++ renderer — Makevars
+## FreeType, HarfBuzz, and minizip are compiled from vendored sources
+## under src/vendor/ (static linking, zero runtime dependencies).
+## Windows builds use Makevars.win instead (Rtools-provided static libs).
+
+## Ensure the default goal is 'all' (from shlib.mk), not the first
+## explicit vendored-object rule that Make would otherwise pick up.
+.DEFAULT_GOAL := all
 
 CXX_STD = CXX20
 
-## nlohmann/json is header-only; bundled in src/vendor/
-HB_CFLAGS = $(shell pkg-config --cflags harfbuzz 2>/dev/null)
-FT_CFLAGS = $(shell pkg-config --cflags freetype2 2>/dev/null)
-MZ_CFLAGS = $(shell pkg-config --cflags minizip 2>/dev/null || pkg-config --cflags minizip-ng 2>/dev/null)
-
-HB_LIBS = $(shell pkg-config --libs harfbuzz 2>/dev/null)
-FT_LIBS = $(shell pkg-config --libs freetype2 2>/dev/null)
-MZ_LIBS = $(shell pkg-config --libs minizip 2>/dev/null || pkg-config --libs minizip-ng 2>/dev/null)
-
 PKG_CPPFLAGS = -I../inst/include -I./vendor \
-    $(HB_CFLAGS) $(FT_CFLAGS) $(MZ_CFLAGS) \
-    -I/usr/include/harfbuzz -I/usr/include/freetype2 -I/usr/include/minizip
+    -Ivendor/freetype/include -Ivendor/harfbuzz/src \
+    -DHAVE_FREETYPE -DHB_NO_MT
+PKG_LIBS = -lz $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
-PKG_LIBS = $(HB_LIBS) $(FT_LIBS) $(MZ_LIBS) -lharfbuzz -lfreetype -lminizip -lz \
-    $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
-
-## Source files - renderer core + Rcpp bindings + C++ tests
-SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
+## ---- ksTFL sources --------------------------------------------------------
+KSTFL_SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/units.cpp \
     kstfl/style_types.cpp \
     kstfl/xml_writer.cpp \
@@ -47,29 +42,30 @@ SOURCES = init.cpp rcpp_bindings.cpp RcppExports.cpp cpp_tests.cpp \
     kstfl/docx_emitter.cpp \
     kstfl/renderer.cpp
 
-OBJECTS = init.o rcpp_bindings.o RcppExports.o cpp_tests.o \
-    kstfl/units.o \
-    kstfl/style_types.o \
-    kstfl/xml_writer.o \
-    kstfl/json_parser.o \
-    kstfl/style_resolver.o \
-    kstfl/inline_parser.o \
-    kstfl/font_scanner.o \
-    kstfl/font_cache.o \
-    kstfl/text_measurer.o \
-    kstfl/logical_table.o \
-    kstfl/paginator.o \
-    kstfl/zip_writer.o \
-    kstfl/docx_metadata.o \
-    kstfl/docx_styles.o \
-    kstfl/docx_sections.o \
-    kstfl/docx_document.o \
-    kstfl/docx_toc.o \
-    kstfl/docx_layout.o \
-    kstfl/docx_drawing.o \
-    kstfl/docx_table.o \
-    kstfl/docx_page.o \
-    kstfl/docx_content.o \
-    kstfl/docx_packager.o \
-    kstfl/docx_emitter.o \
-    kstfl/renderer.o
+KSTFL_OBJECTS = $(KSTFL_SOURCES:.cpp=.o)
+
+## ---- Vendored library objects ----------------------------------------------
+VENDORED_OBJECTS = vendor/freetype/ft_all.o vendor/harfbuzz/harfbuzz.o vendor/minizip/mz_all.o
+
+OBJECTS = $(KSTFL_OBJECTS) $(VENDORED_OBJECTS)
+
+## ---- Compile rules for vendored sources -----------------------------------
+
+## FreeType (C, compiled from single-compilation-unit wrapper)
+vendor/freetype/ft_all.o: vendor/freetype/ft_all.c
+	@mkdir -p vendor/freetype
+	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -Ivendor/freetype/include -Ivendor/freetype \
+	    -DFT2_BUILD_LIBRARY -c $< -o $@
+
+## HarfBuzz (C++, single-compilation-unit amalgamation)
+vendor/harfbuzz/harfbuzz.o: vendor/harfbuzz/src/harfbuzz.cc
+	@mkdir -p vendor/harfbuzz
+	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) \
+	    -Ivendor/harfbuzz/src -Ivendor/freetype/include \
+	    -DHAVE_FREETYPE -DHB_NO_MT \
+	    -std=c++17 -c $< -o $@
+
+## minizip (C, single-compilation-unit wrapper)
+vendor/minizip/mz_all.o: vendor/minizip/mz_all.c
+	@mkdir -p vendor/minizip
+	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $@

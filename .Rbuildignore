@@ -28,6 +28,7 @@
 ^pkgdown$
 ^compile_commands\.json$
 cclsp.json$
+^tools/vendor_libs\.sh$
 ^\.Rhistory$
 ^doc$
 ^Meta$
