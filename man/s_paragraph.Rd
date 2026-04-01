@@ -8,7 +8,8 @@ s_paragraph(
   alignment = NULL,
   spacing = NULL,
   indents = NULL,
-  word_style = NULL
+  word_style = NULL,
+  borders = NULL
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ s_paragraph(
 \item{indents}{Indents object created with \code{\link{s_indents}} or a list with keys: left, right, first_line}
 
 \item{word_style}{Base Word style to inherit from}
+
+\item{borders}{Borders object created with \code{\link{s_borders}}. Applied as paragraph-level borders
+(\code{<w:pBdr>} in OOXML), distinct from cell-level borders set via \code{\link{s_table_style}}.}
 }
 \value{
 A paragraph specification object
@@ -36,9 +40,20 @@ spec <- create_text() |>
       word_style = "Normal"
     )
   )
+
+# Paragraph with a bottom border (applied to the text, not the cell)
+spec <- create_table(mtcars) |>
+  add_style("para_border",
+    s_paragraph(
+      alignment = "center",
+      borders = s_borders(
+        bottom = s_border(color = "#000000", width = "0.5pt", line_style = "single")
+      )
+    )
+  )
 }
 }
 \seealso{
-\code{\link[=add_style]{add_style()}} for applying styles, \code{\link[=s_spacing]{s_spacing()}}, \code{\link[=s_indents]{s_indents()}} for nested components,
+\code{\link[=add_style]{add_style()}} for applying styles, \code{\link[=s_spacing]{s_spacing()}}, \code{\link[=s_indents]{s_indents()}}, \code{\link[=s_borders]{s_borders()}} for nested components,
 \code{\link[=s_font]{s_font()}}, \code{\link[=s_table_style]{s_table_style()}} for other style components
 }

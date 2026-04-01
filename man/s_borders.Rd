@@ -2,7 +2,7 @@
 % Please edit documentation in R/spec_context.R
 \name{s_borders}
 \alias{s_borders}
-\title{Define borders for table cells}
+\title{Define borders for table cells or paragraphs}
 \usage{
 s_borders(top = NULL, bottom = NULL, left = NULL, right = NULL)
 }
@@ -19,16 +19,29 @@ s_borders(top = NULL, bottom = NULL, left = NULL, right = NULL)
 A borders specification object
 }
 \description{
-This function can only be used inside \code{\link{s_table_style}}.
+This function can be used inside \code{\link{s_table_style}} (cell-level borders)
+or \code{\link{s_paragraph}} (paragraph-level borders).
 }
 \examples{
 \dontrun{
+# Cell-level borders
 spec <- create_text() |>
   add_style("my_style",
     s_table_style(
       borders = s_borders(
         top = s_border(width = "1pt"),
         bottom = s_border(width = "2pt", line_style = "double")
+      )
+    )
+  )
+
+# Paragraph-level borders (border follows the text, not the cell edge)
+spec <- create_table(mtcars) |>
+  add_style("span_underline",
+    s_paragraph(
+      alignment = "center",
+      borders = s_borders(
+        bottom = s_border(color = "#4472C4", width = "1pt")
       )
     )
   )

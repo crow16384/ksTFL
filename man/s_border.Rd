@@ -21,11 +21,22 @@ This function can only be used inside \code{\link{s_borders}}.
 }
 \examples{
 \dontrun{
+# Cell-level borders (inside s_table_style)
 spec <- create_text() |>
   add_style("my_style",
     s_table_style(
       borders = s_borders(
         bottom = s_border(color = "#000000", width = "2pt", line_style = "single")
+      )
+    )
+  )
+
+# Paragraph-level borders (inside s_paragraph)
+spec <- create_table(mtcars) |>
+  add_style("para_underline",
+    s_paragraph(
+      borders = s_borders(
+        bottom = s_border(width = "1pt")
       )
     )
   )

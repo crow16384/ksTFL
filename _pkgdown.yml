@@ -18,6 +18,8 @@ navbar:
       href: reference/index.html
     - text: Articles
       href: articles/index.html
+    - text: Changelog
+      href: news/index.html
 
 # Required by pkgdown (placeholder until you deploy; e.g. GitHub Pages)
 # When you have a site URL, set it here: url: https://your-org.github.io/ksTFL/
