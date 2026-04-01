@@ -139,6 +139,7 @@ struct Border {
   Border merged_with(const Border &other) const;
   /// In-place merge: apply other's non-null fields onto this.
   void merge_from(const Border &other);
+  bool operator==(const Border &other) const;
 };
 
 /// Four-sided borders (plus optional OOXML table inner borders).
@@ -152,6 +153,7 @@ struct Borders {
 
   Borders merged_with(const Borders &other) const;
   void merge_from(const Borders &other);
+  bool operator==(const Borders &other) const;
 };
 
 // ---------------------------------------------------------------------------
@@ -215,6 +217,8 @@ struct ParagraphProps {
   /// Outline level for TOC/headings (0-8). When set, paragraph is included in
   /// TOC \o and PDF bookmarks.
   std::optional<int> outline_level;
+  /// Paragraph-level borders (maps to <w:pBdr> in OOXML).
+  std::optional<Borders> borders;
 
   ParagraphProps merged_with(const ParagraphProps &other) const;
   void merge_from(const ParagraphProps &other);

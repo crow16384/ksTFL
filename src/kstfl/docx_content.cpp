@@ -134,6 +134,26 @@ void DocxEmitter::emit_para_props(XmlWriter &w, const ParagraphProps &pp) const 
     w.end_element();
   }
 
+  // Paragraph borders (<w:pBdr>)
+  if (pp.borders.has_value()) {
+    w.start_element("w:pBdr");
+    auto emit_pborder = [&](const char *name, const std::optional<Border> &b) {
+      if (!b.has_value()) return;
+      w.start_element(name);
+      w.attribute("w:val", border_line_style_to_ooxml(b->line_style.value_or(BorderLineStyle::Single)));
+      int eighth_pt = b->width.has_value() ? static_cast<int>(b->width->to_pt() * 8.0) : 4;
+      w.attribute("w:sz", std::to_string(eighth_pt));
+      w.attribute("w:color", b->color.has_value() ? b->color->hex : "000000");
+      w.attribute("w:space", "0");
+      w.end_element();
+    };
+    emit_pborder("w:top", pp.borders->top);
+    emit_pborder("w:bottom", pp.borders->bottom);
+    emit_pborder("w:left", pp.borders->left);
+    emit_pborder("w:right", pp.borders->right);
+    w.end_element(); // w:pBdr
+  }
+
   if (pp.keep_next.value_or(false)) { w.self_closing_element("w:keepNext"); }
   if (pp.keep_lines.value_or(false)) { w.self_closing_element("w:keepLines"); }
   if (pp.widow_control.value_or(false)) { w.self_closing_element("w:widowControl"); }

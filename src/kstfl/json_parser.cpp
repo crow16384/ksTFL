@@ -214,6 +214,7 @@ static ParagraphProps parse_paragraph_props(const json &j) {
   if (align.has_value()) pp.alignment = parse_alignment(*align);
   if (j.contains("spacing") && j["spacing"].is_object()) pp.spacing = parse_spacing(j["spacing"]);
   if (j.contains("indents") && j["indents"].is_object()) pp.indents = parse_indents(j["indents"]);
+  if (j.contains("borders") && j["borders"].is_object()) pp.borders = parse_borders(j["borders"]);
   pp.widow_control = jutil::opt<bool>(j, "widow_control");
   pp.keep_next = jutil::opt<bool>(j, "keep_next");
   pp.keep_lines = jutil::opt<bool>(j, "keep_lines");

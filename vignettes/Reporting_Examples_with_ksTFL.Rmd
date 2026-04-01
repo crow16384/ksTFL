@@ -706,6 +706,37 @@ visually distinct
 
 \- Styles must be defined before referencing them in `add_span_header()`
 
+### Example 3: Paragraph borders on spanning headers
+
+When a cell border is applied to a spanning header, it stretches across
+the entire merged cell. A paragraph border instead follows the text
+width — useful for visually separating groups without a full-width line.
+Paragraph borders are also unaffected by structural border overrides
+(`header_top_border`, `header_bottom_border`), giving full control on
+intermediate header rows.
+
+```{r example_span_para_border, eval = FALSE}
+spec_para <- create_table(data = demog_tbl, cols = c(subject_id, age, sex, trt))
+
+# Paragraph border style — the underline follows the text, not the cell edge
+spec_para <- add_style(spec_para, id = "span_underline",
+  s_font(bold = TRUE),
+  s_paragraph(
+    alignment = "center",
+    borders = s_borders(
+      bottom = s_border(color = "#000000", width = "0.5pt", line_style = "single")
+    )
+  )
+)
+
+# Or use the built-in paragraph border atom
+spec_para <- add_span_header(spec_para,
+  cols = c("age", "sex"),
+  label = "Demographics",
+  labelStyleRef = f_combine("b", "ac", "pb_th")  # bold + center + thin paragraph bottom border
+)
+```
+
 ```{r save_stub, eval = FALSE}
 # Render stubbed table report to DOCX
 rpt_stub <- create_report(spec_stubs_style)

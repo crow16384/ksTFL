@@ -646,6 +646,25 @@
                 }
               },
               "additionalProperties": false
+            },
+            "borders": {
+              "type": "object",
+              "description": "Paragraph-level borders (applied to the paragraph, not the cell).",
+              "properties": {
+                "top": {
+                  "$ref": "#/$defs/borderProperties"
+                },
+                "bottom": {
+                  "$ref": "#/$defs/borderProperties"
+                },
+                "left": {
+                  "$ref": "#/$defs/borderProperties"
+                },
+                "right": {
+                  "$ref": "#/$defs/borderProperties"
+                }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

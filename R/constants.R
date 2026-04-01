@@ -231,7 +231,7 @@ NULL
 #' @noRd
 .const_schema_properties <- list(
   font = c("font_name", "font_size", "bold", "italic", "underline", "color", "highlight"),
-  paragraph = c("alignment", "spacing", "indents", "word_style"),
+  paragraph = c("alignment", "spacing", "indents", "word_style", "borders"),
   spacing = c("before", "after", "line_spacing"),
   indents = c("left", "right", "first_line"),
   table_style = c("background_color", "row_height", "vertical_alignment", "text_orientation", "borders", "topEmptyLine", "bottomEmptyLine"),
@@ -727,7 +727,20 @@ NULL
       bottom = list(width = "0pt", line_style = "none", color = "#FFFFFF"),
       left   = list(width = "0pt", line_style = "none", color = "#FFFFFF"),
       right  = list(width = "0pt", line_style = "none", color = "#FFFFFF")
-    )))
+    ))),
+
+    # -------------------------------------------------------------------------
+    # Border — thick white side atoms (4 pt white, for visual column separation)
+    # -------------------------------------------------------------------------
+    brw_thick = list(table_style = list(borders = list(right = list(width = "4pt", line_style = "single", color = "#FFFFFF")))),
+    blw_thick = list(table_style = list(borders = list(left  = list(width = "4pt", line_style = "single", color = "#FFFFFF")))),
+
+    # -------------------------------------------------------------------------
+    # Paragraph border — bottom atoms
+    # Applied to the paragraph inside the cell, not the cell itself.
+    # -------------------------------------------------------------------------
+    pb    = list(paragraph = list(borders = list(bottom = list(width = "1pt",   line_style = "single", color = "#000000")))),
+    pb_th = list(paragraph = list(borders = list(bottom = list(width = "0.5pt", line_style = "single", color = "#000000"))))
 
   ),
   class = "TFL_options"

@@ -122,6 +122,15 @@ text_style_ui <- function(id_prefix, label) {
         shiny::textInput(ns("indent_first"), "First-line indent")
       )
     ),
+    shiny::h5("Paragraph borders"),
+    shiny::fluidRow(
+      shiny::column(6, border_ui(ns("pborder_top"), "Top")),
+      shiny::column(6, border_ui(ns("pborder_bottom"), "Bottom"))
+    ),
+    shiny::fluidRow(
+      shiny::column(6, border_ui(ns("pborder_left"), "Left")),
+      shiny::column(6, border_ui(ns("pborder_right"), "Right"))
+    ),
     shiny::hr()
   )
 }
@@ -178,6 +187,24 @@ text_style_from_inputs <- function(input, id_prefix, template_style = NULL) {
       right      = if (nzchar(indent_r %||% "")) indent_r else "0pt",
       first_line = if (nzchar(indent_f %||% "")) indent_f else "0pt"
     )
+  }
+
+  # Paragraph borders
+  pborder_top    <- border_from_inputs(input, paste0(id_prefix, "_pborder_top"),    template_style$paragraph$borders$top)
+  pborder_bottom <- border_from_inputs(input, paste0(id_prefix, "_pborder_bottom"), template_style$paragraph$borders$bottom)
+  pborder_left   <- border_from_inputs(input, paste0(id_prefix, "_pborder_left"),   template_style$paragraph$borders$left)
+  pborder_right  <- border_from_inputs(input, paste0(id_prefix, "_pborder_right"),  template_style$paragraph$borders$right)
+  has_pborders <- !is.null(pborder_top$width) || !is.null(pborder_bottom$width) ||
+                  !is.null(pborder_left$width) || !is.null(pborder_right$width)
+  if (has_pborders) {
+    paragraph$borders <- list(
+      top    = if (!is.null(pborder_top$width))    pborder_top    else NULL,
+      bottom = if (!is.null(pborder_bottom$width)) pborder_bottom else NULL,
+      left   = if (!is.null(pborder_left$width))   pborder_left   else NULL,
+      right  = if (!is.null(pborder_right$width))  pborder_right  else NULL
+    )
+    paragraph$borders <- Filter(Negate(is.null), paragraph$borders)
+    if (length(paragraph$borders) == 0L) paragraph$borders <- NULL
   }
 
   list(
@@ -600,6 +627,14 @@ server <- function(input, output, session) {
     editor_input_ids <- c(editor_input_ids, paste0(p, "_", border_suffixes))
   }
 
+  # Paragraph border inputs per text style
+  pborder_sides <- c("pborder_top", "pborder_bottom", "pborder_left", "pborder_right")
+  for (p in style_prefixes) {
+    for (side in pborder_sides) {
+      editor_input_ids <- c(editor_input_ids, paste0(p, "_", side, "_", border_suffixes))
+    }
+  }
+
   row_prefixes <- c("header_row", "body_row")
   row_suffixes <- c(
     "background_color", "row_height", "vertical_alignment", "text_orientation",
@@ -688,6 +723,24 @@ server <- function(input, output, session) {
       value = isTRUE(tmpl$document$paragraphDefaults$widow_control)
     )
 
+    # Helper to seed border inputs from template
+    seed_border <- function(prefix, border) {
+      ns <- function(x) paste0(prefix, "_", x)
+      if (is.null(border)) return()
+      colour_val <- local_or_default(border$color, "")
+      if (!is.null(colour_val) && nzchar(colour_val)) {
+        colourpicker::updateColourInput(
+          session,
+          ns("color"),
+          value = paste0("#", gsub("^#", "", colour_val))
+        )
+      } else {
+        colourpicker::updateColourInput(session, ns("color"), value = "transparent")
+      }
+      shiny::updateTextInput(session, ns("width"), value = local_or_default(border$width, ""))
+      shiny::updateSelectInput(session, ns("line_style"), selected = local_or_default(border$line_style, "single"))
+    }
+
     # Helper to seed text style inputs
     seed_text_style <- function(prefix, style) {
       ns <- function(x) paste0(prefix, "_", x)
@@ -724,6 +777,13 @@ server <- function(input, output, session) {
         shiny::updateTextInput(session, ns("indent_right"), value = "")
         shiny::updateTextInput(session, ns("indent_first"), value = "")
       }
+
+      # Paragraph borders
+      pborders <- style$paragraph$borders %||% list()
+      seed_border(ns("pborder_top"),    pborders$top)
+      seed_border(ns("pborder_bottom"), pborders$bottom)
+      seed_border(ns("pborder_left"),   pborders$left)
+      seed_border(ns("pborder_right"),  pborders$right)
     }
 
     ts <- tmpl$textStyles
@@ -749,22 +809,6 @@ server <- function(input, output, session) {
 
     # Structural borders
     struct <- tmpl$tableStyle$structural
-    seed_border <- function(prefix, border) {
-      ns <- function(x) paste0(prefix, "_", x)
-      if (is.null(border)) return()
-      colour_val <- local_or_default(border$color, "")
-      if (!is.null(colour_val) && nzchar(colour_val)) {
-        colourpicker::updateColourInput(
-          session,
-          ns("color"),
-          value = paste0("#", gsub("^#", "", colour_val))
-        )
-      } else {
-        colourpicker::updateColourInput(session, ns("color"), value = "transparent")
-      }
-      shiny::updateTextInput(session, ns("width"), value = local_or_default(border$width, ""))
-      shiny::updateSelectInput(session, ns("line_style"), selected = local_or_default(border$line_style, "single"))
-    }
     seed_border("struct_header_top",    struct$header_top_border)
     seed_border("struct_header_bottom", struct$header_bottom_border)
     seed_border("struct_table_bottom",  struct$table_bottom_border)

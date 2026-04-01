@@ -108,6 +108,17 @@ template <typename T> static bool opt_eq(const std::optional<T> &a, const std::o
   return !a.has_value() || *a == *b;
 }
 
+// -- Border / Borders equality (uses opt_eq) --------------------------------
+
+bool Border::operator==(const Border &other) const {
+  return opt_eq(color, other.color) && opt_eq(width, other.width) && opt_eq(line_style, other.line_style);
+}
+
+bool Borders::operator==(const Borders &other) const {
+  return opt_eq(top, other.top) && opt_eq(bottom, other.bottom) && opt_eq(left, other.left) &&
+         opt_eq(right, other.right) && opt_eq(insideH, other.insideH) && opt_eq(insideV, other.insideV);
+}
+
 // -- FontProps --------------------------------------------------------------
 
 bool FontProps::operator==(const FontProps &other) const {
@@ -179,7 +190,8 @@ IndentProps IndentProps::merged_with(const IndentProps &other) const {
 bool ParagraphProps::operator==(const ParagraphProps &other) const {
   return opt_eq(alignment, other.alignment) && opt_eq(spacing, other.spacing) && opt_eq(indents, other.indents) &&
          opt_eq(widow_control, other.widow_control) && opt_eq(keep_next, other.keep_next) &&
-         opt_eq(keep_lines, other.keep_lines) && opt_eq(outline_level, other.outline_level);
+         opt_eq(keep_lines, other.keep_lines) && opt_eq(outline_level, other.outline_level) &&
+         opt_eq(borders, other.borders);
 }
 
 void ParagraphProps::merge_from(const ParagraphProps &other) {
@@ -190,6 +202,7 @@ void ParagraphProps::merge_from(const ParagraphProps &other) {
   merge_opt_into(outline_level, other.outline_level);
   merge_nested_opt(spacing, other.spacing);
   merge_nested_opt(indents, other.indents);
+  merge_nested_opt(borders, other.borders);
 }
 
 ParagraphProps ParagraphProps::merged_with(const ParagraphProps &other) const {

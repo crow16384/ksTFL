@@ -953,3 +953,88 @@ by one page per figure. Each figure fills the landscape page thanks to
 <a href="pdf/figures_single_doc_toc.pdf">Download figures_single_doc_toc.pdf</a>
 
 </iframe>
+
+## Example 6 - Gap between Spanning Header Lines
+
+Sometimes it is necessary to include a visual gap between spanning column groups
+so it is clear which columns belong to which header. This can be achieved by
+adding empty dummy columns to the dataset, but it can also be done by using a
+combination of built-in atomic styles. Consider the following dataset:
+
+```         
+        PARAM              STAT           TRT_A1           TRT_B1           TRT_A2           TRT_B2
+1 Age (years)         Mean (SD)      45.2 (12.1)      46.8 (11.5)      45.2 (12.1)      46.8 (11.5)
+2 Age (years) Median [Min, Max]    44.0 [22, 71]    46.0 [21, 69]    44.0 [22, 71]    46.0 [21, 69]
+3 Weight (kg)         Mean (SD)      78.3 (15.4)      80.1 (14.8)      78.3 (15.4)      80.1 (14.8)
+4 Weight (kg) Median [Min, Max]   76.5 [48, 120]   79.0 [50, 118]   76.5 [48, 120]   79.0 [50, 118]
+5 Height (cm)         Mean (SD)      172.1 (9.8)     173.5 (10.2)      172.1 (9.8)     173.5 (10.2)
+6 Height (cm) Median [Min, Max] 171.0 [150, 195] 173.0 [152, 198] 171.0 [150, 195] 173.0 [152, 198]
+7 BMI (kg/m²)         Mean (SD)       26.4 (4.2)       26.6 (3.9)       26.4 (4.2)       26.6 (3.9)
+8 BMI (kg/m²) Median [Min, Max]    25.8 [18, 38]    26.1 [19, 37]    25.8 [18, 38]    26.1 [19, 37]
+```
+
+We want to add spanning headers 'Group 1' covering `TRT_A1` and `TRT_B1`,
+and 'Group 2' covering `TRT_A2` and `TRT_B2`.
+
+If we do this in the usual way:
+
+```{r example_06_basic, eval = FALSE}
+spec <- create_table(demo_data) |>
+  add_title("Table 14.1.1") |>
+  add_title("Summary of Demographic and Baseline Characteristics") |>
+  add_footer("Source: ADSL") |>
+  add_footnote("SD = Standard Deviation; BMI = Body Mass Index") %>% 
+  define_cols(
+    c(PARAM, STAT, TRT_A1, TRT_B1, TRT_A2, TRT_B2),
+    label = c('Parameter', 'Statistics', 'Drug A', 'Drug B', 'Drug A', 'Drug B')
+  ) %>% 
+  define_cols(PARAM, dedupe = T) %>% 
+  ### Spanning headers
+  add_span_header(c(TRT_A1, TRT_B1), 'Group 1') %>% 
+  add_span_header(c(TRT_A2, TRT_B2), 'Group 2', stubOrder = 1) 
+```
+
+The bottom border of the spanning header row will be a solid line, making it
+difficult to see which columns actually belong to which group:
+
+![](images/spanning_headers_gap.png)
+
+Instead of adding a dummy column to the input dataframe between `TRT_B1` and
+`TRT_A2` to separate them visually, we can use built-in atomic styles to replace
+the cell bottom border with a paragraph bottom border. The paragraph border only
+underlines the text of each spanning header individually, creating a visible gap
+between the two groups:
+
+```{r example_06_styled, eval = FALSE}
+spec <- create_table(demo_data) |>
+  add_title("Table 14.1.1") |>
+  add_title("Summary of Demographic and Baseline Characteristics") |>
+  add_footer("Source: ADSL") |>
+  add_footnote("SD = Standard Deviation; BMI = Body Mass Index") %>% 
+  define_cols(
+    c(PARAM, STAT, TRT_A1, TRT_B1, TRT_A2, TRT_B2),
+    label = c('Parameter', 'Statistics', 'Drug A', 'Drug B', 'Drug A', 'Drug B'),
+    labelStyleRef = 'bc_white' # drop all cell borders from column header row
+  ) %>% 
+  define_cols(PARAM, dedupe = T) %>% 
+  add_span_header(c(TRT_A1, TRT_B1), 'Group 1',
+                  # pb       - paragraph bottom border (underlines the text only)
+                  # bc_white - suppress cell borders (white, 0pt)
+                  # brw_thick - 4pt white right border to create a gap before the next group
+                  labelStyleRef = f_combine("pb", 'bc_white', 'brw_thick')
+                  ) %>% 
+  add_span_header(c(TRT_A2, TRT_B2), 'Group 2', stubOrder = 1,
+                  # same as above, but no thick right border needed on the last group
+                  labelStyleRef = f_combine("pb", 'bc_white')
+                  )
+```
+
+With this approach the groups are visually separated from each other:
+
+<iframe src="pdf/spanning_headers_gap.pdf#navpanes=0" width="100%" height="600px" style="border: 1px solid #ccc;">
+
+<a href="pdf/spanning_headers_gap.pdf">Download spanning_headers_gap.pdf</a>
+
+</iframe>
+
+

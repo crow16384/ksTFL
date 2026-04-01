@@ -630,7 +630,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @keywords internal
 #' @noRd
 .paragraph_spec <- function(alignment = NULL, spacing = NULL, indents = NULL, 
-                            word_style = NULL) {
+                            word_style = NULL, borders = NULL) {
   params <- list()
   
   if (!is.null(alignment)) {
@@ -668,6 +668,20 @@ assign("stack", character(0), envir = .context_marker_env)
       cli_abort(c(
         "{.fn s_paragraph} requires {.arg indents} created by {.fn s_indents} or a list with keys: ",
         paste0("{.arg ", .get_allowed_properties("indents"), "}", collapse = ", ")
+      ))
+    }
+  }
+  
+  if (!is.null(borders)) {
+    if (inherits(borders, "tfl_borders")) {
+      params$borders <- unclass(borders)
+    } else if (is.list(borders)) {
+      .validate_params(borders, "borders", "s_paragraph")
+      params$borders <- borders
+    } else {
+      cli_abort(c(
+        "{.fn s_paragraph} requires {.arg borders} created by {.fn s_borders} or a list with keys: ",
+        paste0("{.arg ", .get_allowed_properties("borders"), "}", collapse = ", ")
       ))
     }
   }
@@ -987,11 +1001,13 @@ s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
 #' @param spacing Spacing object created with \code{\link{s_spacing}} or a list with keys: before, after, line_spacing
 #' @param indents Indents object created with \code{\link{s_indents}} or a list with keys: left, right, first_line
 #' @param word_style Base Word style to inherit from
+#' @param borders Borders object created with \code{\link{s_borders}}. Applied as paragraph-level borders
+#'   (\code{<w:pBdr>} in OOXML), distinct from cell-level borders set via \code{\link{s_table_style}}.
 #' 
 #' @return A paragraph specification object
 #' @export
 #' 
-#' @seealso [add_style()] for applying styles, [s_spacing()], [s_indents()] for nested components,
+#' @seealso [add_style()] for applying styles, [s_spacing()], [s_indents()], [s_borders()] for nested components,
 #'   [s_font()], [s_table_style()] for other style components
 #' 
 #' @examples
@@ -1004,9 +1020,20 @@ s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
 #'       word_style = "Normal"
 #'     )
 #'   )
+#'
+#' # Paragraph with a bottom border (applied to the text, not the cell)
+#' spec <- create_table(mtcars) |>
+#'   add_style("para_border",
+#'     s_paragraph(
+#'       alignment = "center",
+#'       borders = s_borders(
+#'         bottom = s_border(color = "#000000", width = "0.5pt", line_style = "single")
+#'       )
+#'     )
+#'   )
 #' }
 s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL, 
-                        word_style = NULL) {
+                        word_style = NULL, borders = NULL) {
   .assert_context(c("add_style"), "s_paragraph")
   
   # Set context for nested functions
@@ -1019,11 +1046,22 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
     alignment = alignment,
     spacing = spacing,
     indents = indents,
-    word_style = word_style
+    word_style = word_style,
+    borders = borders
   )
   
   # Validate final paragraph payload keys
   .validate_params(spec, "paragraph", "s_paragraph")
+  
+  # Validate nested borders if present
+  if (!is.null(spec$borders)) {
+    .validate_params(spec$borders, "borders", "s_paragraph$borders")
+    for (side in .const_border_sides) {
+      if (!is.null(spec$borders[[side]])) {
+        .validate_params(spec$borders[[side]], "border", paste0("s_paragraph$borders$", side))
+      }
+    }
+  }
   
   structure(spec, class = c("tfl_paragraph", "tfl_style_modifier"))
 }
@@ -1041,11 +1079,22 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
 #' 
 #' @examples
 #' \dontrun{
+#' # Cell-level borders (inside s_table_style)
 #' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_table_style(
 #'       borders = s_borders(
 #'         bottom = s_border(color = "#000000", width = "2pt", line_style = "single")
+#'       )
+#'     )
+#'   )
+#'
+#' # Paragraph-level borders (inside s_paragraph)
+#' spec <- create_table(mtcars) |>
+#'   add_style("para_underline",
+#'     s_paragraph(
+#'       borders = s_borders(
+#'         bottom = s_border(width = "1pt")
 #'       )
 #'     )
 #'   )
@@ -1058,9 +1107,10 @@ s_border <- function(color = NULL, width = NULL, line_style = NULL) {
   structure(spec, class = c("tfl_border", "tfl_nested_modifier"))
 }
 
-#' Define borders for table cells
+#' Define borders for table cells or paragraphs
 #' 
-#' This function can only be used inside \code{\link{s_table_style}}.
+#' This function can be used inside \code{\link{s_table_style}} (cell-level borders)
+#' or \code{\link{s_paragraph}} (paragraph-level borders).
 #' 
 #' @param top Top border created with \code{\link{s_border}}
 #' @param bottom Bottom border created with \code{\link{s_border}}
@@ -1072,6 +1122,7 @@ s_border <- function(color = NULL, width = NULL, line_style = NULL) {
 #' 
 #' @examples
 #' \dontrun{
+#' # Cell-level borders
 #' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_table_style(
@@ -1081,9 +1132,20 @@ s_border <- function(color = NULL, width = NULL, line_style = NULL) {
 #'       )
 #'     )
 #'   )
+#'
+#' # Paragraph-level borders (border follows the text, not the cell edge)
+#' spec <- create_table(mtcars) |>
+#'   add_style("span_underline",
+#'     s_paragraph(
+#'       alignment = "center",
+#'       borders = s_borders(
+#'         bottom = s_border(color = "#4472C4", width = "1pt")
+#'       )
+#'     )
+#'   )
 #' }
 s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
-  .assert_context(c("s_table_style"), "s_borders")
+  .assert_context(c("s_table_style", "s_paragraph"), "s_borders")
   
   # Set context for nested functions
   .frame_env <- sys.frame()
