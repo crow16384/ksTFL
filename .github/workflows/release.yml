@@ -244,11 +244,63 @@ jobs:
           if-no-files-found: error
 
   # ──────────────────────────────────────────────────────────────────────
+  # Build: macOS arm64 + x86_64 (R 4.5 only)
+  # ──────────────────────────────────────────────────────────────────────
+  build-macos:
+    name: Build (macOS ${{ matrix.arch }}, R 4.5)
+    needs: build-source
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-latest
+          - arch: x86_64
+            runner: macos-13
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download source tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: source-tarball
+
+      - name: Setup R 4.5
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5'
+
+      - name: Install R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+
+      - name: Build binary package
+        run: |
+          PKG_TARBALL=$(ls ksTFL_*.tar.gz)
+          R CMD INSTALL --build "$PKG_TARBALL"
+
+      - name: Rename binary to include arch
+        run: |
+          # R CMD INSTALL --build produces ksTFL_<version>.tgz on macOS
+          TGZ=$(ls ksTFL_*.tgz)
+          BASE="${TGZ%.tgz}"
+          mv "$TGZ" "${BASE}_${{ matrix.arch }}.tgz"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-macos-${{ matrix.arch }}-r4.5
+          path: ksTFL_*_${{ matrix.arch }}.tgz
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────────────────────────────
   # Deploy + Release: CRAN-like repo, pkgdown site, GitHub Releases
   # ──────────────────────────────────────────────────────────────────────
   deploy-and-release:
     name: Deploy and release
-    needs: [build-ubuntu, build-redhat, build-windows]
+    needs: [build-ubuntu, build-redhat, build-windows, build-macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -360,6 +412,44 @@ jobs:
             }
           }
 
+      - name: Organize macOS binaries
+        shell: Rscript {0}
+        run: |
+          prune_old <- function(dir, pattern, keep = 2) {
+            files <- list.files(dir, pattern = pattern, full.names = TRUE)
+            if (length(files) <= keep) return()
+            bnames <- basename(files)
+            vers   <- regmatches(bnames, regexpr("[0-9]+\\.[0-9]+\\.[0-9]+", bnames))
+            files  <- files[order(numeric_version(vers), decreasing = TRUE)]
+            file.remove(files[-(1:keep)])
+          }
+
+          arch_map <- list(
+            "arm64"  = "big-sur-arm64",
+            "x86_64" = "big-sur-x86_64"
+          )
+
+          for (arch in names(arch_map)) {
+            platform_dir <- arch_map[[arch]]
+            art_dir <- file.path("artifacts", paste0("pkg-macos-", arch, "-r4.5"))
+            tgz_files <- list.files(art_dir, pattern = "\\.tgz$", full.names = TRUE)
+            if (length(tgz_files) == 0) next
+
+            dest_dir <- file.path("public-repo", "bin", "macosx", platform_dir,
+                                  "contrib", "4.5")
+            dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
+
+            for (f in tgz_files) {
+              # Strip _arm64 / _x86_64 suffix before placing in repo dir
+              dest_name <- sub(paste0("_", arch, "\\.tgz$"), ".tgz", basename(f))
+              file.copy(f, file.path(dest_dir, dest_name), overwrite = TRUE)
+            }
+
+            prune_old(dest_dir, "\\.tgz$", keep = 2)
+            tools::write_PACKAGES(dest_dir, type = "mac.binary", verbose = TRUE)
+            message("Written PACKAGES for macos/", platform_dir, " R 4.5")
+          }
+
       - name: Copy pkgdown site to public repo
         run: |
           # bin/ is untouched — pkgdown writes only HTML/CSS/JS
@@ -379,7 +469,7 @@ jobs:
       - name: Collect release files
         run: |
           mkdir release-files
-          find artifacts/ -type f \( -name "*.zip" -o -name "*_R_*.tar.gz" \) \
+          find artifacts/ -type f \( -name "*.zip" -o -name "*_R_*.tar.gz" -o -name "*.tgz" \) \
             -exec cp {} release-files/ \;
 
       - name: Create GitHub Release (private repo)
@@ -400,7 +490,7 @@ jobs:
           body: |
             Binary packages for ksTFL ${{ github.ref_name }}.
 
-            **Platforms:** Ubuntu (Noble), Fedora/RHEL, Windows
-            **R versions:** 4.4, 4.5
+            **Platforms:** Ubuntu (Noble), Fedora/RHEL, Windows, macOS (arm64, x86_64)
+            **R versions:** 4.4, 4.5 (macOS: 4.5 only)
 
             See [installation instructions](https://crow16384.github.io/ksTFL-release/#installation) for details.

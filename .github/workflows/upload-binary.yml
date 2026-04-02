@@ -15,7 +15,8 @@ on:
         required: true
         type: choice
         options:
-          - macos
+          - macos-arm64
+          - macos-x86_64
           - ubuntu-noble
           - fedora
           - windows
@@ -51,7 +52,8 @@ jobs:
             windows)
               cp pkg/*.zip filtered/ 2>/dev/null || true
               ;;
-            macos)
+
+            macos-arm64|macos-x86_64)
               cp pkg/*.tgz filtered/ 2>/dev/null || true
               ;;
             *)
@@ -104,8 +106,14 @@ jobs:
             contrib_path <- file.path("public-repo", "bin", "windows", "contrib", r_ver)
             pkg_pattern  <- "\\.zip$"
             pkg_type     <- "win.binary"
-          } else if (platform == "macos") {
-            contrib_path <- file.path("public-repo", "bin", "macosx", "contrib", r_ver)
+          } else if (platform == "macos-arm64") {
+            contrib_path <- file.path("public-repo", "bin", "macosx",
+                                      "big-sur-arm64", "contrib", r_ver)
+            pkg_pattern  <- "\\.tgz$"
+            pkg_type     <- "mac.binary"
+          } else if (platform == "macos-x86_64") {
+            contrib_path <- file.path("public-repo", "bin", "macosx",
+                                      "big-sur-x86_64", "contrib", r_ver)
             pkg_pattern  <- "\\.tgz$"
             pkg_type     <- "mac.binary"
           } else {
