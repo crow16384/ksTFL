@@ -78,7 +78,7 @@ utils::globalVariables(
 #'
 #' @details
 #' - If either object is NULL, returns the non-NULL one
-#' - If both are lists, uses `modifyList()` to recursively merge
+#' - If both are named lists, recursively merges sub-lists (true deep merge)
 #' - Otherwise, `y` completely replaces `x` (last wins)
 #'
 #' @keywords internal
@@ -87,7 +87,19 @@ utils::globalVariables(
   if (is.null(x)) return(y)
   if (is.null(y)) return(x)
   if (is.list(x) && is.list(y)) {
-    return(modifyList(x, y, keep.null = TRUE))
+    all_names <- union(names(x), names(y))
+    result <- vector("list", length(all_names))
+    names(result) <- all_names
+    for (nm in all_names) {
+      if (nm %in% names(y) && nm %in% names(x)) {
+        result[[nm]] <- .merge_recursive(x[[nm]], y[[nm]])
+      } else if (nm %in% names(y)) {
+        result[[nm]] <- y[[nm]]
+      } else {
+        result[[nm]] <- x[[nm]]
+      }
+    }
+    return(result)
   }
   y  # Last wins
 }

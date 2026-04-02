@@ -237,8 +237,8 @@ test_that("style resolution cache works for repeated inputs", {
   rm(list = ls(envir = ksTFL:::.style_resolution_cache), envir = ksTFL:::.style_resolution_cache)
   
   # Call with same inputs multiple times
-  result1 <- ksTFL:::._resolve_style_refs(c("style1", "style2"), 3, "test")
-  result2 <- ksTFL:::._resolve_style_refs(c("style1", "style2"), 3, "test")
+  result1 <- ksTFL:::._resolve_style_refs(c("style1", "style2"), 2, "test")
+  result2 <- ksTFL:::._resolve_style_refs(c("style1", "style2"), 2, "test")
   
   # Results should be identical
   expect_identical(result1, result2)
@@ -447,8 +447,8 @@ test_that("define_cols merges labelStyleRef with last-wins dedup", {
   data <- data.frame(x = 1:3)
 
   spec <- create_table(data) |>
-    define_cols(x, labelStyleRef = c("s_old", "s_mid")) |>
-    define_cols(x, labelStyleRef = c("s_mid", "s_new"))
+    define_cols(x, labelStyleRef = f_combine("s_old", "s_mid")) |>
+    define_cols(x, labelStyleRef = f_combine("s_mid", "s_new"))
 
   expect_equal(spec$columns$x$labelStyleRef, c("s_old", "s_mid", "s_new"))
 })

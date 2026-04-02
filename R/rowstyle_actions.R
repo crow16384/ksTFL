@@ -144,7 +144,10 @@ compute_cols <- function(spec, cond, ...) {
 #' @param cols Tidyselect expression for column selection
 #'   (e.g., `c(col1, col2)`, `everything()`, `starts_with("x")`)
 #' @param styleRef Character. Name of the style to apply (defined via `add_style()`).
-#'   Can be a single style name or result of `f_combine()` for combining multiple styles.
+#'   Can be a single style name (e.g., `"bold"`) or result of `f_combine()` for
+#'   combining multiple styles (e.g., `f_combine("bold", "red")`).
+#'   When multiple styles are provided via `f_combine()`, they are merged in the
+#'   order listed (last wins for conflicting properties).
 #'
 #' @return Quosure structure (internal use within `compute_cols()`)
 #'
@@ -191,10 +194,10 @@ c_style <- function(cols, styleRef) {
   # Capture column expression for later tidyselect resolution
   cols_quo <- enquo(cols)
 
-  # Validate styleRef
+  # Validate styleRef: single string or f_combine() result (character vector)
   checkmate::assert_character(
     styleRef,
-    len = 1L,
+    min.len = 1L,
     any.missing = FALSE,
     .var.name = "styleRef"
   )
@@ -260,10 +263,11 @@ c_merge <- function(cols, styleRef = NULL) {
   # Capture column expression for later tidyselect resolution
   cols_quo <- enquo(cols)
 
-  # Validate styleRef if provided
+  # Validate styleRef if provided: single string or f_combine() result
   if (!is.null(styleRef)) {
     checkmate::assert_character(
       styleRef,
+      min.len = 1L,
       any.missing = FALSE,
       .var.name = "styleRef"
     )
@@ -323,10 +327,11 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
   # Capture value_from expression
   value_from_quo <- enquo(value_from)
 
-  # Validate styleRef if provided
+  # Validate styleRef if provided: single string or f_combine() result
   if (!is.null(styleRef)) {
     checkmate::assert_character(
       styleRef,
+      min.len = 1L,
       any.missing = FALSE,
       .var.name = "styleRef"
     )
@@ -598,11 +603,16 @@ c_clear <- function(cols) {
   }
 
   # Process each compute_cols block
-  for (block in spec$.metadata$compute_cols) {
+  for (block_idx in seq_along(spec$.metadata$compute_cols)) {
+    block <- spec$.metadata$compute_cols[[block_idx]]
     # Evaluate condition in data environment
     # Pass the quosure directly; .env_eval will handle it correctly
     ##cond_vec <- eval_tidy(quo_get_expr(block$cond), env = spec$.metadata$data_env$`__mask__`)
     cond_vec <- .env_eval(!!quo_get_expr(block$cond), spec$.metadata$data_env)
+    # Allow scalar TRUE/FALSE as shorthand for all/no rows
+    if (is.logical(cond_vec) && length(cond_vec) == 1L && !is.na(cond_vec)) {
+      cond_vec <- rep(cond_vec, n)
+    }
     # Validate condition
     if (!is.logical(cond_vec) || length(cond_vec) != n) {
       cli_abort(c(
@@ -643,7 +653,8 @@ c_clear <- function(cols) {
         for (i in matching_rows) {
           row_actions[[i]]$style <- .append_style_action(
             row_actions[[i]]$style,
-            parsed_action
+            parsed_action,
+            block_idx
           )
         }
       } else if (is.call(action_obj) && as.character(action_obj[[1]]) == "c_clear") {
@@ -1052,37 +1063,51 @@ c_clear <- function(cols) {
 #' Append Style Action to Row Actions List
 #'
 #' Adds a style action to the row's style list. Handles duplicate column styling
-#' with last-win strategy and warning.
+#' with last-win strategy for intra-block duplicates (same compute_cols call),
+#' while preserving cross-block duplicates for later combination.
 #'
 #' @param style_list List of existing style actions for the row
 #' @param parsed_action List from `.parse_action_style()`
+#' @param block_idx Integer index of the current compute_cols block
 #'
 #' @return Updated style_list with new action appended
 #'
 #' @keywords internal
 #' @noRd
-.append_style_action <- function(style_list, parsed_action) {
-  # Check for duplicate columns in current row
-  existing_cols <- unlist(lapply(style_list, `[[`, "cols"))
-  duplicate_cols <- intersect(existing_cols, parsed_action$cols)
+.append_style_action <- function(style_list, parsed_action, block_idx) {
+  # Check for duplicate columns WITHIN the same compute_cols block only.
+  # Cross-block duplicates are expected and will be combined later by
+  # .combine_column_styles() via f_combine().
+  same_block_cols <- unlist(lapply(
+    Filter(function(x) identical(x$block_idx, block_idx), style_list),
+    `[[`, "cols"
+  ))
+  duplicate_cols <- intersect(same_block_cols, parsed_action$cols)
 
   if (length(duplicate_cols) > 0) {
     cli_warn(c(
-      "Column(s) styled multiple times in same row",
+      "Column(s) styled multiple times in same {.fn compute_cols} block",
       i = "Duplicate column(s): {paste(duplicate_cols, collapse = ', ')}",
       i = "Using last style specified (last-wins strategy)"
     ))
 
-    # Remove existing actions for duplicate columns
-    style_list <- Filter(function(x) {
-      !any(x$cols %in% duplicate_cols)
-    }, style_list)
+    # Remove ONLY same-block actions whose columns overlap.
+    # Surgically remove just the overlapping columns, keeping non-overlapping
+    # columns from the same action intact.
+    style_list <- Filter(Negate(is.null), lapply(style_list, function(x) {
+      if (!identical(x$block_idx, block_idx)) return(x)
+      remaining <- setdiff(x$cols, duplicate_cols)
+      if (length(remaining) == 0L) return(NULL)
+      x$cols <- remaining
+      x
+    }))
   }
 
-  # Append new action
+  # Append new action with block index for tracking
   style_list[[length(style_list) + 1L]] <- list(
     cols = parsed_action$cols,
-    styleRef = parsed_action$styleRef
+    styleRef = parsed_action$styleRef,
+    block_idx = block_idx
   )
 
   style_list
@@ -1283,11 +1308,15 @@ c_clear <- function(cols) {
   multi_style_cols <- names(col_styles)[sapply(col_styles, length) > 1]
 
   if (length(multi_style_cols) > 0) {
-    # For columns with multiple styles, use f_combine() to create a reference
+    # For columns with multiple styles, flatten into a single ordered vector.
+    # Cannot use f_combine() here because style_refs may already contain
+    # multi-element vectors from prior f_combine() calls.
     for (col in multi_style_cols) {
       style_refs <- col_styles[[col]]
-      # Create combined style reference using f_combine pattern
-      col_styles[[col]] <- do.call(f_combine, as.list(style_refs))
+      col_styles[[col]] <- structure(
+        unlist(style_refs, use.names = FALSE),
+        class = c("tfl_style_combine", "character")
+      )
     }
   }
 
@@ -1357,7 +1386,11 @@ c_clear <- function(cols) {
     action_obj <- list()
 
     if (has_style) {
-      action_obj$style <- row_act$style
+      # Strip internal block_idx before serialization
+      action_obj$style <- lapply(row_act$style, function(s) {
+        s$block_idx <- NULL
+        s
+      })
     }
 
     if (has_clear) {

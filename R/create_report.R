@@ -76,11 +76,13 @@
     if (length(val) == 1L) {
       referenced_styles[[val]] <<- TRUE
     } else if (length(val) > 1L) {
-      sorted_combo <- sort(val)
-      combo_str <- paste(sorted_combo, collapse = "|")
+      # Use original order for the combo key — order matters for merge semantics.
+      # f_combine("b", "a") merges as b <- a (a wins), which differs from
+      # f_combine("a", "b") where b wins.
+      combo_str <- paste(val, collapse = "|")
       if (is.null(style_combinations[[combo_str]])) {
         style_combinations[[combo_str]] <<- list(
-          original = val, sorted = sorted_combo, hash = NA_character_
+          original = val, hash = NA_character_
         )
       }
       for (s in val) referenced_styles[[s]] <<- TRUE
@@ -91,8 +93,7 @@
   # Collect all component style names that need to exist
   component_styles_needed <- list()
   for (combo_str in names(style_combinations)) {
-    sorted_combo <- style_combinations[[combo_str]]$sorted
-    for (style_name in sorted_combo) {
+    for (style_name in style_combinations[[combo_str]]$original) {
       component_styles_needed[[style_name]] <- TRUE
     }
   }
@@ -117,10 +118,11 @@
     ))
   }
   
-  # Now compute hashes for combinations
+  # Now compute hashes for combinations.
+  # Hash is based on the original (application) order so that
+  # f_combine("a","b") and f_combine("b","a") produce different hashes.
   for (combo_str in names(style_combinations)) {
-    sorted_combo <- style_combinations[[combo_str]]$sorted
-    combo_hash <- paste0("style_", .generate_hash(sorted_combo))
+    combo_hash <- paste0("style_", .generate_hash(style_combinations[[combo_str]]$original))
     style_combinations[[combo_str]]$hash <- combo_hash
     # Update referenced: remove combo_str placeholder, add hash
     referenced_styles[[combo_str]] <- NULL
@@ -132,7 +134,6 @@
   
   for (combo_str in names(style_combinations)) {
     combo_info <- style_combinations[[combo_str]]
-    sorted_combo <- combo_info$sorted
     
     # Use the hash that was computed and stored in collection phase
     combo_hash <- combo_info$hash
@@ -140,10 +141,11 @@
     
     # Check if merged style already exists (shouldn't happen, but be safe)
     if (!(combo_hash %in% names(spec$attribs$styles))) {
-      # Merge component styles (all validated to exist in Step 2)
+      # Merge component styles in original (application) order.
+      # Last style in the user-specified order wins for conflicting properties.
       merged_style <- list()
       
-      for (style_name in sorted_combo) {
+      for (style_name in combo_info$original) {
         base_style <- spec$attribs$styles[[style_name]]
         merged_style <- .merge_recursive(merged_style, base_style)
       }
@@ -187,8 +189,8 @@
       if (name %in% c("labelStyleRef", "valueStyleRef", "styleRef")) {
         val <- obj[[name]]
         if (is.character(val) && length(val) > 1) {
-          sorted_combo <- sort(val)
-          combo_str <- paste(sorted_combo, collapse = "|")
+          # Use original order for lookup — matches the key used in collection
+          combo_str <- paste(val, collapse = "|")
           if (!is.null(merged_hashes[[combo_str]])) {
             obj[[name]] <- merged_hashes[[combo_str]]
           }

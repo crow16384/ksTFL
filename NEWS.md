@@ -1,3 +1,15 @@
+# ksTFL 0.10.1
+
+## Fixes
+
+* **Style deep-merge across `compute_cols()` blocks**: `.append_style_action()` no longer removes entire multi-column style actions when a later block partially overlaps columns; only the overlapping columns are surgically replaced, preserving styles on non-overlapping columns.
+* **True recursive style merge**: `.merge_recursive()` now recurses into nested named sub-lists instead of performing a shallow `modifyList()` replace. Combining styles that share a top-level category (e.g. two styles both setting `font` properties) no longer silently drops properties from the first style.
+* **Style application order preserved**: `._consolidate_styles_in_spec()` now merges styles in the order specified by the user (e.g. `f_combine("a", "b")` applies `a` first, then `b` wins) instead of sorting alphabetically.
+* **`f_combine()` accepted in `c_style()`, `c_merge()`, `c_addrow()`**: `styleRef` parameters in row-action functions now accept multi-element style vectors produced by `f_combine()`.
+* **`.combine_column_styles()` handles nested `f_combine()`**: replaced `do.call(f_combine, ...)` with direct `unlist()` + class assignment to correctly flatten style refs that already contain multi-element vectors.
+* **`compute_cols()` accepts scalar `TRUE`/`FALSE`**: a scalar logical condition is now recycled to match `nrow(data)`, allowing `compute_cols(spec, TRUE, ...)` as shorthand for "all rows".
+* **Missing `rlang::expr()` qualifier**: fixed unqualified `expr()` call in `.env_select()` that caused `could not find function "expr"` in clean R sessions.
+
 # ksTFL 0.10.0
 
 ## New Features
@@ -88,128 +100,3 @@
 
 * Updated the styling and font-management articles to document target font family atoms and show how to combine them with other built-in style atoms.
 
-# ksTFL 0.6.0
-
-## Breaking Changes
-
-* **System font scanning replaces bundled proprietary fonts.** The package no longer ships proprietary TTF fonts (Arial, Courier New, Times New Roman, Georgia, Verdana, Trebuchet MS, Aptos). Instead, fonts are discovered from the operating system at package load time via FreeType-based scanning. If a requested font is not installed on the system, a metrically compatible open-source fallback is used automatically:
-  - Arial → Liberation Sans (bundled)
-  - Times New Roman → Liberation Serif (bundled)
-  - Courier New → Liberation Mono (bundled)
-  - Georgia → Liberation Serif (bundled)
-  - Verdana → Liberation Sans (bundled)
-  - Trebuchet MS → Liberation Sans (bundled)
-* **Aptos font family dropped.** Aptos is no longer a target font. Existing specs referencing Aptos will fall back to Liberation Sans.
-* The hardcoded `font_map` in the C++ font cache has been removed. Font resolution is now fully dynamic.
-
-## New Features
-
-* **Runtime font discovery.** At package load (`.onLoad()`), the C++ font scanner inspects system font directories (platform-specific) and builds a global font registry. System-installed fonts are always preferred over bundled fallbacks.
-* **`tfl_rescan_fonts()`** — Re-run font discovery after installing new fonts or changing `ksTFL.font_dirs`. Prints a resolution report to the console.
-* **`tfl_font_status()`** — Print the current font resolution report without rescanning.
-* **`ksTFL.font_dirs` option** — Point `options(ksTFL.font_dirs = c("/path/to/fonts"))` to additional directories containing proprietary or custom fonts. These directories are scanned alongside system directories.
-* **Startup font report.** When the package is attached, a message reports any target fonts that use a fallback, with guidance to run `tfl_font_status()` for details.
-
-## Internals
-
-* New C++ module: `font_scanner.h` / `font_scanner.cpp` — platform-specific font directory enumeration (Windows registry, macOS standard dirs, Linux XDG/freedesktop dirs) and FreeType-based family/style classification.
-* `font_cache.cpp` now resolves fonts via the scanner's global path map, with a two-tier fallback chain: designated fallback family (e.g. Georgia → Liberation Serif), then Liberation Sans as last resort.
-* `rcpp_bindings.cpp` exports `init_font_registry_impl()` and `get_font_dirs_impl()` to R.
-* `render_docx.R` now collects font directories from the scanner cache via `get_font_dirs_impl()` instead of using only the bundled `inst/fonts/` directory.
-
-## Bundled Fonts
-
-Only license-free fallback fonts are included in `inst/fonts/`:
-
-| Font Family | License | Replaces |
-|-------------|---------|----------|
-| Liberation Sans (4 styles) | SIL OFL 1.1 | Arial |
-| Liberation Serif (4 styles) | SIL OFL 1.1 | Times New Roman |
-| Liberation Mono (4 styles) | SIL OFL 1.1 | Courier New |
-
-# ksTFL 0.5.5
-
-## New Features
-
-* HTML "TFL Specification Preview" is no longer triggered by `print(spec)`; `print.TFL_spec()` is now console-only. Use the new `view_tfl_spec(spec)` function or RStudio Addins to open the HTML preview.
-* Added `view_tfl_spec(spec)` to open the TFL Specification Preview in the RStudio Viewer pane.
-* Added RStudio Addins: "TFL Spec Preview (Selection)" (evaluate selected code as a `TFL_spec` and show HTML preview) and "TFL Spec Preview (by name)" (prompt for an object name in `.GlobalEnv` and show preview).
-* Added "Style Atoms Catalog" RStudio Addin and `tfl_print_style_atoms()` to print all built-in style atoms from `.const_options_styles` to the console with coloured, grouped output via cli.
-
-## Changes
-
-* Removed the `TFL.viewer` option; HTML preview is only available via `view_tfl_spec()` or the addins.
-
-# ksTFL 0.5.4
-
-## New Features
-
-* Added inline strikethrough support via `<s>...</s>` in the C++ renderer, including OOXML emission (`<w:strike/>`), JSON parsing, and style API support (`s_font(strikethrough = ...)`).
-* `replay_report()` now supports `overrideTemplate` (bundled template name or custom JSON path), matching `write_doc()` behavior.
-* Combined replay Shiny app now supports both predefined template selection and custom template JSON paths.
-
-## Improvements
-
-* `list_reports()`, `replay_report()`, and `clean_reports()` now default `meta_dir` to `tfl_get_option("meta_directory")`.
-* `write_doc()` now safely falls back to `tempdir()` when `meta_directory` is not configured.
-* Improved Aptos font resolution in the font cache (`Aptos.ttf` regular face lookup).
-
-## Bug Fixes
-
-* Functions that rely on meta artifacts now raise a clear error when neither `meta_dir` argument nor `meta_directory` option is set.
-
-# ksTFL 0.5.3
-
-## New Features
-
-* `replay_report()` now supports replaying multiple reports into one combined DOCX.
-* Added `run_replay_app()` and a new replay Shiny app for selecting reports across multiple meta folders, drag-and-drop reordering, and combined rendering.
-* Added an RStudio addin entry for the replay app.
-
-## Improvements
-
-* Added optional `data_dir` handling in `render_docx()` to support robust replay of specs from different meta directories.
-* Replay app now supports folder browsing for both input meta directories and output directory selection.
-
-## Bug Fixes
-
-* Fixed latest-spec selection logic in `.resolve_spec_path()` when datetimes are character values.
-* Fixed merged replay `dataRef` serialization so C++ receives JSON arrays (restores table data loading in combined replay).
-* Improved replay resource resolution for figure assets (`.png`, `.jpg`, `.jpeg`, `.svg`).
-
-# ksTFL 0.5.0
-
-## C++20 Modernization
-
-* Adopted `operator<=>` (three-way comparison) for `Length`, replacing 6 hand-written comparison operators.
-* Introduced `Mergeable` concept constraining style merge templates.
-* Replaced runtime `std::unordered_map` lookup tables with `constexpr std::array` for OOXML enum conversions.
-* Added `[[nodiscard]]` attributes to all pure/value-returning functions across headers.
-* Converted `std::sort`, `std::any_of`, and `std::transform` calls to `std::ranges` equivalents.
-* Used `using enum` in switch statements for `TagType` and `FootnotePlace`.
-* Replaced `std::snprintf(buf, "%.17g", ...)` with `std::to_chars()` for double formatting.
-
-## Performance Improvements
-
-* Font directory indexing: `add_font_dir()` now scans once and builds an `O(1)` lookup map. Previously, `find_font_file()` did a recursive directory walk on every call.
-* Replaced `std::regex` in `is_safe_numeric_format()` with a single-pass manual parser, eliminating regex overhead in the per-cell formatting hot path.
-* Pre-computed column index map (`col_id_to_idx`) once in `LogicalTableBuilder::build()` and passed to both `build_header_grid()` and `apply_style_rows()`, avoiding redundant map construction.
-* Short-circuit `parse_inline_markup()`: skip `has_inline_markup()` tag classification when the input contains no `<` character.
-
-## Bug Fixes
-
-* Fixed ODR violation: `font_map` in `font_cache.h` changed from `static const` to `inline const`.
-* Eliminated `goto` in logical table post-pass, replaced with structured `break`.
-
-## Code Quality
-
-* Extracted `restore_dedupe_at_page_boundaries()` as a free function from the 500-line `render_from_strings()` method.
-* Unified three content style resolvers (`resolve_title_style`, `resolve_subtitle_style`, `resolve_footnote_style`) into a shared `resolve_content_style()` method.
-* Unified row height computation via `compute_row_heights_impl<WidthFn, FilterFn>()` template.
-* Consolidated margin parsing with `parse_margins_fields<T>()` template.
-* Consolidated alignment parsing to use existing `parse_alignment()` throughout.
-* Translated remaining Russian comments to English.
-
-## Tests
-
-* Added 31 new C++ unit tests for the `is_safe_numeric_format()` manual parser covering valid formats, invalid specifiers, edge cases, and multiple conversions.

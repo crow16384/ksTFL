@@ -466,6 +466,7 @@ NULL
     fs_9  = list(font = list(font_size = "9pt")),
     fs_10 = list(font = list(font_size = "10pt")),
     fs_11 = list(font = list(font_size = "11pt")),
+    fs_12 = list(font = list(font_size = "12pt")),
 
     # -------------------------------------------------------------------------
     # Font — colour  (text colour)

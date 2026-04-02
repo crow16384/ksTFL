@@ -1,7 +1,7 @@
 Package: ksTFL
 Type: Package
 Title: Framework for Clinical Tables, Figures, and Listings
-Version: 0.10.0
+Version: 0.10.1
 Authors@R:
     c(
     person("Igor", "Aleschenkov",

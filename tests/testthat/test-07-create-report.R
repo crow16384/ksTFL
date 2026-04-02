@@ -143,7 +143,7 @@ test_that("create_report() consolidates style combinations for new specs", {
   spec <- add_style(spec, id = "style_bold", s_font(bold = TRUE))
   spec <- add_style(spec, id = "style_italic", s_font(italic = TRUE))
   # Apply combination of styles
-  spec <- define_cols(spec, id, labelStyleRef = c("style_bold", "style_italic"))
+  spec <- define_cols(spec, id, labelStyleRef = f_combine("style_bold", "style_italic"))
   
   report <- create_report(spec)
   result <- report[[1]]
@@ -167,7 +167,7 @@ test_that("create_report() does not re-consolidate styles from input reports", {
   spec <- create_table(test_df)
   spec <- add_style(spec, id = "style1", s_font(bold = TRUE))
   spec <- add_style(spec, id = "style2", s_font(italic = TRUE))
-  spec <- define_cols(spec, id, labelStyleRef = c("style1", "style2"))
+  spec <- define_cols(spec, id, labelStyleRef = f_combine("style1", "style2"))
   
   report1 <- create_report(spec)
   
@@ -283,8 +283,8 @@ test_that("create_report() with multiple style consolidations", {
   spec1 <- add_style(spec1, id = "s1", s_font(bold = TRUE))
   spec1 <- add_style(spec1, id = "s2", s_font(italic = TRUE))
   spec1 <- add_style(spec1, id = "s3", s_font(underline = TRUE))
-  spec1 <- define_cols(spec1, id, labelStyleRef = c("s1", "s2"))
-  spec1 <- define_cols(spec1, group, labelStyleRef = c("s1", "s3"))
+  spec1 <- define_cols(spec1, id, labelStyleRef = f_combine("s1", "s2"))
+  spec1 <- define_cols(spec1, group, labelStyleRef = f_combine("s1", "s3"))
   
   report <- create_report(spec1)
   result <- report[[1]]

@@ -136,8 +136,8 @@ NULL
   })
   
   # Build the selection expression
-  select_expr <- expr(c(!!!exprs))
-  
+  select_expr <- rlang::expr(c(!!!exprs))
+
   tryCatch(
     tidyselect::eval_select(
       select_expr,

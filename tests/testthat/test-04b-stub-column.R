@@ -339,11 +339,11 @@ test_that("add_span_header() labelStyleRef accepts multiple styles", {
     spec, 
     cols = c(value, ratio), 
     label = "Metrics",
-    labelStyleRef = c("bold", "italic", "large")
+    labelStyleRef = f_combine("bold", "italic")
   )
   
   stub <- spec$stubColumns[[1]]
-  expect_equal(length(stub$labelStyleRef), 3)
+  expect_equal(length(stub$labelStyleRef), 2)
   expect_true("bold" %in% stub$labelStyleRef)
 })
 

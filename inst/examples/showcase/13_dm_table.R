@@ -73,6 +73,7 @@ spec_dm_01 <- create_table(data) %>%
     c_style(CAT2, 'i'), #Выделим строку с моделями курсивом
     c_glue(RPH104,'after',glue_col = modelval) # "склеиваем" значение RPH104 cо значением modelval, тем самым помещая это значение в объедененну ячейку
   ) %>% 
+  compute_cols(((as.numeric(modelval)<0.05) %>% replace_na(F)) & !is.na(modelval), c_style(RPH104, 'fc_red') ) %>% 
   #Добавим разделители между группами, чтобы визуально отделить их
   compute_cols(
     lastOf(SECTORD1), #последнее значение в группе
