@@ -1,7 +1,6 @@
 // kstfl/docx_toc.cpp — TOC and field emission for DocxEmitter
 
 #include "docx_emitter.h"
-#include <cstdio>
 
 namespace kstfl {
 

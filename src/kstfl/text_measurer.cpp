@@ -9,7 +9,6 @@
 #include "font_cache.h"
 #include "inline_parser.h"
 
-#include <cmath>
 #include <hb.h>
 
 namespace kstfl {

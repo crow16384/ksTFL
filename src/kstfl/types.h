@@ -7,7 +7,6 @@
 #ifndef KSTFL_TYPES_H
 #define KSTFL_TYPES_H
 
-#include <compare>
 #include <concepts>
 #include <cstdint>
 #include <optional>

@@ -9,8 +9,6 @@
 #include <cstdio>
 #include <fstream>
 #include <nlohmann/json.hpp>
-#include <ranges>
-#include <string_view>
 #include <unordered_map>
 
 using json = nlohmann::json;

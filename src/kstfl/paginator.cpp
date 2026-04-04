@@ -8,9 +8,6 @@
 #include "paginator.h"
 #include <Rcpp.h>
 #include <algorithm>
-#include <cmath>
-#include <functional>
-#include <ranges>
 #include <unordered_map>
 #include <unordered_set>
 

@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include <ranges>
 #include <string_view>
 #include <unordered_map>
 

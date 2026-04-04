@@ -8,7 +8,6 @@
 #include "types.h"
 #include <array>
 #include <optional>
-#include <string_view>
 #include <utility>
 
 namespace kstfl {
