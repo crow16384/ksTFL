@@ -60,9 +60,11 @@ When changing behavior:
   - `R/RcppExports.R`
   - `tests/testthat/test-18-cpp-units.R`
 
-## MCP Tools and Serena
+## MCP Tools
 
-This project uses the **Serena** semantic coding MCP server (`oraios/serena`). It is the preferred tool for code exploration and editing over raw file reads.
+### Serena (R code)
+
+This project uses the **Serena** semantic coding MCP server (`oraios/serena`). It is the preferred tool for R code exploration and editing over raw file reads.
 
 ### Starting Serena
 
@@ -81,12 +83,28 @@ Serena starts automatically via `.vscode/mcp.json` using `tools/start_serena.sh`
 - Use `mcp_oraios_serena_replace_symbol_body` for symbol-level edits; use `mcp_oraios_serena_replace_content` for targeted line-level changes.
 - Write durable findings to memory with `mcp_oraios_serena_write_memory`.
 
+### cclsp / clangd (C++ code)
+
+This project uses the **cclsp** MCP server (`cclsp/clangd`) for C++ code navigation. Use it for all C++ work.
+
+- **Find definition:** `mcp_cclsp_clangd_find_definition` — jump to where a symbol is defined.
+- **Find references:** `mcp_cclsp_clangd_find_references` — locate all usages of a symbol.
+- **Find implementation:** `mcp_cclsp_clangd_find_implementation` — find virtual method implementations.
+- **Hover info:** `mcp_cclsp_clangd_get_hover` — get type info and docs for a symbol.
+- **Diagnostics:** `mcp_cclsp_clangd_get_diagnostics` — check compile errors/warnings in a file.
+- **Workspace symbols:** `mcp_cclsp_clangd_find_workspace_symbols` — search symbols by name across all C++ files.
+- **Call hierarchy:** `mcp_cclsp_clangd_prepare_call_hierarchy`, `get_incoming_calls`, `get_outgoing_calls`.
+- **Rename:** `mcp_cclsp_clangd_rename_symbol` — safe rename across all usages.
+
+cclsp starts automatically via `.vscode/mcp.json` using `tools/start_cclsp.sh`. Requires `clangd` (`/usr/bin/clangd`) and `compile_commands.json` (regenerate with `./tools/gen_compile_commands.sh`).
+
 ## Practical Workflow for Agents
 
 Before editing code:
 
 - Check onboarding and read Serena memories (`mcp_oraios_serena_check_onboarding_performed`, `mcp_oraios_serena_list_memories`).
-- Read the actual function implementation and roxygen docs first via Serena symbol tools.
+- For R code: read function implementations and roxygen docs via Serena symbol tools.
+- For C++ code: use cclsp (`mcp_cclsp_clangd_find_definition`, `mcp_cclsp_clangd_get_hover`, `mcp_cclsp_clangd_find_references`) to navigate before editing.
 - Do not infer APIs from memory; verify signatures in source.
 - Search for existing patterns and follow local style.
 
@@ -102,6 +120,12 @@ After edits:
 - Regenerate documentation/NAMESPACE artifacts when required.
 
 ## Helpful Commands
+
+When installing R packages, always use the Russian CRAN mirror:
+
+```bash
+R -q -e "options(repos=c(CRAN='https://mirror.truenetwork.ru/CRAN/')); install.packages('...')"
+```
 
 R package checks and tests (examples):
 

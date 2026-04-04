@@ -25,12 +25,12 @@ src/*.a
 .cache/
 *~
 
-# Serena: keep shareable project config in git, ignore runtime data
+# Serena: keep shareable project config and memories in git, ignore runtime data
 .serena/*
 !.serena/project.yml
 !.serena/project.local.yml
+!.serena/memories/
 .serena/cache/
-.serena/memories/
 .serena/logs/
 
 # OS
