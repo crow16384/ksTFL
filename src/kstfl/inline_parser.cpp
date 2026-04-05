@@ -34,11 +34,13 @@ static TagType classify_tag(const std::string &name) {
   static const std::unordered_map<std::string_view, TagType> tag_map{
       {"sup", TagType::Sup},     {"sub", TagType::Sub},         {"b", TagType::Bold}, {"i", TagType::Italic},
       {"u", TagType::Underline}, {"s", TagType::Strikethrough}, {"br", TagType::Br},  {"p", TagType::Para}};
-  std::string lower;
-  lower.reserve(name.size());
-  for (char c : name)
-    lower += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-  auto it = tag_map.find(std::string_view{lower});
+  // Tag names are at most 3 chars; use a stack buffer to avoid heap allocation.
+  char lower_buf[8];
+  size_t len = std::min(name.size(), sizeof(lower_buf) - 1);
+  for (size_t i = 0; i < len; ++i)
+    lower_buf[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(name[i])));
+  lower_buf[len] = '\0';
+  auto it = tag_map.find(std::string_view{lower_buf, len});
   return (it != tag_map.end()) ? it->second : TagType::Unknown;
 }
 

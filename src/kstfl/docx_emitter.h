@@ -120,10 +120,13 @@ private:
   /// @param row_height  Segment-specific row height for trHeight.
   /// @param col_widths  Per-column scaled widths (column index -> EMU).
   /// @param seg_cols    Pre-built set of column indices in this segment.
+  /// @param base_style_cache  Pre-computed per-column base styles (steps 1-5).
+  /// @param addrow_style_cache  Pre-computed per-column base styles for addrows.
   void emit_table_row(XmlWriter &w, const LogicalRow &row, Length row_height, const HorizontalSegment &segment,
                       const TFLSpec &spec, const StyleResolver &resolver, bool is_last_row,
-                      const std::unordered_map<size_t, int64_t> &col_widths,
-                      const std::unordered_set<size_t> &seg_cols) const;
+                      const std::unordered_map<size_t, int64_t> &col_widths, const std::unordered_set<size_t> &seg_cols,
+                      const std::unordered_map<size_t, StyleDef> &base_style_cache,
+                      const std::unordered_map<size_t, StyleDef> &addrow_style_cache) const;
 
   /// Emit a paragraph with styled content.
   void emit_paragraph(XmlWriter &w, const std::string &text, const StyleDef &style) const;

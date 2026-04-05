@@ -129,6 +129,8 @@ Splits table into `PageSlice` / `HorizontalSegment` sets.
 - `compute_row_heights()` — measures all rows via TextMeasurer
 - `compute_segment_column_widths()` — per-segment visible widths
 - `compute_segment_row_heights()` — row heights per horizontal segment
+- **Caching pattern**: `compute_row_heights_impl` pre-builds `base_style_cache` and `addrow_style_cache` (keyed by column index) before the row loop, and `style_ref_cache` (`unordered_map<string, StyleDef*>`) to deduplicate `find_style()` lookups — avoids recomputing the full template cascade for each cell
+- Template `compute_row_heights_impl` carries `requires std::invocable<WidthFn,…> && std::invocable<FilterFn,…>` constraint
 
 ---
 
@@ -144,7 +146,8 @@ Resolves final `StyleDef` for any context by merging template + spec styles.
 - `resolve_body_cell_style(col_spec, row_style_ref, spec)` → `StyleDef`
 - `resolve_title_style / subtitle / footnote / doc_header / doc_footer / body_text / toc_title / toc_entry / figure_caption()` — named text style resolvers
 - `find_style(id, spec_styles, tmpl)` — lookup in spec then template
-- `apply_style_ref(base, ref, spec_styles, tmpl)` → merged `StyleDef`
+- `apply_style_ref(base, ref, spec_styles, tmpl)` → merged `StyleDef` (returns copy)
+- `apply_style_ref_inplace(target, ref)` → mutates `target` in place; prefer inside hot loops over `apply_style_ref` to avoid one `StyleDef` copy per call
 - `resolve_content_style(...)` → general resolver
 
 ---
@@ -157,7 +160,7 @@ Emits OOXML content for a complete multi-spec document.
 - `build_hdr_ftr_parts()` — builds header/footer XML parts per spec
 - `emit_document_xml()` — writes `word/document.xml`
 - `emit_page(slice, spec, ...)` — emits one page slice to XML
-- `emit_table() / emit_table_header() / emit_table_row()` — table XML
+- `emit_table() / emit_table_header() / emit_table_row(…, base_style_cache, addrow_style_cache)` — table XML; `emit_table()` builds per-column style caches once per segment and passes to `emit_table_row()`, which applies only row/cell overrides on top
 - `emit_paragraph() / emit_parsed_paragraph() / emit_run_props() / emit_para_props() / emit_cell_props()` — paragraph/run level
 - `emit_text_groups() / emit_text_groups_combined()` — titles/subtitles/footnotes
 - `emit_header_footer_section()` — doc header/footer
@@ -179,6 +182,7 @@ Parses inline HTML-like markup tags into `ParsedCell`.
 - `has_inline_markup(text)` → bool
 - `get_plain_text(parsed_cell)` → plain string
 - Supported tags: `<b>`, `<i>`, `<u>`, `<s>` (strike), `<sup>`, `<sub>`, `<br>`, `<p>`
+- `classify_tag()` uses `char[8]` stack buffer (not heap `std::string`) — tag names are ≤3 chars
 
 ---
 
@@ -205,8 +209,8 @@ FreeType + HarfBuzz font face cache.
 - `get_face(name, bold, italic)` → `CachedFace*`
 - `get_metrics(name, bold, italic, size_pt)` → `FontMetrics`
 - `get_hb_font(name, bold, italic)` → `hb_font_t*`
-- `find_font_file(name, bold, italic)` → path string
-- `load_face(key)` — internal face loader
+- `find_font_file(name, bold, italic)` → path string (input name already lowercase — no second lowering needed)
+- `load_face(key)` — internal face loader; wraps `hb_ft_font_create_referenced()` in try/catch to call `FT_Done_Face()` before rethrowing (exception-safe RAII)
 
 ---
 
@@ -219,7 +223,8 @@ System font directory scanning and font registry management.
 - `initialize_font_registry(dirs, fallback_path)` — scans and caches fonts
 - `get_font_path_map()` — returns current registry map
 - `get_all_font_dirs()` — all scanned directories
-- `get_fallback_family()` — name of fallback font (Liberation Sans)
+- `get_fallback_family()` — name of fallback font; uses pre-lowered `TargetFallback::target_lower` field (no per-call `to_lower()`)
+- `TargetFallback` — struct holding canonical target name + pre-lowered `target_lower`; avoids repeated lowering in `get_fallback_family()`
 
 ---
 
@@ -261,6 +266,7 @@ Column width and table geometry calculations. No header — internal only.
 
 ## src/kstfl/docx_table.cpp
 Table-level XML emission helpers. No header — internal.
+Receives pre-built `base_style_cache` / `addrow_style_cache` from `DocxEmitter::emit_table()` to avoid recomputing per-column cascade for every cell.
 
 ---
 
@@ -315,7 +321,7 @@ Unit conversion utilities (`Length` method implementations).
 ---
 
 ## src/kstfl/json_parser.h / json_parser.cpp
-JSON parsing for spec and template files.
+JSON parsing for spec and template files. Error messages use `std::format` (not string concatenation).
 
 ---
 

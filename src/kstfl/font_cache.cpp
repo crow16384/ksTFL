@@ -24,6 +24,7 @@
 #include <array>
 #include <cctype>
 #include <filesystem>
+#include <format>
 #include <ranges>
 #include <string>
 #include <unordered_map>
@@ -44,7 +45,7 @@ static const std::string FALLBACK_FONT_NAME = "Liberation Sans";
 
 FontCache::FontCache() {
   FT_Error err = FT_Init_FreeType(&ft_library_);
-  if (err) { throw RenderError("Failed to initialize FreeType library (error " + std::to_string(err) + ")"); }
+  if (err) { throw RenderError(std::format("Failed to initialize FreeType library (error {})", err)); }
 }
 
 FontCache::~FontCache() {
@@ -125,13 +126,11 @@ std::string FontCache::find_font_file(const FaceKey &key) const {
   if (!path.empty()) return path;
 
   // 2. Fall back to stem-based lookup in per-render font_index_
+  // font_name_to_stem_hint() already returns a lowercase string,
+  // so no additional lowering is needed.
   std::string hint = font_name_to_stem_hint(key.name, key.bold, key.italic);
-  std::string hint_lower;
-  hint_lower.reserve(hint.size());
-  for (unsigned char c : hint)
-    hint_lower.push_back(static_cast<char>(std::tolower(c)));
 
-  auto it = font_index_.find(hint_lower);
+  auto it = font_index_.find(hint);
   if (it != font_index_.end()) return it->second;
 
   return ""; // not found
@@ -146,15 +145,20 @@ CachedFace FontCache::load_face(const std::string &path) const {
   face.file_path = path;
 
   FT_Error err = FT_New_Face(ft_library_, path.c_str(), 0, &face.ft_face);
-  if (err) {
-    throw RenderError("Failed to load font face from '" + path + "' (FreeType error " + std::to_string(err) + ")");
-  }
+  if (err) { throw RenderError(std::format("Failed to load font face from '{}' (FreeType error {})", path, err)); }
 
-  // Create HarfBuzz font from FreeType face
-  face.hb_font = hb_ft_font_create_referenced(face.ft_face);
+  // Create HarfBuzz font from FreeType face.
+  // Guard with try/catch to ensure FT_Done_Face() on any exception,
+  // not just the null-return case.
+  try {
+    face.hb_font = hb_ft_font_create_referenced(face.ft_face);
+  } catch (...) {
+    FT_Done_Face(face.ft_face);
+    throw;
+  }
   if (!face.hb_font) {
     FT_Done_Face(face.ft_face);
-    throw RenderError("Failed to create HarfBuzz font from '" + path + "'");
+    throw RenderError(std::format("Failed to create HarfBuzz font from '{}'", path));
   }
 
   return face;
@@ -208,11 +212,10 @@ const CachedFace &FontCache::get_face(const FaceKey &key) {
   }
 
   if (path.empty()) {
-    throw RenderError("Font not found: '" + key.name + "' (bold=" + (key.bold ? "true" : "false") +
-                      ", italic=" + (key.italic ? "true" : "false") +
-                      "). "
-                      "No matching font found and LiberationSans "
-                      "fallback also not found.");
+    throw RenderError(std::format("Font not found: '{}' (bold={}, italic={}). "
+                                  "No matching font found and LiberationSans "
+                                  "fallback also not found.",
+                                  key.name, key.bold, key.italic));
   }
 
   CachedFace face = load_face(path);
@@ -234,7 +237,7 @@ FontMetrics FontCache::get_metrics(const FaceKey &key, double size_pt) {
   // Set FreeType char size (size in 1/64 points)
   FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72); // 72 DPI
   if (ft_err) {
-    throw RenderError("FT_Set_Char_Size failed for font '" + key.name + "' at size " + std::to_string(size_pt) + "pt");
+    throw RenderError(std::format("FT_Set_Char_Size failed for font '{}' at size {}pt", key.name, size_pt));
   }
 
   FontMetrics m;
@@ -269,7 +272,7 @@ hb_font_t *FontCache::get_hb_font(const FaceKey &key, double size_pt) {
   // Set size for proper shaping
   FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72);
   if (ft_err) {
-    throw RenderError("FT_Set_Char_Size failed for font '" + key.name + "' at size " + std::to_string(size_pt) + "pt");
+    throw RenderError(std::format("FT_Set_Char_Size failed for font '{}' at size {}pt", key.name, size_pt));
   }
   hb_ft_font_changed(face.hb_font);
   return face.hb_font;

@@ -44,14 +44,19 @@ static std::string to_lower(const std::string &s) {
 // ---------------------------------------------------------------------------
 
 struct TargetFallback {
-  std::string target;   // canonical family name (mixed case)
-  std::string fallback; // fallback family name
+  std::string target;       // canonical family name (mixed case)
+  std::string target_lower; // pre-lowered for fast comparison
+  std::string fallback;     // fallback family name
 };
 
 static const std::vector<TargetFallback> &target_fallbacks() {
   static const std::vector<TargetFallback> map = {
-      {"Arial", "Liberation Sans"},    {"Times New Roman", "Liberation Serif"}, {"Courier New", "Liberation Mono"},
-      {"Georgia", "Liberation Serif"}, {"Verdana", "Liberation Sans"},          {"Trebuchet MS", "Liberation Sans"},
+      {"Arial", "arial", "Liberation Sans"},
+      {"Times New Roman", "times new roman", "Liberation Serif"},
+      {"Courier New", "courier new", "Liberation Mono"},
+      {"Georgia", "georgia", "Liberation Serif"},
+      {"Verdana", "verdana", "Liberation Sans"},
+      {"Trebuchet MS", "trebuchet ms", "Liberation Sans"},
   };
   return map;
 }
@@ -74,7 +79,7 @@ const std::vector<std::string> &get_all_font_dirs() {
 std::string get_fallback_family(const std::string &target_family) {
   std::string lower = to_lower(target_family);
   for (const auto &tf : target_fallbacks()) {
-    if (to_lower(tf.target) == lower) return tf.fallback;
+    if (tf.target_lower == lower) return tf.fallback;
   }
   return {};
 }

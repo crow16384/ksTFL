@@ -142,6 +142,11 @@ StyleDef StyleResolver::apply_style_ref(const StyleDef &base, const std::string 
   return base;
 }
 
+void StyleResolver::apply_style_ref_inplace(StyleDef &target, const std::string &ref) const {
+  const StyleDef *found = find_style(ref);
+  if (found) { target.merge_from(*found); }
+}
+
 // ---------------------------------------------------------------------------
 // Header cell style (cascade per spec §6.5)
 // ---------------------------------------------------------------------------
@@ -163,10 +168,10 @@ StyleDef StyleResolver::resolve_header_cell_style(const ColumnSpec &col, const S
   }
 
   // 5. Column labelStyleRef
-  if (col.label_style_ref.has_value()) { result = apply_style_ref(result, *col.label_style_ref); }
+  if (col.label_style_ref.has_value()) { apply_style_ref_inplace(result, *col.label_style_ref); }
 
   // 6. Stub labelStyleRef
-  if (stub && stub->label_style_ref.has_value()) { result = apply_style_ref(result, *stub->label_style_ref); }
+  if (stub && stub->label_style_ref.has_value()) { apply_style_ref_inplace(result, *stub->label_style_ref); }
 
   return result;
 }
@@ -197,17 +202,17 @@ StyleDef StyleResolver::resolve_body_cell_style(const ColumnSpec &col, const std
   //    addrow cells carry their own styleRef and should not inherit
   //    column-specific formatting like indent_2.
   if (!is_addrow && col.format.value_style_ref.has_value()) {
-    result = apply_style_ref(result, *col.format.value_style_ref);
+    apply_style_ref_inplace(result, *col.format.value_style_ref);
   }
 
   // 6. Row style action (from styleRows)
-  if (row_style_ref.has_value()) { result = apply_style_ref(result, *row_style_ref); }
+  if (row_style_ref.has_value()) { apply_style_ref_inplace(result, *row_style_ref); }
 
   // 7. Merge styleRef
-  if (merge_style_ref.has_value()) { result = apply_style_ref(result, *merge_style_ref); }
+  if (merge_style_ref.has_value()) { apply_style_ref_inplace(result, *merge_style_ref); }
 
   // 8. Add-row styleRef
-  if (addrow_style_ref.has_value()) { result = apply_style_ref(result, *addrow_style_ref); }
+  if (addrow_style_ref.has_value()) { apply_style_ref_inplace(result, *addrow_style_ref); }
 
   return result;
 }
@@ -243,7 +248,7 @@ StyleDef StyleResolver::resolve_content_style(const StyleDef &region_base,
   StyleDef result = tmpl_.text_styles.default_style;
   result.merge_from(region_base);
   for (const auto &ref : style_refs) {
-    result = apply_style_ref(result, ref);
+    apply_style_ref_inplace(result, ref);
   }
   return result;
 }
@@ -274,7 +279,7 @@ StyleDef StyleResolver::resolve_doc_footer_style() const {
 
 StyleDef StyleResolver::resolve_body_text_style(const std::optional<std::string> &custom_ref) const {
   StyleDef result = tmpl_.text_styles.default_style;
-  if (custom_ref.has_value()) { result = apply_style_ref(result, *custom_ref); }
+  if (custom_ref.has_value()) { apply_style_ref_inplace(result, *custom_ref); }
   return result;
 }
 
@@ -301,7 +306,7 @@ StyleDef StyleResolver::resolve_figure_caption_style(const std::vector<std::stri
   }
 
   for (const auto &ref : style_refs) {
-    result = apply_style_ref(result, ref);
+    apply_style_ref_inplace(result, ref);
   }
   return result;
 }

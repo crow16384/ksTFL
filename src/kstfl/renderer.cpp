@@ -16,6 +16,7 @@
 
 #include <Rcpp.h>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
@@ -62,7 +63,7 @@ void Renderer::set_config(const RendererConfig &config) {
 
 static std::string read_file_to_string(const std::string &path) {
   std::ifstream ifs(path, std::ios::binary | std::ios::ate);
-  if (!ifs) { throw RenderError("Cannot read file: " + path); }
+  if (!ifs) { throw RenderError(std::format("Cannot read file: {}", path)); }
   auto size = ifs.tellg();
   ifs.seekg(0);
   std::string content(static_cast<size_t>(size), '\0');

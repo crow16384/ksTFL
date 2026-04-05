@@ -7,8 +7,19 @@ R -q -e "options(repos=c(CRAN='https://mirror.truenetwork.ru/CRAN/')); install.p
 
 ## Testing
 ```bash
+# Preferred (works without devtools; exposes internal functions to tests)
+R -q -e "pkgload::load_all('.'); testthat::test_dir('tests/testthat')"
+
+# Single test file
+R -q -e "pkgload::load_all('.'); testthat::test_file('tests/testthat/test-18-cpp-units.R')"
+
+# With devtools (if installed)
 R -q -e "devtools::test()"
-R -q -e "testthat::test_dir('tests/testthat')"
+```
+
+## Build & install (needed after C++ changes before testing)
+```bash
+R CMD INSTALL .
 ```
 
 ## Full package check

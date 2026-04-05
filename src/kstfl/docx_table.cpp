@@ -106,7 +106,9 @@ void DocxEmitter::emit_table_header(XmlWriter &w, const HeaderGrid &header_grid,
 void DocxEmitter::emit_table_row(XmlWriter &w, const LogicalRow &row, Length row_height,
                                  const HorizontalSegment &segment, const TFLSpec &spec, const StyleResolver &resolver,
                                  bool is_last_row, const std::unordered_map<size_t, int64_t> &col_widths,
-                                 const std::unordered_set<size_t> &seg_cols) const {
+                                 const std::unordered_set<size_t> &seg_cols,
+                                 const std::unordered_map<size_t, StyleDef> &base_style_cache,
+                                 const std::unordered_map<size_t, StyleDef> &addrow_style_cache) const {
   const auto &tmpl = resolver.template_styles();
   w.start_element("w:tr");
 
@@ -128,7 +130,7 @@ void DocxEmitter::emit_table_row(XmlWriter &w, const LogicalRow &row, Length row
   }
   w.end_element();
 
-  // Build fast lookup for segment columns (once per table, not per row)
+  bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
 
   // Emit cells for this segment
   for (size_t col_idx : segment.column_indices) {
@@ -140,12 +142,23 @@ void DocxEmitter::emit_table_row(XmlWriter &w, const LogicalRow &row, Length row
 
     w.start_element("w:tc");
 
-    // Resolve cell style
+    // Resolve cell style from cached per-column base, then apply row/cell overrides
     StyleDef cell_style;
     if (col_idx < spec.columns.size()) {
-      bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
-      cell_style = resolver.resolve_body_cell_style(spec.columns[col_idx], row.row_style_ref, std::nullopt,
-                                                    std::nullopt, is_addrow);
+      const auto &cache = is_addrow ? addrow_style_cache : base_style_cache;
+      auto base_it = cache.find(col_idx);
+      if (base_it != cache.end()) {
+        cell_style = base_it->second;
+      } else {
+        cell_style = resolver.resolve_body_cell_style(spec.columns[col_idx], std::nullopt, std::nullopt, std::nullopt,
+                                                      is_addrow);
+      }
+      // Apply row_style_ref (step 6)
+      if (row.row_style_ref.has_value()) {
+        const StyleDef *rs = resolver.find_style(*row.row_style_ref);
+        if (rs) { cell_style.merge_from(*rs); }
+      }
+      // Apply cell-level style overrides
       for (const auto &ref : cell.style_refs) {
         const StyleDef *override_style = resolver.find_style(ref);
         if (override_style) { cell_style.merge_from(*override_style); }
@@ -417,6 +430,19 @@ void DocxEmitter::emit_table(XmlWriter &w, const TFLSpec &spec, const PageSlice 
   if (page.is_first_page || tmpl.table_style.repeat_header_on_each_page)
     emit_table_header(w, header_grid, segment, resolver, col_widths, seg_cols);
 
+  // Pre-compute per-column base styles (steps 1-5 of the cascade) to avoid
+  // redundant template-cascade merges on every cell of every row.
+  std::unordered_map<size_t, StyleDef> base_style_cache;
+  std::unordered_map<size_t, StyleDef> addrow_style_cache;
+  for (size_t col_idx : segment.column_indices) {
+    if (col_idx < spec.columns.size()) {
+      base_style_cache.emplace(col_idx, resolver.resolve_body_cell_style(spec.columns[col_idx], std::nullopt,
+                                                                         std::nullopt, std::nullopt, false));
+      addrow_style_cache.emplace(col_idx, resolver.resolve_body_cell_style(spec.columns[col_idx], std::nullopt,
+                                                                           std::nullopt, std::nullopt, true));
+    }
+  }
+
   // Body rows for this page slice
   // Find effective last data row and whether this slice contains body rows.
   size_t effective_last_row = page.first_row;
@@ -437,7 +463,8 @@ void DocxEmitter::emit_table(XmlWriter &w, const TFLSpec &spec, const PageSlice 
     if (rows[ri].type == LogicalRowType::GroupBreak) continue;
     bool is_last = (ri == effective_last_row) && !use_bottom_spacer;
     Length rh = (ri < segment.row_heights.size()) ? segment.row_heights[ri] : rows[ri].measured_height;
-    emit_table_row(w, rows[ri], rh, segment, spec, resolver, is_last, col_widths, seg_cols);
+    emit_table_row(w, rows[ri], rh, segment, spec, resolver, is_last, col_widths, seg_cols, base_style_cache,
+                   addrow_style_cache);
   }
 
   if (use_bottom_spacer) { emit_empty_spacer_row(*bottom_empty_line, true); }

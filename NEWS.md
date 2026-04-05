@@ -1,3 +1,45 @@
+# ksTFL 0.10.2
+
+## Internal C++ Engine — Safety, Performance & Modernisation
+
+* **Exception-safe font loading** (`font_cache.cpp`): `load_face()` now wraps
+  `hb_ft_font_create_referenced()` in a try/catch block that calls
+  `FT_Done_Face()` before rethrowing, preventing a FreeType handle leak on any
+  HarfBuzz construction failure.
+* **Eliminated redundant string lowering** (`font_cache.cpp`,
+  `font_scanner.cpp`): `font_name_to_stem_hint()` already returns a lowercase
+  string, so the second `to_lower` pass in `find_font_file()` was removed.
+  `TargetFallback` structs now pre-compute a `target_lower` field so
+  per-call lowering inside `get_fallback_family()` is avoided entirely.
+* **In-place style cascade application** (`style_resolver.h`,
+  `style_resolver.cpp`): new `apply_style_ref_inplace(StyleDef &, const
+  std::string &)` mutates the target directly instead of copy-merge-return.
+  All callers in `resolve_header_cell_style()`, `resolve_body_cell_style()`,
+  `resolve_content_style()`, `resolve_body_text_style()` and
+  `resolve_figure_caption_style()` converted to the in-place variant,
+  eliminating one `StyleDef` copy per style-ref application.
+* **Per-column base-style caches in paginator** (`paginator.cpp`): the row
+  loop in `compute_row_heights_impl` now pre-computes `base_style_cache` and
+  `addrow_style_cache` (indexed by column index) *before* iterating over rows,
+  cutting repeated template-cascade merges (steps 1–5) to a one-time cost.
+  A `style_ref_cache` (`std::unordered_map<std::string, const StyleDef*>`) is
+  built once per segment to cache `find_style()` pointer lookups.
+  A `requires std::invocable<…>` constraint was added to the template for
+  earlier type-checking.
+* **Pre-computed style caches in DOCX table emission** (`docx_emitter.h`,
+  `docx_table.cpp`): `emit_table()` builds `base_style_cache` and
+  `addrow_style_cache` once per segment and passes them to
+  `emit_table_row()`, which now applies only row/cell overrides on top of the
+  cached base instead of recomputing the full cascade for every cell.
+* **Stack-allocated tag buffer** (`inline_parser.cpp`): `classify_tag()`
+  replaced a heap-allocated `std::string lower` with a `char lower_buf[8]`
+  stack buffer — tag names are at most 3 characters, so no heap allocation is
+  needed per tag.
+* **`std::format` for error messages** (`json_parser.cpp`, `renderer.cpp`,
+  `font_cache.cpp`): all `throw RenderError("…" + var + "…")` patterns
+  replaced with `std::format("…{}", var)`, removing temporary string
+  concatenations (15 call sites total).
+
 # ksTFL 0.10.1
 
 ## Fixes

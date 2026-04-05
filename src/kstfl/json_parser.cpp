@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <charconv>
 #include <cstdio>
+#include <format>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
@@ -78,11 +79,13 @@ template <typename T> std::vector<T> get_array(const json &j, const std::string 
 /// Read a JSON file to nlohmann::json.
 static json read_json_file(const std::string &path) {
   std::ifstream file(path);
-  if (!file.is_open()) { throw RenderError("Cannot open JSON file: " + path); }
+  if (!file.is_open()) { throw RenderError(std::format("Cannot open JSON file: {}", path)); }
   json j;
   try {
     file >> j;
-  } catch (const json::parse_error &e) { throw RenderError("JSON parse error in '" + path + "': " + e.what()); }
+  } catch (const json::parse_error &e) {
+    throw RenderError(std::format("JSON parse error in '{}': {}", path, e.what()));
+  }
   return j;
 }
 
@@ -149,11 +152,11 @@ static FontProps parse_font_props(const json &j) {
       size_t idx = 0;
       double val = std::stod(s, &idx);
       if (idx != s.size()) {
-        throw RenderError("Invalid font_size: '" + *fs + "' — unexpected characters after number");
+        throw RenderError(std::format("Invalid font_size: '{}' — unexpected characters after number", *fs));
       }
       fp.font_size = val;
     } catch (const RenderError &) { throw; } catch (const std::exception &) {
-      throw RenderError("Invalid font_size: '" + *fs + "'");
+      throw RenderError(std::format("Invalid font_size: '{}'", *fs));
     }
   }
 
@@ -525,7 +528,7 @@ static RowActionSet parse_row_action_set(const std::string &json_str) {
   try {
     j = json::parse(json_str);
   } catch (const json::parse_error &e) {
-    throw RenderError("Failed to parse styleRows entry: " + std::string(e.what()));
+    throw RenderError(std::format("Failed to parse styleRows entry: {}", e.what()));
   }
 
   // style actions
@@ -756,7 +759,7 @@ TFLDocument parse_spec_json_string(const std::string &json_str) {
   json root;
   try {
     root = json::parse(json_str);
-  } catch (const json::parse_error &e) { throw RenderError("JSON parse error: " + std::string(e.what())); }
+  } catch (const json::parse_error &e) { throw RenderError(std::format("JSON parse error: {}", e.what())); }
   return parse_spec_internal(root);
 }
 
@@ -911,7 +914,7 @@ StylesTemplate parse_template_json_string(const std::string &json_str) {
   json root;
   try {
     root = json::parse(json_str);
-  } catch (const json::parse_error &e) { throw RenderError("Template JSON parse error: " + std::string(e.what())); }
+  } catch (const json::parse_error &e) { throw RenderError(std::format("Template JSON parse error: {}", e.what())); }
   return parse_template_internal(root);
 }
 
@@ -974,7 +977,7 @@ DataTable parse_data_json_string(const std::string &json_str) {
   json root;
   try {
     root = json::parse(json_str);
-  } catch (const json::parse_error &e) { throw RenderError("Data JSON parse error: " + std::string(e.what())); }
+  } catch (const json::parse_error &e) { throw RenderError(std::format("Data JSON parse error: {}", e.what())); }
   return parse_data_internal(root);
 }
 

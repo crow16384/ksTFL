@@ -8,6 +8,7 @@
 #include "paginator.h"
 #include <Rcpp.h>
 #include <algorithm>
+#include <concepts>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -87,6 +88,7 @@ std::vector<HorizontalSegment> Paginator::build_segments(const std::vector<Colum
 // Length FilterFn: (size_t ci) -> bool  (return true to include column)
 // ---------------------------------------------------------------------------
 template <typename WidthFn, typename FilterFn>
+  requires std::invocable<WidthFn, size_t, const LogicalCell &, const ColumnSpec &> && std::invocable<FilterFn, size_t>
 static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow> &rows,
                                                     const std::vector<ColumnSpec> &columns,
                                                     const TextMeasurer &measurer, const StyleResolver &resolver,
@@ -94,9 +96,35 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
 
   std::vector<Length> heights(rows.size());
 
+  // Pre-compute per-column base styles (steps 1-5 of the cascade) for both
+  // regular and synthetic (addrow) rows.  Steps 1-4 are template-only and
+  // step 5 depends only on the column, so these are constant across all rows.
+  std::unordered_map<size_t, StyleDef> base_style_cache;   // regular rows
+  std::unordered_map<size_t, StyleDef> addrow_style_cache; // synthetic rows
+
+  for (size_t ci = 0; ci < columns.size(); ++ci) {
+    if (!filter_fn(ci)) continue;
+    if (!columns[ci].is_visible) continue;
+    base_style_cache.emplace(
+        ci, resolver.resolve_body_cell_style(columns[ci], std::nullopt, std::nullopt, std::nullopt, false));
+    addrow_style_cache.emplace(
+        ci, resolver.resolve_body_cell_style(columns[ci], std::nullopt, std::nullopt, std::nullopt, true));
+  }
+
+  // Cache find_style() results to avoid repeated hash lookups for the same ref.
+  std::unordered_map<std::string, const StyleDef *> style_ref_cache;
+  auto cached_find_style = [&](const std::string &ref) -> const StyleDef * {
+    auto it = style_ref_cache.find(ref);
+    if (it != style_ref_cache.end()) return it->second;
+    const StyleDef *found = resolver.find_style(ref);
+    style_ref_cache.emplace(ref, found);
+    return found;
+  };
+
   for (size_t ri = 0; ri < rows.size(); ++ri) {
     const auto &row = rows[ri];
     Length max_height{0};
+    bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
 
     for (size_t ci = 0; ci < row.cells.size() && ci < columns.size(); ++ci) {
       if (!filter_fn(ci)) continue;
@@ -107,14 +135,21 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
       // Determine cell width via callable
       Length cell_width = width_fn(ci, cell, columns[ci]);
 
-      // Resolve effective style for this cell
-      bool is_addrow = (row.type == LogicalRowType::SyntheticRow);
-      StyleDef cell_style =
-          resolver.resolve_body_cell_style(columns[ci], row.row_style_ref, std::nullopt, std::nullopt, is_addrow);
+      // Start from cached per-column base style, then apply row/cell overrides.
+      const auto &cache = is_addrow ? addrow_style_cache : base_style_cache;
+      auto base_it = cache.find(ci);
+      if (base_it == cache.end()) continue;
+      StyleDef cell_style = base_it->second;
+
+      // Apply row_style_ref (step 6)
+      if (row.row_style_ref.has_value()) {
+        const StyleDef *rs = cached_find_style(*row.row_style_ref);
+        if (rs) { cell_style.merge_from(*rs); }
+      }
 
       // Override with cell-level styles if present
       for (const auto &ref : cell.style_refs) {
-        const StyleDef *override_style = resolver.find_style(ref);
+        const StyleDef *override_style = cached_find_style(ref);
         if (override_style) { cell_style.merge_from(*override_style); }
       }
 
@@ -129,7 +164,7 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
 
     // 1) Row-level style (row_style_ref)
     if (row.row_style_ref.has_value()) {
-      const StyleDef *rs = resolver.find_style(*row.row_style_ref);
+      const StyleDef *rs = cached_find_style(*row.row_style_ref);
       if (rs && rs->table_style.has_value() && rs->table_style->row_height.has_value()) {
         explicit_row_height = *rs->table_style->row_height;
       }
@@ -140,7 +175,7 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
       for (const auto &cell : row.cells) {
         if (!cell.style_refs.empty()) {
           for (const auto &ref : cell.style_refs) {
-            const StyleDef *cs = resolver.find_style(ref);
+            const StyleDef *cs = cached_find_style(ref);
             if (cs && cs->table_style.has_value() && cs->table_style->row_height.has_value()) {
               explicit_row_height = *cs->table_style->row_height;
               break;

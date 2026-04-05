@@ -99,6 +99,9 @@ private:
   /// Apply a named style ref on top of base.
   StyleDef apply_style_ref(const StyleDef &base, const std::string &ref) const;
 
+  /// Apply a named style ref in-place (avoids copy when base is already mutable).
+  void apply_style_ref_inplace(StyleDef &target, const std::string &ref) const;
+
   /// Internal: resolve a content style from a region base + style refs.
   StyleDef resolve_content_style(const StyleDef &region_base, const std::vector<std::string> &style_refs) const;
 };
