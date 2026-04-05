@@ -55,7 +55,7 @@ OBJECTS = $(KSTFL_OBJECTS) $(VENDORED_OBJECTS)
 vendor/freetype/ft_all.o: vendor/freetype/ft_all.c
 	@mkdir -p vendor/freetype
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -Ivendor/freetype/include -Ivendor/freetype \
-	    -DFT2_BUILD_LIBRARY -c $< -o $@
+	    -DFT2_BUILD_LIBRARY -Wno-stringop-overflow -c $< -o $@
 
 ## HarfBuzz (C++, single-compilation-unit amalgamation)
 vendor/harfbuzz/harfbuzz.o: vendor/harfbuzz/src/harfbuzz.cc
