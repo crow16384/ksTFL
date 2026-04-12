@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,6 +34,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -136,13 +137,26 @@
 <h3 id="fonts-note">Fonts note<a class="anchor" aria-label="anchor" href="#fonts-note"></a>
 </h3>
 <p>Proprietary Microsoft fonts (Arial, Times New Roman, etc.) are <strong>not bundled</strong> due to licensing restrictions; open-source Liberation fonts are included as metrically compatible fallbacks. Windows and macOS systems with Microsoft Office installed typically have the original fonts already available. On Linux, additional steps may be required — see <a href="#id_7-font-management">Font Management</a> for details.</p>
+</div>
+<div class="section level3">
+<h3 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
+</h3>
+<p><code><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages()</a></code> resolves and installs declared <code>Imports</code> automatically from CRAN. If you need to install them manually — for example after installing from a local file — run:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Using pak (recommended)</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/local_install_deps.html" class="external-link">local_install_deps</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Using remotes / devtools</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_deps</span><span class="op">(</span>dependencies <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Required packages (<code>Imports</code>): <code>cli</code>, <code>checkmate</code>, <code>jsonlite</code>, <code>purrr</code>, <code>rlang</code>, <code>tidyselect</code>, <code>digest</code>, <code>htmltools</code>, <code>rstudioapi</code>, <code>Rcpp</code></p>
+<p>Optional packages required for shiny addins to work: <code>shiny</code>, <code>colourpicker</code>, <code>sortable</code>, <code>shinyFiles</code></p>
 <hr>
 </div>
 </div>
 <div class="section level2">
 <h2 id="quick-start-example">Quick Start Example<a class="anchor" aria-label="anchor" href="#quick-start-example"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Initialize a table specification</span></span>
@@ -189,23 +203,23 @@
 <col width="32%">
 <col width="32%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 <th>Returns</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>create_table(data, cols = everything())</code></td>
 <td>Initialize table spec with data frame</td>
 <td><code>TFL_spec</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>create_figure(plot_or_path, dpi = 300L)</code></td>
 <td>Initialize figure spec from image path or ggplot2 object</td>
 <td><code>TFL_spec</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/create_text.html">create_text()</a></code></td>
 <td>Initialize text-only spec (no data)</td>
 <td><code>TFL_spec</code></td>
@@ -223,43 +237,43 @@
 <col width="19%">
 <col width="58%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 <th>Supports Style References</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>add_title(spec, text, id, styleRef, order)</code></td>
 <td>Add title(s) to document</td>
 <td>Yes</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>add_subtitle(spec, text, id, styleRef, order)</code></td>
 <td>Add subtitle(s) to document</td>
 <td>Yes</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>add_footnote(spec, text, id, styleRef, order)</code></td>
 <td>Add footnote(s) to document</td>
 <td>Yes</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>add_body_text(spec, text, id, styleRef, order)</code></td>
 <td>Add body text paragraphs</td>
 <td>Yes</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>add_header(spec, ..., level)</code></td>
 <td>Add header row(s) (max 3 parts: left/center/right)</td>
 <td>Yes</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>add_footer(spec, ..., level)</code></td>
 <td>Add footer row(s) (max 3 parts: left/center/right)</td>
 <td>Yes</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>add_span_header(spec, cols, label, stubOrder, id, labelStyleRef)</code></td>
 <td>Add spanning column header</td>
 <td>Yes</td>
@@ -271,7 +285,7 @@
 <h3 id="column-configuration">Column Configuration<a class="anchor" aria-label="anchor" href="#column-configuration"></a>
 </h3>
 <p>Define column properties and formatting:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cols</span>, <span class="va">label</span>, <span class="va">isVisible</span>, <span class="va">isID</span>, <span class="va">isGrouping</span>, <span class="va">isPaging</span>,</span>
 <span>            <span class="va">labelStyleRef</span>, <span class="va">isColBreak</span>, <span class="va">dedupe</span>, <span class="va">blankAfter</span>,</span>
 <span>            <span class="va">type</span>, <span class="va">format</span>, <span class="va">missings</span>, <span class="va">colWidth</span>, <span class="va">valueStyleRef</span><span class="op">)</span></span></code></pre></div>
@@ -282,84 +296,84 @@
 <col width="31%">
 <col width="31%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Parameter</th>
 <th>Purpose</th>
 <th>Example</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>label</code></td>
 <td>Column display labels</td>
 <td><code>"Age (years)"</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>isVisible</code></td>
 <td>Show/hide columns (hidden = 0 width, data still accessible)</td>
 <td>
 <code>TRUE</code> / <code>FALSE</code>
 </td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>isID</code></td>
 <td>Identify key columns</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>isGrouping</code></td>
 <td>Enable grouping behavior (boundary detection for dedup/subtitles)</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>isPaging</code></td>
 <td>Force page breaks on value change</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>labelStyleRef</code></td>
 <td>Style reference for column headers</td>
 <td><code>"header_bold"</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>valueStyleRef</code></td>
 <td>Style reference for cell values</td>
 <td><code>"numeric_right"</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>isColBreak</code></td>
 <td>Mark horizontal pagination break point</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>dedupe</code></td>
 <td>Remove duplicate consecutive values</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>blankAfter</code></td>
 <td>Insert blank row after value change</td>
 <td><code>TRUE</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>type</code></td>
 <td>Override auto-detected column type</td>
 <td>
 <code>"numeric"</code> / <code>"string"</code>
 </td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>format</code></td>
 <td>Override auto-detected display format</td>
 <td>
 <code>"%.1f"</code> / <code>"%d"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>missings</code></td>
 <td>Custom representation for missing values</td>
 <td><code>"N/A"</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>colWidth</code></td>
 <td>Set width (%, cm, pt, in, mm, auto)</td>
 <td>
@@ -379,33 +393,33 @@
 <col width="32%">
 <col width="32%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 <th>Example</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>compute_cols(spec, condition, ...)</code></td>
 <td>Evaluate condition and apply set of actions</td>
 <td><code>compute_cols(spec, age &gt; 65, c_style(value, styleRef = "alert"))</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>c_style(cols, styleRef)</code></td>
 <td>Apply style to specified cells</td>
 <td><code>c_style(c(col1, col2), styleRef = "bold")</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>c_merge(cols, styleRef)</code></td>
 <td>Merge specified cells into one cell</td>
 <td><code>c_merge(c(col1, col2, col3))</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>c_addrow(position, value_from, styleRef)</code></td>
 <td>Insert row above/below</td>
 <td><code>c_addrow("above", group_col, styleRef = "header")</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/c_pageBreak.html">c_pageBreak()</a></code></td>
 <td>Insert page break at matching rows</td>
 <td><code><a href="reference/c_pageBreak.html">c_pageBreak()</a></code></td>
@@ -442,53 +456,53 @@
 <col width="32%">
 <col width="32%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 <th>Returns</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>add_style(spec, id, ...)</code></td>
 <td>Add named style to spec</td>
 <td><code>TFL_spec</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>s_font(font_name, font_size, bold, italic, underline, color, highlight)</code></td>
 <td>Font properties</td>
 <td>Style component</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>s_paragraph(word_style, alignment, spacing, indents)</code></td>
 <td>Paragraph formatting</td>
 <td>Style component</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>s_spacing(before, after, line_spacing)</code></td>
 <td>Spacing settings</td>
 <td>Style component</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>s_indents(left, right, first_line)</code></td>
 <td>Indentation settings</td>
 <td>Style component</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)</code></td>
 <td>Table cell styling</td>
 <td>Style component</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>s_borders(top, bottom, left, right)</code></td>
 <td>Border definitions</td>
 <td>Style component</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>s_border(color, width, line_style)</code></td>
 <td>Individual border</td>
 <td>Style component</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>f_combine(...)</code></td>
 <td>Combine multiple style references</td>
 <td>Combined style reference</td>
@@ -510,7 +524,7 @@
 </li>
 </ul>
 <p><strong>Example Style Definition</strong>:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec</span>, id <span class="op">=</span> <span class="st">"header_style"</span>,</span>
 <span>  <span class="fu"><a href="reference/s_font.html">s_font</a></span><span class="op">(</span>font_name <span class="op">=</span> <span class="st">"Arial"</span>, font_size <span class="op">=</span> <span class="st">"12pt"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span>, color <span class="op">=</span> <span class="st">"#333333"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="reference/s_paragraph.html">s_paragraph</a></span><span class="op">(</span>alignment <span class="op">=</span> <span class="st">"center"</span>, spacing <span class="op">=</span> <span class="fu"><a href="reference/s_spacing.html">s_spacing</a></span><span class="op">(</span>after <span class="op">=</span> <span class="st">"6pt"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -532,30 +546,30 @@
 <col width="25%">
 <col width="45%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 <th>Key Parameters</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>set_document(spec, ...)</code></td>
 <td>Set document metadata</td>
 <td>
 <code>isContinues</code>, <code>contentWidth</code>, <code>topEmptyLine</code>, <code>bottomEmptyLine</code>, <code>footnotePlace</code>, <code>hasData</code>, <code>docTemplate</code>, <code>figureWidth</code>, <code>figureHeight</code>, <code>figureDevice</code>, <code>figureScaleMode</code>
 </td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>set_page_style(spec, docTemplate, page)</code></td>
 <td>Configure page layout &amp; template</td>
 <td>Template name, page settings</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>p_page(size, orientation, margins)</code></td>
 <td>Page settings helper</td>
 <td>A4/Letter/Legal, portrait/landscape</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>p_margins(top, bottom, left, right, header, footer)</code></td>
 <td>Margin settings helper</td>
 <td>Dimensions with units (in, cm, pt, mm)</td>
@@ -573,29 +587,29 @@
 <col width="32%">
 <col width="32%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 <th>Returns</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>create_report(...)</code></td>
 <td>Combine specs/reports into single report</td>
 <td><code>TFL_report</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>save_report(report, docFileName, outDir, metaPath, prettify)</code></td>
 <td>Serialize and export report</td>
 <td>List with <code>spec_file</code>, <code>datetime</code>, <code>metaPath</code>
 </td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>write_doc(report, name, outDir, metaPath, overrideTemplate, font_dirs, fallback_font, verbose)</code></td>
 <td>Save and render DOCX in one call</td>
 <td>Output file path (invisibly)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>replay_report(spec_json, meta_dir, output_path, template_json, overrideTemplate, insertTOC, tocTitle, verbose)</code></td>
 <td>Re-render DOCX from stored JSON metadata</td>
 <td>Output file path (invisibly)</td>
@@ -655,28 +669,28 @@
 <col width="52%">
 <col width="47%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>tfl_set_options(...)</code></td>
 <td>Set package-level options (replaces, not accumulates)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/tfl_get_options.html">tfl_get_options()</a></code></td>
 <td>Retrieve all current options</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>tfl_get_option(name)</code></td>
 <td>Retrieve single option value</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/tfl_reset_options.html">tfl_reset_options()</a></code></td>
 <td>Reset all options to defaults</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/tfl_list_templates.html">tfl_list_templates()</a></code></td>
 <td>List available bundled document templates</td>
 </tr>
@@ -690,101 +704,101 @@
 <col width="15%">
 <col width="33%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Parameter</th>
 <th>Default</th>
 <th>Type</th>
 <th>Description</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>docTemplate</code></td>
 <td><code>"CRO Example_default"</code></td>
 <td>Character</td>
 <td>Document style template (bundled name or path to JSON). Use <code><a href="reference/tfl_list_templates.html">tfl_list_templates()</a></code> to list available embedded templates, or use template editor shiny addin to create your own</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>contentWidth</code></td>
 <td><code>"100%"</code></td>
 <td>Character</td>
 <td>Main content area width (e.g., <code>"95%"</code>, <code>"16.51cm"</code>, <code>"6.5in"</code>)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>footnotePlace</code></td>
 <td><code>"repeated"</code></td>
 <td>Character</td>
 <td>Footnote placement: <code>"repeated"</code> (every page), <code>"last_page"</code>, or <code>"doc_footer"</code>
 </td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>isContinues</code></td>
 <td><code>FALSE</code></td>
 <td>Logical</td>
 <td>Suppress repeating headers on every page of the document</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>missings</code></td>
 <td><code>"NA"</code></td>
 <td>Character</td>
 <td>Default representation for missing/NA values (e.g., <code>"."</code>, <code>"---"</code>, <code>"N/A"</code>)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>autoColWidth</code></td>
 <td><code>TRUE</code></td>
 <td>Logical</td>
 <td>Auto-recalculate unlocked column widths; when <code>FALSE</code> manage all widths manually</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>minColWidth</code></td>
 <td><code>0.5</code></td>
 <td>Numeric</td>
 <td>Minimum relative width (%) for unlocked columns during auto-recalculation</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>figureWidth</code></td>
 <td><code>"6in"</code></td>
 <td>Character</td>
 <td>Default figure width (e.g., <code>"70%"</code>, <code>"6.5in"</code>, <code>"16.51cm"</code>)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>figureHeight</code></td>
 <td><code>"4in"</code></td>
 <td>Character</td>
 <td>Default figure height (same format as <code>figureWidth</code>)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>figureDevice</code></td>
 <td><code>"svg"</code></td>
 <td>Character</td>
 <td>Graphics device for ggplot2 rendering: <code>"svg"</code>, <code>"png"</code>, <code>"jpeg"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>figureScaleMode</code></td>
 <td><code>"fixed"</code></td>
 <td>Character</td>
 <td>Figure scaling: <code>"fixed"</code>, <code>"fitWidth"</code> (scale to page width), <code>"fitPage"</code>
 </td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>insertTOC</code></td>
 <td><code>FALSE</code></td>
 <td>Logical</td>
 <td>Prepend a Table of Contents page (requires <code>toclevel</code> on titles)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>tocTitle</code></td>
 <td><code>"Table of Contents"</code></td>
 <td>Character</td>
 <td>TOC page heading; use <code>""</code> to omit</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>output_directory</code></td>
 <td><code>"."</code></td>
 <td>Character</td>
 <td>Default output directory for rendered documents</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>meta_directory</code></td>
 <td><code>NULL</code></td>
 <td>Character</td>
@@ -799,27 +813,27 @@
 <col width="26%">
 <col width="41%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Parameter</th>
 <th>Default</th>
 <th>Valid Values</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>page.size</code></td>
 <td><code>"A4"</code></td>
 <td>
 <code>"A4"</code>, <code>"A3"</code>, <code>"Letter"</code>, <code>"Legal"</code>, <code>"Executive"</code>
 </td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>page.orientation</code></td>
 <td><code>"landscape"</code></td>
 <td>
 <code>"portrait"</code>, <code>"landscape"</code>
 </td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>page.margins</code></td>
 <td>Template default</td>
 <td>Created via <code>p_margins(top, bottom, left, right, header, footer)</code> — all accept dimension strings (e.g., <code>"25mm"</code>, <code>"1in"</code>, <code>"2.54cm"</code>, <code>"72pt"</code>)</td>
@@ -833,7 +847,7 @@
 <li>Default <strong>headers/footers</strong>: <code>tfl_set_options(add_header("Left", "Center", "Right"))</code> — up to 3 cells per row</li>
 <li>Default <strong>body text</strong>: <code>tfl_set_options(add_body_text("No data to report"))</code> — shown when spec has no data</li>
 </ul>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example: configure session-wide defaults</span></span>
 <span><span class="fu"><a href="reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
 <span>  contentWidth <span class="op">=</span> <span class="st">"95%"</span>,</span>
@@ -854,7 +868,7 @@
 </h3>
 <p>ksTFL ships with 100+ <strong>atomic styles</strong> — single-property building blocks that can be used directly as <code>styleRef</code> values or combined with <code><a href="reference/f_combine.html">f_combine()</a></code>. Each atom sets exactly <strong>one</strong> visual property, making styles composable and predictable. Use <code><a href="reference/tfl_print_style_atoms.html">tfl_print_style_atoms()</a></code> to print all avaialbe atomic styles, or use addin to call this function.</p>
 <p><strong>Usage</strong>: pass atom IDs directly to any <code>styleRef</code> parameter, or combine multiple atoms:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Single atom</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Demographics"</span>, styleRef <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span></span>
 <span></span>
@@ -867,23 +881,23 @@
 <span>  styleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"i"</span>, <span class="st">"fc_gray"</span>, <span class="st">"tw_80"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Font — Decoration</strong></p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Atom</th>
 <th>Alias</th>
 <th>Effect</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>b</code></td>
 <td><code>font_bold</code></td>
 <td>Bold</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>i</code></td>
 <td><code>font_italic</code></td>
 <td>Italic</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>u</code></td>
 <td><code>font_underline</code></td>
 <td>Underline</td>
@@ -892,32 +906,32 @@
 </table>
 <p><strong>Font — Family</strong></p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Atom</th>
 <th>Font</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>font_arial</code></td>
 <td>Arial</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>font_courier_new</code></td>
 <td>Courier New</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>font_times_new_roman</code></td>
 <td>Times New Roman</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>font_georgia</code></td>
 <td>Georgia</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>font_verdana</code></td>
 <td>Verdana</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>font_trebuchet_ms</code></td>
 <td>Trebuchet MS</td>
 </tr>
@@ -926,65 +940,65 @@
 <p><strong>Font — Size</strong> (<code>fs_7</code> through <code>fs_11</code>): <code>fs_7</code>, <code>fs_8</code>, <code>fs_9</code>, <code>fs_10</code>, <code>fs_11</code> (7–11 pt)</p>
 <p><strong>Font — Color</strong></p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Atom</th>
 <th>Hex</th>
 <th>Use Case</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>fc_black</code></td>
 <td>#000000</td>
 <td>Default / reset</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>fc_red</code></td>
 <td>#FF0000</td>
 <td>Alert / out-of-range</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>fc_blue</code></td>
 <td>#0000FF</td>
 <td>Informational</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>fc_green</code></td>
 <td>#008000</td>
 <td>Within-range / pass</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>
 <code>fc_gray</code> / <code>fc_grey</code>
 </td>
 <td>#595959</td>
 <td>Secondary / reference</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>fc_navy</code></td>
 <td>#1F3864</td>
 <td>Dark formal headers</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>fc_teal</code></td>
 <td>#2E75B6</td>
 <td>Medium blue</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>fc_olive</code></td>
 <td>#5C7A29</td>
 <td>Muted green</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>fc_rust</code></td>
 <td>#C0392B</td>
 <td>Muted red / caution</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>fc_plum</code></td>
 <td>#7B2D8B</td>
 <td>Purple / special</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>fc_slate</code></td>
 <td>#44546A</td>
 <td>Blue-gray / subdued</td>
@@ -993,32 +1007,32 @@
 </table>
 <p><strong>Text Highlight</strong> (background shading behind text)</p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Atom</th>
 <th>Hex</th>
 <th>Atom</th>
 <th>Hex</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>hl_yellow</code></td>
 <td>#FFFF00</td>
 <td><code>hl_peach</code></td>
 <td>#FADADD</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>hl_red</code></td>
 <td>#FF0000</td>
 <td><code>hl_mint</code></td>
 <td>#D5F5E3</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>hl_green</code></td>
 <td>#90EE90</td>
 <td><code>hl_sky</code></td>
 <td>#D6EAF8</td>
 </tr>
-<tr class="even">
+<tr>
 <td>
 <code>hl_gray</code> / <code>hl_grey</code>
 </td>
@@ -1026,7 +1040,7 @@
 <td><code>hl_lemon</code></td>
 <td>#FEFBD8</td>
 </tr>
-<tr class="odd">
+<tr>
 <td></td>
 <td></td>
 <td><code>hl_lilac</code></td>
@@ -1036,23 +1050,23 @@
 </table>
 <p><strong>Paragraph — Alignment</strong></p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Atom</th>
 <th>Alias</th>
 <th>Alignment</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>al</code></td>
 <td><code>text_left</code></td>
 <td>Left</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>ac</code></td>
 <td><code>text_center</code></td>
 <td>Center</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>ar</code></td>
 <td><code>text_right</code></td>
 <td>Right</td>
@@ -1067,20 +1081,20 @@
 <p><strong>Cell — Text Orientation</strong>: <code>to_h</code> / <code>text_horizontal</code>, <code>to_90</code> / <code>text_vertical_90</code> (bottom-to-top), <code>to_270</code> / <code>text_vertical_270</code> (top-to-bottom).</p>
 <p><strong>Cell — Background Color</strong></p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Atom</th>
 <th>Hex</th>
 <th>Atom</th>
 <th>Hex</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>bg_blue</code></td>
 <td>#D9E1F2</td>
 <td><code>bg_peach</code></td>
 <td>#FADADD</td>
 </tr>
-<tr class="even">
+<tr>
 <td>
 <code>bg_gray</code> / <code>bg_grey</code>
 </td>
@@ -1088,19 +1102,19 @@
 <td><code>bg_mint</code></td>
 <td>#D5F5E3</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>bg_navy</code></td>
 <td>#1F3864</td>
 <td><code>bg_sky</code></td>
 <td>#D6EAF8</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>bg_slate</code></td>
 <td>#44546A</td>
 <td><code>bg_lemon</code></td>
 <td>#FEFBD8</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>bg_steel</code></td>
 <td>#BDD7EE</td>
 <td><code>bg_lilac</code></td>
@@ -1111,7 +1125,7 @@
 <p><strong>Row Height</strong> (spacer rows): <code>row_h2</code> (2 pt), <code>row_h4</code> (4 pt), <code>row_h6</code> (6 pt).</p>
 <p><strong>Borders</strong>: <code>bt</code>, <code>bb</code>, <code>bl</code>, <code>br</code> (1 pt black, single line); <code>bt_th</code>, <code>bb_th</code> (0.5 pt thin); <code>bc_gray</code>/<code>bc_grey</code> (color override to gray), <code>bc_white</code> (suppress all borders).</p>
 <p><strong>Group Header Composites</strong>: <code>grp_hdr</code> (bold + indent reset + 4 pt space-before), <code>grp_hdr_i</code> (bold + italic + indent reset + 4 pt space-before).</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Compose atoms for a styled separator row</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">lastOf</span><span class="op">(</span><span class="va">category</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"below"</span>, <span class="va">category</span>,</span>
@@ -1132,50 +1146,50 @@
 <col width="36%">
 <col width="40%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Tag</th>
 <th>Effect</th>
 <th>Example</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code>&lt;b&gt;...&lt;/b&gt;</code></td>
 <td><strong>Bold</strong></td>
 <td><code>"Total: &lt;b&gt;125&lt;/b&gt; subjects"</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>&lt;i&gt;...&lt;/i&gt;</code></td>
 <td><em>Italic</em></td>
 <td><code>"p-value&lt;i&gt;(two-sided)&lt;/i&gt;"</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>&lt;u&gt;...&lt;/u&gt;</code></td>
 <td>Underline</td>
 <td><code>"See &lt;u&gt;Table 14.1&lt;/u&gt;"</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>&lt;s&gt;...&lt;/s&gt;</code></td>
 <td><del>Strikethrough</del></td>
 <td><code>"&lt;s&gt;Deprecated&lt;/s&gt; Updated"</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code>&lt;sup&gt;...&lt;/sup&gt;</code></td>
 <td>Superscript</td>
 <td><code>"E=mc&lt;sup&gt;2&lt;/sup&gt;"</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>&lt;sub&gt;...&lt;/sub&gt;</code></td>
 <td>Subscript</td>
 <td><code>"H&lt;sub&gt;2&lt;/sub&gt;O"</code></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>
 <code>&lt;br&gt;</code> or <code>&lt;br/&gt;</code>
 </td>
 <td>Line break (soft, within same paragraph)</td>
 <td><code>"Revenue&lt;br&gt;(Millions of $)"</code></td>
 </tr>
-<tr class="even">
+<tr>
 <td><code>&lt;p&gt;</code></td>
 <td>Paragraph break (starts a new paragraph)</td>
 <td><code>"First paragraph&lt;p&gt;Second paragraph"</code></td>
@@ -1197,7 +1211,7 @@
 <strong>Priority</strong>: inline markup overrides all style-system settings (template, column, row styles)</li>
 </ul>
 <p><strong>Common Patterns</strong>:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Multi-line column headers</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">drug</span>, <span class="va">placebo</span>, <span class="va">total</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DrugX&lt;br&gt;(N=160)"</span>, <span class="st">"Placebo&lt;br&gt;(N=158)"</span>, <span class="st">"Total&lt;br&gt;(N=318)"</span><span class="op">)</span><span class="op">)</span></span>
@@ -1257,7 +1271,7 @@
 <h3 id="id_1-tidyselect-integration">1. Tidyselect Integration<a class="anchor" aria-label="anchor" href="#id_1-tidyselect-integration"></a>
 </h3>
 <p>Use tidyselect expressions for intuitive column selection:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">starts_with</span><span class="op">(</span><span class="st">"lab_"</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"15%"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, isID <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">where</span><span class="op">(</span><span class="va">is.numeric</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"auto"</span><span class="op">)</span></span></code></pre></div>
@@ -1288,7 +1302,7 @@
 <h3 id="id_5-vectorized-parameters">5. Vectorized Parameters<a class="anchor" aria-label="anchor" href="#id_5-vectorized-parameters"></a>
 </h3>
 <p>Most functions support vectorized inputs:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Single value recycled</span></span>
 <span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col1</span>, <span class="va">col2</span>, <span class="va">col3</span><span class="op">)</span>, colWidth <span class="op">=</span> <span class="st">"33%"</span><span class="op">)</span></span>
 <span></span>
@@ -1320,38 +1334,38 @@
 <p>ksTFL automatically discovers fonts installed on the operating system at package load time. The C++ font scanner inspects platform-specific directories (Windows font folders, macOS system/user Library, Linux freedesktop paths) and builds a font registry. System-installed proprietary fonts are always preferred; only when a target font is missing does the package fall back to a bundled open-source alternative.</p>
 <p><strong>Target fonts and fallbacks:</strong></p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Target Font</th>
 <th>Fallback (bundled)</th>
 <th>License</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>Arial</td>
 <td>Liberation Sans</td>
 <td>SIL OFL 1.1</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Times New Roman</td>
 <td>Liberation Serif</td>
 <td>SIL OFL 1.1</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Courier New</td>
 <td>Liberation Mono</td>
 <td>SIL OFL 1.1</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Georgia</td>
 <td>Liberation Serif</td>
 <td>SIL OFL 1.1</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>Verdana</td>
 <td>Liberation Sans</td>
 <td>SIL OFL 1.1</td>
 </tr>
-<tr class="even">
+<tr>
 <td>Trebuchet MS</td>
 <td>Liberation Sans</td>
 <td>SIL OFL 1.1</td>
@@ -1368,37 +1382,37 @@
 </h4>
 <p>The <strong><code>ttf-mscorefonts-installer</code></strong> package downloads and installs the Microsoft TrueType core fonts (Arial, Times New Roman, Courier New, Georgia, Verdana, Trebuchet MS, and others) from SourceForge. It is available in most Linux distribution repositories.</p>
 <p><strong>Debian / Ubuntu:</strong></p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> ttf-mscorefonts-installer</span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">sudo</span> apt-get update</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">sudo</span> apt-get install <span class="at">-y</span> ttf-mscorefonts-installer</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>Fedora / RHEL / CentOS (via RPM Fusion or manual SPEC):</strong></p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># Fedora (requires RPM Fusion free repository to be enabled)</span></span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> curl cabextract xorg-x11-font-utils fontconfig</span>
-<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm</span>
-<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Fedora (requires RPM Fusion free repository to be enabled)</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install <span class="at">-y</span> curl cabextract xorg-x11-font-utils fontconfig</span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="fu">sudo</span> rpm <span class="at">-i</span> https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm</span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>openSUSE:</strong></p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install <span class="at">-y</span> fetchmsttfonts</span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">sudo</span> zypper install <span class="at">-y</span> fetchmsttfonts</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p><strong>Arch Linux:</strong></p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Available from the AUR</span></span>
-<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="ex">yay</span> <span class="at">-S</span> ttf-ms-fonts</span>
-<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Available from the AUR</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="ex">yay</span> <span class="at">-S</span> ttf-ms-fonts</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="fu">sudo</span> fc-cache <span class="at">-f</span></span></code></pre></div>
 <p>After installing, restart R (or call <code><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code> in a running session) so ksTFL picks up the new fonts.</p>
 </div>
 <div class="section level4">
 <h4 id="rocker-docker-images">Rocker Docker images<a class="anchor" aria-label="anchor" href="#rocker-docker-images"></a>
 </h4>
 <p><a href="https://rocker-project.org/" class="external-link">Rocker</a> images are Debian-based, so <code>ttf-mscorefonts-installer</code> can be added directly. Include the following in your Dockerfile:</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.4</span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a></span>
-<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="co"># Accept the Microsoft EULA non-interactively and install core fonts</span></span>
-<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a><span class="kw">RUN</span> <span class="bu">echo</span> <span class="st">"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"</span> <span class="dt">\</span></span>
-<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>      <span class="kw">|</span> <span class="ex">debconf-set-selections</span> <span class="dt">\</span></span>
-<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> update <span class="dt">\</span></span>
-<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> ttf-mscorefonts-installer fontconfig <span class="dt">\</span></span>
-<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">fc-cache</span> <span class="at">-f</span> <span class="dt">\</span></span>
-<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> clean <span class="dt">\</span></span>
-<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode dockerfile"><code class="sourceCode dockerfile"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="kw">FROM</span> rocker/r-ver:4.4</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="co"># Accept the Microsoft EULA non-interactively and install core fonts</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="kw">RUN</span> <span class="bu">echo</span> <span class="st">"ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true"</span> <span class="dt">\</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>      <span class="kw">|</span> <span class="ex">debconf-set-selections</span> <span class="dt">\</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> update <span class="dt">\</span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> install <span class="at">-y</span> <span class="at">--no-install-recommends</span> ttf-mscorefonts-installer fontconfig <span class="dt">\</span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">fc-cache</span> <span class="at">-f</span> <span class="dt">\</span></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="ex">apt-get</span> clean <span class="dt">\</span></span>
+<span id="cb22-10"><a href="#cb22-10" tabindex="-1"></a>    <span class="kw">&amp;&amp;</span> <span class="fu">rm</span> <span class="at">-rf</span> /var/lib/apt/lists/<span class="pp">*</span></span></code></pre></div>
 <blockquote>
 <p><strong>Tip:</strong> The <code>debconf-set-selections</code> line automatically accepts the Microsoft EULA, which is required for non-interactive installs (CI/CD pipelines, Docker builds).</p>
 </blockquote>
@@ -1407,7 +1421,7 @@
 <h4 id="custom-font-directories">Custom font directories<a class="anchor" aria-label="anchor" href="#custom-font-directories"></a>
 </h4>
 <p>Point the <code>ksTFL.font_dirs</code> option to directories containing proprietary or additional fonts. These are scanned alongside system directories:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/opt/company-fonts"</span>, <span class="st">"~/my-fonts"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Font management functions:</strong></p>
@@ -1416,16 +1430,16 @@
 <col width="52%">
 <col width="47%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/tfl_font_status.html">tfl_font_status()</a></code></td>
 <td>Print current font resolution report</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code></td>
 <td>Re-scan all font directories and print updated report</td>
 </tr>
@@ -1438,7 +1452,7 @@
 <div class="section level2">
 <h2 id="full-pipeline-example">Full Pipeline Example<a class="anchor" aria-label="anchor" href="#full-pipeline-example"></a>
 </h2>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Create and customize spec</span></span>
@@ -1456,54 +1470,54 @@
 <hr>
 </div>
 <div class="section level2">
-<h2 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
+<h2 id="dependencies-1">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies-1"></a>
 </h2>
 <div class="section level3">
 <h3 id="r-packages">R Packages<a class="anchor" aria-label="anchor" href="#r-packages"></a>
 </h3>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Package</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><strong>cli</strong></td>
 <td>Formatted error messages and user feedback</td>
 </tr>
-<tr class="even">
+<tr>
 <td><strong>checkmate</strong></td>
 <td>Type-safe argument validation</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><strong>jsonlite</strong></td>
 <td>JSON serialization/deserialization</td>
 </tr>
-<tr class="even">
+<tr>
 <td><strong>tidyselect</strong></td>
 <td>Column selection semantics</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><strong>rlang</strong></td>
 <td>Quasiquotation and evaluation</td>
 </tr>
-<tr class="even">
+<tr>
 <td><strong>digest</strong></td>
 <td>Hash generation for style deduplication</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><strong>purrr</strong></td>
 <td>Functional programming utilities</td>
 </tr>
-<tr class="even">
+<tr>
 <td><strong>htmltools</strong></td>
 <td>Interactive spec preview (print method)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><strong>rstudioapi</strong></td>
 <td>RStudio viewer integration</td>
 </tr>
-<tr class="even">
+<tr>
 <td><strong>Rcpp</strong></td>
 <td>R/C++ interface for rendering engine</td>
 </tr>

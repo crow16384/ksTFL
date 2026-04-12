@@ -88,7 +88,7 @@
 - [`s_border()`](https://example.com/reference/s_border.md) : Define
   border properties
 - [`s_borders()`](https://example.com/reference/s_borders.md) : Define
-  borders for table cells
+  borders for table cells or paragraphs
 - [`s_font()`](https://example.com/reference/s_font.md) : Define font
   properties for a style
 - [`s_indents()`](https://example.com/reference/s_indents.md) : Define

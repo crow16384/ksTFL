@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -703,7 +704,38 @@ styles combined with <code><a href="../reference/f_combine.html">f_combine()</a>
 visually distinct</p>
 <p>- Styles must be defined before referencing them in
 <code><a href="../reference/add_span_header.html">add_span_header()</a></code></p>
+</div>
+<div class="section level3">
+<h3 id="example-3-paragraph-borders-on-spanning-headers">Example 3: Paragraph borders on spanning headers<a class="anchor" aria-label="anchor" href="#example-3-paragraph-borders-on-spanning-headers"></a>
+</h3>
+<p>When a cell border is applied to a spanning header, it stretches
+across the entire merged cell. A paragraph border instead follows the
+text width — useful for visually separating groups without a full-width
+line. Paragraph borders are also unaffected by structural border
+overrides (<code>header_top_border</code>,
+<code>header_bottom_border</code>), giving full control on intermediate
+header rows.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec_para</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">demog_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">age</span>, <span class="va">sex</span>, <span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Paragraph border style — the underline follows the text, not the cell edge</span></span>
+<span><span class="va">spec_para</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="va">spec_para</span>, id <span class="op">=</span> <span class="st">"span_underline"</span>,</span>
+<span>  <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/s_paragraph.html">s_paragraph</a></span><span class="op">(</span></span>
+<span>    alignment <span class="op">=</span> <span class="st">"center"</span>,</span>
+<span>    borders <span class="op">=</span> <span class="fu"><a href="../reference/s_borders.html">s_borders</a></span><span class="op">(</span></span>
+<span>      bottom <span class="op">=</span> <span class="fu"><a href="../reference/s_border.html">s_border</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#000000"</span>, width <span class="op">=</span> <span class="st">"0.5pt"</span>, line_style <span class="op">=</span> <span class="st">"single"</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or use the built-in paragraph border atom</span></span>
+<span><span class="va">spec_para</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec_para</span>,</span>
+<span>  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span><span class="op">)</span>,</span>
+<span>  label <span class="op">=</span> <span class="st">"Demographics"</span>,</span>
+<span>  labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"ac"</span>, <span class="st">"pb_th"</span><span class="op">)</span>  <span class="co"># bold + center + thin paragraph bottom border</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Render stubbed table report to DOCX</span></span>
 <span><span class="va">rpt_stub</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_stubs_style</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">rpt_stub</span>, name <span class="op">=</span> <span class="st">"tbl_stub"</span>, outDir <span class="op">=</span> <span class="st">"./out"</span>, metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -735,7 +767,7 @@ reference them by name wherever you need them
 </h3>
 <p>Create atomic styles that focus on one aspect (font, alignment,
 color):</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create a table spec</span></span>
 <span><span class="va">spec_base_styles</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">demog_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">age</span>, <span class="va">sex</span>, <span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -763,7 +795,7 @@ color):</p>
 </h3>
 <p>Apply multiple styles to a single element using
 <code><a href="../reference/f_combine.html">f_combine()</a></code> — they merge at render time:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create spec and define base styles</span></span>
 <span><span class="va">spec_combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">demog_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">age</span>, <span class="va">sex</span>, <span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -812,7 +844,7 @@ occurrence, threshold-based)</p>
 <h3 id="example-1-conditional-styling">Example 1: Conditional styling<a class="anchor" aria-label="anchor" href="#example-1-conditional-styling"></a>
 </h3>
 <p>Apply a style to columns in rows matching a condition:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Sample data with groups</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"C"</span><span class="op">)</span>,</span>
@@ -839,7 +871,7 @@ occurrence, threshold-based)</p>
 </h3>
 <p>Apply multiple styles to a single column using
 <code><a href="../reference/f_combine.html">f_combine()</a></code>:</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"bold"</span>,      <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"large"</span>,     <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>font_size <span class="op">=</span> <span class="st">"14pt"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -856,7 +888,7 @@ occurrence, threshold-based)</p>
 <h3 id="example-3-column-merging-in-conditional-rows">Example 3: Column merging in conditional rows<a class="anchor" aria-label="anchor" href="#example-3-column-merging-in-conditional-rows"></a>
 </h3>
 <p>Merge adjacent columns for rows matching a condition:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"group_label"</span>, <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#D9D9D9"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -872,7 +904,7 @@ occurrence, threshold-based)</p>
 </h3>
 <p>Insert empty rows (separators) or rows with content from another
 column:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"separator"</span>, <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#E8E8E8"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -893,7 +925,7 @@ column:</p>
 <h3 id="example-4b-page-break-insertion">Example 4b: Page break insertion<a class="anchor" aria-label="anchor" href="#example-4b-page-break-insertion"></a>
 </h3>
 <p>Force a page break when a group ends (useful for long groups):</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">lastOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_pageBreak.html">c_pageBreak</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -904,7 +936,7 @@ column:</p>
 </h3>
 <p>Combine styling, merging, and row insertion in a single
 <code><a href="../reference/compute_cols.html">compute_cols()</a></code> call:</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"header"</span>,    <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"separator"</span>, <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#E8E8E8"</span><span class="op">)</span><span class="op">)</span></span>
@@ -970,7 +1002,7 @@ discover available template names (e.g., <code>"Navy_Pro"</code>,
 <code>"Carbon_Dark"</code>). Use <code><a href="../reference/run_styles_editor.html">run_styles_editor()</a></code> to
 interactively preview and customize templates.</p>
 </blockquote>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create multiple specs</span></span>
 <span><span class="va">table_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">labs_tbl</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">subject_id</span>, <span class="va">ALT</span>, <span class="va">AST</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">table_spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="va">table_spec</span>, <span class="st">"Laboratory Results"</span><span class="op">)</span></span>
@@ -1035,7 +1067,7 @@ created afterward inherit these settings.</p>
 <div class="section level3">
 <h3 id="example-1-set-basic-session-options">Example 1: Set basic session options<a class="anchor" aria-label="anchor" href="#example-1-set-basic-session-options"></a>
 </h3>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set session defaults (applies to all NEW specs created after this call)</span></span>
 <span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/add_header.html">add_header</a></span><span class="op">(</span><span class="st">"Study ABC"</span>, <span class="st">"Phase II Safety Study"</span>, <span class="st">"CONFIDENTIAL"</span><span class="op">)</span>,</span>
@@ -1056,7 +1088,7 @@ No need to call <code><a href="../reference/add_header.html">add_header()</a></c
 <h3 id="example-2-override-session-options-in-a-specific-spec">Example 2: Override session options in a specific spec<a class="anchor" aria-label="anchor" href="#example-2-override-session-options-in-a-specific-spec"></a>
 </h3>
 <p>You can override session defaults on individual specs:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Session options are still in effect from previous example</span></span>
 <span></span>
 <span><span class="co"># Create a spec with session defaults</span></span>
@@ -1078,7 +1110,7 @@ over session defaults (last-win strategy).</p>
 <h3 id="example-3-check-and-reset-session-options">Example 3: Check and reset session options<a class="anchor" aria-label="anchor" href="#example-3-check-and-reset-session-options"></a>
 </h3>
 <p>Inspect current session options and reset to defaults:</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check current options</span></span>
 <span><span class="va">current_options</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tfl_get_options.html">tfl_get_options</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">current_options</span><span class="op">)</span></span>

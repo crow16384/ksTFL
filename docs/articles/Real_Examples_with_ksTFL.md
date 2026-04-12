@@ -67,6 +67,7 @@ these options are set once at the session level, individual specs don’t
 need to repeat them — they inherit the defaults automatically:
 
 ``` r
+
 library(ksTFL)
 library(dplyr)
 
@@ -122,6 +123,7 @@ rows — it is `NA` everywhere else, which is how we target those rows in
 and page-break logic:
 
 ``` r
+
 raw <- tibble(
   SECTION = c(
     rep("Age (years)", 6),
@@ -173,6 +175,7 @@ The first few rows of `raw`:
 ### Building the specification
 
 ``` r
+
 spec <- create_table(raw) %>%
 
   # --- Titles and footnotes ---
@@ -255,13 +258,13 @@ spec <- create_table(raw) %>%
 ### Render
 
 ``` r
+
 create_report(spec) %>% write_doc("example_01")
 ```
 
 ### Rendered output
 
-[Download
-example_01.pdf](https://example.com/articles/pdf/example_01.pdf)
+[Download example_01.pdf](pdf/example_01.pdf)
 
 ### Switching style templates
 
@@ -272,6 +275,7 @@ single parameter on an already-built spec, without touching any of the
 data or conditional logic:
 
 ``` r
+
 spec <- set_document(spec, docTemplate = 'Navy_Pro')
 create_report(spec) %>% write_doc("example_01_navy")
 ```
@@ -279,8 +283,7 @@ create_report(spec) %>% write_doc("example_01_navy")
 The same table is now rendered with the “Navy_Pro” template — different
 fonts, colours, and border styles, but identical content and structure:
 
-[Download
-example_01_navy.pdf](https://example.com/articles/pdf/example_01_navy.pdf)
+[Download example_01_navy.pdf](pdf/example_01_navy.pdf)
 
 **Key take-aways from this example:**
 
@@ -337,6 +340,7 @@ comments below alongside Example 1 will help you see the one-to-one
 correspondence:
 
 ``` r
+
 ### Build the specification object
 
 drg_N   <- 16
@@ -427,8 +431,7 @@ spec_dm_01 <- create_table(data) %>%
 
 ### Rendered output
 
-[Download
-example_02_demog.pdf](https://example.com/articles/pdf/example_02_demog.pdf)
+[Download example_02_demog.pdf](pdf/example_02_demog.pdf)
 
 ## Example 3 — Adverse Events table with complex spanning headers
 
@@ -477,6 +480,7 @@ This example demonstrates:
 ### Code
 
 ``` r
+
 # --- Build the table specification ---
 spec <- create_table(tbl) %>%
 
@@ -647,8 +651,7 @@ create_report(spec) %>% write_doc("example_03_ae")
 
 ### Rendered output
 
-[Download
-example_03_ae.pdf](https://example.com/articles/pdf/example_03_ae.pdf)
+[Download example_03_ae.pdf](pdf/example_03_ae.pdf)
 
 ## Example 4 — Data listing with automatic two-level TOC
 
@@ -689,6 +692,7 @@ become essential. This example demonstrates:
 ### Code
 
 ``` r
+
 spec_lbl_01 <- create_table(data) %>%
 
   # --- Title and dynamic subtitle ---
@@ -769,8 +773,7 @@ create_report(spec_lbl_01) %>% write_doc("example_04_list", toc = TRUE)
 
 ### Rendered output
 
-[Download
-example_04_list.pdf](https://example.com/articles/pdf/example_04_list.pdf)
+[Download example_04_list.pdf](pdf/example_04_list.pdf)
 
 ### Splitting long tables across pages
 
@@ -787,6 +790,7 @@ column groups — Bilirubin through Nitrites on the first page, and pH
 through White Blood Cells on the second:
 
 ``` r
+
 spec_lbl_02 <- spec_lbl_01 %>%
   # Add a column break at PH — all columns from PH onward move to a new page.
   # The Treatment, Visit, and Date columns (isID = TRUE) repeat automatically.
@@ -797,8 +801,7 @@ create_report(spec_lbl_02) %>% write_doc("example_04_list_colbr", toc = TRUE)
 
 ### Split rendered output
 
-[Download
-example_04_list_colbr.pdf](https://example.com/articles/pdf/example_04_list_colbr.pdf)
+[Download example_04_list_colbr.pdf](pdf/example_04_list_colbr.pdf)
 
 ## Example 5 — Figures and combined multi-spec reports with TOC
 
@@ -823,6 +826,7 @@ landscape document with a TOC page.
 ### Code
 
 ``` r
+
 library(ggplot2)
 
 # --- Figure 1: Fuel efficiency scatter plot from mtcars ---
@@ -930,5 +934,84 @@ The resulting document contains a TOC page listing all three figures,
 followed by one page per figure. Each figure fills the landscape page
 thanks to `figureScaleMode = "fitPage"`.
 
-[Download
-figures_single_doc_toc.pdf](https://example.com/articles/pdf/figures_single_doc_toc.pdf)
+[Download figures_single_doc_toc.pdf](pdf/figures_single_doc_toc.pdf)
+
+## Example 6 - Gap between Spanning Header Lines
+
+Sometimes it is necessary to include a visual gap between spanning
+column groups so it is clear which columns belong to which header. This
+can be achieved by adding empty dummy columns to the dataset, but it can
+also be done by using a combination of built-in atomic styles. Consider
+the following dataset:
+
+            PARAM              STAT           TRT_A1           TRT_B1           TRT_A2           TRT_B2
+    1 Age (years)         Mean (SD)      45.2 (12.1)      46.8 (11.5)      45.2 (12.1)      46.8 (11.5)
+    2 Age (years) Median [Min, Max]    44.0 [22, 71]    46.0 [21, 69]    44.0 [22, 71]    46.0 [21, 69]
+    3 Weight (kg)         Mean (SD)      78.3 (15.4)      80.1 (14.8)      78.3 (15.4)      80.1 (14.8)
+    4 Weight (kg) Median [Min, Max]   76.5 [48, 120]   79.0 [50, 118]   76.5 [48, 120]   79.0 [50, 118]
+    5 Height (cm)         Mean (SD)      172.1 (9.8)     173.5 (10.2)      172.1 (9.8)     173.5 (10.2)
+    6 Height (cm) Median [Min, Max] 171.0 [150, 195] 173.0 [152, 198] 171.0 [150, 195] 173.0 [152, 198]
+    7 BMI (kg/m²)         Mean (SD)       26.4 (4.2)       26.6 (3.9)       26.4 (4.2)       26.6 (3.9)
+    8 BMI (kg/m²) Median [Min, Max]    25.8 [18, 38]    26.1 [19, 37]    25.8 [18, 38]    26.1 [19, 37]
+
+We want to add spanning headers ‘Group 1’ covering `TRT_A1` and
+`TRT_B1`, and ‘Group 2’ covering `TRT_A2` and `TRT_B2`.
+
+If we do this in the usual way:
+
+``` r
+
+spec <- create_table(demo_data) |>
+  add_title("Table 14.1.1") |>
+  add_title("Summary of Demographic and Baseline Characteristics") |>
+  add_footer("Source: ADSL") |>
+  add_footnote("SD = Standard Deviation; BMI = Body Mass Index") %>% 
+  define_cols(
+    c(PARAM, STAT, TRT_A1, TRT_B1, TRT_A2, TRT_B2),
+    label = c('Parameter', 'Statistics', 'Drug A', 'Drug B', 'Drug A', 'Drug B')
+  ) %>% 
+  define_cols(PARAM, dedupe = T) %>% 
+  ### Spanning headers
+  add_span_header(c(TRT_A1, TRT_B1), 'Group 1') %>% 
+  add_span_header(c(TRT_A2, TRT_B2), 'Group 2', stubOrder = 1) 
+```
+
+The bottom border of the spanning header row will be a solid line,
+making it difficult to see which columns actually belong to which group:
+
+![](images/spanning_headers_gap.png)
+
+Instead of adding a dummy column to the input dataframe between `TRT_B1`
+and `TRT_A2` to separate them visually, we can use built-in atomic
+styles to replace the cell bottom border with a paragraph bottom border.
+The paragraph border only underlines the text of each spanning header
+individually, creating a visible gap between the two groups:
+
+``` r
+
+spec <- create_table(demo_data) |>
+  add_title("Table 14.1.1") |>
+  add_title("Summary of Demographic and Baseline Characteristics") |>
+  add_footer("Source: ADSL") |>
+  add_footnote("SD = Standard Deviation; BMI = Body Mass Index") %>% 
+  define_cols(
+    c(PARAM, STAT, TRT_A1, TRT_B1, TRT_A2, TRT_B2),
+    label = c('Parameter', 'Statistics', 'Drug A', 'Drug B', 'Drug A', 'Drug B'),
+    labelStyleRef = 'bc_white' # drop all cell borders from column header row
+  ) %>% 
+  define_cols(PARAM, dedupe = T) %>% 
+  add_span_header(c(TRT_A1, TRT_B1), 'Group 1',
+                  # pb       - paragraph bottom border (underlines the text only)
+                  # bc_white - suppress cell borders (white, 0pt)
+                  # brw_thick - 4pt white right border to create a gap before the next group
+                  labelStyleRef = f_combine("pb", 'bc_white', 'brw_thick')
+                  ) %>% 
+  add_span_header(c(TRT_A2, TRT_B2), 'Group 2', stubOrder = 1,
+                  # same as above, but no thick right border needed on the last group
+                  labelStyleRef = f_combine("pb", 'bc_white')
+                  )
+```
+
+With this approach the groups are visually separated from each other:
+
+[Download spanning_headers_gap.pdf](pdf/spanning_headers_gap.pdf)

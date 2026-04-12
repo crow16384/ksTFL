@@ -1,5 +1,148 @@
 # Changelog
 
+## ksTFL 0.10.3
+
+### Internal C++ Engine
+
+- **Optimised `get_plain_text()`** (`inline_parser.cpp`): replaced the
+  parse-full-AST-then-extract approach with a single-pass tag-stripping
+  scanner that reuses `extract_tag()`/`classify_tag()` directly,
+  eliminating all intermediate `ParsedCell`/`TextRun` allocations.
+- Added 16 unit tests for `get_plain_text()` covering all recognised tag
+  types, `<br>` → space conversion, nested tags, and literal angle
+  brackets.
+
+## ksTFL 0.10.2
+
+### Internal C++ Engine — Safety, Performance & Modernisation
+
+- **Exception-safe font loading** (`font_cache.cpp`): `load_face()` now
+  wraps `hb_ft_font_create_referenced()` in a try/catch block that calls
+  `FT_Done_Face()` before rethrowing, preventing a FreeType handle leak
+  on any HarfBuzz construction failure.
+- **Eliminated redundant string lowering** (`font_cache.cpp`,
+  `font_scanner.cpp`): `font_name_to_stem_hint()` already returns a
+  lowercase string, so the second `to_lower` pass in `find_font_file()`
+  was removed. `TargetFallback` structs now pre-compute a `target_lower`
+  field so per-call lowering inside `get_fallback_family()` is avoided
+  entirely.
+- **In-place style cascade application** (`style_resolver.h`,
+  `style_resolver.cpp`): new
+  `apply_style_ref_inplace(StyleDef &, const std::string &)` mutates the
+  target directly instead of copy-merge-return. All callers in
+  `resolve_header_cell_style()`, `resolve_body_cell_style()`,
+  `resolve_content_style()`, `resolve_body_text_style()` and
+  `resolve_figure_caption_style()` converted to the in-place variant,
+  eliminating one `StyleDef` copy per style-ref application.
+- **Per-column base-style caches in paginator** (`paginator.cpp`): the
+  row loop in `compute_row_heights_impl` now pre-computes
+  `base_style_cache` and `addrow_style_cache` (indexed by column index)
+  *before* iterating over rows, cutting repeated template-cascade merges
+  (steps 1–5) to a one-time cost. A `style_ref_cache`
+  (`std::unordered_map<std::string, const StyleDef*>`) is built once per
+  segment to cache `find_style()` pointer lookups. A
+  `requires std::invocable<…>` constraint was added to the template for
+  earlier type-checking.
+- **Pre-computed style caches in DOCX table emission**
+  (`docx_emitter.h`, `docx_table.cpp`): `emit_table()` builds
+  `base_style_cache` and `addrow_style_cache` once per segment and
+  passes them to `emit_table_row()`, which now applies only row/cell
+  overrides on top of the cached base instead of recomputing the full
+  cascade for every cell.
+- **Stack-allocated tag buffer** (`inline_parser.cpp`): `classify_tag()`
+  replaced a heap-allocated `std::string lower` with a
+  `char lower_buf[8]` stack buffer — tag names are at most 3 characters,
+  so no heap allocation is needed per tag.
+- **`std::format` for error messages** (`json_parser.cpp`,
+  `renderer.cpp`, `font_cache.cpp`): all
+  `throw RenderError("…" + var + "…")` patterns replaced with
+  `std::format("…{}", var)`, removing temporary string concatenations
+  (15 call sites total).
+
+## ksTFL 0.10.1
+
+### Fixes
+
+- **Style deep-merge across
+  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  blocks**: `.append_style_action()` no longer removes entire
+  multi-column style actions when a later block partially overlaps
+  columns; only the overlapping columns are surgically replaced,
+  preserving styles on non-overlapping columns.
+- **True recursive style merge**: `.merge_recursive()` now recurses into
+  nested named sub-lists instead of performing a shallow
+  [`modifyList()`](https://rdrr.io/r/utils/modifyList.html) replace.
+  Combining styles that share a top-level category (e.g. two styles both
+  setting `font` properties) no longer silently drops properties from
+  the first style.
+- **Style application order preserved**:
+  `._consolidate_styles_in_spec()` now merges styles in the order
+  specified by the user (e.g. `f_combine("a", "b")` applies `a` first,
+  then `b` wins) instead of sorting alphabetically.
+- **[`f_combine()`](https://example.com/reference/f_combine.md) accepted
+  in [`c_style()`](https://example.com/reference/c_style.md),
+  [`c_merge()`](https://example.com/reference/c_merge.md),
+  [`c_addrow()`](https://example.com/reference/c_addrow.md)**:
+  `styleRef` parameters in row-action functions now accept multi-element
+  style vectors produced by
+  [`f_combine()`](https://example.com/reference/f_combine.md).
+- **`.combine_column_styles()` handles nested
+  [`f_combine()`](https://example.com/reference/f_combine.md)**:
+  replaced `do.call(f_combine, ...)` with direct
+  [`unlist()`](https://rdrr.io/r/base/unlist.html) + class assignment to
+  correctly flatten style refs that already contain multi-element
+  vectors.
+- **[`compute_cols()`](https://example.com/reference/compute_cols.md)
+  accepts scalar `TRUE`/`FALSE`**: a scalar logical condition is now
+  recycled to match `nrow(data)`, allowing
+  `compute_cols(spec, TRUE, ...)` as shorthand for “all rows”.
+- **Missing
+  [`rlang::expr()`](https://rlang.r-lib.org/reference/expr.html)
+  qualifier**: fixed unqualified
+  [`expr()`](https://rlang.r-lib.org/reference/expr.html) call in
+  `.env_select()` that caused `could not find function "expr"` in clean
+  R sessions.
+
+## ksTFL 0.10.0
+
+### New Features
+
+- **Paragraph-level borders**: styles now support `<w:pBdr>` (paragraph
+  borders) in addition to existing cell-level `<w:tcBorders>`. Paragraph
+  borders underline only the text content within a cell, enabling visual
+  gaps between spanning header groups without inserting dummy columns.
+  - New `borders` parameter in
+    [`s_paragraph()`](https://example.com/reference/s_paragraph.md)
+    accepts a border spec built with
+    [`s_borders()`](https://example.com/reference/s_borders.md) /
+    [`s_border()`](https://example.com/reference/s_border.md).
+  - C++ rendering engine emits `<w:pBdr>` elements in paragraph
+    properties.
+  - JSON schema (`styles_schema_v2.json`) updated to allow `borders`
+    within paragraph definitions.
+- New built-in atomic styles: `brw_thick` (4pt white right border),
+  `blw_thick` (4pt white left border), `pb` (1pt paragraph bottom
+  border), `pb_th` (0.5pt thin paragraph bottom border).
+
+### Shiny Styles Editor
+
+- Paragraph border controls (top, bottom, left, right) added to all
+  text-style panels in the Shiny styles editor.
+
+### Documentation
+
+- Updated roxygen documentation for
+  [`s_paragraph()`](https://example.com/reference/s_paragraph.md),
+  [`s_borders()`](https://example.com/reference/s_borders.md), and
+  [`s_border()`](https://example.com/reference/s_border.md) to describe
+  paragraph border usage.
+- New “Paragraph-level borders” subsection and updated atom reference
+  table in the Styling Guide vignette.
+- New Example 3 (paragraph borders on spanning headers) in the Reporting
+  Examples vignette.
+- New Example 6 (spanning header gap technique) in the Real Examples
+  vignette.
+
 ## ksTFL 0.9.0
 
 ### Build System
@@ -115,217 +258,3 @@
 - Updated the styling and font-management articles to document target
   font family atoms and show how to combine them with other built-in
   style atoms.
-
-## ksTFL 0.6.0
-
-### Breaking Changes
-
-- **System font scanning replaces bundled proprietary fonts.** The
-  package no longer ships proprietary TTF fonts (Arial, Courier New,
-  Times New Roman, Georgia, Verdana, Trebuchet MS, Aptos). Instead,
-  fonts are discovered from the operating system at package load time
-  via FreeType-based scanning. If a requested font is not installed on
-  the system, a metrically compatible open-source fallback is used
-  automatically:
-  - Arial → Liberation Sans (bundled)
-  - Times New Roman → Liberation Serif (bundled)
-  - Courier New → Liberation Mono (bundled)
-  - Georgia → Liberation Serif (bundled)
-  - Verdana → Liberation Sans (bundled)
-  - Trebuchet MS → Liberation Sans (bundled)
-- **Aptos font family dropped.** Aptos is no longer a target font.
-  Existing specs referencing Aptos will fall back to Liberation Sans.
-- The hardcoded `font_map` in the C++ font cache has been removed. Font
-  resolution is now fully dynamic.
-
-### New Features
-
-- **Runtime font discovery.** At package load (`.onLoad()`), the C++
-  font scanner inspects system font directories (platform-specific) and
-  builds a global font registry. System-installed fonts are always
-  preferred over bundled fallbacks.
-- **[`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)**
-  — Re-run font discovery after installing new fonts or changing
-  `ksTFL.font_dirs`. Prints a resolution report to the console.
-- **[`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)**
-  — Print the current font resolution report without rescanning.
-- **`ksTFL.font_dirs` option** — Point
-  `options(ksTFL.font_dirs = c("/path/to/fonts"))` to additional
-  directories containing proprietary or custom fonts. These directories
-  are scanned alongside system directories.
-- **Startup font report.** When the package is attached, a message
-  reports any target fonts that use a fallback, with guidance to run
-  [`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)
-  for details.
-
-### Internals
-
-- New C++ module: `font_scanner.h` / `font_scanner.cpp` —
-  platform-specific font directory enumeration (Windows registry, macOS
-  standard dirs, Linux XDG/freedesktop dirs) and FreeType-based
-  family/style classification.
-- `font_cache.cpp` now resolves fonts via the scanner’s global path map,
-  with a two-tier fallback chain: designated fallback family
-  (e.g. Georgia → Liberation Serif), then Liberation Sans as last
-  resort.
-- `rcpp_bindings.cpp` exports `init_font_registry_impl()` and
-  `get_font_dirs_impl()` to R.
-- `render_docx.R` now collects font directories from the scanner cache
-  via `get_font_dirs_impl()` instead of using only the bundled
-  `inst/fonts/` directory.
-
-### Bundled Fonts
-
-Only license-free fallback fonts are included in `inst/fonts/`:
-
-| Font Family                 | License     | Replaces        |
-|-----------------------------|-------------|-----------------|
-| Liberation Sans (4 styles)  | SIL OFL 1.1 | Arial           |
-| Liberation Serif (4 styles) | SIL OFL 1.1 | Times New Roman |
-| Liberation Mono (4 styles)  | SIL OFL 1.1 | Courier New     |
-
-## ksTFL 0.5.5
-
-### New Features
-
-- HTML “TFL Specification Preview” is no longer triggered by
-  `print(spec)`;
-  [`print.TFL_spec()`](https://example.com/reference/print.TFL_spec.md)
-  is now console-only. Use the new `view_tfl_spec(spec)` function or
-  RStudio Addins to open the HTML preview.
-- Added `view_tfl_spec(spec)` to open the TFL Specification Preview in
-  the RStudio Viewer pane.
-- Added RStudio Addins: “TFL Spec Preview (Selection)” (evaluate
-  selected code as a `TFL_spec` and show HTML preview) and “TFL Spec
-  Preview (by name)” (prompt for an object name in `.GlobalEnv` and show
-  preview).
-- Added “Style Atoms Catalog” RStudio Addin and
-  [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
-  to print all built-in style atoms from `.const_options_styles` to the
-  console with coloured, grouped output via cli.
-
-### Changes
-
-- Removed the `TFL.viewer` option; HTML preview is only available via
-  [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md) or
-  the addins.
-
-## ksTFL 0.5.4
-
-### New Features
-
-- Added inline strikethrough support via `<s>...</s>` in the C++
-  renderer, including OOXML emission (`<w:strike/>`), JSON parsing, and
-  style API support (`s_font(strikethrough = ...)`).
-- [`replay_report()`](https://example.com/reference/replay_report.md)
-  now supports `overrideTemplate` (bundled template name or custom JSON
-  path), matching
-  [`write_doc()`](https://example.com/reference/write_doc.md) behavior.
-- Combined replay Shiny app now supports both predefined template
-  selection and custom template JSON paths.
-
-### Improvements
-
-- [`list_reports()`](https://example.com/reference/list_reports.md),
-  [`replay_report()`](https://example.com/reference/replay_report.md),
-  and
-  [`clean_reports()`](https://example.com/reference/clean_reports.md)
-  now default `meta_dir` to `tfl_get_option("meta_directory")`.
-- [`write_doc()`](https://example.com/reference/write_doc.md) now safely
-  falls back to [`tempdir()`](https://rdrr.io/r/base/tempfile.html) when
-  `meta_directory` is not configured.
-- Improved Aptos font resolution in the font cache (`Aptos.ttf` regular
-  face lookup).
-
-### Bug Fixes
-
-- Functions that rely on meta artifacts now raise a clear error when
-  neither `meta_dir` argument nor `meta_directory` option is set.
-
-## ksTFL 0.5.3
-
-### New Features
-
-- [`replay_report()`](https://example.com/reference/replay_report.md)
-  now supports replaying multiple reports into one combined DOCX.
-- Added
-  [`run_replay_app()`](https://example.com/reference/run_replay_app.md)
-  and a new replay Shiny app for selecting reports across multiple meta
-  folders, drag-and-drop reordering, and combined rendering.
-- Added an RStudio addin entry for the replay app.
-
-### Improvements
-
-- Added optional `data_dir` handling in `render_docx()` to support
-  robust replay of specs from different meta directories.
-- Replay app now supports folder browsing for both input meta
-  directories and output directory selection.
-
-### Bug Fixes
-
-- Fixed latest-spec selection logic in `.resolve_spec_path()` when
-  datetimes are character values.
-- Fixed merged replay `dataRef` serialization so C++ receives JSON
-  arrays (restores table data loading in combined replay).
-- Improved replay resource resolution for figure assets (`.png`, `.jpg`,
-  `.jpeg`, `.svg`).
-
-## ksTFL 0.5.0
-
-### C++20 Modernization
-
-- Adopted `operator<=>` (three-way comparison) for `Length`, replacing 6
-  hand-written comparison operators.
-- Introduced `Mergeable` concept constraining style merge templates.
-- Replaced runtime `std::unordered_map` lookup tables with
-  `constexpr std::array` for OOXML enum conversions.
-- Added `[[nodiscard]]` attributes to all pure/value-returning functions
-  across headers.
-- Converted `std::sort`, `std::any_of`, and `std::transform` calls to
-  `std::ranges` equivalents.
-- Used `using enum` in switch statements for `TagType` and
-  `FootnotePlace`.
-- Replaced `std::snprintf(buf, "%.17g", ...)` with `std::to_chars()` for
-  double formatting.
-
-### Performance Improvements
-
-- Font directory indexing: `add_font_dir()` now scans once and builds an
-  `O(1)` lookup map. Previously, `find_font_file()` did a recursive
-  directory walk on every call.
-- Replaced `std::regex` in `is_safe_numeric_format()` with a single-pass
-  manual parser, eliminating regex overhead in the per-cell formatting
-  hot path.
-- Pre-computed column index map (`col_id_to_idx`) once in
-  `LogicalTableBuilder::build()` and passed to both
-  `build_header_grid()` and `apply_style_rows()`, avoiding redundant map
-  construction.
-- Short-circuit `parse_inline_markup()`: skip `has_inline_markup()` tag
-  classification when the input contains no `<` character.
-
-### Bug Fixes
-
-- Fixed ODR violation: `font_map` in `font_cache.h` changed from
-  `static const` to `inline const`.
-- Eliminated `goto` in logical table post-pass, replaced with structured
-  [`break`](https://rdrr.io/r/base/Control.html).
-
-### Code Quality
-
-- Extracted `restore_dedupe_at_page_boundaries()` as a free function
-  from the 500-line `render_from_strings()` method.
-- Unified three content style resolvers (`resolve_title_style`,
-  `resolve_subtitle_style`, `resolve_footnote_style`) into a shared
-  `resolve_content_style()` method.
-- Unified row height computation via
-  `compute_row_heights_impl<WidthFn, FilterFn>()` template.
-- Consolidated margin parsing with `parse_margins_fields<T>()` template.
-- Consolidated alignment parsing to use existing `parse_alignment()`
-  throughout.
-- Translated remaining Russian comments to English.
-
-### Tests
-
-- Added 31 new C++ unit tests for the `is_safe_numeric_format()` manual
-  parser covering valid formats, invalid specifiers, edge cases, and
-  multiple conversions.

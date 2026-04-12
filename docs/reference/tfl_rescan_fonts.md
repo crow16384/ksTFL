@@ -20,10 +20,12 @@ Invisibly returns the font scan report (a list with `resolutions` and
 To point ksTFL at a custom TTF folder, set the `ksTFL.font_dirs` option
 before or during your session, then call `tfl_rescan_fonts()`:
 
+
     options(ksTFL.font_dirs = "/path/to/your/fonts")
     tfl_rescan_fonts()
 
 Multiple directories are supported:
+
 
     options(ksTFL.font_dirs = c("/path/to/fonts1", "/path/to/fonts2"))
     tfl_rescan_fonts()

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -31,6 +32,79 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.3" id="kstfl-0103">ksTFL 0.10.3<a class="anchor" aria-label="anchor" href="#kstfl-0103"></a></h2>
+<div class="section level3">
+<h3 id="internal-c-engine-0-10-3">Internal C++ Engine<a class="anchor" aria-label="anchor" href="#internal-c-engine-0-10-3"></a></h3>
+<ul><li>
+<strong>Optimised <code>get_plain_text()</code></strong> (<code>inline_parser.cpp</code>): replaced the parse-full-AST-then-extract approach with a single-pass tag-stripping scanner that reuses <code>extract_tag()</code>/<code>classify_tag()</code> directly, eliminating all intermediate <code>ParsedCell</code>/<code>TextRun</code> allocations.</li>
+<li>Added 16 unit tests for <code>get_plain_text()</code> covering all recognised tag types, <code>&lt;br&gt;</code> → space conversion, nested tags, and literal angle brackets.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.2" id="kstfl-0102">ksTFL 0.10.2<a class="anchor" aria-label="anchor" href="#kstfl-0102"></a></h2>
+<div class="section level3">
+<h3 id="internal-c-engine--safety-performance--modernisation-0-10-2">Internal C++ Engine — Safety, Performance &amp; Modernisation<a class="anchor" aria-label="anchor" href="#internal-c-engine--safety-performance--modernisation-0-10-2"></a></h3>
+<ul><li>
+<strong>Exception-safe font loading</strong> (<code>font_cache.cpp</code>): <code>load_face()</code> now wraps <code>hb_ft_font_create_referenced()</code> in a try/catch block that calls <code>FT_Done_Face()</code> before rethrowing, preventing a FreeType handle leak on any HarfBuzz construction failure.</li>
+<li>
+<strong>Eliminated redundant string lowering</strong> (<code>font_cache.cpp</code>, <code>font_scanner.cpp</code>): <code>font_name_to_stem_hint()</code> already returns a lowercase string, so the second <code>to_lower</code> pass in <code>find_font_file()</code> was removed. <code>TargetFallback</code> structs now pre-compute a <code>target_lower</code> field so per-call lowering inside <code>get_fallback_family()</code> is avoided entirely.</li>
+<li>
+<strong>In-place style cascade application</strong> (<code>style_resolver.h</code>, <code>style_resolver.cpp</code>): new <code>apply_style_ref_inplace(StyleDef &amp;, const std::string &amp;)</code> mutates the target directly instead of copy-merge-return. All callers in <code>resolve_header_cell_style()</code>, <code>resolve_body_cell_style()</code>, <code>resolve_content_style()</code>, <code>resolve_body_text_style()</code> and <code>resolve_figure_caption_style()</code> converted to the in-place variant, eliminating one <code>StyleDef</code> copy per style-ref application.</li>
+<li>
+<strong>Per-column base-style caches in paginator</strong> (<code>paginator.cpp</code>): the row loop in <code>compute_row_heights_impl</code> now pre-computes <code>base_style_cache</code> and <code>addrow_style_cache</code> (indexed by column index) <em>before</em> iterating over rows, cutting repeated template-cascade merges (steps 1–5) to a one-time cost. A <code>style_ref_cache</code> (<code>std::unordered_map&lt;std::string, const StyleDef*&gt;</code>) is built once per segment to cache <code>find_style()</code> pointer lookups. A <code>requires std::invocable&lt;…&gt;</code> constraint was added to the template for earlier type-checking.</li>
+<li>
+<strong>Pre-computed style caches in DOCX table emission</strong> (<code>docx_emitter.h</code>, <code>docx_table.cpp</code>): <code>emit_table()</code> builds <code>base_style_cache</code> and <code>addrow_style_cache</code> once per segment and passes them to <code>emit_table_row()</code>, which now applies only row/cell overrides on top of the cached base instead of recomputing the full cascade for every cell.</li>
+<li>
+<strong>Stack-allocated tag buffer</strong> (<code>inline_parser.cpp</code>): <code>classify_tag()</code> replaced a heap-allocated <code>std::string lower</code> with a <code>char lower_buf[8]</code> stack buffer — tag names are at most 3 characters, so no heap allocation is needed per tag.</li>
+<li>
+<strong><code>std::format</code> for error messages</strong> (<code>json_parser.cpp</code>, <code>renderer.cpp</code>, <code>font_cache.cpp</code>): all <code>throw RenderError("…" + var + "…")</code> patterns replaced with <code>std::format("…{}", var)</code>, removing temporary string concatenations (15 call sites total).</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.1" id="kstfl-0101">ksTFL 0.10.1<a class="anchor" aria-label="anchor" href="#kstfl-0101"></a></h2>
+<div class="section level3">
+<h3 id="fixes-0-10-1">Fixes<a class="anchor" aria-label="anchor" href="#fixes-0-10-1"></a></h3>
+<ul><li>
+<strong>Style deep-merge across <code><a href="../reference/compute_cols.html">compute_cols()</a></code> blocks</strong>: <code>.append_style_action()</code> no longer removes entire multi-column style actions when a later block partially overlaps columns; only the overlapping columns are surgically replaced, preserving styles on non-overlapping columns.</li>
+<li>
+<strong>True recursive style merge</strong>: <code>.merge_recursive()</code> now recurses into nested named sub-lists instead of performing a shallow <code><a href="https://rdrr.io/r/utils/modifyList.html" class="external-link">modifyList()</a></code> replace. Combining styles that share a top-level category (e.g. two styles both setting <code>font</code> properties) no longer silently drops properties from the first style.</li>
+<li>
+<strong>Style application order preserved</strong>: <code>._consolidate_styles_in_spec()</code> now merges styles in the order specified by the user (e.g. <code>f_combine("a", "b")</code> applies <code>a</code> first, then <code>b</code> wins) instead of sorting alphabetically.</li>
+<li>
+<strong><code><a href="../reference/f_combine.html">f_combine()</a></code> accepted in <code><a href="../reference/c_style.html">c_style()</a></code>, <code><a href="../reference/c_merge.html">c_merge()</a></code>, <code><a href="../reference/c_addrow.html">c_addrow()</a></code></strong>: <code>styleRef</code> parameters in row-action functions now accept multi-element style vectors produced by <code><a href="../reference/f_combine.html">f_combine()</a></code>.</li>
+<li>
+<strong><code>.combine_column_styles()</code> handles nested <code><a href="../reference/f_combine.html">f_combine()</a></code></strong>: replaced <code>do.call(f_combine, ...)</code> with direct <code><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist()</a></code> + class assignment to correctly flatten style refs that already contain multi-element vectors.</li>
+<li>
+<strong><code><a href="../reference/compute_cols.html">compute_cols()</a></code> accepts scalar <code>TRUE</code>/<code>FALSE</code></strong>: a scalar logical condition is now recycled to match <code>nrow(data)</code>, allowing <code>compute_cols(spec, TRUE, ...)</code> as shorthand for “all rows”.</li>
+<li>
+<strong>Missing <code><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">rlang::expr()</a></code> qualifier</strong>: fixed unqualified <code><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr()</a></code> call in <code>.env_select()</code> that caused <code>could not find function "expr"</code> in clean R sessions.</li>
+</ul></div>
+</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.0" id="kstfl-0100">ksTFL 0.10.0<a class="anchor" aria-label="anchor" href="#kstfl-0100"></a></h2>
+<div class="section level3">
+<h3 id="new-features-0-10-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-10-0"></a></h3>
+<ul><li>
+<strong>Paragraph-level borders</strong>: styles now support <code>&lt;w:pBdr&gt;</code> (paragraph borders) in addition to existing cell-level <code>&lt;w:tcBorders&gt;</code>. Paragraph borders underline only the text content within a cell, enabling visual gaps between spanning header groups without inserting dummy columns.
+<ul><li>New <code>borders</code> parameter in <code><a href="../reference/s_paragraph.html">s_paragraph()</a></code> accepts a border spec built with <code><a href="../reference/s_borders.html">s_borders()</a></code> / <code><a href="../reference/s_border.html">s_border()</a></code>.</li>
+<li>C++ rendering engine emits <code>&lt;w:pBdr&gt;</code> elements in paragraph properties.</li>
+<li>JSON schema (<code>styles_schema_v2.json</code>) updated to allow <code>borders</code> within paragraph definitions.</li>
+</ul></li>
+<li>New built-in atomic styles: <code>brw_thick</code> (4pt white right border), <code>blw_thick</code> (4pt white left border), <code>pb</code> (1pt paragraph bottom border), <code>pb_th</code> (0.5pt thin paragraph bottom border).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="shiny-styles-editor-0-10-0">Shiny Styles Editor<a class="anchor" aria-label="anchor" href="#shiny-styles-editor-0-10-0"></a></h3>
+<ul><li>Paragraph border controls (top, bottom, left, right) added to all text-style panels in the Shiny styles editor.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-0-10-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-10-0"></a></h3>
+<ul><li>Updated roxygen documentation for <code><a href="../reference/s_paragraph.html">s_paragraph()</a></code>, <code><a href="../reference/s_borders.html">s_borders()</a></code>, and <code><a href="../reference/s_border.html">s_border()</a></code> to describe paragraph border usage.</li>
+<li>New “Paragraph-level borders” subsection and updated atom reference table in the Styling Guide vignette.</li>
+<li>New Example 3 (paragraph borders on spanning headers) in the Reporting Examples vignette.</li>
+<li>New Example 6 (spanning header gap technique) in the Real Examples vignette.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.9.0" id="kstfl-090">ksTFL 0.9.0<a class="anchor" aria-label="anchor" href="#kstfl-090"></a></h2>
 <div class="section level3">
@@ -108,158 +182,6 @@ produces real paragraph boundaries in emitted DOCX text groups (titles, subtitle
 <div class="section level3">
 <h3 id="documentation-0-7-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-7-0"></a></h3>
 <ul><li>Updated the styling and font-management articles to document target font family atoms and show how to combine them with other built-in style atoms.</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.6.0" id="kstfl-060">ksTFL 0.6.0<a class="anchor" aria-label="anchor" href="#kstfl-060"></a></h2>
-<div class="section level3">
-<h3 id="breaking-changes-0-6-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-6-0"></a></h3>
-<ul><li>
-<strong>System font scanning replaces bundled proprietary fonts.</strong> The package no longer ships proprietary TTF fonts (Arial, Courier New, Times New Roman, Georgia, Verdana, Trebuchet MS, Aptos). Instead, fonts are discovered from the operating system at package load time via FreeType-based scanning. If a requested font is not installed on the system, a metrically compatible open-source fallback is used automatically:
-<ul><li>Arial → Liberation Sans (bundled)</li>
-<li>Times New Roman → Liberation Serif (bundled)</li>
-<li>Courier New → Liberation Mono (bundled)</li>
-<li>Georgia → Liberation Serif (bundled)</li>
-<li>Verdana → Liberation Sans (bundled)</li>
-<li>Trebuchet MS → Liberation Sans (bundled)</li>
-</ul></li>
-<li>
-<strong>Aptos font family dropped.</strong> Aptos is no longer a target font. Existing specs referencing Aptos will fall back to Liberation Sans.</li>
-<li>The hardcoded <code>font_map</code> in the C++ font cache has been removed. Font resolution is now fully dynamic.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="new-features-0-6-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-6-0"></a></h3>
-<ul><li>
-<strong>Runtime font discovery.</strong> At package load (<code>.onLoad()</code>), the C++ font scanner inspects system font directories (platform-specific) and builds a global font registry. System-installed fonts are always preferred over bundled fallbacks.</li>
-<li>
-<strong><code><a href="../reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code></strong> — Re-run font discovery after installing new fonts or changing <code>ksTFL.font_dirs</code>. Prints a resolution report to the console.</li>
-<li>
-<strong><code><a href="../reference/tfl_font_status.html">tfl_font_status()</a></code></strong> — Print the current font resolution report without rescanning.</li>
-<li>
-<strong><code>ksTFL.font_dirs</code> option</strong> — Point <code>options(ksTFL.font_dirs = c("/path/to/fonts"))</code> to additional directories containing proprietary or custom fonts. These directories are scanned alongside system directories.</li>
-<li>
-<strong>Startup font report.</strong> When the package is attached, a message reports any target fonts that use a fallback, with guidance to run <code><a href="../reference/tfl_font_status.html">tfl_font_status()</a></code> for details.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="internals-0-6-0">Internals<a class="anchor" aria-label="anchor" href="#internals-0-6-0"></a></h3>
-<ul><li>New C++ module: <code>font_scanner.h</code> / <code>font_scanner.cpp</code> — platform-specific font directory enumeration (Windows registry, macOS standard dirs, Linux XDG/freedesktop dirs) and FreeType-based family/style classification.</li>
-<li>
-<code>font_cache.cpp</code> now resolves fonts via the scanner’s global path map, with a two-tier fallback chain: designated fallback family (e.g. Georgia → Liberation Serif), then Liberation Sans as last resort.</li>
-<li>
-<code>rcpp_bindings.cpp</code> exports <code>init_font_registry_impl()</code> and <code>get_font_dirs_impl()</code> to R.</li>
-<li>
-<code>render_docx.R</code> now collects font directories from the scanner cache via <code>get_font_dirs_impl()</code> instead of using only the bundled <code>inst/fonts/</code> directory.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="bundled-fonts-0-6-0">Bundled Fonts<a class="anchor" aria-label="anchor" href="#bundled-fonts-0-6-0"></a></h3>
-<p>Only license-free fallback fonts are included in <code>inst/fonts/</code>:</p>
-<table class="table"><thead><tr class="header"><th>Font Family</th>
-<th>License</th>
-<th>Replaces</th>
-</tr></thead><tbody><tr class="odd"><td>Liberation Sans (4 styles)</td>
-<td>SIL OFL 1.1</td>
-<td>Arial</td>
-</tr><tr class="even"><td>Liberation Serif (4 styles)</td>
-<td>SIL OFL 1.1</td>
-<td>Times New Roman</td>
-</tr><tr class="odd"><td>Liberation Mono (4 styles)</td>
-<td>SIL OFL 1.1</td>
-<td>Courier New</td>
-</tr></tbody></table></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.5.5" id="kstfl-055">ksTFL 0.5.5<a class="anchor" aria-label="anchor" href="#kstfl-055"></a></h2>
-<div class="section level3">
-<h3 id="new-features-0-5-5">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-5"></a></h3>
-<ul><li>HTML “TFL Specification Preview” is no longer triggered by <code>print(spec)</code>; <code><a href="../reference/print.TFL_spec.html">print.TFL_spec()</a></code> is now console-only. Use the new <code>view_tfl_spec(spec)</code> function or RStudio Addins to open the HTML preview.</li>
-<li>Added <code>view_tfl_spec(spec)</code> to open the TFL Specification Preview in the RStudio Viewer pane.</li>
-<li>Added RStudio Addins: “TFL Spec Preview (Selection)” (evaluate selected code as a <code>TFL_spec</code> and show HTML preview) and “TFL Spec Preview (by name)” (prompt for an object name in <code>.GlobalEnv</code> and show preview).</li>
-<li>Added “Style Atoms Catalog” RStudio Addin and <code><a href="../reference/tfl_print_style_atoms.html">tfl_print_style_atoms()</a></code> to print all built-in style atoms from <code>.const_options_styles</code> to the console with coloured, grouped output via cli.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="changes-0-5-5">Changes<a class="anchor" aria-label="anchor" href="#changes-0-5-5"></a></h3>
-<ul><li>Removed the <code>TFL.viewer</code> option; HTML preview is only available via <code><a href="../reference/view_tfl_spec.html">view_tfl_spec()</a></code> or the addins.</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.5.4" id="kstfl-054">ksTFL 0.5.4<a class="anchor" aria-label="anchor" href="#kstfl-054"></a></h2>
-<div class="section level3">
-<h3 id="new-features-0-5-4">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-4"></a></h3>
-<ul><li>Added inline strikethrough support via <code>&lt;s&gt;...&lt;/s&gt;</code> in the C++ renderer, including OOXML emission (<code>&lt;w:strike/&gt;</code>), JSON parsing, and style API support (<code>s_font(strikethrough = ...)</code>).</li>
-<li>
-<code><a href="../reference/replay_report.html">replay_report()</a></code> now supports <code>overrideTemplate</code> (bundled template name or custom JSON path), matching <code><a href="../reference/write_doc.html">write_doc()</a></code> behavior.</li>
-<li>Combined replay Shiny app now supports both predefined template selection and custom template JSON paths.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="improvements-0-5-4">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-4"></a></h3>
-<ul><li>
-<code><a href="../reference/list_reports.html">list_reports()</a></code>, <code><a href="../reference/replay_report.html">replay_report()</a></code>, and <code><a href="../reference/clean_reports.html">clean_reports()</a></code> now default <code>meta_dir</code> to <code>tfl_get_option("meta_directory")</code>.</li>
-<li>
-<code><a href="../reference/write_doc.html">write_doc()</a></code> now safely falls back to <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> when <code>meta_directory</code> is not configured.</li>
-<li>Improved Aptos font resolution in the font cache (<code>Aptos.ttf</code> regular face lookup).</li>
-</ul></div>
-<div class="section level3">
-<h3 id="bug-fixes-0-5-4">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-4"></a></h3>
-<ul><li>Functions that rely on meta artifacts now raise a clear error when neither <code>meta_dir</code> argument nor <code>meta_directory</code> option is set.</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.5.3" id="kstfl-053">ksTFL 0.5.3<a class="anchor" aria-label="anchor" href="#kstfl-053"></a></h2>
-<div class="section level3">
-<h3 id="new-features-0-5-3">New Features<a class="anchor" aria-label="anchor" href="#new-features-0-5-3"></a></h3>
-<ul><li>
-<code><a href="../reference/replay_report.html">replay_report()</a></code> now supports replaying multiple reports into one combined DOCX.</li>
-<li>Added <code><a href="../reference/run_replay_app.html">run_replay_app()</a></code> and a new replay Shiny app for selecting reports across multiple meta folders, drag-and-drop reordering, and combined rendering.</li>
-<li>Added an RStudio addin entry for the replay app.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="improvements-0-5-3">Improvements<a class="anchor" aria-label="anchor" href="#improvements-0-5-3"></a></h3>
-<ul><li>Added optional <code>data_dir</code> handling in <code>render_docx()</code> to support robust replay of specs from different meta directories.</li>
-<li>Replay app now supports folder browsing for both input meta directories and output directory selection.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="bug-fixes-0-5-3">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-3"></a></h3>
-<ul><li>Fixed latest-spec selection logic in <code>.resolve_spec_path()</code> when datetimes are character values.</li>
-<li>Fixed merged replay <code>dataRef</code> serialization so C++ receives JSON arrays (restores table data loading in combined replay).</li>
-<li>Improved replay resource resolution for figure assets (<code>.png</code>, <code>.jpg</code>, <code>.jpeg</code>, <code>.svg</code>).</li>
-</ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.5.0" id="kstfl-050">ksTFL 0.5.0<a class="anchor" aria-label="anchor" href="#kstfl-050"></a></h2>
-<div class="section level3">
-<h3 id="c20-modernization-0-5-0">C++20 Modernization<a class="anchor" aria-label="anchor" href="#c20-modernization-0-5-0"></a></h3>
-<ul><li>Adopted <code>operator&lt;=&gt;</code> (three-way comparison) for <code>Length</code>, replacing 6 hand-written comparison operators.</li>
-<li>Introduced <code>Mergeable</code> concept constraining style merge templates.</li>
-<li>Replaced runtime <code>std::unordered_map</code> lookup tables with <code>constexpr std::array</code> for OOXML enum conversions.</li>
-<li>Added <code>[[nodiscard]]</code> attributes to all pure/value-returning functions across headers.</li>
-<li>Converted <code>std::sort</code>, <code>std::any_of</code>, and <code>std::transform</code> calls to <code>std::ranges</code> equivalents.</li>
-<li>Used <code>using enum</code> in switch statements for <code>TagType</code> and <code>FootnotePlace</code>.</li>
-<li>Replaced <code>std::snprintf(buf, "%.17g", ...)</code> with <code>std::to_chars()</code> for double formatting.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="performance-improvements-0-5-0">Performance Improvements<a class="anchor" aria-label="anchor" href="#performance-improvements-0-5-0"></a></h3>
-<ul><li>Font directory indexing: <code>add_font_dir()</code> now scans once and builds an <code>O(1)</code> lookup map. Previously, <code>find_font_file()</code> did a recursive directory walk on every call.</li>
-<li>Replaced <code>std::regex</code> in <code>is_safe_numeric_format()</code> with a single-pass manual parser, eliminating regex overhead in the per-cell formatting hot path.</li>
-<li>Pre-computed column index map (<code>col_id_to_idx</code>) once in <code>LogicalTableBuilder::build()</code> and passed to both <code>build_header_grid()</code> and <code>apply_style_rows()</code>, avoiding redundant map construction.</li>
-<li>Short-circuit <code>parse_inline_markup()</code>: skip <code>has_inline_markup()</code> tag classification when the input contains no <code>&lt;</code> character.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="bug-fixes-0-5-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-5-0"></a></h3>
-<ul><li>Fixed ODR violation: <code>font_map</code> in <code>font_cache.h</code> changed from <code>static const</code> to <code>inline const</code>.</li>
-<li>Eliminated <code>goto</code> in logical table post-pass, replaced with structured <code><a href="https://rdrr.io/r/base/Control.html" class="external-link">break</a></code>.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="code-quality-0-5-0">Code Quality<a class="anchor" aria-label="anchor" href="#code-quality-0-5-0"></a></h3>
-<ul><li>Extracted <code>restore_dedupe_at_page_boundaries()</code> as a free function from the 500-line <code>render_from_strings()</code> method.</li>
-<li>Unified three content style resolvers (<code>resolve_title_style</code>, <code>resolve_subtitle_style</code>, <code>resolve_footnote_style</code>) into a shared <code>resolve_content_style()</code> method.</li>
-<li>Unified row height computation via <code>compute_row_heights_impl&lt;WidthFn, FilterFn&gt;()</code> template.</li>
-<li>Consolidated margin parsing with <code>parse_margins_fields&lt;T&gt;()</code> template.</li>
-<li>Consolidated alignment parsing to use existing <code>parse_alignment()</code> throughout.</li>
-<li>Translated remaining Russian comments to English.</li>
-</ul></div>
-<div class="section level3">
-<h3 id="tests-0-5-0">Tests<a class="anchor" aria-label="anchor" href="#tests-0-5-0"></a></h3>
-<ul><li>Added 31 new C++ unit tests for the <code>is_safe_numeric_format()</code> manual parser covering valid formats, invalid specifiers, edge cases, and multiple conversions.</li>
 </ul></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

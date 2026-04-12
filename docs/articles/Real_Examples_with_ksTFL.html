@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -1024,6 +1025,80 @@ thanks to <code>figureScaleMode = "fitPage"</code>.</p>
 figures_single_doc_toc.pdf</a></p>
 </iframe>
 </div>
+</div>
+<div class="section level2">
+<h2 id="example-6---gap-between-spanning-header-lines">Example 6 - Gap between Spanning Header Lines<a class="anchor" aria-label="anchor" href="#example-6---gap-between-spanning-header-lines"></a>
+</h2>
+<p>Sometimes it is necessary to include a visual gap between spanning
+column groups so it is clear which columns belong to which header. This
+can be achieved by adding empty dummy columns to the dataset, but it can
+also be done by using a combination of built-in atomic styles. Consider
+the following dataset:</p>
+<pre><code>        PARAM              STAT           TRT_A1           TRT_B1           TRT_A2           TRT_B2
+1 Age (years)         Mean (SD)      45.2 (12.1)      46.8 (11.5)      45.2 (12.1)      46.8 (11.5)
+2 Age (years) Median [Min, Max]    44.0 [22, 71]    46.0 [21, 69]    44.0 [22, 71]    46.0 [21, 69]
+3 Weight (kg)         Mean (SD)      78.3 (15.4)      80.1 (14.8)      78.3 (15.4)      80.1 (14.8)
+4 Weight (kg) Median [Min, Max]   76.5 [48, 120]   79.0 [50, 118]   76.5 [48, 120]   79.0 [50, 118]
+5 Height (cm)         Mean (SD)      172.1 (9.8)     173.5 (10.2)      172.1 (9.8)     173.5 (10.2)
+6 Height (cm) Median [Min, Max] 171.0 [150, 195] 173.0 [152, 198] 171.0 [150, 195] 173.0 [152, 198]
+7 BMI (kg/m²)         Mean (SD)       26.4 (4.2)       26.6 (3.9)       26.4 (4.2)       26.6 (3.9)
+8 BMI (kg/m²) Median [Min, Max]    25.8 [18, 38]    26.1 [19, 37]    25.8 [18, 38]    26.1 [19, 37]</code></pre>
+<p>We want to add spanning headers ‘Group 1’ covering
+<code>TRT_A1</code> and <code>TRT_B1</code>, and ‘Group 2’ covering
+<code>TRT_A2</code> and <code>TRT_B2</code>.</p>
+<p>If we do this in the usual way:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="st">"Source: ADSL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"SD = Standard Deviation; BMI = Body Mass Index"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">STAT</span>, <span class="va">TRT_A1</span>, <span class="va">TRT_B1</span>, <span class="va">TRT_A2</span>, <span class="va">TRT_B2</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Parameter'</span>, <span class="st">'Statistics'</span>, <span class="st">'Drug A'</span>, <span class="st">'Drug B'</span>, <span class="st">'Drug A'</span>, <span class="st">'Drug B'</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">PARAM</span>, dedupe <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="co">### Spanning headers</span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A1</span>, <span class="va">TRT_B1</span><span class="op">)</span>, <span class="st">'Group 1'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A2</span>, <span class="va">TRT_B2</span><span class="op">)</span>, <span class="st">'Group 2'</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> </span></code></pre></div>
+<p>The bottom border of the spanning header row will be a solid line,
+making it difficult to see which columns actually belong to which
+group:</p>
+<p><img src="images/spanning_headers_gap.png"></p>
+<p>Instead of adding a dummy column to the input dataframe between
+<code>TRT_B1</code> and <code>TRT_A2</code> to separate them visually,
+we can use built-in atomic styles to replace the cell bottom border with
+a paragraph bottom border. The paragraph border only underlines the text
+of each spanning header individually, creating a visible gap between the
+two groups:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="st">"Source: ADSL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"SD = Standard Deviation; BMI = Body Mass Index"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">STAT</span>, <span class="va">TRT_A1</span>, <span class="va">TRT_B1</span>, <span class="va">TRT_A2</span>, <span class="va">TRT_B2</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Parameter'</span>, <span class="st">'Statistics'</span>, <span class="st">'Drug A'</span>, <span class="st">'Drug B'</span>, <span class="st">'Drug A'</span>, <span class="st">'Drug B'</span><span class="op">)</span>,</span>
+<span>    labelStyleRef <span class="op">=</span> <span class="st">'bc_white'</span> <span class="co"># drop all cell borders from column header row</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">PARAM</span>, dedupe <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A1</span>, <span class="va">TRT_B1</span><span class="op">)</span>, <span class="st">'Group 1'</span>,</span>
+<span>                  <span class="co"># pb       - paragraph bottom border (underlines the text only)</span></span>
+<span>                  <span class="co"># bc_white - suppress cell borders (white, 0pt)</span></span>
+<span>                  <span class="co"># brw_thick - 4pt white right border to create a gap before the next group</span></span>
+<span>                  labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"pb"</span>, <span class="st">'bc_white'</span>, <span class="st">'brw_thick'</span><span class="op">)</span></span>
+<span>                  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A2</span>, <span class="va">TRT_B2</span><span class="op">)</span>, <span class="st">'Group 2'</span>, stubOrder <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                  <span class="co"># same as above, but no thick right border needed on the last group</span></span>
+<span>                  labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"pb"</span>, <span class="st">'bc_white'</span><span class="op">)</span></span>
+<span>                  <span class="op">)</span></span></code></pre></div>
+<p>With this approach the groups are visually separated from each
+other:</p>
+<iframe src="pdf/spanning_headers_gap.pdf#navpanes=0" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="pdf/spanning_headers_gap.pdf">Download
+spanning_headers_gap.pdf</a></p>
+</iframe>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

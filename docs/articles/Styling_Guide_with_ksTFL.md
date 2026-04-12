@@ -112,6 +112,7 @@ Roman”, “Georgia”)
 **Example**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # Bold, 12pt Arial, red text (using hex code)
@@ -145,6 +146,7 @@ indentation.
 **Example**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # Centered text with 6pt spacing before/after
@@ -180,6 +182,7 @@ standalone.
 **Example**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # Double-spaced with 12pt spacing after each paragraph
@@ -208,6 +211,7 @@ standalone.
 **Example**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # Hanging indent (first line outdented, rest indented)
@@ -245,6 +249,7 @@ use `NULL` or `0pt` to disable)
 **Example**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # Light gray background, centered vertically, fixed row height
@@ -281,10 +286,12 @@ style, width, and color.
 
 \- `right`: Right border (use `s_border(...)`)
 
-**Note**: [`s_borders()`](https://example.com/reference/s_borders.md) is
-always used **inside
-[`s_table_style()`](https://example.com/reference/s_table_style.md)**,
-never standalone.
+**Note**: [`s_borders()`](https://example.com/reference/s_borders.md)
+can be used **inside
+[`s_table_style()`](https://example.com/reference/s_table_style.md)**
+for cell-level borders, or **inside
+[`s_paragraph()`](https://example.com/reference/s_paragraph.md)** for
+paragraph-level borders.
 
 ### `s_border()` — Individual border line
 
@@ -302,6 +309,7 @@ Defines a single border line with style, width, and color.
 **Example**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # All borders: thin single lines in dark gray
@@ -326,6 +334,55 @@ spec <- add_style(spec, id = "bottom_border_heavy",
 )
 ```
 
+### Paragraph-level borders
+
+MS Word distinguishes between cell borders (`<w:tcBorders>`) and
+paragraph borders (`<w:pBdr>`). Cell borders always span the full cell
+width, while paragraph borders follow the text within the cell. This is
+particularly useful for spanning headers where a cell border would
+stretch across all merged columns, but a paragraph border only
+underlines the header label.
+
+Paragraph borders are set via
+[`s_borders()`](https://example.com/reference/s_borders.md) inside
+[`s_paragraph()`](https://example.com/reference/s_paragraph.md):
+
+``` r
+
+spec <- create_table(my_data)
+
+# Paragraph bottom border — underlines only the text, not the full cell
+spec <- add_style(spec, id = "span_underline",
+  s_font(bold = TRUE),
+  s_paragraph(
+    alignment = "center",
+    borders = s_borders(
+      bottom = s_border(color = "#000000", width = "0.5pt", line_style = "single")
+    )
+  )
+)
+
+# Apply to a spanning header
+spec <- add_span_header(spec,
+  cols = c("trt_a", "trt_b"),
+  label = "Treatment Arms",
+  labelStyleRef = "span_underline"
+)
+
+# Combine paragraph border atom with other styles
+spec <- add_span_header(spec,
+  cols = c("age", "sex"),
+  label = "Demographics",
+  labelStyleRef = f_combine("b", "ac", "pb_th")
+)
+```
+
+**Key difference**: structural borders (`header_top_border`,
+`header_bottom_border`) override cell-level borders on header rows but
+cannot affect paragraph borders. This makes paragraph borders useful
+when you need visual separators independent of the table’s structural
+framing.
+
 ------------------------------------------------------------------------
 
 ## Declaring named styles with `add_style()`
@@ -336,6 +393,7 @@ has a unique `id` and contains one or more style primitives.
 ### Basic syntax
 
 ``` r
+
 spec <- add_style(spec, id = "style_name",
   s_font(...),
   s_paragraph(...),
@@ -359,6 +417,7 @@ etc.)
 ### Example: Define a complete style
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # Comprehensive header style: bold white text on gray background, centered
@@ -386,6 +445,7 @@ multiple times with the same `id` merges the styles (last-win
 semantics):
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # First call: defines font
@@ -410,6 +470,7 @@ them by id in various places:
 Apply styles to **column header labels**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 spec <- add_style(spec, id = "header_bold", s_font(bold = TRUE, font_size = "12pt"))
@@ -431,6 +492,7 @@ spec <- define_cols(spec, c(mpg, hp),
 Apply styles to **data values** in a column:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 spec <- add_style(spec, id = "numeric_right", s_paragraph(alignment = "right"))
@@ -444,6 +506,7 @@ spec <- define_cols(spec, mpg, type = "numeric", valueStyleRef = "numeric_right"
 Apply styles to **stub (spanning header) labels**:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 spec <- add_style(spec, id = "stub_label",
@@ -459,6 +522,7 @@ spec <- add_span_header(spec, cols = c("mpg", "cyl"), label = "Engine",
 Apply styles to titles, subtitles, footnotes:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 spec <- add_style(spec, id = "title_style",
@@ -479,6 +543,7 @@ combined style.
 ### Basic usage
 
 ``` r
+
 spec <- create_table(mtcars)
 
 spec <- add_style(spec, id = "bold", s_font(bold = TRUE))
@@ -492,18 +557,19 @@ spec <- define_cols(spec, mpg, label = "MPG",
 
 ### When to use `f_combine()` vs named styles
 
-| Use Case                                     | Approach                                                                                |
-|----------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Reusable style** (used in 3+ places)       | Define a named style with [`add_style()`](https://example.com/reference/add_style.md)   |
-| **One-off combination** (used once or twice) | Use [`f_combine()`](https://example.com/reference/f_combine.md) inline                  |
-| **Complex style** (many properties)          | Define named style, then optionally combine with others                                 |
-| **Per-column variations**                    | Use [`f_combine()`](https://example.com/reference/f_combine.md) with per-column vectors |
+| Use Case | Approach |
+|----|----|
+| **Reusable style** (used in 3+ places) | Define a named style with [`add_style()`](https://example.com/reference/add_style.md) |
+| **One-off combination** (used once or twice) | Use [`f_combine()`](https://example.com/reference/f_combine.md) inline |
+| **Complex style** (many properties) | Define named style, then optionally combine with others |
+| **Per-column variations** | Use [`f_combine()`](https://example.com/reference/f_combine.md) with per-column vectors |
 
 ### Combining with per-column mapping
 
 Apply different combinations to different columns:
 
 ``` r
+
 spec <- create_table(mtcars)
 
 # Define base styles
@@ -585,6 +651,7 @@ grey90 (or gray with ‘a’)
 ### Pattern 1: Clinical table headers
 
 ``` r
+
 spec <- create_table(my_data)
 
 spec <- add_style(spec, id = "clinical_header",
@@ -599,6 +666,7 @@ spec <- define_cols(spec, c("col1", "col2", "col3"), labelStyleRef = "clinical_h
 ### Pattern 2: Right-aligned numeric columns
 
 ``` r
+
 spec <- add_style(spec, id = "numeric_format",
   s_font(font_name = "Courier New", font_size = "10pt"),
   s_paragraph(alignment = "right")
@@ -610,6 +678,7 @@ spec <- define_cols(spec, c(age, weight, dose), type = "numeric", valueStyleRef 
 ### Pattern 3: ID/key columns (bold, wide)
 
 ``` r
+
 spec <- add_style(spec, id = "id_column",
   s_font(bold = TRUE, font_size = "11pt"),
   s_paragraph(alignment = "left")
@@ -625,6 +694,7 @@ spec <- define_cols(spec, subject_id,
 ### Pattern 4: Multi-level headers with styled stubs
 
 ``` r
+
 spec <- add_style(spec, id = "level1_stub",
   s_font(bold = TRUE, font_size = "12pt", color = "#FFFFFF"),
   s_table_style(background_color = "#666666", vertical_alignment = "center"))
@@ -650,6 +720,7 @@ spec <- add_span_header(spec, cols = c("var1", "var2"), label = "Safety",
 [`add_style()`](https://example.com/reference/add_style.md).
 
 ``` r
+
 # WRONG
 my_style <- s_font(bold = TRUE)  # ERROR
 
@@ -663,6 +734,7 @@ spec <- add_style(spec, id = "my_style", s_font(bold = TRUE))
 of TRUE).
 
 ``` r
+
 # WRONG
 s_font(bold = "bolded")  # ERROR: must be TRUE/FALSE
 
@@ -678,6 +750,7 @@ call [`create_report()`](https://example.com/reference/create_report.md)
 before the styles are consolidated.
 
 ``` r
+
 spec <- create_table(mtcars)
 spec <- define_cols(spec, mpg, labelStyleRef = f_combine("bold", "red"))
 
@@ -750,87 +823,95 @@ to print all available atoms grouped by category with colour-coded
 output in the console:
 
 ``` r
+
 # Print all built-in atoms categorised and colour-coded
 tfl_print_style_atoms()
 ```
 
 ### Complete atom reference
 
-| Atom                                                               | Effect                                                                    |
-|--------------------------------------------------------------------|---------------------------------------------------------------------------|
-| **Font — decoration**                                              |                                                                           |
-| `b` / `font_bold`                                                  | Bold                                                                      |
-| `i` / `font_italic`                                                | Italic                                                                    |
-| `u` / `font_underline`                                             | Underline                                                                 |
-| **Font — family**                                                  |                                                                           |
-| `font_arial`                                                       | Set `font_name = "Arial"`                                                 |
-| `font_courier_new`                                                 | Set `font_name = "Courier New"`                                           |
-| `font_times_new_roman`                                             | Set `font_name = "Times New Roman"`                                       |
-| `font_georgia`                                                     | Set `font_name = "Georgia"`                                               |
-| `font_verdana`                                                     | Set `font_name = "Verdana"`                                               |
-| `font_trebuchet_ms`                                                | Set `font_name = "Trebuchet MS"`                                          |
-| **Font — size**                                                    |                                                                           |
-| `fs_7` … `fs_11`                                                   | Font size 7 pt … 11 pt                                                    |
-| **Font — colour**                                                  |                                                                           |
-| `fc_black`, `fc_red`, `fc_blue`, `fc_green`                        | Pure text colours                                                         |
-| `fc_gray` / `fc_grey`                                              | Secondary / reference text (#595959)                                      |
-| `fc_navy`, `fc_teal`, `fc_olive`, `fc_rust`, `fc_plum`, `fc_slate` | Muted clinical palette                                                    |
-| **Text highlight (cell shading)**                                  |                                                                           |
-| `hl_yellow`, `hl_red`, `hl_green`, `hl_gray` / `hl_grey`           | Strong highlight colours                                                  |
-| `hl_peach`, `hl_mint`, `hl_sky`, `hl_lemon`, `hl_lilac`            | Pastel highlight palette                                                  |
-| **Paragraph — alignment**                                          |                                                                           |
-| `al` / `text_left`                                                 | Left-align                                                                |
-| `ar` / `text_right`                                                | Right-align                                                               |
-| `ac` / `text_center`                                               | Center-align                                                              |
-| **Paragraph — left indentation**                                   |                                                                           |
-| `ind0` / `indent_0`                                                | No indent (reset to left margin)                                          |
-| `ind1` / `indent_1`                                                | 0.5 cm left indent (top-level category)                                   |
-| `ind2` / `indent_2`                                                | 1.0 cm left indent (first sub-group)                                      |
-| `ind3` / `indent_3`                                                | 1.5 cm left indent (second sub-group)                                     |
-| `ind4` / `indent_4`                                                | 2.0 cm left indent (detail)                                               |
-| **Paragraph — right indentation**                                  |                                                                           |
-| `rind0` / `rindent_0`                                              | No right indent (reset to right margin)                                   |
-| `rind1` / `rindent_1`                                              | 0.5 cm right indent                                                       |
-| `rind2` / `rindent_2`                                              | 1.0 cm right indent                                                       |
-| `rind3` / `rindent_3`                                              | 1.5 cm right indent                                                       |
-| `rind4` / `rindent_4`                                              | 2.0 cm right indent                                                       |
-| **Paragraph — table-width shrink**                                 |                                                                           |
-| `tw_95` … `tw_50`                                                  | Symmetric left+right indent to match table at 95 %…50 % width (5 % steps) |
-| **Paragraph — spacing**                                            |                                                                           |
-| `sp_0`                                                             | No space before/after paragraph                                           |
-| `sp_2`                                                             | 2 pt space before and after                                               |
-| `sp_4`                                                             | 4 pt space before and after                                               |
-| **Paragraph — pagination**                                         |                                                                           |
-| `kl`                                                               | Keep all lines of a cell on the same page                                 |
-| `kn`                                                               | Keep this row on the same page as the next row                            |
-| **Group / category header composites**                             |                                                                           |
-| `grp_hdr`                                                          | Bold + 4 pt space above + left indent reset (category header)             |
-| `grp_hdr_i`                                                        | Bold + italic + 4 pt space above + left indent reset                      |
-| **Cell — vertical alignment**                                      |                                                                           |
-| `va_t` / `va_top`                                                  | Top                                                                       |
-| `va_m` / `va_center`                                               | Middle                                                                    |
-| `va_b` / `va_bottom`                                               | Bottom                                                                    |
-| **Cell — text orientation**                                        |                                                                           |
-| `to_h` / `text_horizontal`                                         | Horizontal (default)                                                      |
-| `to_90` / `text_vertical_90`                                       | Rotated 90° (bottom-to-top)                                               |
-| `to_270` / `text_vertical_270`                                     | Rotated 270° (top-to-bottom)                                              |
-| **Cell — background colour**                                       |                                                                           |
-| `bg_blue`, `bg_gray` / `bg_grey`                                   | Standard backgrounds                                                      |
-| `bg_peach`, `bg_mint`, `bg_sky`, `bg_lemon`, `bg_lilac`            | Pastel backgrounds                                                        |
-| `bg_navy`, `bg_slate`, `bg_steel`                                  | Dark/medium header backgrounds                                            |
-| **Row height**                                                     |                                                                           |
-| `row_h2`, `row_h4`, `row_h6`                                       | Row height 2 / 4 / 6 pt (separator rows)                                  |
-| **Border — sides (1 pt black)**                                    |                                                                           |
-| `bt`, `bb`, `bl`, `br`                                             | Top / bottom / left / right border                                        |
-| **Border — thin sides (0.5 pt black)**                             |                                                                           |
-| `bt_th`, `bb_th`                                                   | Thin top / bottom border                                                  |
-| **Border — colour override**                                       |                                                                           |
-| `bc_gray` / `bc_grey`                                              | All sides → medium gray (#AAAAAA)                                         |
-| `bc_white`                                                         | All sides → white / none (suppress borders)                               |
+| Atom | Effect |
+|----|----|
+| **Font — decoration** |  |
+| `b` / `font_bold` | Bold |
+| `i` / `font_italic` | Italic |
+| `u` / `font_underline` | Underline |
+| **Font — family** |  |
+| `font_arial` | Set `font_name = "Arial"` |
+| `font_courier_new` | Set `font_name = "Courier New"` |
+| `font_times_new_roman` | Set `font_name = "Times New Roman"` |
+| `font_georgia` | Set `font_name = "Georgia"` |
+| `font_verdana` | Set `font_name = "Verdana"` |
+| `font_trebuchet_ms` | Set `font_name = "Trebuchet MS"` |
+| **Font — size** |  |
+| `fs_7` … `fs_11` | Font size 7 pt … 11 pt |
+| **Font — colour** |  |
+| `fc_black`, `fc_red`, `fc_blue`, `fc_green` | Pure text colours |
+| `fc_gray` / `fc_grey` | Secondary / reference text (#595959) |
+| `fc_navy`, `fc_teal`, `fc_olive`, `fc_rust`, `fc_plum`, `fc_slate` | Muted clinical palette |
+| **Text highlight (cell shading)** |  |
+| `hl_yellow`, `hl_red`, `hl_green`, `hl_gray` / `hl_grey` | Strong highlight colours |
+| `hl_peach`, `hl_mint`, `hl_sky`, `hl_lemon`, `hl_lilac` | Pastel highlight palette |
+| **Paragraph — alignment** |  |
+| `al` / `text_left` | Left-align |
+| `ar` / `text_right` | Right-align |
+| `ac` / `text_center` | Center-align |
+| **Paragraph — left indentation** |  |
+| `ind0` / `indent_0` | No indent (reset to left margin) |
+| `ind1` / `indent_1` | 0.5 cm left indent (top-level category) |
+| `ind2` / `indent_2` | 1.0 cm left indent (first sub-group) |
+| `ind3` / `indent_3` | 1.5 cm left indent (second sub-group) |
+| `ind4` / `indent_4` | 2.0 cm left indent (detail) |
+| **Paragraph — right indentation** |  |
+| `rind0` / `rindent_0` | No right indent (reset to right margin) |
+| `rind1` / `rindent_1` | 0.5 cm right indent |
+| `rind2` / `rindent_2` | 1.0 cm right indent |
+| `rind3` / `rindent_3` | 1.5 cm right indent |
+| `rind4` / `rindent_4` | 2.0 cm right indent |
+| **Paragraph — table-width shrink** |  |
+| `tw_95` … `tw_50` | Symmetric left+right indent to match table at 95 %…50 % width (5 % steps) |
+| **Paragraph — spacing** |  |
+| `sp_0` | No space before/after paragraph |
+| `sp_2` | 2 pt space before and after |
+| `sp_4` | 4 pt space before and after |
+| **Paragraph — pagination** |  |
+| `kl` | Keep all lines of a cell on the same page |
+| `kn` | Keep this row on the same page as the next row |
+| **Group / category header composites** |  |
+| `grp_hdr` | Bold + 4 pt space above + left indent reset (category header) |
+| `grp_hdr_i` | Bold + italic + 4 pt space above + left indent reset |
+| **Cell — vertical alignment** |  |
+| `va_t` / `va_top` | Top |
+| `va_m` / `va_center` | Middle |
+| `va_b` / `va_bottom` | Bottom |
+| **Cell — text orientation** |  |
+| `to_h` / `text_horizontal` | Horizontal (default) |
+| `to_90` / `text_vertical_90` | Rotated 90° (bottom-to-top) |
+| `to_270` / `text_vertical_270` | Rotated 270° (top-to-bottom) |
+| **Cell — background colour** |  |
+| `bg_blue`, `bg_gray` / `bg_grey` | Standard backgrounds |
+| `bg_peach`, `bg_mint`, `bg_sky`, `bg_lemon`, `bg_lilac` | Pastel backgrounds |
+| `bg_navy`, `bg_slate`, `bg_steel` | Dark/medium header backgrounds |
+| **Row height** |  |
+| `row_h2`, `row_h4`, `row_h6` | Row height 2 / 4 / 6 pt (separator rows) |
+| **Border — sides (1 pt black)** |  |
+| `bt`, `bb`, `bl`, `br` | Top / bottom / left / right border |
+| **Border — thin sides (0.5 pt black)** |  |
+| `bt_th`, `bb_th` | Thin top / bottom border |
+| **Border — colour override** |  |
+| `bc_gray` / `bc_grey` | All sides → medium gray (#AAAAAA) |
+| `bc_white` | All sides → white / none (suppress borders) |
+| **Border — thick white sides (column separation)** |  |
+| `brw_thick` | Right border 4 pt white (visual column gap) |
+| `blw_thick` | Left border 4 pt white (visual column gap) |
+| **Paragraph border — bottom** |  |
+| `pb` | Paragraph bottom border 1 pt black |
+| `pb_th` | Paragraph bottom border 0.5 pt black (thin) |
 
 **Usage:**
 
 ``` r
+
 # Single atom as styleRef
 spec <- add_footnote(spec, "Source: database.", styleRef = "tw_80")
 
@@ -874,6 +955,7 @@ page margins** (content width ≈ 27.16 cm). Each 5 % step corresponds to
 **Usage — match footnotes and titles to a narrower table:**
 
 ``` r
+
 spec <- create_table(data) |>
   set_document(contentWidth = "80%") |>
   add_title("Demographics Table",   styleRef = "tw_80") |>
@@ -885,6 +967,7 @@ spec <- create_table(data) |>
 [`f_combine()`](https://example.com/reference/f_combine.md):
 
 ``` r
+
 # Bold title, indented to match a 75 % table
 spec <- add_title(spec, "Efficacy Summary",
                   styleRef = f_combine("b", "tw_75"))
@@ -897,6 +980,7 @@ spec <- add_footnote(spec, "Values are least-squares means.",
 **Apply via a named style** for reuse across multiple specs:
 
 ``` r
+
 # Define the style on each spec (or use a helper function to apply it)
 add_footnote_80 <- function(spec, text) {
   spec <- add_style(spec, id = "fn_80",
