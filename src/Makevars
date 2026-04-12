@@ -49,13 +49,21 @@ VENDORED_OBJECTS = vendor/freetype/ft_all.o vendor/harfbuzz/harfbuzz.o vendor/mi
 
 OBJECTS = $(KSTFL_OBJECTS) $(VENDORED_OBJECTS)
 
+## GCC-only warning suppressor: clang does not recognize
+## -Wno-stringop-overflow and emits -Wunknown-warning-option.
+IS_CLANG = $(shell printf '' | $(CC) -dM -E -x c - 2>/dev/null | grep -q "__clang__" && echo 1 || echo 0)
+FT_GCC_ONLY_WARN =
+ifeq ($(IS_CLANG),0)
+FT_GCC_ONLY_WARN = -Wno-stringop-overflow
+endif
+
 ## ---- Compile rules for vendored sources -----------------------------------
 
 ## FreeType (C, compiled from single-compilation-unit wrapper)
 vendor/freetype/ft_all.o: vendor/freetype/ft_all.c
 	@mkdir -p vendor/freetype
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -Ivendor/freetype/include -Ivendor/freetype \
-	    -DFT2_BUILD_LIBRARY -fno-lto -Wno-stringop-overflow -c $< -o $@
+        -DFT2_BUILD_LIBRARY -fno-lto $(FT_GCC_ONLY_WARN) -c $< -o $@
 
 ## HarfBuzz (C++, single-compilation-unit amalgamation)
 vendor/harfbuzz/harfbuzz.o: vendor/harfbuzz/src/harfbuzz.cc
