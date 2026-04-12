@@ -627,6 +627,7 @@ static DocumentInfo parse_document_info(const json &j) {
 
   di.doc_order = jutil::get<int>(j, "docOrder", 0);
   di.is_continues = jutil::get<bool>(j, "isContinues", false);
+  di.continuous_section = jutil::get<bool>(j, "continuousSection", false);
   // footnotePlace: "doc_footer" | "repeated" | "last_page" (default "repeated")
   auto fp = jutil::get<std::string>(j, "footnotePlace");
   if (fp == "doc_footer")

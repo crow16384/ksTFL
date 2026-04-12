@@ -22,9 +22,12 @@ c_style(cols, styleRef)
 
   Character. Name of the style to apply (defined via
   [`add_style()`](https://example.com/reference/add_style.md)). Can be a
-  single style name or result of
+  single style name (e.g., `"bold"`) or result of
   [`f_combine()`](https://example.com/reference/f_combine.md) for
-  combining multiple styles.
+  combining multiple styles (e.g., `f_combine("bold", "red")`). When
+  multiple styles are provided via
+  [`f_combine()`](https://example.com/reference/f_combine.md), they are
+  merged in the order listed (last wins for conflicting properties).
 
 ## Value
 

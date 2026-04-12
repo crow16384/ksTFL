@@ -227,12 +227,16 @@ void DocxEmitter::emit_section_props(XmlWriter &w, const PageConfig &page, const
   // w:type="nextPage" — that would make Word create an extra blank page
   // at the end of the document.  Omitting w:type entirely is correct;
   // it defaults to "nextPage" semantics for intermediate breaks.
+  // However, w:type="continuous" IS safe on body-level and is needed when
+  // the last spec requests a continuous section start.
   if (!is_body_level) {
     if (continuous) {
       w.element_with_attr("w:type", "w:val", "continuous");
     } else {
       w.element_with_attr("w:type", "w:val", "nextPage");
     }
+  } else if (continuous) {
+    w.element_with_attr("w:type", "w:val", "continuous");
   }
 
   // Header reference

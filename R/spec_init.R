@@ -269,6 +269,9 @@
   if (is.null(spec$document$isContinues)) {
     spec$document$isContinues <- settings$isContinues
   }
+  if (is.null(spec$document$continuousSection)) {
+    spec$document$continuousSection <- settings$continuousSection
+  }
   if (is.null(spec$document$contentWidth)) {
     spec$document$contentWidth <- settings$contentWidth
   }

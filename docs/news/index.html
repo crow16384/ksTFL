@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,19 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.10.4" id="kstfl-0104">ksTFL 0.10.4<a class="anchor" aria-label="anchor" href="#kstfl-0104"></a></h2>
+<div class="section level3">
+<h3 id="fixes-0-10-4">Fixes<a class="anchor" aria-label="anchor" href="#fixes-0-10-4"></a></h3>
+<ul><li>
+<strong><code>continuousSection</code> semantics corrected in DOCX renderer</strong>: section break type is now taken from the section/spec being emitted (not the next spec), so <code>continuousSection = TRUE</code> applies to the intended spec.</li>
+<li>
+<strong>Body-level section properties honor <code>continuousSection</code></strong>: the last spec can now emit a body-level <code>w:type="continuous"</code>, allowing figure-to-table flow without an unintended final next-page break.</li>
+<li>
+<strong>TOC-to-body transition behavior restored</strong>: TOC remains separated with a <code>nextPage</code> break while in-body specs can still flow continuously as requested.</li>
+<li>Added/updated regression tests for multi-spec section break typing, including body-level <code>sectPr</code> behavior.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.3" id="kstfl-0103">ksTFL 0.10.3<a class="anchor" aria-label="anchor" href="#kstfl-0103"></a></h2>
 <div class="section level3">

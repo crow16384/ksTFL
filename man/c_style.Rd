@@ -11,7 +11,10 @@ c_style(cols, styleRef)
 (e.g., \code{c(col1, col2)}, \code{everything()}, \code{starts_with("x")})}
 
 \item{styleRef}{Character. Name of the style to apply (defined via \code{add_style()}).
-Can be a single style name or result of \code{f_combine()} for combining multiple styles.}
+Can be a single style name (e.g., \code{"bold"}) or result of \code{f_combine()} for
+combining multiple styles (e.g., \code{f_combine("bold", "red")}).
+When multiple styles are provided via \code{f_combine()}, they are merged in the
+order listed (last wins for conflicting properties).}
 }
 \value{
 Quosure structure (internal use within \code{compute_cols()})

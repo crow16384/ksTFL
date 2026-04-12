@@ -42,7 +42,8 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 
   spec_fig <- create_figure(p, dpi = 300) %>%
     add_title(c("Figure S3.1", "Mean PK Concentration–Time Profile"), toclevel = 1) %>%
-    add_subtitle("PK Analysis Set")
+    add_subtitle("PK Analysis Set") %>%
+    set_document(continuousSection = FALSE, figureHeight = '4in')
 } else {
   spec_fig <- create_text() %>%
     add_title("Figure S3.1 placeholder", toclevel = 1) %>%
@@ -50,11 +51,12 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 
 spec_tbl <- create_table(summary_tbl) %>%
-  add_title(c("Table S3.1", "PK Summary Parameters"), toclevel = 1) %>%
+  #add_title(c("Table S3.1", "PK Summary Parameters"), toclevel = 1) %>%
   define_cols(TRT, label = "Treatment", isID = TRUE, colWidth = "40%") %>%
   define_cols(Cmax, label = "C[max]", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%
   define_cols(Tmax, label = "T[max] (h)", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%
-  add_footnote("C[max] = maximum concentration; T[max] = time of C[max].")
+  add_footnote("C[max] = maximum concentration; T[max] = time of C[max].") %>%
+  set_document(continuousSection = TRUE)
 
 create_report(spec_txt, spec_fig, spec_tbl) %>%
   write_doc("03_narrative_figure_table", toc = TRUE, metaPath = meta_dir)

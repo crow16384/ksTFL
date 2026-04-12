@@ -1,3 +1,18 @@
+# ksTFL 0.10.4
+
+## Fixes
+
+* **`continuousSection` semantics corrected in DOCX renderer**: section break type
+  is now taken from the section/spec being emitted (not the next spec), so
+  `continuousSection = TRUE` applies to the intended spec.
+* **Body-level section properties honor `continuousSection`**: the last spec can
+  now emit a body-level `w:type="continuous"`, allowing figure-to-table flow
+  without an unintended final next-page break.
+* **TOC-to-body transition behavior restored**: TOC remains separated with a
+  `nextPage` break while in-body specs can still flow continuously as requested.
+* Added/updated regression tests for multi-spec section break typing,
+  including body-level `sectPr` behavior.
+
 # ksTFL 0.10.3
 
 ## Internal C++ Engine

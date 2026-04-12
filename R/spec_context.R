@@ -2771,9 +2771,16 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' document order (`docOrder`) is assigned by `create_report()`.
 #'
 #' @param spec TFL spec object
-#' @param isContinues Logical. When `TRUE`, page breaks between specs in a
-#'   multi-spec report are suppressed and the next spec continues on the same
-#'   page.
+#' @param isContinues Logical. When `TRUE`, titles and subtitles are shown
+#'   only on the first page of a multi-page spec instead of repeating on every
+#'   page. Default `FALSE` (titles repeat on each page).
+#' @param continuousSection Logical. When `TRUE` on a spec that is not the
+#'   first in a report, the page break before this spec is suppressed and it
+#'   continues on the same page as the previous spec. Requires matching page
+#'   size and margins with the previous spec; if they differ, Word may still
+#'   force a page break. The paginator is not adjusted — Word handles natural
+#'   overflow when content exceeds the remaining page space. Works best for
+#'   short content (figures, text, small tables). Default `FALSE`.
 #' @param contentWidth Width of content, e.g. `"100%"`, `"25cm"`, `"10in"`.
 #' @param footnotePlace Character; controls where footnotes are rendered.
 #'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
@@ -2832,7 +2839,8 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' spec <- create_table(mtcars) |>
 #'   set_document(hasData = TRUE, docTemplate = "Navy_Pro")
 #' }
-set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
+set_document <- function(spec, isContinues = NULL, continuousSection = NULL,
+                         contentWidth = NULL,
                          footnotePlace = NULL, hasData = NULL,
                          topEmptyLine = NULL,
                          bottomEmptyLine = NULL,
@@ -2853,6 +2861,7 @@ set_document <- function(spec, isContinues = NULL, contentWidth = NULL,
   
   params <- list(
     isContinues = isContinues,
+    continuousSection = continuousSection,
     contentWidth = contentWidth,
     footnotePlace = footnotePlace,
     hasData = hasData,

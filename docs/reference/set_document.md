@@ -14,6 +14,7 @@ by [`create_report()`](https://example.com/reference/create_report.md).
 set_document(
   spec,
   isContinues = NULL,
+  continuousSection = NULL,
   contentWidth = NULL,
   footnotePlace = NULL,
   hasData = NULL,
@@ -35,8 +36,19 @@ set_document(
 
 - isContinues:
 
-  Logical. When `TRUE`, page breaks between specs in a multi-spec report
-  are suppressed and the next spec continues on the same page.
+  Logical. When `TRUE`, titles and subtitles are shown only on the first
+  page of a multi-page spec instead of repeating on every page. Default
+  `FALSE` (titles repeat on each page).
+
+- continuousSection:
+
+  Logical. When `TRUE` on a spec that is not the first in a report, the
+  page break before this spec is suppressed and it continues on the same
+  page as the previous spec. Requires matching page size and margins
+  with the previous spec; if they differ, Word may still force a page
+  break. The paginator is not adjusted — Word handles natural overflow
+  when content exceeds the remaining page space. Works best for short
+  content (figures, text, small tables). Default `FALSE`.
 
 - contentWidth:
 

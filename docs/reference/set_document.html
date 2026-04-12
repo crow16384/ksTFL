@@ -13,7 +13,7 @@ document order (docOrder) is assigned by create_report()."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,7 @@ document order (<code>docOrder</code>) is assigned by <code><a href="create_repo
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">set_document</span><span class="op">(</span></span>
 <span>  <span class="va">spec</span>,</span>
 <span>  isContinues <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  continuousSection <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  contentWidth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  footnotePlace <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  hasData <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -73,9 +74,19 @@ document order (<code>docOrder</code>) is assigned by <code><a href="create_repo
 
 
 <dt id="arg-iscontinues">isContinues<a class="anchor" aria-label="anchor" href="#arg-iscontinues"></a></dt>
-<dd><p>Logical. When <code>TRUE</code>, page breaks between specs in a
-multi-spec report are suppressed and the next spec continues on the same
-page.</p></dd>
+<dd><p>Logical. When <code>TRUE</code>, titles and subtitles are shown
+only on the first page of a multi-page spec instead of repeating on every
+page. Default <code>FALSE</code> (titles repeat on each page).</p></dd>
+
+
+<dt id="arg-continuoussection">continuousSection<a class="anchor" aria-label="anchor" href="#arg-continuoussection"></a></dt>
+<dd><p>Logical. When <code>TRUE</code> on a spec that is not the
+first in a report, the page break before this spec is suppressed and it
+continues on the same page as the previous spec. Requires matching page
+size and margins with the previous spec; if they differ, Word may still
+force a page break. The paginator is not adjusted — Word handles natural
+overflow when content exceeds the remaining page space. Works best for
+short content (figures, text, small tables). Default <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-contentwidth">contentWidth<a class="anchor" aria-label="anchor" href="#arg-contentwidth"></a></dt>

@@ -448,6 +448,11 @@
                             "title": "Is table continues or has page breaks",
                             "description": "Yes if page breaks should be ignored"
                         },
+                        "continuousSection": {
+                            "type": "boolean",
+                            "title": "Continuous section break",
+                            "description": "When true, the page break before this spec is suppressed and it continues on the same page as the previous spec"
+                        },
                         "contentWidth": {
                             "type": [
                                 "null",

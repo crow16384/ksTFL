@@ -17,6 +17,7 @@
     # Document Renderer Defaults
     footnotePlace       = "repeated",
     isContinues         = FALSE,
+    continuousSection   = FALSE,
     contentWidth        = "100%",
     figureWidth         = "6in",
     figureHeight        = "4in",

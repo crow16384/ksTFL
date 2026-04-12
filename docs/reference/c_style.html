@@ -9,7 +9,7 @@ in rows matching the parent compute_cols() condition."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,10 @@ in rows matching the parent <code><a href="compute_cols.html">compute_cols()</a>
 
 <dt id="arg-styleref">styleRef<a class="anchor" aria-label="anchor" href="#arg-styleref"></a></dt>
 <dd><p>Character. Name of the style to apply (defined via <code><a href="add_style.html">add_style()</a></code>).
-Can be a single style name or result of <code><a href="f_combine.html">f_combine()</a></code> for combining multiple styles.</p></dd>
+Can be a single style name (e.g., <code>"bold"</code>) or result of <code><a href="f_combine.html">f_combine()</a></code> for
+combining multiple styles (e.g., <code>f_combine("bold", "red")</code>).
+When multiple styles are provided via <code><a href="f_combine.html">f_combine()</a></code>, they are merged in the
+order listed (last wins for conflicting properties).</p></dd>
 
 </dl></div>
     <div class="section level2">

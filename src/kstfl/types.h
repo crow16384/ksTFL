@@ -555,6 +555,7 @@ struct DocumentInfo {
   bool glue_num_type = false; // informational: number type was auto-generated
   int doc_order = 0;
   bool is_continues = false;                    // if true, titles don't repeat on subsequent pages
+  bool continuous_section = false;              // if true, no page break before this spec (OOXML continuous section)
   std::optional<std::string> content_width_raw; // e.g. "100%", "16cm", "6.5in"
   FootnotePlace footnote_place = FootnotePlace::Repeated;
   std::optional<Length> top_empty_line;    // spacer row after table header

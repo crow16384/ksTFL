@@ -150,7 +150,11 @@ std::string DocxEmitter::emit_document_xml(
 
       doc_w.start_element("w:p");
       doc_w.start_element("w:pPr");
-      emit_section_props(doc_w, prev_page, prev_refs.header_rid, prev_refs.footer_rid);
+      // w:type on the sectPr controls how THIS section (prev_spec's) starts.
+      // Use prev_spec's flag so that continuousSection on a spec controls
+      // whether that spec's own section begins without a page break.
+      emit_section_props(doc_w, prev_page, prev_refs.header_rid, prev_refs.footer_rid,
+                         /*continuous=*/prev_spec.document.continuous_section);
       doc_w.end_element(); // w:pPr
       doc_w.end_element(); // w:p
     }
@@ -320,7 +324,7 @@ std::string DocxEmitter::emit_document_xml(
     PageConfig last_page = last_resolver.resolve_page_config(last_spec);
     const auto &last_refs = spec_hdr_ftr_refs[last_idx];
     emit_section_props(doc_w, last_page, last_refs.header_rid, last_refs.footer_rid,
-                       /*continuous=*/false, /*is_body_level=*/true);
+                       /*continuous=*/last_spec.document.continuous_section, /*is_body_level=*/true);
   }
 
   doc_w.end_element(); // w:body

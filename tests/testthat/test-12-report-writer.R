@@ -752,3 +752,136 @@ test_that("write_doc() accepts external overrideTemplate path", {
 
   expect_true(file.exists(out_path))
 })
+
+# ---- Tests: continuousSection section-break type ----
+
+test_that("continuousSection = TRUE emits w:type continuous in DOCX XML", {
+  spec1 <- create_text() |>
+    add_title("Section 1") |>
+    add_body_text("First section text.") |>
+    set_document(hasData = FALSE)
+
+  spec2 <- create_text() |>
+    add_title("Section 2") |>
+    add_body_text("Second section text.") |>
+    set_document(hasData = FALSE, continuousSection = TRUE)
+
+  report <- create_report(spec1, spec2)
+
+  out_dir <- create_test_dir()
+  meta_dir <- create_test_dir()
+  on.exit({
+    unlink(out_dir, recursive = TRUE)
+    unlink(meta_dir, recursive = TRUE)
+  })
+
+  out_path <- write_doc(report, name = "continuous_section_test",
+                        outDir = out_dir, metaPath = meta_dir)
+  expect_true(file.exists(out_path))
+
+  unzip_dir <- create_test_dir()
+  on.exit(unlink(unzip_dir, recursive = TRUE), add = TRUE)
+  utils::unzip(out_path, exdir = unzip_dir)
+
+  doc_xml <- readLines(file.path(unzip_dir, "word", "document.xml"), warn = FALSE)
+  doc_text <- paste(doc_xml, collapse = "")
+
+  # The inter-spec section break should be continuous, not nextPage
+  expect_true(
+    grepl('w:type w:val="continuous"', doc_text, fixed = TRUE),
+    label = "continuous section break found in DOCX XML"
+  )
+})
+
+test_that("default (no continuousSection) emits w:type nextPage in DOCX XML", {
+  spec1 <- create_text() |>
+    add_title("Section 1") |>
+    add_body_text("First section text.") |>
+    set_document(hasData = FALSE)
+
+  spec2 <- create_text() |>
+    add_title("Section 2") |>
+    add_body_text("Second section text.") |>
+    set_document(hasData = FALSE)
+
+  report <- create_report(spec1, spec2)
+
+  out_dir <- create_test_dir()
+  meta_dir <- create_test_dir()
+  on.exit({
+    unlink(out_dir, recursive = TRUE)
+    unlink(meta_dir, recursive = TRUE)
+  })
+
+  out_path <- write_doc(report, name = "nextpage_section_test",
+                        outDir = out_dir, metaPath = meta_dir)
+  expect_true(file.exists(out_path))
+
+  unzip_dir <- create_test_dir()
+  on.exit(unlink(unzip_dir, recursive = TRUE), add = TRUE)
+  utils::unzip(out_path, exdir = unzip_dir)
+
+  doc_xml <- readLines(file.path(unzip_dir, "word", "document.xml"), warn = FALSE)
+  doc_text <- paste(doc_xml, collapse = "")
+
+  # The inter-spec section break should be nextPage (default)
+  expect_true(
+    grepl('w:type w:val="nextPage"', doc_text, fixed = TRUE),
+    label = "nextPage section break found in DOCX XML"
+  )
+  expect_false(
+    grepl('w:type w:val="continuous"', doc_text, fixed = TRUE),
+    label = "no continuous section break in default DOCX XML"
+  )
+})
+
+test_that("continuousSection on last spec sets body-level sectPr to continuous", {
+  spec1 <- create_text() |>
+    add_title("Section 1") |>
+    add_body_text("First section text.") |>
+    set_document(hasData = FALSE)
+
+  spec2 <- create_text() |>
+    add_title("Section 2") |>
+    add_body_text("Second section text.") |>
+    set_document(hasData = FALSE, continuousSection = TRUE)
+
+  spec3 <- create_text() |>
+    add_title("Section 3") |>
+    add_body_text("Third section text.") |>
+    set_document(hasData = FALSE, continuousSection = TRUE)
+
+  report <- create_report(spec1, spec2, spec3)
+
+  out_dir <- create_test_dir()
+  meta_dir <- create_test_dir()
+  on.exit({
+    unlink(out_dir, recursive = TRUE)
+    unlink(meta_dir, recursive = TRUE)
+  })
+
+  out_path <- write_doc(report, name = "body_level_continuous_test",
+                        outDir = out_dir, metaPath = meta_dir)
+  expect_true(file.exists(out_path))
+
+  unzip_dir <- create_test_dir()
+  on.exit(unlink(unzip_dir, recursive = TRUE), add = TRUE)
+  utils::unzip(out_path, exdir = unzip_dir)
+
+  doc_xml <- readLines(file.path(unzip_dir, "word", "document.xml"), warn = FALSE)
+  doc_text <- paste(doc_xml, collapse = "")
+
+  # With 3 specs (spec1=default, spec2 & spec3 continuous):
+  # - sectPr for spec1's section: spec1.continuousSection=FALSE → nextPage
+  # - sectPr for spec2's section: spec2.continuousSection=TRUE  → continuous
+  # - body-level sectPr for spec3: spec3.continuousSection=TRUE → continuous
+  n_continuous <- lengths(regmatches(doc_text,
+    gregexpr('w:type w:val="continuous"', doc_text, fixed = TRUE)))
+  n_nextpage <- lengths(regmatches(doc_text,
+    gregexpr('w:type w:val="nextPage"', doc_text, fixed = TRUE)))
+
+  expect_equal(n_continuous, 2L,
+    label = "expect 2 continuous section breaks (spec2 inline + spec3 body-level)")
+  expect_equal(n_nextpage, 1L,
+    label = "expect 1 nextPage section break (spec1)")
+})
