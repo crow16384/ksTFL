@@ -353,15 +353,53 @@ ParsedCell parse_inline_markup(const std::string &text) {
 // ---------------------------------------------------------------------------
 
 std::string get_plain_text(const std::string &text) {
-  ParsedCell cell = parse_inline_markup(text);
+  // Quick path: no markup — return as-is (zero-copy for most inputs)
+  if (text.find('<') == std::string::npos || !has_inline_markup(text)) {
+    return text;
+  }
+
+  // Single-pass scanner: skip recognized tags, accumulate plain text directly.
+  // Avoids building the full ParsedCell/TextRun/InlineRunStyle AST.
   std::string out;
-  for (const auto &para : cell.paragraphs) {
-    for (const auto &run : para.runs) {
-      for (char c : run.text) {
-        out += (c == '\n') ? ' ' : c;
+  out.reserve(text.size());
+
+  size_t pos = 0;
+  while (pos < text.size()) {
+    if (text[pos] == '<') {
+      size_t tag_start = pos;
+      bool is_closing = false;
+      bool is_self_closing = false;
+      std::string tag_name = extract_tag(text, pos, is_closing, is_self_closing);
+      TagType type = classify_tag(tag_name);
+
+      if (type == TagType::Unknown) {
+        // Not a recognized tag — emit as literal text (same recovery as parse_inline_markup)
+        size_t recover_start = tag_start;
+        size_t recover_end = tag_start + 1;
+        if (tag_start + 1 < text.size() && std::isalpha(static_cast<unsigned char>(text[tag_start + 1]))) {
+          recover_end = tag_start + 2;
+          while (recover_end < text.size() && std::isalpha(static_cast<unsigned char>(text[recover_end]))) {
+            ++recover_end;
+          }
+        }
+        out.append(text, recover_start, recover_end - recover_start);
+        pos = recover_end;
+        continue;
       }
+
+      // <br> and <br/> → space (matches old behavior: \n runs became spaces)
+      if (type == TagType::Br) {
+        out += ' ';
+        continue;
+      }
+
+      // All other recognized tags (<b>, </b>, <i>, </i>, <p>, </p>, etc.)
+      // are silently skipped — only their text content is kept.
+    } else {
+      out += text[pos++];
     }
   }
+
   return out;
 }
 

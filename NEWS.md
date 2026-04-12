@@ -1,3 +1,14 @@
+# ksTFL 0.10.3
+
+## Internal C++ Engine
+
+* **Optimised `get_plain_text()`** (`inline_parser.cpp`): replaced the
+  parse-full-AST-then-extract approach with a single-pass tag-stripping
+  scanner that reuses `extract_tag()`/`classify_tag()` directly, eliminating
+  all intermediate `ParsedCell`/`TextRun` allocations.
+* Added 16 unit tests for `get_plain_text()` covering all recognised tag
+  types, `<br>` → space conversion, nested tags, and literal angle brackets.
+
 # ksTFL 0.10.2
 
 ## Internal C++ Engine — Safety, Performance & Modernisation

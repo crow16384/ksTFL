@@ -707,6 +707,25 @@ Rcpp::List cpp_test_inline_parser() {
     t.check(e_bold && e_no_italic, "mixed nesting: 'E' bold only");
   }
 
+  // --- get_plain_text ---
+  t.check_eq(get_plain_text("hello"), std::string("hello"), "plain_text: no markup passthrough");
+  t.check_eq(get_plain_text(""), std::string(""), "plain_text: empty string");
+  t.check_eq(get_plain_text("<b>bold</b>"), std::string("bold"), "plain_text: strip bold");
+  t.check_eq(get_plain_text("<i>ital</i>"), std::string("ital"), "plain_text: strip italic");
+  t.check_eq(get_plain_text("<u>under</u>"), std::string("under"), "plain_text: strip underline");
+  t.check_eq(get_plain_text("<s>struck</s>"), std::string("struck"), "plain_text: strip strikethrough");
+  t.check_eq(get_plain_text("<sup>1</sup>"), std::string("1"), "plain_text: strip sup");
+  t.check_eq(get_plain_text("<sub>2</sub>"), std::string("2"), "plain_text: strip sub");
+  t.check_eq(get_plain_text("x<br/>y"), std::string("x y"), "plain_text: br/ to space");
+  t.check_eq(get_plain_text("x<br>y"), std::string("x y"), "plain_text: br to space");
+  t.check_eq(get_plain_text("<p>A</p><p>B</p>"), std::string("AB"), "plain_text: p tags stripped");
+  t.check_eq(get_plain_text("<b><i>nested</i></b>"), std::string("nested"), "plain_text: nested tags");
+  t.check_eq(get_plain_text("Hello <b>world</b>!"), std::string("Hello world!"), "plain_text: mixed content");
+  t.check_eq(get_plain_text("a<br/>b<br/>c"), std::string("a b c"), "plain_text: multiple br");
+  t.check_eq(get_plain_text("no < tags > here"), std::string("no < tags > here"),
+             "plain_text: angle brackets not tags");
+  t.check_eq(get_plain_text("<B>UPPER</B>"), std::string("UPPER"), "plain_text: case-insensitive");
+
   return t.to_list();
 }
 

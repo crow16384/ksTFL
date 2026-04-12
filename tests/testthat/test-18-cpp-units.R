@@ -260,6 +260,19 @@ test_that("C++ inline_parser — unknown tags are silently ignored", {
   }
 })
 
+test_that("C++ inline_parser — get_plain_text strips markup", {
+  result <- cpp_test_inline_parser()
+
+  pt_passed <- result$passed[startsWith(result$passed, "plain_text:")]
+  pt_failed <- result$failed[startsWith(result$failed, "plain_text:")]
+
+  for (name in pt_passed) expect_true(TRUE, label = name)
+  for (msg  in pt_failed) {
+    parts  <- strsplit(msg, ": ", fixed = TRUE)[[1L]]
+    expect_true(FALSE, label = paste0(parts[[1L]], " — ", paste(parts[-1L], collapse = ": ")))
+  }
+})
+
 test_that("C++ inline_parser — no failures in full suite", {
   result <- cpp_test_inline_parser()
   .report_cpp_results(result, "inline_parser")
