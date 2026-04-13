@@ -1027,7 +1027,138 @@ figures_single_doc_toc.pdf</a></p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-6---gap-between-spanning-header-lines">Example 6 - Gap between Spanning Header Lines<a class="anchor" aria-label="anchor" href="#example-6---gap-between-spanning-header-lines"></a>
+<h2 id="example-6---table-under-the-figure">Example 6 - Table under the figure<a class="anchor" aria-label="anchor" href="#example-6---table-under-the-figure"></a>
+</h2>
+<p>In clinical reporting, you often need to place a summary table
+directly under a figure (e.g., a PK concentration-time plot followed by
+a summary statistics table). This pattern uses two specs — one for the
+figure and one for the table — combined in a single report with
+<code>continuousSection = TRUE</code> on both to suppress page breaks
+between them.</p>
+<p><strong>Key design principles:</strong></p>
+<ul>
+<li>
+<strong>Figure subtitle</strong> — by default now appears
+<strong>above</strong> the figure image, between the title and the plot.
+You can override this with template-level configuration or per-spec
+settings if needed.</li>
+<li>
+<strong>Continuous section breaks</strong> — both the figure and
+table specs must have <code>continuousSection = TRUE</code> to flow
+together without a page break.</li>
+<li>
+<strong>Spacing and sizing</strong> — you are responsible for
+ensuring the combined height of figure + table + titles/footnotes fits
+within the page. Use <code>figureHeight</code> parameter to adjust the
+plot size if needed.</li>
+<li>
+<strong>Table title</strong> — you can omit the table title (letting
+the figure subtitle serve as visual context) or add an explicit title to
+the table spec for clarity.</li>
+</ul>
+<div class="section level3">
+<h3 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
+</h3>
+<pre><code>&gt; pk
+# A tibble: 21 × 3
+    TIME TRT       CONC
+   &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;
+ 1   0   Placebo      0
+ 2   0.5 Placebo     14
+ 3   1   Placebo     25
+ 4   2   Placebo     20
+ 5   4   Placebo     11
+ 6   8   Placebo      6
+ 7  12   Placebo      3
+ 8   0   Low Dose     0
+ 9   0.5 Low Dose    22
+10   1   Low Dose    39
+# ℹ 11 more rows
+&gt; summary_tbl
+# A tibble: 3 × 3
+  TRT        Cmax  Tmax
+  &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;
+1 High Dose    52     1
+2 Low Dose     39     1
+3 Placebo      25     1</code></pre>
+</div>
+<div class="section level3">
+<h3 id="code-4">Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
+</h3>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pk</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">TIME</span>, <span class="va">CONC</span>, colour <span class="op">=</span> <span class="va">TRT</span>, shape <span class="op">=</span> <span class="va">TRT</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Time (h)"</span>, y <span class="op">=</span> <span class="st">"Concentration (ng/mL)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S3.1"</span>, <span class="st">"Mean PK Concentration–Time Profile"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"PK Analysis Set"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span>, figureHeight <span class="op">=</span> <span class="st">'3in'</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">TRT</span>, label <span class="op">=</span> <span class="st">"Treatment"</span>, isID <span class="op">=</span> <span class="cn">TRUE</span>, colWidth <span class="op">=</span> <span class="st">"40%"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Cmax</span>, label <span class="op">=</span> <span class="st">"C[max]"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Tmax</span>, label <span class="op">=</span> <span class="st">"T[max] (h)"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"C[max] = maximum concentration; T[max] = time of C[max]."</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_under_figure"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="rendered-output-5">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-5"></a>
+</h3>
+<iframe src="pdf/example_03.1_table_under_figure.pdf#navpanes=0" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="pdf/example_03.1_table_under_figure.pdf">Download
+table_under_figure.pdf</a></p>
+</iframe>
+</div>
+<div class="section level3">
+<h3 id="variation-adding-an-explicit-table-title">Variation: adding an explicit table title<a class="anchor" aria-label="anchor" href="#variation-adding-an-explicit-table-title"></a>
+</h3>
+<p>If you want the table to have its own title (in addition to the
+figure), simply add a title to the table spec:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec_tbl_titled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S3.1"</span>, <span class="st">"PK Summary Parameters"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">TRT</span>, label <span class="op">=</span> <span class="st">"Treatment"</span>, isID <span class="op">=</span> <span class="cn">TRUE</span>, colWidth <span class="op">=</span> <span class="st">"40%"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Cmax</span>, label <span class="op">=</span> <span class="st">"C[max]"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Tmax</span>, label <span class="op">=</span> <span class="st">"T[max] (h)"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"C[max] = maximum concentration; T[max] = time of C[max]."</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig</span>, <span class="va">spec_tbl_titled</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_under_figure_titled"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>This creates two separate entries in the Table of Contents: one for
+the figure and one for the table.</p>
+</div>
+<div class="section level3">
+<h3 id="troubleshooting-when-figure-and-table-dont-fit">Troubleshooting: When figure and table don’t fit<a class="anchor" aria-label="anchor" href="#troubleshooting-when-figure-and-table-dont-fit"></a>
+</h3>
+<p>If the combined height of the figure, table, and all titles/footnotes
+exceeds the page height, Word will force an automatic page break between
+them. To keep them together on one page, reduce the
+<code>figureHeight</code>:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec_fig_compact</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S3.1"</span>, <span class="st">"Mean PK Concentration–Time Profile"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"PK Analysis Set"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="co"># Reduce from 3in to 2in to leave more room for the table on the same page</span></span>
+<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span>, figureHeight <span class="op">=</span> <span class="st">'2in'</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig_compact</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_under_figure_compact"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Alternatively, use <code>figureScaleMode = "fitWidth"</code> to scale
+the figure proportionally to the available width while respecting a
+height constraint.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="example-7---gap-between-spanning-header-lines">Example 7 - Gap between Spanning Header Lines<a class="anchor" aria-label="anchor" href="#example-7---gap-between-spanning-header-lines"></a>
 </h2>
 <p>Sometimes it is necessary to include a visual gap between spanning
 column groups so it is clear which columns belong to which header. This
@@ -1047,7 +1178,7 @@ the following dataset:</p>
 <code>TRT_A1</code> and <code>TRT_B1</code>, and ‘Group 2’ covering
 <code>TRT_A2</code> and <code>TRT_B2</code>.</p>
 <p>If we do this in the usual way:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1071,7 +1202,7 @@ we can use built-in atomic styles to replace the cell bottom border with
 a paragraph bottom border. The paragraph border only underlines the text
 of each spanning header individually, creating a visible gap between the
 two groups:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
