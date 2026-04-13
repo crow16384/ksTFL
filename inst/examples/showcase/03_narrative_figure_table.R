@@ -51,7 +51,7 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 }
 
 spec_tbl <- create_table(summary_tbl) %>%
-  #add_title(c("Table S3.1", "PK Summary Parameters"), toclevel = 1) %>%
+  add_title(c("Table S3.1", "PK Summary Parameters"), toclevel = 1) %>%
   define_cols(TRT, label = "Treatment", isID = TRUE, colWidth = "40%") %>%
   define_cols(Cmax, label = "C[max]", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%
   define_cols(Tmax, label = "T[max] (h)", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%

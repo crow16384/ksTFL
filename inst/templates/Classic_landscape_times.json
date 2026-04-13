@@ -341,7 +341,7 @@
       "space_after": "4pt"
     },
     "caption": {
-      "position": "below",
+      "position": "above",
       "textStyleRef": "figureCaption"
     }
   }

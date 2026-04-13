@@ -374,7 +374,7 @@ struct FigureStyleConfig {
   std::optional<Alignment> alignment;
   std::optional<Length> space_before;
   std::optional<Length> space_after;
-  std::string caption_position = "below"; // above | below
+  std::string caption_position = "above"; // above | below
   std::string caption_text_style_ref = "figureCaption";
 };
 
