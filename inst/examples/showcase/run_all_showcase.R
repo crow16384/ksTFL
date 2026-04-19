@@ -1,6 +1,7 @@
 source(file.path(getwd(), "inst", "examples", "showcase", "01_clinical_table_showcase.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "02_listing_paging_colbreak.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "03_narrative_figure_table.R"))
+source(file.path(getwd(), "inst", "examples", "showcase", "03.1_table_under_figure.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "04_meta_replay_clean.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "05_premium_csr_bundle.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "06_premium_qc_repro.R"))
