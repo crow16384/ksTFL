@@ -7,9 +7,9 @@
 #include "inline_parser.h"
 #include <algorithm>
 #include <cctype>
-#include <stack>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace kstfl {
 
@@ -102,12 +102,15 @@ struct ParserState {
   }
 
   /// Rebuild state from the tag stack.  Called after every push/pop.
-  static ParserState from_stack(const std::stack<TagType> &stk) {
+  /// Walks the stack (a vector used as a stack) from top (back) to bottom
+  /// in a single pass: flags accumulate across all entries, while the
+  /// Sup/Sub mutual-exclusion is resolved by the first (= most recent)
+  /// hit encountered during the back-to-front walk.
+  static ParserState from_stack(const std::vector<TagType> &stk) {
     ParserState s;
-    // Walk the stack contents via a copy (stack has no iterator).
-    std::stack<TagType> tmp = stk;
-    while (!tmp.empty()) {
-      switch (tmp.top()) {
+    bool sup_sub_resolved = false;
+    for (auto it = stk.rbegin(); it != stk.rend(); ++it) {
+      switch (*it) {
         using enum TagType;
       case Bold:
         s.bold = true;
@@ -122,32 +125,19 @@ struct ParserState {
         s.strikethrough = true;
         break;
       case Sup:
-        s.superscript = true;
+        if (!sup_sub_resolved) {
+          s.superscript = true;
+          sup_sub_resolved = true;
+        }
         break;
       case Sub:
-        s.subscript = true;
+        if (!sup_sub_resolved) {
+          s.subscript = true;
+          sup_sub_resolved = true;
+        }
         break;
       default:
         break;
-      }
-      tmp.pop();
-    }
-    // Sub clears super (mutual exclusion) — if both are on the stack,
-    // the most-recently-pushed one wins.  Re-walk to enforce.
-    if (s.superscript && s.subscript) {
-      // Find which was pushed later by walking the original stack
-      // (top = most recent).
-      std::stack<TagType> tmp2 = stk;
-      while (!tmp2.empty()) {
-        if (tmp2.top() == TagType::Sub) {
-          s.superscript = false;
-          break;
-        }
-        if (tmp2.top() == TagType::Sup) {
-          s.subscript = false;
-          break;
-        }
-        tmp2.pop();
       }
     }
     return s;
@@ -236,7 +226,8 @@ ParsedCell parse_inline_markup(const std::string &text) {
   ParsedParagraph current_para;
   std::string buffer;
   ParserState state;
-  std::stack<TagType> tag_stack;
+  std::vector<TagType> tag_stack;
+  tag_stack.reserve(8);
 
   size_t pos = 0;
   while (pos < text.size()) {
@@ -298,27 +289,17 @@ ParsedCell parse_inline_markup(const std::string &text) {
 
       // Formatting tags
       if (is_closing) {
-        // Pop the matching tag from the stack (search from top).
-        // We use a temp stack to find and remove the first match.
-        std::stack<TagType> tmp;
-        bool found = false;
-        while (!tag_stack.empty()) {
-          if (!found && tag_stack.top() == type) {
-            tag_stack.pop();
-            found = true;
+        // Pop the topmost matching tag from the stack (search from the
+        // back, which is the most-recently-pushed tag).
+        for (auto it = tag_stack.rbegin(); it != tag_stack.rend(); ++it) {
+          if (*it == type) {
+            tag_stack.erase(std::next(it).base());
             break;
           }
-          tmp.push(tag_stack.top());
-          tag_stack.pop();
-        }
-        // Restore popped-off non-matching tags
-        while (!tmp.empty()) {
-          tag_stack.push(tmp.top());
-          tmp.pop();
         }
       } else {
         // Push formatting state
-        tag_stack.push(type);
+        tag_stack.push_back(type);
       }
       // Rebuild state from the stack — handles same-type nesting correctly
       state = ParserState::from_stack(tag_stack);
@@ -354,9 +335,7 @@ ParsedCell parse_inline_markup(const std::string &text) {
 
 std::string get_plain_text(const std::string &text) {
   // Quick path: no markup — return as-is (zero-copy for most inputs)
-  if (text.find('<') == std::string::npos || !has_inline_markup(text)) {
-    return text;
-  }
+  if (text.find('<') == std::string::npos || !has_inline_markup(text)) { return text; }
 
   // Single-pass scanner: skip recognized tags, accumulate plain text directly.
   // Avoids building the full ParsedCell/TextRun/InlineRunStyle AST.

@@ -608,7 +608,7 @@ c_clear <- function(cols) {
     # Evaluate condition in data environment
     # Pass the quosure directly; .env_eval will handle it correctly
     ##cond_vec <- eval_tidy(quo_get_expr(block$cond), env = spec$.metadata$data_env$`__mask__`)
-    cond_vec <- .env_eval(!!quo_get_expr(block$cond), spec$.metadata$data_env)
+    cond_vec <- .env_eval(!!quo_get_expr(block$cond), env = spec$.metadata$data_env)
     # Allow scalar TRUE/FALSE as shorthand for all/no rows
     if (is.logical(cond_vec) && length(cond_vec) == 1L && !is.na(cond_vec)) {
       cond_vec <- rep(cond_vec, n)

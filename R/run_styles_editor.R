@@ -24,14 +24,12 @@
 #' @export
 run_styles_editor <- function(...) {
   if (!requireNamespace("shiny", quietly = TRUE)) {
-    stop("The 'shiny' package is required to run the styles editor. Please install it.",
-         call. = FALSE)
+    cli_abort("The {.pkg shiny} package is required to run the styles editor. Please install it.")
   }
 
   app_dir <- system.file("shiny", "styles_editor", package = "ksTFL")
   if (!nzchar(app_dir)) {
-    stop("Cannot find the styles editor app directory inside the ksTFL package.",
-         call. = FALSE)
+    cli_abort("Cannot find the styles editor app directory inside the ksTFL package.")
   }
 
   shiny::runApp(app_dir, ...)

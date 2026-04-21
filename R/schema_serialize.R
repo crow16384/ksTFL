@@ -784,7 +784,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     for (e in allowed) {
       if (is.null(e)) return(value)
     }
-    enum_str <- paste(sapply(allowed, function(x) if (is.null(x)) "null" else as.character(x)), collapse = ", ")
+    enum_str <- paste(vapply(allowed, function(x) if (is.null(x)) "null" else as.character(x), character(1L), USE.NAMES = FALSE), collapse = ", ")
     cli::cli_abort(sprintf("Value null not in enum: [%s]", enum_str))
   }
   
@@ -814,7 +814,7 @@ serialize_spec <- function(spec, enforce_additional_properties = FALSE) {
     }
   }
   
-  enum_str <- paste(sapply(allowed, function(x) if (is.null(x)) "null" else as.character(x)), collapse = ", ")
+  enum_str <- paste(vapply(allowed, function(x) if (is.null(x)) "null" else as.character(x), character(1L), USE.NAMES = FALSE), collapse = ", ")
   cli::cli_abort(sprintf("Value '%s' not in enum: [%s]", paste(value, collapse = ","), enum_str))
 }
 

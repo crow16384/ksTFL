@@ -389,6 +389,7 @@ static StyleMap parse_style_map(const json &j) {
 static std::vector<TextGroup> parse_text_groups(const json &j) {
   std::vector<TextGroup> groups;
   if (j.is_null()) return groups;
+  groups.reserve(j.size());
   for (auto it = j.begin(); it != j.end(); ++it) {
     if (!it->is_object()) continue;
     TextGroup tg;
@@ -411,6 +412,7 @@ static std::vector<TextGroup> parse_text_groups(const json &j) {
 static std::vector<HeaderFooterRow> parse_header_footer(const json &j) {
   std::vector<HeaderFooterRow> rows;
   if (j.is_null() || !j.is_array()) return rows;
+  rows.reserve(j.size());
   int order = 0;
   for (const auto &row : j) {
     if (!row.is_array()) continue;
@@ -442,6 +444,7 @@ static std::vector<HeaderFooterRow> parse_header_footer(const json &j) {
 static std::vector<StubColumn> parse_stub_columns(const json &j) {
   std::vector<StubColumn> stubs;
   if (j.is_null()) return stubs;
+  stubs.reserve(j.size());
   for (auto it = j.begin(); it != j.end(); ++it) {
     if (!it->is_object()) continue;
     StubColumn sc;
@@ -478,6 +481,7 @@ static std::vector<StubColumn> parse_stub_columns(const json &j) {
 static std::vector<ColumnSpec> parse_columns(const json &j) {
   std::vector<ColumnSpec> cols;
   if (j.is_null()) return cols;
+  cols.reserve(j.size());
   for (auto it = j.begin(); it != j.end(); ++it) {
     if (!it->is_object()) continue;
     ColumnSpec cs;

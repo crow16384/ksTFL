@@ -345,9 +345,9 @@ assign("stack", character(0), envir = .context_marker_env)
                                                 fn_name,
                                                 default_width = "6in",
                                                 default_height = "4in") {
-  mode <- figureScaleMode %||% "fixed"
+  mode <- figureScaleMode %||% .const_figure_scale_modes[1L]
 
-  if (mode %in% c("fitWidth", "fitPage")) {
+  if (mode %in% .const_figure_scale_modes[c(2L, 3L)]) {
     if (!is.null(width) || !is.null(height)) {
       cli_warn(c(
         "Figure dimensions are ignored when {.arg figureScaleMode = {.str {mode}}} in {.fn {fn_name}}",
@@ -370,7 +370,7 @@ assign("stack", character(0), envir = .context_marker_env)
     }
   }
 
-  if (mode == "fixed") {
+  if (mode == .const_figure_scale_modes[1L]) {
     if (is.null(width) && !is.null(height)) {
       cli_warn(c(
         "Missing {.arg figureWidth} in fixed mode in {.fn {fn_name}}",
@@ -506,7 +506,7 @@ assign("stack", character(0), envir = .context_marker_env)
                        italic = NULL, underline = NULL, strikethrough = NULL,
                        color = NULL, highlight = NULL) {
   params <- as.list(environment())
-  params <- params[!sapply(params, is.null)]
+  params <- params[!vapply(params, is.null, logical(1L))]
   
   # Validate font_name enum
   if (!is.null(font_name)) {
@@ -563,7 +563,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @noRd
 .spacing_spec <- function(before = NULL, after = NULL, line_spacing = NULL) {
   params <- as.list(environment())
-  params <- params[!sapply(params, is.null)]
+  params <- params[!vapply(params, is.null, logical(1L))]
   
   # Validate spacing values
   if (!is.null(before)) {
@@ -602,7 +602,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @noRd
 .indents_spec <- function(left = NULL, right = NULL, first_line = NULL) {
   params <- as.list(environment())
-  params <- params[!sapply(params, is.null)]
+  params <- params[!vapply(params, is.null, logical(1L))]
   
   if (!is.null(left)) {
     .validate_pattern(left, .const_pattern_indents, "left", "indents_spec",
@@ -699,7 +699,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @noRd
 .border_spec <- function(color = NULL, width = NULL, line_style = NULL) {
   params <- as.list(environment())
-  params <- params[!sapply(params, is.null)]
+  params <- params[!vapply(params, is.null, logical(1L))]
   
   if (!is.null(color)) {
     .validate_color(color, "color", "border_spec",
@@ -1278,7 +1278,7 @@ p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL,
     left = left, right = right, 
     header = header, footer = footer
   )
-  params <- params[!sapply(params, is.null)]
+  params <- params[!vapply(params, is.null, logical(1L))]
   
   spec <- .margins_spec(
     top = params$top, bottom = params$bottom, 
@@ -2201,7 +2201,7 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL, tocl
     order = as.integer(order),
     toclevel = toclevel
   )
-  new_data <- new_data[!sapply(new_data, is.null)]
+  new_data <- new_data[!vapply(new_data, is.null, logical(1L))]
 
   .validate_params(new_data, "text_group", fn_name)
   spec[[target]][[id]] <- .merge_recursive(spec[[target]][[id]], new_data)
@@ -2868,7 +2868,7 @@ set_document <- function(spec, isContinues = NULL, continuousSection = NULL,
     topEmptyLine = topEmptyLine,
     bottomEmptyLine = bottomEmptyLine
   )
-  params <- params[!sapply(params, is.null)]
+  params <- params[!vapply(params, is.null, logical(1L))]
   
   # Validate
   .validate_params(params, "document", "set_document")

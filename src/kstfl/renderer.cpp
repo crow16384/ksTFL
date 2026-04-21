@@ -15,6 +15,7 @@
 #include "text_measurer.h"
 
 #include <Rcpp.h>
+#include <algorithm>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -108,6 +109,13 @@ static TemplateBundle parse_template_bundle(const std::string &template_json) {
 
 // ---------------------------------------------------------------------------
 // Helper: restore deduped values at page boundaries
+//
+// Performance note: the previous implementation scanned backwards through
+// all rows for every (page, dedupe column) pair, which is
+// O(pages * dedupe_cols * rows).  We now do a single forward pass through
+// the rows, maintaining the "last non-empty text" per dedupe column, and
+// snapshot it at each target row (first DataRow of every page after the
+// first).  This reduces the hot path to O(rows + pages * dedupe_cols).
 // ---------------------------------------------------------------------------
 static void restore_dedupe_at_page_boundaries(const TFLSpec &spec, std::vector<LogicalRow> &rows,
                                               const PaginationResult &pagination, bool verbose) {
@@ -125,7 +133,11 @@ static void restore_dedupe_at_page_boundaries(const TFLSpec &spec, std::vector<L
     }
     Rcpp::Rcerr << "\n";
   }
-  size_t restorations = 0;
+
+  // Collect the first DataRow of every non-leading page into a sorted list.
+  // We restore there; `segment.pages[0]` already holds the natural first
+  // value so we skip it.
+  std::vector<size_t> target_rows;
   for (const auto &seg : pagination.segments) {
     if (verbose) { Rcpp::Rcerr << "[ksTFL]   Segment " << seg.segment_index << ": " << seg.pages.size() << " pages\n"; }
     for (size_t pi = 1; pi < seg.pages.size(); ++pi) {
@@ -133,37 +145,49 @@ static void restore_dedupe_at_page_boundaries(const TFLSpec &spec, std::vector<L
       if (verbose) {
         Rcpp::Rcerr << "[ksTFL]     Page " << pi << ": rows [" << pg.first_row << ".." << pg.last_row << "]\n";
       }
-      // Find the first DataRow on this page
       for (size_t ri = pg.first_row; ri <= pg.last_row && ri < rows.size(); ++ri) {
         if (rows[ri].type != LogicalRowType::DataRow) continue;
-        auto &row = rows[ri];
-        if (verbose) {
-          Rcpp::Rcerr << "[ksTFL]     First DataRow at " << ri << ", cells=" << row.cells.size() << ":";
-          for (size_t ci = 0; ci < row.cells.size() && ci < 4; ++ci) {
-            Rcpp::Rcerr << " [" << ci << "]='" << row.cells[ci].text.substr(0, 20) << "'";
-          }
-          Rcpp::Rcerr << "\n";
-        }
-        for (size_t col_idx : dedupe_indices) {
-          if (col_idx >= row.cells.size()) continue;
-          if (!row.cells[col_idx].text.empty()) continue;
-          // Scan backward for last non-blank value
-          for (size_t bk = ri; bk > 0; --bk) {
-            const auto &prev = rows[bk - 1];
-            if (prev.type != LogicalRowType::DataRow) continue;
-            if (col_idx >= prev.cells.size()) continue;
-            if (!prev.cells[col_idx].text.empty()) {
-              row.cells[col_idx].text = prev.cells[col_idx].text;
-              restorations++;
-              if (verbose) {
-                Rcpp::Rcerr << "[ksTFL]       Restored col " << col_idx << " = '" << prev.cells[col_idx].text << "'\n";
-              }
-              break;
-            }
-          }
-        }
-        break; // only restore the first DataRow per page
+        target_rows.push_back(ri);
+        break;
       }
+    }
+  }
+  if (target_rows.empty()) return;
+  std::ranges::sort(target_rows);
+  target_rows.erase(std::unique(target_rows.begin(), target_rows.end()), target_rows.end());
+
+  // Single forward pass: maintain running last-non-empty value per dedupe
+  // column, and snapshot at each target row.
+  std::vector<std::string> last_text(dedupe_indices.size());
+  size_t next_target = 0;
+  size_t restorations = 0;
+  for (size_t ri = 0; ri < rows.size() && next_target < target_rows.size(); ++ri) {
+    const auto &row = rows[ri];
+    if (row.type == LogicalRowType::DataRow) {
+      for (size_t k = 0; k < dedupe_indices.size(); ++k) {
+        size_t col_idx = dedupe_indices[k];
+        if (col_idx < row.cells.size() && !row.cells[col_idx].text.empty()) { last_text[k] = row.cells[col_idx].text; }
+      }
+    }
+    if (ri == target_rows[next_target]) {
+      auto &target = rows[ri];
+      if (verbose) {
+        Rcpp::Rcerr << "[ksTFL]     First DataRow at " << ri << ", cells=" << target.cells.size() << ":";
+        for (size_t ci = 0; ci < target.cells.size() && ci < 4; ++ci) {
+          Rcpp::Rcerr << " [" << ci << "]='" << target.cells[ci].text.substr(0, 20) << "'";
+        }
+        Rcpp::Rcerr << "\n";
+      }
+      for (size_t k = 0; k < dedupe_indices.size(); ++k) {
+        size_t col_idx = dedupe_indices[k];
+        if (col_idx >= target.cells.size()) continue;
+        if (!target.cells[col_idx].text.empty()) continue;
+        if (last_text[k].empty()) continue;
+        target.cells[col_idx].text = last_text[k];
+        restorations++;
+        if (verbose) { Rcpp::Rcerr << "[ksTFL]       Restored col " << col_idx << " = '" << last_text[k] << "'\n"; }
+      }
+      ++next_target;
     }
   }
   if (verbose) { Rcpp::Rcerr << "[ksTFL]   Dedupe: " << restorations << " values restored at page boundaries\n"; }

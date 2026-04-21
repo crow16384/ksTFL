@@ -102,12 +102,12 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
 
   # Extract column metadata from spec
   .extract_column_info <- function(cn, cs) {
-    lab <- cs$label %||% cs$colLabel %||% ""
+    lab <- cs$label %||% ""
     # Handle NULL/NA safely
     if (is.null(lab) || (length(lab) == 1 && is.na(lab))) lab <- ""
     # Replace newlines and other control characters with spaces to prevent table misalignment
     lab <- gsub("[\n\r\t]", " ", lab, fixed = FALSE)
-    fmt_val <- cs$format %||% cs$c_format %||% NULL
+    fmt_val <- cs$format %||% NULL
     ftype <- ""
     ffmt <- ""
     colw <- ""
@@ -203,7 +203,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
       "dedupe" = "d",
       "blank_after" = "_"
     )
-    result <- sapply(flags, function(f) flag_symbols[[f]] %||% f)
+    result <- vapply(flags, function(f) flag_symbols[[f]] %||% f, character(1L), USE.NAMES = FALSE)
     paste(result, collapse = " ")
   }
 
@@ -260,7 +260,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
           for (action in actions) {
             val <- parsed[[action]]
             if (is.list(val)) {
-              val_str <- paste(names(val), sapply(val, function(v) if (is.list(v)) paste(unlist(v), collapse = ", ") else v), sep = "=", collapse = "; ")
+              val_str <- paste(names(val), vapply(val, function(v) if (is.list(v)) paste(unlist(v), collapse = ", ") else as.character(v), character(1L), USE.NAMES = FALSE), sep = "=", collapse = "; ")
             } else {
               val_str <- as.character(val)
             }
@@ -848,7 +848,7 @@ view_tfl_spec <- function(spec) {
                           h$ul(lapply(names(para_props), function(prop) {
                             val <- para_props[[prop]]
                             val_str <- if (is.list(val)) {
-                              paste(sapply(names(val), function(subprop) paste0(subprop, ": ", .scalar_text(val[[subprop]])), USE.NAMES = FALSE), collapse = ", ")
+                              paste(vapply(names(val), function(subprop) paste0(subprop, ": ", .scalar_text(val[[subprop]])), character(1L), USE.NAMES = FALSE), collapse = ", ")
                             } else {
                               .scalar_text(val)
                             }
@@ -863,7 +863,7 @@ view_tfl_spec <- function(spec) {
                           h$ul(lapply(names(table_props), function(prop) {
                             val <- table_props[[prop]]
                             val_str <- if (is.list(val)) {
-                              paste(sapply(names(val), function(subprop) paste0(subprop, ": ", .scalar_text(val[[subprop]])), USE.NAMES = FALSE), collapse = ", ")
+                              paste(vapply(names(val), function(subprop) paste0(subprop, ": ", .scalar_text(val[[subprop]])), character(1L), USE.NAMES = FALSE), collapse = ", ")
                             } else {
                               .scalar_text(val)
                             }
@@ -905,7 +905,7 @@ view_tfl_spec <- function(spec) {
                       lapply(actions, function(action) {
                         val <- parsed[[action]]
                         if (is.list(val)) {
-                          val_str <- paste(names(val), sapply(val, function(v) if (is.list(v)) paste(unlist(v), collapse = ", ") else v), sep = "=", collapse = "; ")
+                          val_str <- paste(names(val), vapply(val, function(v) if (is.list(v)) paste(unlist(v), collapse = ", ") else as.character(v), character(1L), USE.NAMES = FALSE), sep = "=", collapse = "; ")
                         } else {
                           val_str <- as.character(val)
                         }

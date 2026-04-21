@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <mutex>
+#include <shared_mutex>
 #include <string>
 
 #ifdef _WIN32
@@ -62,17 +62,22 @@ static const std::vector<TargetFallback> &target_fallbacks() {
 }
 
 // ---------------------------------------------------------------------------
-// Global state (populated by initialize_font_registry, read by FontCache)
+// Global state (populated by initialize_font_registry, read by FontCache).
+// Protected by a reader/writer lock: accessors take a shared lock and return
+// copies so that the registry may be safely re-initialized via
+// `tfl_rescan_fonts()` while other threads read.
 // ---------------------------------------------------------------------------
 
-static std::mutex g_mutex;
+static std::shared_mutex g_mutex;
 static FontPathMap g_font_path_map;
 static std::vector<std::string> g_all_font_dirs;
 
-const FontPathMap &get_font_path_map() {
+FontPathMap get_font_path_map() {
+  std::shared_lock<std::shared_mutex> lock(g_mutex);
   return g_font_path_map;
 }
-const std::vector<std::string> &get_all_font_dirs() {
+std::vector<std::string> get_all_font_dirs() {
+  std::shared_lock<std::shared_mutex> lock(g_mutex);
   return g_all_font_dirs;
 }
 
@@ -198,7 +203,7 @@ static void scan_one_dir(const std::string &dir, FT_Library ft_lib, FontPathMap 
 // ---------------------------------------------------------------------------
 
 FontScanReport initialize_font_registry(const std::string &fallback_dir, const std::vector<std::string> &extra_dirs) {
-  std::lock_guard<std::mutex> lock(g_mutex);
+  std::unique_lock<std::shared_mutex> lock(g_mutex);
 
   // Clear previous state
   g_font_path_map.clear();

@@ -234,11 +234,16 @@ FontMetrics FontCache::get_metrics(const FaceKey &key, double size_pt) {
 
   const CachedFace &face = get_face(key);
 
-  // Set FreeType char size (size in 1/64 points)
+  // Set FreeType char size (size in 1/64 points).  This runs only on
+  // metrics-cache miss; we deliberately do NOT mark `last_size_pt` here
+  // because this path does not call `hb_ft_font_changed`, so the
+  // HarfBuzz font could be left stale if we short-circuited the next
+  // `get_hb_font` call at the same size.
   FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72); // 72 DPI
   if (ft_err) {
     throw RenderError(std::format("FT_Set_Char_Size failed for font '{}' at size {}pt", key.name, size_pt));
   }
+  face.last_size_pt = -1.0; // force re-sync of hb on next get_hb_font
 
   FontMetrics m;
   m.units_per_em = static_cast<double>(face.ft_face->units_per_EM);
@@ -269,12 +274,16 @@ FontMetrics FontCache::get_metrics(const FaceKey &key, double size_pt) {
 
 hb_font_t *FontCache::get_hb_font(const FaceKey &key, double size_pt) {
   const CachedFace &face = get_face(key);
-  // Set size for proper shaping
-  FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72);
-  if (ft_err) {
-    throw RenderError(std::format("FT_Set_Char_Size failed for font '{}' at size {}pt", key.name, size_pt));
+  // Only reconfigure FreeType + notify HarfBuzz when the size actually
+  // changed since the last call on this face.
+  if (face.last_size_pt != size_pt) {
+    FT_Error ft_err = FT_Set_Char_Size(face.ft_face, 0, static_cast<FT_F26Dot6>(size_pt * 64.0), 72, 72);
+    if (ft_err) {
+      throw RenderError(std::format("FT_Set_Char_Size failed for font '{}' at size {}pt", key.name, size_pt));
+    }
+    hb_ft_font_changed(face.hb_font);
+    face.last_size_pt = size_pt;
   }
-  hb_ft_font_changed(face.hb_font);
   return face.hb_font;
 }
 

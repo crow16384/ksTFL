@@ -43,9 +43,9 @@ static std::string_view trim(std::string_view sv) {
 }
 
 /// Extract numeric value from the beginning of the string.
-/// Returns the number and advances `pos` past it.
-static double extract_number(std::string_view sv, size_t &pos) {
-  pos = 0;
+/// Returns the number and writes the one-past-end index to `end_pos`.
+static double extract_number(std::string_view sv, size_t &end_pos) {
+  size_t pos = 0;
   // Allow optional leading sign
   if (pos < sv.size() && (sv[pos] == '+' || sv[pos] == '-')) ++pos;
   // Integer part
@@ -60,6 +60,7 @@ static double extract_number(std::string_view sv, size_t &pos) {
   if (pos == 0) { throw RenderError("Invalid length value: no number found in '" + std::string(sv) + "'"); }
   // Parse the number
   std::string num_str(sv.substr(0, pos));
+  end_pos = pos;
   return std::stod(num_str);
 }
 

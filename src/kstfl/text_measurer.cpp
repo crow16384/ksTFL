@@ -104,24 +104,43 @@ namespace {
 
 /// Decode one UTF-8 codepoint starting at `data[pos]`.
 /// Returns the codepoint and advances `pos` past the encoded bytes.
-/// On invalid sequences, returns U+FFFD and advances by 1 byte.
+/// On invalid sequences (bad lead byte, truncated sequence, or a
+/// continuation byte whose top bits are not `10xxxxxx`), returns
+/// U+FFFD and advances by exactly 1 byte so the caller can resync.
 inline uint32_t decode_utf8(const char *data, size_t len, size_t &pos) {
+  const auto is_cont = [](uint8_t b) { return (b & 0xC0) == 0x80; };
   uint8_t b0 = static_cast<uint8_t>(data[pos]);
   if (b0 < 0x80) {
     pos += 1;
     return b0;
   } else if ((b0 & 0xE0) == 0xC0 && pos + 1 < len) {
-    uint32_t cp = (b0 & 0x1F) << 6 | (static_cast<uint8_t>(data[pos + 1]) & 0x3F);
+    uint8_t b1 = static_cast<uint8_t>(data[pos + 1]);
+    if (!is_cont(b1)) {
+      pos += 1;
+      return 0xFFFD;
+    }
+    uint32_t cp = (b0 & 0x1F) << 6 | (b1 & 0x3F);
     pos += 2;
     return cp;
   } else if ((b0 & 0xF0) == 0xE0 && pos + 2 < len) {
-    uint32_t cp = (b0 & 0x0F) << 12 | (static_cast<uint8_t>(data[pos + 1]) & 0x3F) << 6 |
-                  (static_cast<uint8_t>(data[pos + 2]) & 0x3F);
+    uint8_t b1 = static_cast<uint8_t>(data[pos + 1]);
+    uint8_t b2 = static_cast<uint8_t>(data[pos + 2]);
+    if (!is_cont(b1) || !is_cont(b2)) {
+      pos += 1;
+      return 0xFFFD;
+    }
+    uint32_t cp = (b0 & 0x0F) << 12 | (b1 & 0x3F) << 6 | (b2 & 0x3F);
     pos += 3;
     return cp;
   } else if ((b0 & 0xF8) == 0xF0 && pos + 3 < len) {
-    uint32_t cp = (b0 & 0x07) << 18 | (static_cast<uint8_t>(data[pos + 1]) & 0x3F) << 12 |
-                  (static_cast<uint8_t>(data[pos + 2]) & 0x3F) << 6 | (static_cast<uint8_t>(data[pos + 3]) & 0x3F);
+    uint8_t b1 = static_cast<uint8_t>(data[pos + 1]);
+    uint8_t b2 = static_cast<uint8_t>(data[pos + 2]);
+    uint8_t b3 = static_cast<uint8_t>(data[pos + 3]);
+    if (!is_cont(b1) || !is_cont(b2) || !is_cont(b3)) {
+      pos += 1;
+      return 0xFFFD;
+    }
+    uint32_t cp = (b0 & 0x07) << 18 | (b1 & 0x3F) << 12 | (b2 & 0x3F) << 6 | (b3 & 0x3F);
     pos += 4;
     return cp;
   }

@@ -139,7 +139,6 @@ void XmlWriter::close_start_tag() {
 }
 
 void XmlWriter::escape_text_into(std::string &dest, const std::string &s) {
-  dest.reserve(dest.size() + s.size() + s.size() / 8);
   for (char c : s) {
     switch (c) {
     case '&':
@@ -159,7 +158,6 @@ void XmlWriter::escape_text_into(std::string &dest, const std::string &s) {
 }
 
 void XmlWriter::escape_attr_into(std::string &dest, const std::string &s) {
-  dest.reserve(dest.size() + s.size() + s.size() / 8);
   for (char c : s) {
     switch (c) {
     case '&':

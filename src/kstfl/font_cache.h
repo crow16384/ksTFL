@@ -48,6 +48,10 @@ struct CachedFace {
   FT_Face ft_face = nullptr;
   hb_font_t *hb_font = nullptr;
   std::string file_path;
+  /// Last size (in pt) passed to FT_Set_Char_Size on this face.
+  /// Used to skip redundant re-sizing when callers request the same
+  /// size repeatedly.  Negative sentinel means "never set".
+  mutable double last_size_pt = -1.0;
 };
 
 /// Font metrics for a specific face at a specific size.

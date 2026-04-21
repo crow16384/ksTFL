@@ -22,7 +22,7 @@
     figureWidth         = "6in",
     figureHeight        = "4in",
     figureDevice        = "svg",
-    figureScaleMode     = "fixed",
+    figureScaleMode     = .const_figure_scale_modes[1L],
     
     # Data display defaults
     missings            = .const_default_missing_value,
@@ -231,7 +231,7 @@ tfl_set_options <- function(..., docTemplate = NULL,
 
   params <- as.list(environment())
   params$docTemplate <- NULL
-  params <- params[!sapply(params, is.null)]
+  params <- params[!vapply(params, is.null, logical(1L))]
 
   figure_params <- params[c("figureWidth", "figureHeight", "figureDevice", "figureScaleMode")]
   figure_params <- figure_params[!vapply(figure_params, is.null, logical(1))]
@@ -298,7 +298,7 @@ tfl_set_options <- function(..., docTemplate = NULL,
                         "Must be like '70%', '6.5in', '16.51cm', '120pt', or '40mm'")
     }
 
-    resolved_mode <- figure_params$figureScaleMode %||% .options_env$settings$figureScaleMode %||% "fixed"
+    resolved_mode <- figure_params$figureScaleMode %||% .options_env$settings$figureScaleMode %||% .const_figure_scale_modes[1L]
     resolved_width <- figure_params$figureWidth %||% .options_env$settings$figureWidth
     resolved_height <- figure_params$figureHeight %||% .options_env$settings$figureHeight
 
@@ -316,7 +316,7 @@ tfl_set_options <- function(..., docTemplate = NULL,
     }
 
     .options_env$settings$figureScaleMode <- normalized$figureScaleMode
-    if (normalized$figureScaleMode == "fixed" &&
+    if (normalized$figureScaleMode == .const_figure_scale_modes[1L] &&
         (!is.null(figure_params$figureWidth) || !is.null(figure_params$figureHeight) || !is.null(figure_params$figureScaleMode))) {
       .options_env$settings$figureWidth <- normalized$width
       .options_env$settings$figureHeight <- normalized$height

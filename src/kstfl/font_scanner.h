@@ -55,10 +55,13 @@ FontScanReport initialize_font_registry(const std::string &fallback_dir, const s
 // ---------------------------------------------------------------------------
 
 /// Get the global font path map (populated by initialize_font_registry).
-const FontPathMap &get_font_path_map();
+/// Returns a copy to allow safe concurrent reads even if the registry is
+/// re-initialized by `tfl_rescan_fonts()` from another thread.
+FontPathMap get_font_path_map();
 
-/// Get all font directories from the last scan.
-const std::vector<std::string> &get_all_font_dirs();
+/// Get all font directories from the last scan (returns a copy, see
+/// `get_font_path_map` for rationale).
+std::vector<std::string> get_all_font_dirs();
 
 /// Get the fallback family for a target family, or empty if no mapping.
 /// Lookups are case-insensitive (input is lowercased internally).

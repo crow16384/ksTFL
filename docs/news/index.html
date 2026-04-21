@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.10.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,63 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.11.0" id="kstfl-0110">ksTFL 0.11.0<a class="anchor" aria-label="anchor" href="#kstfl-0110"></a></h2>
+<div class="section level3">
+<h3 id="code-audit-bug-fixes-correctness--performance-0-11-0">Code audit: bug fixes, correctness &amp; performance<a class="anchor" aria-label="anchor" href="#code-audit-bug-fixes-correctness--performance-0-11-0"></a></h3>
+<p>Three-batch sweep over the R and C++ codebases covering project-convention compliance, thread safety, numeric correctness, locale independence, and hot paths in the rendering engine.</p>
+<div class="section level4">
+<h4 id="r--convention--correctness-0-11-0">R — convention &amp; correctness<a class="anchor" aria-label="anchor" href="#r--convention--correctness-0-11-0"></a></h4>
+<ul><li>
+<code><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop()</a></code> / <code><a href="https://rdrr.io/r/base/warning.html" class="external-link">warning()</a></code> replaced with <code>cli_abort()</code> / <code>cli_warn()</code> in <code>run_replay_app.R</code>, <code>run_styles_editor.R</code>, <code>ksTFL.R</code>.</li>
+<li>Figure scale modes now consistently reference <code>.const_figure_scale_modes</code> (in <code>spec_context.R</code>, <code>pkg_settings.R</code>).</li>
+<li>
+<code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply()</a></code> → <code><a href="https://rdrr.io/r/base/lapply.html" class="external-link">vapply()</a></code> (type-safe) across <code>spec_print.R</code>, <code>spec_context.R</code>, <code>pkg_settings.R</code>, <code>schema_serialize.R</code>.</li>
+<li>
+<strong><code>.env_eval()</code> no longer silently defaults to <code>spec$.metadata$data_env</code></strong>: the <code>env</code> argument is validated (non-null, <code><a href="https://rdrr.io/r/base/environment.html" class="external-link">is.environment()</a></code>) and <code>cli_abort()</code> is raised otherwise. Eliminates a class of subtle dispatch bugs where an evaluation could bind against a stale <code>spec</code>.</li>
+<li>Removed dead schema fallbacks (<code>cs$label %||% cs$colLabel</code>, etc.) in <code>spec_print.R</code>; schema uses <code>label</code> / <code>format</code> only.</li>
+</ul></div>
+<div class="section level4">
+<h4 id="c--correctness--safety-0-11-0">C++ — correctness &amp; safety<a class="anchor" aria-label="anchor" href="#c--correctness--safety-0-11-0"></a></h4>
+<ul><li>
+<strong>Font registry thread-safety</strong> (<code>font_scanner.h/.cpp</code>): migrated to <code>std::shared_mutex</code>; reader accessors take <code>std::shared_lock</code> and return by value, so <code><a href="../reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code> remains safe to call while renders run. (<code>std::call_once</code> rejected because rescanning is an explicit user feature.)</li>
+<li>
+<strong>UTF-8 decoder validation</strong> (<code>text_measurer.cpp</code>): each continuation byte is now checked for <code>10xxxxxx</code> bits; on malformed sequences the decoder emits U+FFFD and advances exactly one byte to resync.</li>
+<li>
+<strong>Locale-independent numeric formatting</strong> (<code>logical_table.cpp</code>): <code>apply_column_format()</code> switched from <code>std::strtod</code> to <code>std::from_chars&lt;double&gt;</code>; column format parsing is no longer affected by the process locale.</li>
+<li>
+<strong>Column-width scaling precision</strong> (<code>paginator.cpp</code>): <code>compute_segment_column_widths()</code> performs all arithmetic in <code>double</code> and clamps to <code>[0, INT64_MAX]</code> before narrowing to int64 EMU.</li>
+<li>
+<strong>TOC style id generation</strong> (<code>docx_emitter.cpp</code>): replaced <code>snprintf</code> into a fixed 64-byte buffer with <code>std::to_string</code> concatenation; buffer truncation is no longer possible.</li>
+<li>
+<strong>Header-grid span/gap mismatch</strong> (<code>logical_table.cpp</code>): previously a silent <code><a href="https://rdrr.io/r/base/Control.html" class="external-link">break</a></code>; now emits an <code>Rcpp::warning</code> with row and span info (falls back to rendering without promotion).</li>
+</ul></div>
+<div class="section level4">
+<h4 id="c--performance-0-11-0">C++ — performance<a class="anchor" aria-label="anchor" href="#c--performance-0-11-0"></a></h4>
+<ul><li>
+<strong>Inline parser stack container</strong> (<code>inline_parser.cpp</code>): replaced <code>std::stack&lt;TagType&gt;</code> with <code>std::vector&lt;TagType&gt;</code>; <code>ParserState::from_stack()</code> reduced from two full stack copies to a single reverse-iterator pass with inline Sup/Sub mutual exclusion. Closing-tag lookup uses <code>rbegin()</code>
+<ul><li>
+<code>erase()</code> instead of a copy/push/pop loop.</li>
+</ul></li>
+<li>
+<strong>Dedupe restoration at page boundaries</strong> (<code>renderer.cpp</code>): reworked <code>restore_dedupe_at_page_boundaries()</code> from <code>O(pages · dedupe_cols · rows)</code> backward scans to a single forward pass with running per-column last-non-empty state, <code>O(rows + pages · dedupe_cols)</code>.</li>
+<li>
+<strong>Redundant <code>FT_Set_Char_Size</code></strong> (<code>font_cache.cpp</code>): <code>CachedFace</code> now tracks <code>last_size_pt</code>; <code>get_hb_font()</code> skips FreeType resizing and <code>hb_ft_font_changed</code> when the face is already set to the requested size.</li>
+<li>
+<strong><code>try_emplace</code> in style-ref cache</strong> (<code>paginator.cpp</code>): single hash lookup on both hit and miss paths.</li>
+<li>
+<strong><code>reserve()</code></strong> for output vectors in <code>parse_text_groups</code>, <code>parse_header_footer</code>, <code>parse_stub_columns</code>, <code>parse_columns</code> (<code>json_parser.cpp</code>) and for segment <code>column_indices</code> (<code>paginator.cpp</code>).</li>
+<li>
+<strong>Cache <code>page_config.usable_width()</code></strong> once at the top of <code>Paginator::paginate()</code> instead of recomputing per segment.</li>
+<li>Removed redundant <code>dest.reserve()</code> calls in <code>xml_writer.cpp</code> <code>escape_text_into</code> / <code>escape_attr_into</code> (buffer pre-reserved 64KB).</li>
+</ul></div>
+<div class="section level4">
+<h4 id="polish-0-11-0">Polish<a class="anchor" aria-label="anchor" href="#polish-0-11-0"></a></h4>
+<ul><li>
+<code>extract_number()</code> in <code>units.cpp</code>: renamed out-param and clarified contract (<code>end_pos</code> written at end, internal <code>pos</code> local).</li>
+</ul></div>
+</div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.10.4" id="kstfl-0104">ksTFL 0.10.4<a class="anchor" aria-label="anchor" href="#kstfl-0104"></a></h2>
 <div class="section level3">

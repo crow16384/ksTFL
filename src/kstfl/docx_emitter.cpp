@@ -7,8 +7,8 @@
 
 #include "docx_emitter.h"
 #include <algorithm>
-#include <cstdio>
 #include <ranges>
+#include <string>
 
 namespace kstfl {
 
@@ -51,9 +51,8 @@ std::vector<TocHeadingEntry> DocxEmitter::build_toc_heading_styles(const TFLDocu
         TocHeadingEntry entry;
         entry.style = style;
         entry.toc_level = group.toc_level;
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "TOCHead_%d_%d", group.toc_level, level_index[group.toc_level]++);
-        entry.style_id = buf;
+        entry.style_id =
+            "TOCHead_" + std::to_string(group.toc_level) + "_" + std::to_string(level_index[group.toc_level]++);
         result.push_back(entry);
       }
     }
@@ -68,9 +67,8 @@ std::vector<TocHeadingEntry> DocxEmitter::build_toc_heading_styles(const TFLDocu
         TocHeadingEntry entry;
         entry.style = style;
         entry.toc_level = group.toc_level;
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "TOCHead_%d_%d", group.toc_level, level_index[group.toc_level]++);
-        entry.style_id = buf;
+        entry.style_id =
+            "TOCHead_" + std::to_string(group.toc_level) + "_" + std::to_string(level_index[group.toc_level]++);
         result.push_back(entry);
       }
     }

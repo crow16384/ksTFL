@@ -6,10 +6,13 @@
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.
 
 #include "logical_table.h"
+#include <Rcpp.h>
 #include <algorithm>
 #include <cerrno>
+#include <charconv>
 #include <cstdio>
 #include <cstdlib>
+#include <system_error>
 
 namespace kstfl {
 
@@ -83,11 +86,15 @@ static std::string apply_column_format(const std::string &value, const ColumnFor
 
   if (!is_safe_numeric_format(format_str)) { return value; }
 
-  // Numeric formats: try to parse value as double
-  char *end = nullptr;
-  errno = 0;
-  double dval = std::strtod(value.c_str(), &end);
-  if (end == value.c_str() || errno == ERANGE) { return value; }
+  // Numeric formats: try to parse value as double using std::from_chars,
+  // which is locale-independent (always C locale) — important because
+  // the process locale may use "," as the decimal separator while R's
+  // numeric output always uses ".".
+  double dval = 0.0;
+  const char *first = value.data();
+  const char *last = value.data() + value.size();
+  auto [ptr, ec] = std::from_chars(first, last, dval);
+  if (ec != std::errc{} || ptr == first) { return value; }
 
   // Determine whether the specifier is integer or floating-point by
   // finding the actual conversion character (last char matched by the regex).
@@ -324,7 +331,16 @@ HeaderGrid LogicalTableBuilder::build_header_grid(const TFLSpec &spec, const Col
               if (si < spec.columns.size() && spec.columns[si].is_visible) { visible_in_span++; }
             }
             if (static_cast<int>(gap_indices.size()) != visible_in_span) {
-              break; // Mismatch — skip promotion
+              // Malformed header grid: the intermediate row does
+              // not expose one placeholder per visible column in
+              // the span.  Surface this to the user instead of
+              // silently swallowing it — incorrect headers
+              // produced by upstream span promotion are very
+              // hard to diagnose after the fact.
+              Rcpp::warning("ksTFL: header grid span/gap mismatch at row %zu (span cols %zu..%zu): "
+                            "expected %d gap cells, found %zu. Promotion skipped.",
+                            ri, lo, hi, visible_in_span, gap_indices.size());
+              break; // Skip promotion, keep rendering
             }
           }
 

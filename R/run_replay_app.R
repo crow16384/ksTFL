@@ -27,21 +27,18 @@
 #' @export
 run_replay_app <- function(meta_dir = NULL, ...) {
   if (!requireNamespace("shiny", quietly = TRUE)) {
-    stop("The 'shiny' package is required. Please install it.", call. = FALSE)
+    cli_abort("The {.pkg shiny} package is required. Please install it.")
   }
   if (!requireNamespace("sortable", quietly = TRUE)) {
-    stop("The 'sortable' package is required for drag-and-drop reordering. Please install it.",
-         call. = FALSE)
+    cli_abort("The {.pkg sortable} package is required for drag-and-drop reordering. Please install it.")
   }
   if (!requireNamespace("shinyFiles", quietly = TRUE)) {
-    stop("The 'shinyFiles' package is required for directory choosers. Please install it.",
-         call. = FALSE)
+    cli_abort("The {.pkg shinyFiles} package is required for directory choosers. Please install it.")
   }
 
   app_dir <- system.file("shiny", "replay_app", package = "ksTFL")
   if (!nzchar(app_dir)) {
-    stop("Cannot find the replay app directory inside the ksTFL package.",
-         call. = FALSE)
+    cli_abort("Cannot find the replay app directory inside the ksTFL package.")
   }
 
   old_opt <- getOption("ksTFL.replay_app.meta_dir")

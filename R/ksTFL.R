@@ -53,8 +53,10 @@
       .pkg_env[["font_report"]] <- report
     },
     error = function(e) {
-      warning("ksTFL: font scanner initialisation failed: ", conditionMessage(e),
-              call. = FALSE)
+      cli_warn(c(
+        "ksTFL: font scanner initialisation failed.",
+        "x" = "{conditionMessage(e)}"
+      ))
     }
   )
   invisible(NULL)

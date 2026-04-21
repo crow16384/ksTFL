@@ -189,8 +189,9 @@ NULL
 #' and helper functions.
 #'
 #' @param expr An expression to evaluate (will be quoted)
-#' @param env An environment object (default: `spec$.metadata$data_env`).
-#'   Must contain `__mask__` for tidyverse-style evaluation.
+#' @param env An environment object. Must contain `__mask__` for
+#'   tidyverse-style evaluation. Callers typically pass
+#'   `spec$.metadata$data_env`.
 #'
 #' @return The result of evaluating `expr` in the data environment
 #'
@@ -198,13 +199,19 @@ NULL
 #' @noRd
 #' @examples
 #' \dontrun{
-#'   .env_eval(cyl + am)
+#'   .env_eval(cyl + am, env = spec$.metadata$data_env)
 #'   exp <- expr(firstOf(cyl))
-#'   .env_eval(!!exp)
+#'   .env_eval(!!exp, env = spec$.metadata$data_env)
 #' }
-.env_eval <- function(expr, env=spec$.metadata$data_env) {
+.env_eval <- function(expr, env) {
+  if (missing(env) || is.null(env) || !is.environment(env)) {
+    cli_abort(c(
+      "{.fn .env_eval} requires an explicit data environment.",
+      i = "Pass {.code spec$.metadata$data_env} (or a compatible environment) via {.arg env}."
+    ))
+  }
   expr <- rlang::enexpr(expr)
-  rlang::eval_tidy(expr, data=env$`__mask__`, env = env)
+  rlang::eval_tidy(expr, data = env$`__mask__`, env = env)
 }
 
 

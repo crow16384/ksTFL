@@ -9,6 +9,7 @@
 #include <Rcpp.h>
 #include <algorithm>
 #include <concepts>
+#include <limits>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -42,6 +43,7 @@ std::vector<HorizontalSegment> Paginator::build_segments(const std::vector<Colum
     // Single segment: all visible columns
     HorizontalSegment seg;
     seg.segment_index = 0;
+    seg.column_indices.reserve(columns.size());
     for (size_t i = 0; i < columns.size(); ++i) {
       if (columns[i].is_visible) seg.column_indices.push_back(i);
     }
@@ -51,11 +53,13 @@ std::vector<HorizontalSegment> Paginator::build_segments(const std::vector<Colum
 
   // Build segments between break points
   size_t seg_start = 0;
+  segments.reserve(break_after.size() + 1);
   for (size_t b = 0; b <= break_after.size(); ++b) {
     size_t seg_end = (b < break_after.size()) ? break_after[b] : columns.size();
 
     HorizontalSegment seg;
     seg.segment_index = b;
+    seg.column_indices.reserve(id_indices.size() + (seg_end - seg_start));
 
     // First, add ID columns that are before this segment range
     std::unordered_set<size_t> included;
@@ -114,11 +118,11 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
   // Cache find_style() results to avoid repeated hash lookups for the same ref.
   std::unordered_map<std::string, const StyleDef *> style_ref_cache;
   auto cached_find_style = [&](const std::string &ref) -> const StyleDef * {
-    auto it = style_ref_cache.find(ref);
-    if (it != style_ref_cache.end()) return it->second;
-    const StyleDef *found = resolver.find_style(ref);
-    style_ref_cache.emplace(ref, found);
-    return found;
+    // try_emplace performs a single hash lookup: insert-or-get.
+    // The value is computed only on insertion.
+    auto [it, inserted] = style_ref_cache.try_emplace(ref, nullptr);
+    if (inserted) { it->second = resolver.find_style(ref); }
+    return it->second;
   };
 
   for (size_t ri = 0; ri < rows.size(); ++ri) {
@@ -232,8 +236,10 @@ std::unordered_map<size_t, int64_t> Paginator::compute_segment_column_widths(con
   bool is_subset = (segment.column_indices.size() < visible_col_count);
 
   std::unordered_map<size_t, int64_t> col_widths;
+  col_widths.reserve(segment.column_indices.size());
   if (is_subset) {
-    int64_t id_raw = 0, non_id_raw = 0;
+    int64_t id_raw = 0;
+    int64_t non_id_raw = 0;
     for (size_t col_idx : segment.column_indices) {
       if (col_idx < columns.size()) {
         if (columns[col_idx].is_id) {
@@ -243,14 +249,25 @@ std::unordered_map<size_t, int64_t> Paginator::compute_segment_column_widths(con
         }
       }
     }
-    double non_id_scale =
-        (non_id_raw > 0) ? static_cast<double>(full_table_width.emu - id_raw) / static_cast<double>(non_id_raw) : 1.0;
+    // All scaling arithmetic is performed in double to avoid intermediate
+    // int64 truncation, then clamped to [0, INT64_MAX] before casting back.
+    const double full_d = static_cast<double>(full_table_width.emu);
+    const double id_d = static_cast<double>(id_raw);
+    const double non_id_d = static_cast<double>(non_id_raw);
+    const double non_id_scale = (non_id_raw > 0) ? (full_d - id_d) / non_id_d : 1.0;
+    constexpr double kMaxEmu = static_cast<double>(std::numeric_limits<int64_t>::max());
+    auto clamp_to_int64 = [](double v) -> int64_t {
+      if (v <= 0.0) return 0;
+      if (v >= kMaxEmu) return std::numeric_limits<int64_t>::max();
+      return static_cast<int64_t>(v);
+    };
     for (size_t col_idx : segment.column_indices) {
       if (col_idx < columns.size()) {
         if (columns[col_idx].is_id) {
           col_widths[col_idx] = columns[col_idx].resolved_width.emu;
         } else {
-          col_widths[col_idx] = static_cast<int64_t>(columns[col_idx].resolved_width.emu * non_id_scale);
+          const double scaled = static_cast<double>(columns[col_idx].resolved_width.emu) * non_id_scale;
+          col_widths[col_idx] = clamp_to_int64(scaled);
         }
       }
     }
@@ -375,6 +392,11 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
     return result;
   }
 
+  // Cache the page's usable width — it is consulted many times below for
+  // title/subtitle/footnote measurement and for header/footer third widths.
+  const Length usable_width = page_config.usable_width();
+  const Length third_usable_width{usable_width.emu / 3};
+
   // 1. Build horizontal segments
   auto segments = build_segments(spec.columns);
 
@@ -407,11 +429,10 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
   Length header_section_height{0};
   for (const auto &hdr : spec.headers) {
     StyleDef style = resolver.resolve_doc_header_style();
-    Length third_width{page_config.usable_width().emu / 3};
     Length max_section_height{0};
     for (const auto &section : {hdr.left, hdr.center, hdr.right}) {
       if (!section.empty()) {
-        MeasuredText m = measurer.measure_plain(section, style, third_width);
+        MeasuredText m = measurer.measure_plain(section, style, third_usable_width);
         if (m.height > max_section_height) max_section_height = m.height;
       }
     }
@@ -422,11 +443,10 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
   Length footer_section_height{0};
   for (const auto &ftr : spec.footers) {
     StyleDef style = resolver.resolve_doc_footer_style();
-    Length third_width{page_config.usable_width().emu / 3};
     Length max_section_height{0};
     for (const auto &section : {ftr.left, ftr.center, ftr.right}) {
       if (!section.empty()) {
-        MeasuredText m = measurer.measure_plain(section, style, third_width);
+        MeasuredText m = measurer.measure_plain(section, style, third_usable_width);
         if (m.height > max_section_height) max_section_height = m.height;
       }
     }
@@ -448,7 +468,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
         combined += line;
       }
       if (!combined.empty()) {
-        MeasuredText m = measurer.measure_plain(combined, style, page_config.usable_width());
+        MeasuredText m = measurer.measure_plain(combined, style, usable_width);
         titles_height = titles_height + m.height;
       }
     }
@@ -466,7 +486,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
       combined += tg.text[i];
     }
     if (!combined.empty()) {
-      MeasuredText m = measurer.measure_plain(combined, style, page_config.usable_width());
+      MeasuredText m = measurer.measure_plain(combined, style, usable_width);
       subtitles_height = subtitles_height + m.height;
     }
   }
@@ -490,7 +510,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
       combined += tg.text[i];
     }
     if (!combined.empty()) {
-      MeasuredText m = measurer.measure_plain(combined, style, page_config.usable_width());
+      MeasuredText m = measurer.measure_plain(combined, style, usable_width);
       footnotes_height = footnotes_height + m.height;
     }
   }
