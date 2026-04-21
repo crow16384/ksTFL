@@ -11,12 +11,12 @@ labs_small <- tibble::tibble(
 )
 
 spec_table <- create_table(labs_small, cols = c(subject_id, ALT, AST)) %>%
-  add_title("Table T9.1") %>%
+  add_title("Table T9.1", toclevel = 1) %>%
   add_subtitle("Per-Spec Template Demo") %>%
   set_page_style(docTemplate = "Navy_Pro")
 
 spec_text <- create_text() %>%
-  add_title("Narrative Section") %>%
+  add_title("Narrative Section", toclevel = 1) %>%
   add_body_text("This section uses a different docTemplate unless globally overridden.") %>%
   set_page_style(docTemplate = "Carbon_Dark")
 

@@ -4,7 +4,7 @@
  * Compiles all needed FreeType modules in one translation unit.
  * Include path must have: -I<vendor>/freetype/include
  *
- * FreeType version: 2.13.3
+ * FreeType version: 2.14.3
  */
 
 #include <ft2build.h>
