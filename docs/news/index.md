@@ -1,5 +1,22 @@
 # Changelog
 
+## ksTFL 0.11.1
+
+### Vendor library upgrades
+
+- **FreeType** upgraded 2.13.3 → 2.14.3 (latest upstream). Picks up ~18
+  months of glyph loader, CFF, and auto-hinter fixes. Customised
+  `ftmodule.h` (restricting the compiled module set to what ksTFL
+  actually uses) preserved on top of the new tree.
+- **HarfBuzz** upgraded 10.2.0 → 14.2.0 (latest upstream). Incorporates
+  four major releases of shaping/OpenType improvements and bug fixes.
+  Our feature-disable flags (`HB_NO_SUBSET`, `HB_NO_COLOR`,
+  `HB_NO_PAINT`, `HB_NO_STYLE`) carry over unchanged.
+
+No behavioural change in ksTFL itself; all 19 test files continue to
+pass, including measurement-sensitive paths (width recalc, column
+computation, ggplot figure rendering, end-to-end DOCX write).
+
 ## ksTFL 0.11.0
 
 ### Code audit: bug fixes, correctness & performance
