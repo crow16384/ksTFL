@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <mutex>
 #include <shared_mutex>
 #include <string>
 
