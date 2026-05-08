@@ -9,6 +9,15 @@
 
 CXX_STD = CXX20
 
+## On macOS, std::from_chars for floating-point types requires deployment
+## target >= 13.3 (Apple libc++ gates it behind an availability macro).
+## Inject the flag directly so it takes precedence over R's own Makeconf
+## value regardless of how the CRAN R binary was built.
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+PKG_CXXFLAGS += -mmacosx-version-min=13.3
+endif
+
 PKG_CPPFLAGS = -I../inst/include -I./vendor \
     -Ivendor/freetype/include -Ivendor/harfbuzz/src \
     -DHAVE_FREETYPE -DHB_NO_MT

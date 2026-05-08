@@ -276,16 +276,6 @@ jobs:
       - name: Install R dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
 
-      - name: Set deployment target for R package compilation
-        # CRAN R on macOS is built with MACOSX_DEPLOYMENT_TARGET=11.0 and
-        # passes -mmacosx-version-min=11.0 to clang, which gates out the
-        # floating-point from_chars overload (requires >= 13.3).  Writing
-        # MACOSX_DEPLOYMENT_TARGET into ~/.R/Makevars overrides R's own
-        # configured value for all package compilation in this job.
-        run: |
-          mkdir -p ~/.R
-          printf 'MACOSX_DEPLOYMENT_TARGET = 13.3\n' >> ~/.R/Makevars
-
       - name: Build binary package
         run: |
           PKG_TARBALL=$(ls ksTFL_*.tar.gz)
