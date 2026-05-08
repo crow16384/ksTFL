@@ -9,10 +9,10 @@
 #include <Rcpp.h>
 #include <algorithm>
 #include <cerrno>
-#include <charconv>
 #include <cstdio>
 #include <cstdlib>
-#include <system_error>
+#include <locale>
+#include <sstream>
 
 namespace kstfl {
 
@@ -86,15 +86,19 @@ static std::string apply_column_format(const std::string &value, const ColumnFor
 
   if (!is_safe_numeric_format(format_str)) { return value; }
 
-  // Numeric formats: try to parse value as double using std::from_chars,
-  // which is locale-independent (always C locale) — important because
-  // the process locale may use "," as the decimal separator while R's
-  // numeric output always uses ".".
+  // Numeric formats: try to parse value as double using a locale-independent
+  // istringstream (imbued with the classic C locale).  This is important
+  // because the process locale may use "," as the decimal separator while
+  // R's numeric output always uses ".".  std::from_chars for double would
+  // be ideal, but Apple's libc++ in Xcode <= 16.x does not ship the
+  // floating-point overload, so we fall back to the stream-based parse.
   double dval = 0.0;
-  const char *first = value.data();
-  const char *last = value.data() + value.size();
-  auto [ptr, ec] = std::from_chars(first, last, dval);
-  if (ec != std::errc{} || ptr == first) { return value; }
+  {
+    std::istringstream iss(value);
+    iss.imbue(std::locale::classic());
+    iss >> dval;
+    if (iss.fail()) { return value; }
+  }
 
   // Determine whether the specifier is integer or floating-point by
   // finding the actual conversion character (last char matched by the regex).
