@@ -250,6 +250,10 @@ jobs:
     name: Build (macOS ${{ matrix.arch }}, R 4.5)
     needs: build-source
     runs-on: ${{ matrix.runner }}
+    env:
+      # from_chars for floating-point (used in logical_table.cpp) requires
+      # deployment target >= 13.3 in Apple's libc++.
+      MACOSX_DEPLOYMENT_TARGET: '13.3'
     strategy:
       fail-fast: false
       matrix:
