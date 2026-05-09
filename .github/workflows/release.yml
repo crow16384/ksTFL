@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        r-version: ['4.4', '4.5']
+        r-version: ['4.5', '4.6']
 
     steps:
       - name: Checkout
@@ -211,7 +211,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        r-version: ['4.4', '4.5']
+        r-version: ['4.5', '4.6']
 
     steps:
       - name: Checkout
@@ -244,10 +244,10 @@ jobs:
           if-no-files-found: error
 
   # ──────────────────────────────────────────────────────────────────────
-  # Build: macOS arm64 + x86_64 (R 4.5 only)
+  # Build: macOS arm64 (R 4.6 only)
   # ──────────────────────────────────────────────────────────────────────
   build-macos:
-    name: Build (macOS ${{ matrix.arch }}, R 4.5)
+    name: Build (macOS ${{ matrix.arch }}, R 4.6)
     needs: build-source
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -256,8 +256,6 @@ jobs:
         include:
           - arch: arm64
             runner: macos-latest
-          - arch: x86_64
-            runner: macos-13
 
     steps:
       - name: Checkout
@@ -268,10 +266,10 @@ jobs:
         with:
           name: source-tarball
 
-      - name: Setup R 4.5
+      - name: Setup R 4.6
         uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.5'
+          r-version: '4.6'
 
       - name: Install R dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
@@ -291,7 +289,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: pkg-macos-${{ matrix.arch }}-r4.5
+          name: pkg-macos-${{ matrix.arch }}-r4.6
           path: ksTFL_*_${{ matrix.arch }}.tgz
           if-no-files-found: error
 
@@ -348,7 +346,7 @@ jobs:
             file.remove(files[-(1:keep)])
           }
 
-          for (r_ver in c("4.4", "4.5")) {
+          for (r_ver in c("4.5", "4.6")) {
             art_dir <- file.path("artifacts", paste0("pkg-windows-r", r_ver))
             zip_files <- list.files(art_dir, pattern = "\\.zip$", full.names = TRUE)
             if (length(zip_files) == 0) next
@@ -425,29 +423,28 @@ jobs:
           }
 
           arch_map <- list(
-            "arm64"  = "big-sur-arm64",
-            "x86_64" = "big-sur-x86_64"
+            "arm64"  = "big-sur-arm64"
           )
 
           for (arch in names(arch_map)) {
             platform_dir <- arch_map[[arch]]
-            art_dir <- file.path("artifacts", paste0("pkg-macos-", arch, "-r4.5"))
+            art_dir <- file.path("artifacts", paste0("pkg-macos-", arch, "-r4.6"))
             tgz_files <- list.files(art_dir, pattern = "\\.tgz$", full.names = TRUE)
             if (length(tgz_files) == 0) next
 
             dest_dir <- file.path("public-repo", "bin", "macosx", platform_dir,
-                                  "contrib", "4.5")
+                                  "contrib", "4.6")
             dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
 
             for (f in tgz_files) {
-              # Strip _arm64 / _x86_64 suffix before placing in repo dir
+              # Strip _arm64 suffix before placing in repo dir
               dest_name <- sub(paste0("_", arch, "\\.tgz$"), ".tgz", basename(f))
               file.copy(f, file.path(dest_dir, dest_name), overwrite = TRUE)
             }
 
             prune_old(dest_dir, "\\.tgz$", keep = 2)
             tools::write_PACKAGES(dest_dir, type = "mac.binary", verbose = TRUE)
-            message("Written PACKAGES for macos/", platform_dir, " R 4.5")
+            message("Written PACKAGES for macos/", platform_dir, " R 4.6")
           }
 
       - name: Copy pkgdown site to public repo
@@ -490,7 +487,7 @@ jobs:
           body: |
             Binary packages for ksTFL ${{ github.ref_name }}.
 
-            **Platforms:** Ubuntu (Noble), Fedora/RHEL, Windows, macOS (arm64, x86_64)
-            **R versions:** 4.4, 4.5 (macOS: 4.5 only)
+            **Platforms:** Ubuntu (Noble), Fedora/RHEL, Windows, macOS (arm64)
+            **R versions:** 4.5, 4.6 (macOS: 4.6 only)
 
             See [installation instructions](https://crow16384.github.io/ksTFL-release/#installation) for details.
