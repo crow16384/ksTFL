@@ -576,7 +576,6 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
     };
     std::vector<PageBreakInfo> page_breaks;
 
-    size_t page_num = 1;
     size_t row_idx = 0;
     bool is_first = true;
 
@@ -654,7 +653,6 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
       page_breaks.push_back(std::move(pb));
 
       is_first = false;
-      page_num++;
     }
 
     // Apply the same page breaks to every segment
