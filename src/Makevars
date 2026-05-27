@@ -78,7 +78,7 @@ endif
 vendor/freetype/ft_all.o: vendor/freetype/ft_all.c
 	@mkdir -p vendor/freetype
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -Ivendor/freetype/include -Ivendor/freetype \
-        -DFT2_BUILD_LIBRARY -fno-lto $(FT_GCC_ONLY_WARN) -c $< -o $@
+        -DFT2_BUILD_LIBRARY -fno-lto $(FT_GCC_ONLY_WARN) -w -c $< -o $@
 
 ## HarfBuzz (C++, single-compilation-unit amalgamation)
 vendor/harfbuzz/harfbuzz.o: vendor/harfbuzz/src/harfbuzz.cc
@@ -86,9 +86,9 @@ vendor/harfbuzz/harfbuzz.o: vendor/harfbuzz/src/harfbuzz.cc
 	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) \
 	    -Ivendor/harfbuzz/src -Ivendor/freetype/include \
 	    -DHAVE_FREETYPE -DHB_NO_MT $(HB_FEATURE_DISABLE) $(HB_CLANG_ONLY_WARN) \
-	    -std=c++17 -c $< -o $@
+	    -std=c++17 -w -c $< -o $@
 
 ## minizip (C, single-compilation-unit wrapper)
 vendor/minizip/mz_all.o: vendor/minizip/mz_all.c
 	@mkdir -p vendor/minizip
-	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $@
+	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -w -c $< -o $@

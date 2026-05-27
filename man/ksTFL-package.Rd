@@ -43,6 +43,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Igor Aleschenkov \email{igor.aleschenkov@gmail.com} [copyright holder]
   \item Vladimir Larchenko \email{crow16384@gmail.com} [copyright holder]
 }
 

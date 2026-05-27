@@ -32,3 +32,6 @@ cclsp.json$
 ^\.Rhistory$
 ^doc$
 ^Meta$
+^CLAUDE\.md$
+^src/vendor/\.clang-format$
+^cran-comments\.md$
