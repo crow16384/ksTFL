@@ -241,6 +241,93 @@
   spec
 }
 
+#' Append a single TFL_spec to the flattened intake list
+#'
+#' Internal helper used by `create_report()` to push a `(name_basis, spec, is_new)`
+#' tuple onto the running intake list. The hash is appended downstream when keys
+#' are finalised so that auto-disambiguation can rewrite the name basis without
+#' touching the hash suffix.
+#'
+#' @param flattened The current intake list.
+#' @param spec      A `TFL_spec` object.
+#' @param name      The bare name to use as the key basis (no hash suffix).
+#' @keywords internal
+#' @noRd
+.push_spec_entry <- function(flattened, spec, name) {
+  hash <- spec$.metadata$hash
+  if (is.null(hash) || !is.character(hash) || hash == "") {
+    cli_abort(c(
+      "Spec object {.val {name}} has invalid or missing metadata hash",
+      i = "Ensure the spec was properly initialized with create_table(), create_text(), or create_figure()"
+    ))
+  }
+  flattened[[length(flattened) + 1L]] <- list(
+    name_basis = name,
+    hash = hash,
+    key = paste0(name, "_", hash),
+    spec = spec,
+    is_new = TRUE
+  )
+  flattened
+}
+
+#' Expand a bare list argument into intake tuples
+#'
+#' Internal helper for `create_report()`. Walks a plain `list` whose elements
+#' are `TFL_spec` or `TFL_report` objects and appends them to the running
+#' intake list. Names on the list slots drive the key basis for `TFL_spec`
+#' elements; unnamed slots fall back to `<outer_arg_name>_<i>` (or
+#' `spec_<i>` when the outer arg has no expression name). `TFL_report`
+#' elements are flattened with their existing keys preserved (the slot name
+#' on the outer list is ignored). Nested lists are rejected.
+#'
+#' @param flattened       The current intake list.
+#' @param list_obj        The bare list argument.
+#' @param outer_arg_name  Expression name of the outer arg, or `""` for literals.
+#' @param outer_arg_index 1-based index of the outer arg (used in error messages).
+#' @keywords internal
+#' @noRd
+.expand_spec_list <- function(flattened, list_obj, outer_arg_name, outer_arg_index) {
+  list_names <- names(list_obj)
+  if (is.null(list_names)) list_names <- rep("", length(list_obj))
+
+  fallback_prefix <- if (nzchar(outer_arg_name)) outer_arg_name else "spec"
+
+  for (j in seq_along(list_obj)) {
+    elem <- list_obj[[j]]
+    elem_name <- list_names[[j]]
+
+    if (inherits(elem, "TFL_report")) {
+      for (report_key in names(elem)) {
+        flattened[[length(flattened) + 1L]] <- list(
+          name_basis = report_key,
+          hash = NA_character_,
+          key = report_key,
+          spec = elem[[report_key]],
+          is_new = FALSE
+        )
+      }
+    } else if (inherits(elem, "TFL_spec")) {
+      basis <- if (nzchar(elem_name)) elem_name else paste0(fallback_prefix, "_", j)
+      flattened <- .push_spec_entry(flattened, elem, basis)
+    } else if (is.list(elem)) {
+      cli_abort(c(
+        "Nested lists are not supported in create_report()",
+        x = "Argument {outer_arg_index} ({.val {outer_arg_name}}) element {j} is itself a list",
+        i = "Pass a flat list of TFL_spec / TFL_report objects"
+      ))
+    } else {
+      label <- if (nzchar(elem_name)) elem_name else as.character(j)
+      cli_abort(c(
+        "Elements of a list argument must be TFL_spec or TFL_report",
+        x = "Argument {outer_arg_index} ({.val {outer_arg_name}}) element {.val {label}} is of class {.cls {class(elem)}}"
+      ))
+    }
+  }
+
+  flattened
+}
+
 #' Combine Multiple TFL Specifications and/or Reports into a Single Report
 #'
 #' This function takes multiple TFL specification objects and/or previously created
@@ -249,10 +336,16 @@
 #' name and metadata hash (for direct specs) or preserves original keys (for specs
 #' from reports).
 #'
-#' @param ... One or more objects of class `TFL_spec` or `TFL_report` to be combined.
+#' @param ... One or more objects of class `TFL_spec` or `TFL_report`, or
+#'   plain `list`s whose elements are `TFL_spec` / `TFL_report` objects.
 #' \itemize{
 #'   \item `TFL_spec` objects produced by `create_table()`, `create_text()` or `create_figure()`.
 #'   \item `TFL_report` objects produced by previous calls to `create_report()`.
+#'   \item `list` arguments are expanded in place; for each `TFL_spec` element
+#'         the list slot name (if any) is used as the key basis. Unnamed slots
+#'         fall back to `<outer_arg_name>_<i>` (or `spec_<i>` when the outer
+#'         argument is itself a literal `list(...)` call). Nested lists are
+#'         not supported.
 #'   \item Arguments are processed in order; each new `TFL_spec` is keyed by the
 #'         argument name combined with the spec metadata hash.
 #'   \item `TFL_report` objects are flattened and their spec keys are preserved.
@@ -261,13 +354,17 @@
 #' @details
 #' The function performs the following operations:
 #' \enumerate{
-#'   \item Flattens all inputs (extracts specs from `TFL_report` objects)
-#'   \item Validates that no duplicate spec keys exist across all inputs
+#'   \item Flattens all inputs (expands `list` arguments and extracts specs
+#'         from `TFL_report` objects).
+#'   \item Auto-disambiguates duplicate keys among newly-added specs by
+#'         appending a numeric suffix (`_2`, `_3`, ...) to the name basis;
+#'         duplicate keys originating from `TFL_report` arguments still
+#'         trigger a hard error.
 #'   \item Consolidates styles within newly-added `TFL_spec` objects only
-#'         (specs from `TFL_report` are already consolidated)
-#'   \item Assigns a global `docOrder` integer (1, 2, 3, ...) based on final position
-#'   \item Preserves existing `dataRef` values and warns if duplicates detected
-#'   \item Returns a named list keyed by `<variable_name>_<hash>` or original report keys
+#'         (specs from `TFL_report` are already consolidated).
+#'   \item Assigns a global `docOrder` integer (1, 2, 3, ...) based on final position.
+#'   \item Preserves existing `dataRef` values and warns if duplicates detected.
+#'   \item Returns a named list keyed by `<variable_name>_<hash>` or original report keys.
 #' }
 #'
 #' @return A named list where each element is a TFL_spec object,
@@ -284,67 +381,96 @@
 #' # Combining with a previous report
 #' spec3 <- create_figure("path/to/image.png")
 #' combined <- create_report(final_report, spec3)
+#'
+#' # Passing a named list of specs
+#' out <- list(t1 = spec1, t2 = spec2)
+#' report_from_list <- create_report(out)
 #' }
 create_report <- function(...) {
   # Capture all arguments and their names
   specs_list <- list(...)
-  spec_names <- as.character(substitute(list(...)))[-1]  # Remove 'list' element
 
   # Validate input is not empty
   if (length(specs_list) == 0) {
-    cli_abort("create_report() requires at least one TFL_spec or TFL_report object")
+    cli_abort("create_report() requires at least one TFL_spec, TFL_report or list of such objects")
+  }
+
+  # Derive a printable expression name for each top-level arg. Use
+  # match.call() so that bare list literals (e.g. `list(a = spec)`)
+  # collapse to "" — those are treated as having no outer name.
+  call_args <- as.list(match.call(expand.dots = TRUE))[-1]
+  spec_names <- vapply(call_args, function(e) {
+    if (is.name(e)) as.character(e) else ""
+  }, character(1))
+  if (length(spec_names) < length(specs_list)) {
+    spec_names <- c(spec_names, rep("", length(specs_list) - length(spec_names)))
   }
 
   # ---- PHASE 1: Flatten inputs (order-preserving) ----
-  flattened <- list()  # Will store list of (key, spec, is_new) tuples
-  
+  flattened <- list()  # Each entry: list(name_basis, hash, key, spec, is_new)
+
   for (i in seq_along(specs_list)) {
     obj <- specs_list[[i]]
     obj_name <- spec_names[[i]]
-    
+
     if (inherits(obj, "TFL_report")) {
-      # Extract all specs from the report with their keys
       for (report_key in names(obj)) {
-        spec <- obj[[report_key]]
-        flattened[[length(flattened) + 1]] <- list(
+        flattened[[length(flattened) + 1L]] <- list(
+          name_basis = report_key,
+          hash = NA_character_,
           key = report_key,
-          spec = spec,
-          is_new = FALSE  # Pre-consolidated
+          spec = obj[[report_key]],
+          is_new = FALSE
         )
       }
     } else if (inherits(obj, "TFL_spec")) {
-      # Compute key for direct spec
-      hash <- obj$.metadata$hash
-      if (is.null(hash) || !is.character(hash) || hash == "") {
-        cli_abort(c(
-          "Spec object {.val {obj_name}} has invalid or missing metadata hash",
-          i = "Ensure the spec was properly initialized with create_table(), create_text(), or create_figure()"
-        ))
-      }
-      
-      key <- paste0(obj_name, "_", hash)
-      flattened[[length(flattened) + 1]] <- list(
-        key = key,
-        spec = obj,
-        is_new = TRUE  # Needs style consolidation
-      )
+      basis <- if (nzchar(obj_name)) obj_name else paste0("spec_", i)
+      flattened <- .push_spec_entry(flattened, obj, basis)
+    } else if (is.list(obj)) {
+      flattened <- .expand_spec_list(flattened, obj, obj_name, i)
     } else {
       cli_abort(c(
-        "All arguments to create_report() must be of class TFL_spec or TFL_report",
+        "All arguments to create_report() must be TFL_spec, TFL_report, or a list of such objects",
         x = "Argument {i} ({.val {obj_name}}) is of class {.cls {class(obj)}}"
       ))
     }
   }
 
-  # ---- PHASE 2: Validate duplicate keys ----
-  all_keys <- vapply(flattened, function(x) x$key, character(1))
-  duplicate_keys <- all_keys[duplicated(all_keys)]
-  
-  if (length(duplicate_keys) > 0) {
-    cli_abort(c(
-      "Duplicate spec keys detected across inputs",
-      x = "The following keys appear multiple times: {.str {unique(duplicate_keys)}}",
-      i = "This indicates specs with identical content; ensure each spec is unique"
+  # ---- PHASE 2: Resolve duplicate keys ----
+  # Hard error if two report-sourced specs collide (their keys come from a
+  # previously emitted report and a collision indicates a genuine conflict).
+  # New specs get an auto-disambiguated name basis with suffix `_2`, `_3`, ...
+  seen_keys <- character(0)
+  renames <- character(0)
+  for (i in seq_along(flattened)) {
+    entry <- flattened[[i]]
+    if (!(entry$key %in% seen_keys)) {
+      seen_keys <- c(seen_keys, entry$key)
+      next
+    }
+    if (!entry$is_new) {
+      cli_abort(c(
+        "Duplicate spec keys detected across input reports",
+        x = "Key {.str {entry$key}} appears in more than one TFL_report argument",
+        i = "Ensure each input report contributes a distinct set of keys"
+      ))
+    }
+    n <- 2L
+    repeat {
+      candidate_basis <- paste0(entry$name_basis, "_", n)
+      candidate_key   <- paste0(candidate_basis, "_", entry$hash)
+      if (!(candidate_key %in% seen_keys)) break
+      n <- n + 1L
+    }
+    renames <- c(renames, paste0(entry$key, " \u2192 ", candidate_key))
+    flattened[[i]]$name_basis <- candidate_basis
+    flattened[[i]]$key        <- candidate_key
+    seen_keys <- c(seen_keys, candidate_key)
+  }
+  if (length(renames) > 0L) {
+    cli::cli_inform(c(
+      "i" = "Auto-renamed {length(renames)} duplicate spec key{?s}:",
+      stats::setNames(renames, rep("*", length(renames)))
     ))
   }
 

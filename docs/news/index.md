@@ -1,5 +1,40 @@
 # Changelog
 
+## ksTFL 0.11.2
+
+### `create_report()` accepts list-of-specs arguments
+
+- [`create_report()`](https://example.com/reference/create_report.md)
+  now accepts plain `list` arguments whose elements are `TFL_spec` or
+  `TFL_report` objects. Specs may be built independently (e.g. in a loop
+  or across separate program files), collected into a named list, and
+  then passed in a single call:
+
+  ``` r
+
+  specs <- list(t_dm = spec_dm, t_ae = spec_ae, l_subj = spec_listing)
+  report <- create_report(specs)
+  ```
+
+  List slot names become the key prefix (`t_dm_<hash>`, `t_ae_<hash>`,
+  …). Unnamed slots fall back to `<outer_arg_name>_<i>` (or `spec_<i>`
+  when the outer arg is a literal `list(...)` call). `TFL_report`
+  elements inside a list are flattened with their original keys
+  preserved. Nested lists are rejected.
+
+- [`create_report()`](https://example.com/reference/create_report.md)
+  now auto-disambiguates duplicate keys among newly-added specs by
+  appending a numeric suffix (`_2`, `_3`, …) instead of erroring. A
+  `cli_inform()` message is emitted for each renamed key. Key collisions
+  originating from two separate `TFL_report` arguments still trigger a
+  hard error.
+
+- List arguments may be freely mixed with variadic `TFL_spec` and
+  `TFL_report` arguments in the same call.
+
+- New showcase example:
+  `inst/examples/showcase/18_list_of_specs_bundle.R`.
+
 ## ksTFL 0.11.1
 
 ### Vendor library upgrades

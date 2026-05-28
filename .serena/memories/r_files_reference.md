@@ -82,13 +82,22 @@ Environment-based expression evaluation for compute_cols conditions.
 ---
 
 ## R/create_report.R
-Report assembly — combines multiple TFL_spec objects into a report payload.
+Report assembly — combines multiple TFL_spec / TFL_report / list-of-specs objects into a report payload.
 
-**Exported:** `create_report()`
-**Internal:** `._consolidate_styles_in_spec()` — deduplicates/inlines style references
+**Exported:** `create_report(...)`  
+`...` accepts: `TFL_spec`, `TFL_report`, or a plain `list` whose elements are `TFL_spec`/`TFL_report`.
+List slot names become key prefixes; unnamed slots fall back to `<outer_arg_name>_<i>` or `spec_<i>`.
+Duplicate keys among new specs are auto-disambiguated (`_2`, `_3`, …) with `cli::cli_inform()`.
+Key collisions between two `TFL_report` arguments still raise a hard error.
+
+**Internal:**  
+`._consolidate_styles_in_spec()` — deduplicates/inlines style references  
+`.push_spec_entry()` — appends a single `TFL_spec` tuple to the flattened intake list  
+`.expand_spec_list()` — walks a bare `list` argument and dispatches per element type  
+
 **Pipeline phases (documented as string markers):**
-1. Flatten inputs (order-preserving)
-2. Validate duplicate keys
+1. Flatten inputs (order-preserving) — expands `list` args via `.expand_spec_list()`
+2. Resolve duplicate keys — auto-rename new specs; hard-error for report-sourced keys
 3. Finalize compute_cols actions
 4. Style consolidation
 5. Renumber docOrder globally, create dataRef

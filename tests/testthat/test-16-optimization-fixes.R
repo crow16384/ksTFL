@@ -364,8 +364,15 @@ test_that("create_report detects duplicate keys", {
   
   # When we pass spec1_dup with a name that would create the same key
   # Actually, the issue is that variable names differ (spec1 vs spec1_dup)
-  # Let's create truly identical scenario by passing same spec twice
-  expect_error(create_report(spec1, spec1), "Duplicate.*key")
+  # Let's create truly identical scenario by passing same spec twice.
+  # New behaviour: duplicate keys among newly-added specs are auto-renamed
+  # with a numeric suffix instead of erroring (collisions among specs from
+  # different TFL_report inputs still error — covered elsewhere).
+  result <- suppressMessages(create_report(spec1, spec1))
+  expect_s3_class(result, "TFL_report")
+  expect_equal(length(result), 2)
+  hash <- spec1$.metadata$hash
+  expect_equal(names(result), c(paste0("spec1_", hash), paste0("spec1_2_", hash)))
 })
 
 test_that("create_report handles mixed report and spec inputs", {

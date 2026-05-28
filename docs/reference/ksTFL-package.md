@@ -66,4 +66,6 @@ Useful links:
 
 Authors:
 
+- Igor Aleschenkov <igor.aleschenkov@gmail.com> \[copyright holder\]
+
 - Vladimir Larchenko <crow16384@gmail.com> \[copyright holder\]

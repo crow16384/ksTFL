@@ -613,7 +613,7 @@ print(report)
 [`create_report()`](https://example.com/reference/create_report.md)
 does**:
 
-1\. Flattens inputs (supports nested reports)
+1\. Flattens inputs — including plain `list` arguments (see below)
 
 2\. Validates structure
 
@@ -623,6 +623,31 @@ does**:
 4\. Assigns sequential `docOrder` (1, 2, 3, …)
 
 5\. Creates `dataRef` names for new specs
+
+### Passing a named list of specs
+
+You can also build specs into a named list and pass the whole list at
+once — useful when the set of outputs is assembled dynamically:
+
+``` r
+
+specs <- list(
+  t_dm   = spec_table,
+  t_text = spec_text,
+  t_fig  = spec_fig
+)
+
+report <- create_report(specs)
+# names(report): "t_dm_<hash>", "t_text_<hash>", "t_fig_<hash>"
+```
+
+List and variadic arguments may be freely mixed:
+
+``` r
+
+extra <- create_text() |> add_body_text("Appendix.")
+report <- create_report(extra, specs)
+```
 
 6\. Returns a `TFL_report` object
 

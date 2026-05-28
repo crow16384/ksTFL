@@ -7,10 +7,16 @@
 create_report(...)
 }
 \arguments{
-\item{...}{One or more objects of class \code{TFL_spec} or \code{TFL_report} to be combined.
+\item{...}{One or more objects of class \code{TFL_spec} or \code{TFL_report}, or
+plain \code{list}s whose elements are \code{TFL_spec} / \code{TFL_report} objects.
 \itemize{
 \item \code{TFL_spec} objects produced by \code{create_table()}, \code{create_text()} or \code{create_figure()}.
 \item \code{TFL_report} objects produced by previous calls to \code{create_report()}.
+\item \code{list} arguments are expanded in place; for each \code{TFL_spec} element
+the list slot name (if any) is used as the key basis. Unnamed slots
+fall back to \verb{<outer_arg_name>_<i>} (or \verb{spec_<i>} when the outer
+argument is itself a literal \code{list(...)} call). Nested lists are
+not supported.
 \item Arguments are processed in order; each new \code{TFL_spec} is keyed by the
 argument name combined with the spec metadata hash.
 \item \code{TFL_report} objects are flattened and their spec keys are preserved.
@@ -32,13 +38,17 @@ from reports).
 \details{
 The function performs the following operations:
 \enumerate{
-\item Flattens all inputs (extracts specs from \code{TFL_report} objects)
-\item Validates that no duplicate spec keys exist across all inputs
+\item Flattens all inputs (expands \code{list} arguments and extracts specs
+from \code{TFL_report} objects).
+\item Auto-disambiguates duplicate keys among newly-added specs by
+appending a numeric suffix (\verb{_2}, \verb{_3}, ...) to the name basis;
+duplicate keys originating from \code{TFL_report} arguments still
+trigger a hard error.
 \item Consolidates styles within newly-added \code{TFL_spec} objects only
-(specs from \code{TFL_report} are already consolidated)
-\item Assigns a global \code{docOrder} integer (1, 2, 3, ...) based on final position
-\item Preserves existing \code{dataRef} values and warns if duplicates detected
-\item Returns a named list keyed by \verb{<variable_name>_<hash>} or original report keys
+(specs from \code{TFL_report} are already consolidated).
+\item Assigns a global \code{docOrder} integer (1, 2, 3, ...) based on final position.
+\item Preserves existing \code{dataRef} values and warns if duplicates detected.
+\item Returns a named list keyed by \verb{<variable_name>_<hash>} or original report keys.
 }
 }
 \examples{
@@ -50,5 +60,9 @@ final_report <- create_report(spec1, spec2)
 # Combining with a previous report
 spec3 <- create_figure("path/to/image.png")
 combined <- create_report(final_report, spec3)
+
+# Passing a named list of specs
+out <- list(t1 = spec1, t2 = spec2)
+report_from_list <- create_report(out)
 }
 }

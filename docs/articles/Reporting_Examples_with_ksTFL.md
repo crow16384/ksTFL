@@ -407,6 +407,42 @@ this to work the titles in the input specs should be marked for toc
 entries - see
 [`?add_title`](https://example.com/reference/add_title.md)\]
 
+### Passing a named list of specs
+
+When specs are built independently (e.g. in a loop, across separate
+program files, or inside a function that returns a list), they can be
+collected into a named list and passed as a single argument:
+
+``` r
+
+specs <- list(
+  t_dm   = spec_min_table,
+  t_fig  = spec_min_fig,
+  t_text = spec_min_text
+)
+
+# Equivalent to create_report(spec_min_table, spec_min_fig, spec_min_text)
+# but the list can be assembled dynamically.
+report_from_list <- create_report(specs)
+
+# List names become key prefixes:
+# names(report_from_list)
+# [1] "t_dm_<hash>"   "t_fig_<hash>"  "t_text_<hash>"
+```
+
+List arguments may be freely mixed with variadic specs and reports:
+
+``` r
+
+extra_spec <- create_text() |> add_body_text("Appendix note.")
+
+report_mixed <- create_report(extra_spec, specs)
+```
+
+Unnamed list elements fall back to `<outer_arg_name>_<i>`
+(e.g. `specs_1`, `specs_2`, …). `TFL_report` objects inside a list are
+flattened with their original keys preserved.
+
 ------------------------------------------------------------------------
 
 ## 7 — Column widths: automatic calculation and locking

@@ -100,20 +100,22 @@ test_that("create_report() preserves dataRef from input reports", {
 
 test_that("create_report() rejects non-TFL_spec/TFL_report inputs", {
   spec <- create_table(test_df)
-  
+
   expect_error(
     create_report(spec, "not_a_spec"),
-    "must be of class TFL_spec or TFL_report"
+    "must be TFL_spec, TFL_report"
   )
-  
+
   expect_error(
     create_report(spec, 123),
-    "must be of class TFL_spec or TFL_report"
+    "must be TFL_spec, TFL_report"
   )
-  
+
+  # A list argument is accepted, but its elements must themselves be
+  # TFL_spec / TFL_report.
   expect_error(
     create_report(spec, list(a = 1)),
-    "must be of class TFL_spec or TFL_report"
+    "must be TFL_spec or TFL_report"
   )
 })
 

@@ -15,5 +15,6 @@ source(file.path(getwd(), "inst", "examples", "showcase", "13_dm_table.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "14_figures.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "15_long_listing.R"))
 source(file.path(getwd(), "inst", "examples", "showcase", "16_table_layout_options.R"))
+source(file.path(getwd(), "inst", "examples", "showcase", "18_list_of_specs_bundle.R"))
 
 cat("\nShowcase completed. Check: ", file.path(getwd(), "tmp", "showcase_output"), "\n", sep = "")
