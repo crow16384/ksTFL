@@ -179,3 +179,80 @@ pre::-webkit-scrollbar-thumb {
 pre::-webkit-scrollbar-thumb:hover {
     background: #2166AC;
 }
+
+/* ── Dark mode ──────────────────────────────────────────── */
+/* Mirrors the light theme but brightens the brand accent
+ * (#4A9EDE) and darkens surfaces. Applies only when the
+ * pkgdown page is in dark mode (BS5 sets data-bs-theme="dark"),
+ * or when the OS reports a dark color scheme. */
+[data-bs-theme="dark"] .table,
+[data-bs-theme="dark"] .table>thead>tr>th,
+[data-bs-theme="dark"] .table>tbody>tr>td {
+    border-color: #3a3f4b;
+}
+
+[data-bs-theme="dark"] .table>thead>tr>th {
+    background: #23303d;
+    color: #cfe2f5;
+    border-bottom-color: #4A9EDE;
+}
+
+[data-bs-theme="dark"] .table>tbody>tr>td {
+    color: #d6d9e0;
+    border-bottom-color: #2c303a;
+}
+
+[data-bs-theme="dark"] .table>tbody>tr:nth-child(even) {
+    background: #20232a;
+}
+
+[data-bs-theme="dark"] .table>tbody>tr:hover {
+    background: #2a3744;
+}
+
+[data-bs-theme="dark"] .table>tbody>tr>td code {
+    background: #2c333d;
+}
+
+[data-bs-theme="dark"] pre {
+    border-left-color: #4A9EDE;
+}
+
+[data-bs-theme="dark"] .contents h2 {
+    border-bottom-color: #3a3f4b;
+}
+
+[data-bs-theme="dark"] .contents h3 {
+    color: #4A9EDE;
+}
+
+[data-bs-theme="dark"] blockquote {
+    border-left-color: #4A9EDE;
+    background: rgba(35, 48, 61, 0.5);
+}
+
+[data-bs-theme="dark"] .contents img {
+    border-color: #3a3f4b;
+}
+
+[data-bs-theme="dark"] aside nav#toc h2 {
+    color: #aab0bc;
+}
+
+[data-bs-theme="dark"] aside nav#toc a {
+    color: #aab0bc;
+}
+
+[data-bs-theme="dark"] aside nav#toc a:hover,
+[data-bs-theme="dark"] aside nav#toc a.active {
+    color: #4A9EDE;
+    border-left-color: #4A9EDE;
+}
+
+[data-bs-theme="dark"] pre::-webkit-scrollbar-thumb {
+    background: #4a4f5b;
+}
+
+[data-bs-theme="dark"] pre::-webkit-scrollbar-thumb:hover {
+    background: #4A9EDE;
+}

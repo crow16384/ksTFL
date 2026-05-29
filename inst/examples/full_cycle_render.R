@@ -785,7 +785,8 @@ p11 <- ggplot(mtcars, aes(x = wt, y = mpg, colour = factor(cyl))) +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom")
 
-spec11 <- create_figure(p11, width = 6, height = 4, dpi = 300) |>
+tfl_set_options(figureWidth = "6in", figureHeight = "4in")
+spec11 <- create_figure(p11, dpi = 300) |>
   add_title(c("Study Motor Trend", "Figure 1: Fuel Efficiency by Vehicle Weight")) |>
   add_subtitle("All vehicles, 1974") |>
   add_footnote("Source: 1974 Motor Trend US magazine (n = 32 vehicles).")
@@ -825,7 +826,8 @@ p12 <- ggplot(pk_mean, aes(x = TIME, y = CONC, colour = TRT, shape = TRT)) +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom")
 
-spec12a <- create_figure(p12, width = 7, height = 4.5, dpi = 300) |>
+tfl_set_options(figureWidth = "7in", figureHeight = "4.5in")
+spec12a <- create_figure(p12, dpi = 300) |>
   add_title(c("Study ABC-123", "Figure 14.2.1: Mean PK Concentration-Time Profile")) |>
   add_subtitle("Pharmacokinetic Analysis Set") |>
   add_footnote(c(
@@ -910,7 +912,8 @@ p13a <- ggplot(ae_data, aes(x = reorder(SOC, -PCT), y = PCT, fill = TRT)) +
   theme_bw(base_size = 10) +
   theme(legend.position = "bottom")
 
-spec13a <- create_figure(p13a, width = 7, height = 4, dpi = 300, device = "png") |>
+tfl_set_options(figureWidth = "7in", figureHeight = "4in", figureDevice = "png")
+spec13a <- create_figure(p13a, dpi = 300) |>
   add_title(c("Study ABC-123", "Figure 14.3.1: AE Incidence by System Organ Class")) |>
   add_subtitle("Safety Analysis Set") |>
   add_footnote("AE = Adverse Event; SOC = System Organ Class; n = 100 subjects per group.")
@@ -939,7 +942,8 @@ p13b <- ggplot(km_data, aes(x = time, y = surv * 100, colour = trt)) +
   theme_bw(base_size = 11) +
   theme(legend.position = "bottom")
 
-spec13b <- create_figure(p13b, width = 6.5, height = 4, dpi = 200, device = "jpeg") |>
+tfl_set_options(figureWidth = "6.5in", figureHeight = "4in", figureDevice = "jpeg")
+spec13b <- create_figure(p13b, dpi = 200) |>
   add_title(c("Study ABC-123", "Figure 14.4.1: Kaplan-Meier Overall Survival")) |>
   add_subtitle("Full Analysis Set") |>
   add_footnote("Survival estimated from step function; illustrative only.")
@@ -968,7 +972,8 @@ p13c <- ggplot(forest_data, aes(y = Subgroup, x = Est, xmin = Lo, xmax = Hi)) +
   labs(x = "Hazard Ratio (log scale, 95% CI)", y = NULL) +
   theme_bw(base_size = 10)
 
-spec13c <- create_figure(p13c, width = 7, height = 4, device = "svg") |>
+tfl_set_options(figureWidth = "7in", figureHeight = "4in", figureDevice = "svg")
+spec13c <- create_figure(p13c) |>
   add_title(c("Study ABC-123", "Figure 14.5.1: Forest Plot of Treatment Effect by Subgroup")) |>
   add_subtitle("Full Analysis Set") |>
   add_footnote(c(

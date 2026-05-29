@@ -1,3 +1,14 @@
+# ksTFL 0.11.3
+
+## Bug fixes
+
+* Fixed `inst/examples/full_cycle_render.R`: five `create_figure()` calls
+  incorrectly passed non-existent `width`, `height`, and `device` arguments.
+  Replaced with `tfl_set_options(figureWidth =, figureHeight =, figureDevice =)`
+  calls placed immediately before each `create_figure()`.  `create_figure()`
+  reads figure dimensions and device from session options at call time; only
+  `dpi` is a valid direct argument.
+
 # ksTFL 0.11.2
 
 ## `create_report()` accepts list-of-specs arguments

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,13 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.11.3" id="kstfl-0113">ksTFL 0.11.3<a class="anchor" aria-label="anchor" href="#kstfl-0113"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-0-11-3">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-11-3"></a></h3>
+<ul><li>Fixed <code>inst/examples/full_cycle_render.R</code>: five <code><a href="../reference/create_figure.html">create_figure()</a></code> calls incorrectly passed non-existent <code>width</code>, <code>height</code>, and <code>device</code> arguments. Replaced with <code>tfl_set_options(figureWidth =, figureHeight =, figureDevice =)</code> calls placed immediately before each <code><a href="../reference/create_figure.html">create_figure()</a></code>. <code><a href="../reference/create_figure.html">create_figure()</a></code> reads figure dimensions and device from session options at call time; only <code>dpi</code> is a valid direct argument.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.11.2" id="kstfl-0112">ksTFL 0.11.2<a class="anchor" aria-label="anchor" href="#kstfl-0112"></a></h2>
 <div class="section level3">
@@ -176,7 +183,7 @@
 <li>
 <strong><code><a href="../reference/compute_cols.html">compute_cols()</a></code> accepts scalar <code>TRUE</code>/<code>FALSE</code></strong>: a scalar logical condition is now recycled to match <code>nrow(data)</code>, allowing <code>compute_cols(spec, TRUE, ...)</code> as shorthand for “all rows”.</li>
 <li>
-<strong>Missing <code><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">rlang::expr()</a></code> qualifier</strong>: fixed unqualified <code>expr()</code> call in <code>.env_select()</code> that caused <code>could not find function "expr"</code> in clean R sessions.</li>
+<strong>Missing <code><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">rlang::expr()</a></code> qualifier</strong>: fixed unqualified <code><a href="https://rlang.r-lib.org/reference/expr.html" class="external-link">expr()</a></code> call in <code>.env_select()</code> that caused <code>could not find function "expr"</code> in clean R sessions.</li>
 </ul></div>
 </div>
     <div class="section level2">
