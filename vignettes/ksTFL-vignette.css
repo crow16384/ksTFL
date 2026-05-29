@@ -293,3 +293,152 @@ pre::-webkit-scrollbar-thumb {
 pre::-webkit-scrollbar-thumb:hover {
     background: #2166AC;
 }
+
+/* ── Dark mode ──────────────────────────────────────────── */
+/* Adapts colors when the viewer (RStudio Help pane, OS, browser)
+ * reports a dark color scheme, so text stays readable instead of
+ * dark-on-dark. The blue brand accent (#4A9EDE) is brightened for
+ * contrast against dark backgrounds. */
+@media (prefers-color-scheme: dark) {
+
+    body {
+        color: #d6d9e0;
+        background: #1a1c23;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        color: #f0f2f5;
+    }
+
+    h1 {
+        border-bottom-color: #f0f2f5;
+    }
+
+    h2 {
+        border-bottom-color: #3a3f4b;
+    }
+
+    h3 {
+        color: #4A9EDE;
+    }
+
+    h4 {
+        color: #aab0bc;
+    }
+
+    a {
+        color: #4A9EDE;
+    }
+
+    a:hover {
+        border-bottom-color: #4A9EDE;
+    }
+
+    /* Code blocks */
+    pre,
+    pre:not([class]) {
+        background: #23262e;
+        border-color: #3a3f4b;
+        border-left-color: #4A9EDE;
+    }
+
+    pre:not(.sourceCode) {
+        background: #20232a;
+        border-left-color: #4a4f5b;
+    }
+
+    /* Inline code */
+    p>code,
+    li>code,
+    td>code,
+    h3>code,
+    h4>code {
+        background: #2c303a;
+        color: #e3e6eb;
+    }
+
+    /* Tables */
+    table {
+        border-color: #3a3f4b;
+    }
+
+    th {
+        background: #23303d;
+        color: #cfe2f5;
+        border-bottom-color: #4A9EDE;
+    }
+
+    td {
+        color: #d6d9e0;
+        border-bottom-color: #2c303a;
+    }
+
+    tbody tr:nth-child(even) {
+        background: #20232a;
+    }
+
+    tbody tr:hover {
+        background: #2a3744;
+    }
+
+    td code {
+        background: #2c333d;
+        color: #e3e6eb;
+    }
+
+    /* Blockquotes */
+    blockquote {
+        border-left-color: #4A9EDE;
+        background: rgba(35, 48, 61, 0.5);
+        color: #d6d9e0;
+    }
+
+    li>strong:first-child {
+        color: #f0f2f5;
+    }
+
+    hr {
+        background: linear-gradient(to right, #f0f2f5 0%, #4a4f5b 50%, transparent 100%);
+    }
+
+    img {
+        border-color: #3a3f4b;
+    }
+
+    h1.title {
+        border-bottom-color: #4A9EDE;
+    }
+
+    h4.author,
+    h4.date {
+        color: #aab0bc;
+    }
+
+    /* TOC */
+    #TOC {
+        background: #23262e;
+        border-color: #3a3f4b;
+    }
+
+    #TOC a:hover {
+        color: #4A9EDE;
+    }
+
+    /* Selection */
+    ::selection {
+        background: rgba(74, 158, 222, 0.30);
+    }
+
+    pre::-webkit-scrollbar-thumb {
+        background: #4a4f5b;
+    }
+
+    pre::-webkit-scrollbar-thumb:hover {
+        background: #4A9EDE;
+    }
+}
