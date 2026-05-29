@@ -286,17 +286,24 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
   
   # Extract data from metadata
   data_env <- spec$.metadata$data_env
-  if (is.null(data_env) || is.null(data_env$`__data__`)) {
-    if (spec$document$hasData) {
-      cli_abort(c(
-        "Table spec has {.code hasData=TRUE} but no data found in metadata",
-        x = "Expected data at {.code spec$.metadata$data_env$`__data__`}"
-      ))
-    }
-    # If hasData=FALSE and no data, write empty JSON
-    empty_data <- list()
+  has_data_flag <- isTRUE(spec$document$hasData)
+  data_missing  <- is.null(data_env) || is.null(data_env$`__data__`)
+  data_empty    <- !data_missing && nrow(data_env$`__data__`) == 0L
+
+  if (data_missing && has_data_flag) {
+    cli_abort(c(
+      "Table spec has {.code hasData=TRUE} but no data found in metadata",
+      x = "Expected data at {.code spec$.metadata$data_env$`__data__`}"
+    ))
+  }
+
+  # No-data fallback: when hasData=FALSE, data is absent, or data has 0 rows,
+  # write an empty JSON payload so the renderer falls back to body text
+  # (e.g. the default "No data to report"). Avoids jsonlite errors on
+  # vctrs_unspecified columns of skeleton tibbles.
+  if (!has_data_flag || data_missing || data_empty) {
     json_output <- jsonlite::toJSON(
-      empty_data,
+      list(),
       pretty = FALSE,
       digits = 8,
       null = NULL,
@@ -308,7 +315,7 @@ save_report <- function(report, docFileName, outDir = NULL, metaPath = NULL, pre
     writeLines(json_output, con = data_filepath)
     return(invisible(NULL))
   }
-  
+
   # Get full data and filter to report columns
   full_data <- data_env$`__data__`
   report_cols <- spec$.metadata$report_cols

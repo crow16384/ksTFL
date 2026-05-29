@@ -885,3 +885,76 @@ test_that("continuousSection on last spec sets body-level sectPr to continuous",
   expect_equal(n_nextpage, 1L,
     label = "expect 1 nextPage section break (spec1)")
 })
+
+# ============================================================================
+# Tests: save_report() with empty input data (no-data fallback)
+# ============================================================================
+
+test_that("save_report() handles empty tibble with vctrs_unspecified columns", {
+  skip_if_not_installed("tibble")
+  skip_if_not_installed("vctrs")
+
+  empty_tbl <- tibble::tibble(
+    NAME      = vctrs::unspecified(),
+    PHDUR_TRT = vctrs::unspecified(),
+    PHDUR_FU  = vctrs::unspecified()
+  )
+  spec <- create_table(empty_tbl)
+  expect_false(isTRUE(spec$document$hasData))
+
+  report <- create_report(spec)
+  temp_dir <- create_test_dir()
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  expect_no_error(
+    result <- save_report(
+      report,
+      docFileName = "test.docx",
+      metaPath = temp_dir
+    )
+  )
+
+  spec_json <- jsonlite::fromJSON(file.path(temp_dir, result$spec_file))
+  spec_key <- names(spec_json)[names(spec_json) != "_metadata"][1]
+  data_ref <- spec_json[[spec_key]]$dataRef
+  if (!is.null(data_ref)) {
+    data_path <- file.path(temp_dir, paste0(data_ref, ".json"))
+    expect_true(file.exists(data_path))
+    data_json <- jsonlite::fromJSON(data_path, simplifyVector = FALSE)
+    expect_length(data_json, 0L)
+  }
+})
+
+test_that("save_report() handles 0-row tibble with typed columns", {
+  skip_if_not_installed("tibble")
+
+  empty_typed <- tibble::tibble(
+    id    = integer(),
+    name  = character(),
+    score = numeric()
+  )
+  spec <- create_table(empty_typed)
+  expect_false(isTRUE(spec$document$hasData))
+
+  report <- create_report(spec)
+  temp_dir <- create_test_dir()
+  on.exit(unlink(temp_dir, recursive = TRUE))
+
+  expect_no_error(
+    result <- save_report(
+      report,
+      docFileName = "test.docx",
+      metaPath = temp_dir
+    )
+  )
+
+  spec_json <- jsonlite::fromJSON(file.path(temp_dir, result$spec_file))
+  spec_key <- names(spec_json)[names(spec_json) != "_metadata"][1]
+  data_ref <- spec_json[[spec_key]]$dataRef
+  if (!is.null(data_ref)) {
+    data_path <- file.path(temp_dir, paste0(data_ref, ".json"))
+    expect_true(file.exists(data_path))
+    data_json <- jsonlite::fromJSON(data_path, simplifyVector = FALSE)
+    expect_length(data_json, 0L)
+  }
+})
