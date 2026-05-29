@@ -1883,7 +1883,8 @@ define_cols <- function(spec, cols,
   cols <- enquos(cols)
   cols <- .get_data_column_names(spec$.metadata$data_env$`__data__`, !!!cols)
 
-  cols <- intersect(cols, names(spec$columns)) #keep only columns that exist in spec definition
+  # Keep only columns that exist in spec definition, in report (spec) order
+  cols <- intersect(names(spec$columns), cols)
   assert_character(cols, min.len = 1)
   
   # Check that all cols exist
@@ -2707,7 +2708,8 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
   cols <- enquos(cols)
   cols <- .get_data_column_names(spec$.metadata$data_env$`__data__`, !!!cols)
   
-  cols <- intersect(cols, names(spec$columns))  # keep only columns that exist in spec definition
+  # Keep only columns that exist in spec definition, in report (spec) order
+  cols <- intersect(names(spec$columns), cols)
   assert_character(cols, min.len = 1)
   
   if (is.null(id)) {

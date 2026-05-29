@@ -20,7 +20,7 @@ test_that("create_table() accepts tidyselect column selection", {
   spec <- create_table(test_df, cols = c(id, group, value))
   
   expect_equal(length(spec$columns), 3)
-  expect_true(all(c("id", "group", "value") %in% names(spec$columns)))
+  expect_equal(names(spec$columns), c("id", "group", "value"))
   
   spec <- create_table(test_df, 1:3)
   expect_equal(length(spec$columns), 3)
@@ -29,6 +29,43 @@ test_that("create_table() accepts tidyselect column selection", {
   expect_equal(length(spec$columns), ncol(test_df)-1)
 
 
+})
+
+test_that("create_table() preserves user-specified column order from cols", {
+  # Non-data-frame order: name, id, value, group (data order is id, group, value, ..., name)
+  spec <- create_table(test_df, cols = c(name, id, value, group))
+
+  expect_equal(names(spec$columns), c("name", "id", "value", "group"))
+  expect_equal(spec$.metadata$report_cols, c("name", "id", "value", "group"))
+})
+
+test_that("define_cols(everything()) applies values in report-column order", {
+  spec <- create_table(test_df, cols = c(name, id, value, group)) %>%
+    define_cols(everything(), label = c("L_name", "L_id", "L_value", "L_group"))
+
+  expect_equal(spec$columns$name$label,  "L_name")
+  expect_equal(spec$columns$id$label,    "L_id")
+  expect_equal(spec$columns$value$label, "L_value")
+  expect_equal(spec$columns$group$label, "L_group")
+})
+
+test_that("define_cols(tidyselect helper) honours report order, not data order", {
+  spec <- create_table(test_df, cols = c(name, id, value, group)) %>%
+    define_cols(tidyselect::starts_with(c("n", "i", "v", "g")),
+                label = c("L_name", "L_id", "L_value", "L_group"))
+
+  expect_equal(spec$columns$name$label,  "L_name")
+  expect_equal(spec$columns$id$label,    "L_id")
+  expect_equal(spec$columns$value$label, "L_value")
+  expect_equal(spec$columns$group$label, "L_group")
+})
+
+test_that("add_span_header(everything()) records cols in report order", {
+  spec <- create_table(test_df, cols = c(name, id, value, group)) %>%
+    add_span_header(everything(), label = "Top")
+
+  stub <- spec$stubColumns[[1]]
+  expect_equal(stub$cols, c("name", "id", "value", "group"))
 })
 
 
