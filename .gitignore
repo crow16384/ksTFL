@@ -43,7 +43,7 @@ Thumbs.db
 *.bak
 tmp/
 ._*
-doc
+/doc
 
 
 
