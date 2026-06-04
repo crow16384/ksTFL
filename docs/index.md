@@ -622,6 +622,8 @@ to styled OOXML runs in the output DOCX.
 
 - **Nesting**: fully supported — `<b><i>bold italic</i></b>`
 - **Case-insensitive**: `<B>`, `<b>`, both work
+- **Literal tag text**: escape `<` with backslash —
+  e.g. `\<i>literal\</i>` renders as `<i>literal</i>`
 - **No attributes**: tags carry no attributes; use the style system for
   colors, fonts, etc.
 - **Unknown tags are ignored**: unrecognized tags are silently stripped,
@@ -651,6 +653,9 @@ add_footnote(spec, "<b><i>Note:</i></b> All values are <u>least-squares means</u
 
 # Paragraph breaks in body text
 add_body_text(spec, "Section 1 summary.<p>Section 2 begins here.")
+
+# Render literal tag markers (not parsed as markup)
+add_body_text(spec, "Use \\<i>literal\\</i> to show tag text")
 ```
 
 Note: `<sup>` and `<sub>` are mutually exclusive — if nested, the

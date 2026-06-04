@@ -66,6 +66,10 @@ static std::string read_file_to_string(const std::string &path) {
   std::ifstream ifs(path, std::ios::binary | std::ios::ate);
   if (!ifs) { throw RenderError(std::format("Cannot read file: {}", path)); }
   auto size = ifs.tellg();
+  if (size < 0) {
+    // because tellg() can return -1 and read() can fail on I/O errors.
+    throw RenderError(std::format("Failed to determine size of the file: {}", path));
+  }
   ifs.seekg(0);
   std::string content(static_cast<size_t>(size), '\0');
   ifs.read(content.data(), size);

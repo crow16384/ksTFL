@@ -11,23 +11,6 @@
 namespace kstfl {
 
 // ---------------------------------------------------------------------------
-// Unit constants
-// ---------------------------------------------------------------------------
-
-/// EMU per inch = 914400
-constexpr int64_t EMU_PER_INCH = 914400;
-/// EMU per cm = 360000
-constexpr int64_t EMU_PER_CM = 360000;
-/// EMU per point = 12700
-constexpr int64_t EMU_PER_PT = 12700;
-/// EMU per twip = 635 (1 twip = 1/20 pt)
-constexpr int64_t EMU_PER_TWIP = 635;
-/// Half-points per point (OOXML uses half-points for font sizes)
-constexpr int HALF_POINTS_PER_PT = 2;
-/// Twips per inch
-constexpr int64_t TWIPS_PER_INCH = 1440;
-
-// ---------------------------------------------------------------------------
 // Page size dimensions (in EMU) — portrait dimensions (width × height)
 // ---------------------------------------------------------------------------
 

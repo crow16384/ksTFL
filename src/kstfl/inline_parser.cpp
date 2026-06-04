@@ -7,8 +7,6 @@
 #include "inline_parser.h"
 #include <algorithm>
 #include <cctype>
-#include <string_view>
-#include <unordered_map>
 #include <vector>
 
 namespace kstfl {
@@ -31,17 +29,58 @@ enum class TagType {
 };
 
 static TagType classify_tag(const std::string &name) {
-  static const std::unordered_map<std::string_view, TagType> tag_map{
-      {"sup", TagType::Sup},     {"sub", TagType::Sub},         {"b", TagType::Bold}, {"i", TagType::Italic},
-      {"u", TagType::Underline}, {"s", TagType::Strikethrough}, {"br", TagType::Br},  {"p", TagType::Para}};
   // Tag names are at most 3 chars; use a stack buffer to avoid heap allocation.
   char lower_buf[8];
   size_t len = std::min(name.size(), sizeof(lower_buf) - 1);
   for (size_t i = 0; i < len; ++i)
     lower_buf[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(name[i])));
   lower_buf[len] = '\0';
-  auto it = tag_map.find(std::string_view{lower_buf, len});
-  return (it != tag_map.end()) ? it->second : TagType::Unknown;
+
+  switch (len) {
+  case 1:
+    switch (lower_buf[0]) {
+    case 'b':
+      return TagType::Bold;
+    case 'i':
+      return TagType::Italic;
+    case 'u':
+      return TagType::Underline;
+    case 's':
+      return TagType::Strikethrough;
+    case 'p':
+      return TagType::Para;
+    default:
+      return TagType::Unknown;
+    }
+  case 2:
+    if (lower_buf[0] == 'b' && lower_buf[1] == 'r') return TagType::Br;
+    return TagType::Unknown;
+  case 3:
+    if (lower_buf[0] == 's' && lower_buf[1] == 'u') {
+      if (lower_buf[2] == 'p') return TagType::Sup;
+      if (lower_buf[2] == 'b') return TagType::Sub;
+    }
+    return TagType::Unknown;
+  default:
+    return TagType::Unknown;
+  }
+}
+
+static bool is_escaped_tag_open(const std::string &text, size_t lt_pos) {
+  return lt_pos > 0 && text[lt_pos - 1] == '\\';
+}
+
+static bool has_escaped_tag_open(const std::string &text) {
+  return text.find("\\<") != std::string::npos;
+}
+
+static bool consume_escaped_tag_open(const std::string &text, size_t &pos, std::string &out) {
+  if (pos + 1 < text.size() && text[pos] == '\\' && text[pos + 1] == '<') {
+    out += '<';
+    pos += 2;
+    return true;
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,6 +90,11 @@ static TagType classify_tag(const std::string &name) {
 bool has_inline_markup(const std::string &text) {
   size_t pos = 0;
   while ((pos = text.find('<', pos)) != std::string::npos) {
+    if (is_escaped_tag_open(text, pos)) {
+      pos++;
+      continue;
+    }
+
     size_t start = pos + 1;
     if (start >= text.size()) return false;
     // Skip optional '/'
@@ -211,7 +255,7 @@ ParsedCell parse_inline_markup(const std::string &text) {
   ParsedCell cell;
 
   // Quick path: no '<' means no markup possible — skip tag classification
-  if (text.find('<') == std::string::npos || !has_inline_markup(text)) {
+  if (text.find('<') == std::string::npos || (!has_inline_markup(text) && !has_escaped_tag_open(text))) {
     ParsedParagraph para;
     if (!text.empty()) {
       TextRun run;
@@ -231,6 +275,8 @@ ParsedCell parse_inline_markup(const std::string &text) {
 
   size_t pos = 0;
   while (pos < text.size()) {
+    if (consume_escaped_tag_open(text, pos, buffer)) continue;
+
     if (text[pos] == '<') {
       size_t tag_start = pos;
       bool is_closing = false;
@@ -335,7 +381,7 @@ ParsedCell parse_inline_markup(const std::string &text) {
 
 std::string get_plain_text(const std::string &text) {
   // Quick path: no markup — return as-is (zero-copy for most inputs)
-  if (text.find('<') == std::string::npos || !has_inline_markup(text)) { return text; }
+  if (text.find('<') == std::string::npos || (!has_inline_markup(text) && !has_escaped_tag_open(text))) { return text; }
 
   // Single-pass scanner: skip recognized tags, accumulate plain text directly.
   // Avoids building the full ParsedCell/TextRun/InlineRunStyle AST.
@@ -344,6 +390,8 @@ std::string get_plain_text(const std::string &text) {
 
   size_t pos = 0;
   while (pos < text.size()) {
+    if (consume_escaped_tag_open(text, pos, out)) continue;
+
     if (text[pos] == '<') {
       size_t tag_start = pos;
       bool is_closing = false;

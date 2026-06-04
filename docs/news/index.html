@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,15 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.11.4" id="kstfl-0114">ksTFL 0.11.4<a class="anchor" aria-label="anchor" href="#kstfl-0114"></a></h2>
+<div class="section level3">
+<h3 id="inline-markup-escaping-0-11-4">Inline markup escaping<a class="anchor" aria-label="anchor" href="#inline-markup-escaping-0-11-4"></a></h3>
+<ul><li>Added support for escaped literal inline tag markers via <code>\\&lt;</code> in the C++ inline parser. Example: <code>\\&lt;i&gt;literal\\&lt;/i&gt;</code> now renders as literal <code>&lt;i&gt;literal&lt;/i&gt;</code> text rather than activating italic formatting.</li>
+<li>Updated <code>has_inline_markup()</code>, <code>parse_inline_markup()</code>, and <code>get_plain_text()</code> to treat escaped <code>&lt;</code> as literal while preserving quick-path behavior.</li>
+<li>Added C++ and testthat coverage for escaped-tag handling and documented the syntax in README/pkgdown docs.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.11.3" id="kstfl-0113">ksTFL 0.11.3<a class="anchor" aria-label="anchor" href="#kstfl-0113"></a></h2>
 <div class="section level3">

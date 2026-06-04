@@ -1,3 +1,16 @@
+# ksTFL 0.11.4
+
+## Inline markup escaping
+
+* Added support for escaped literal inline tag markers via `\\<` in the C++
+  inline parser. Example: `\\<i>literal\\</i>` now renders as literal
+  `<i>literal</i>` text rather than activating italic formatting.
+* Updated `has_inline_markup()`, `parse_inline_markup()`, and
+  `get_plain_text()` to treat escaped `<` as literal while preserving quick-path
+  behavior.
+* Added C++ and testthat coverage for escaped-tag handling and documented the
+  syntax in README/pkgdown docs.
+
 # ksTFL 0.11.3
 
 ## Bug fixes

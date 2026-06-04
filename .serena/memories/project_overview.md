@@ -25,3 +25,11 @@ R package for generating clinical Tables, Figures, and Listings (TFL) metadata a
 - `src/rcpp_bindings.cpp` — Rcpp glue
 - `src/kstfl/` — C++20 renderer core
 - `tests/testthat/` — testthat tests
+
+
+## Recent Update (2026-06-04)
+- Version bumped to `0.11.4` in `DESCRIPTION`.
+- Inline parser now supports escaped literal tag markers via `\\<` (e.g. `\\<i>literal\\</i>` renders as literal `<i>literal</i>` text).
+- Parser parity maintained across `has_inline_markup()`, `parse_inline_markup()`, and `get_plain_text()`.
+- Escaped-tag coverage is in C++ unit tests (`cpp_test_inline_parser`) and R wrapper tests (`tests/testthat/test-18-cpp-units.R`).
+- Changelog/docs updated in `NEWS.md`, `docs/news/index.md`, and version text in `docs/authors.md`.

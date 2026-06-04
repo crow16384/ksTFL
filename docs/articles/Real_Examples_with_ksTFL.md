@@ -264,7 +264,7 @@ create_report(spec) %>% write_doc("example_01")
 
 ### Rendered output
 
-[Download example_01.pdf](pdf/example_01.pdf)
+[Open example_01.pdf](https://example.com/articles/example_01.pdf)
 
 ### Switching style templates
 
@@ -283,7 +283,8 @@ create_report(spec) %>% write_doc("example_01_navy")
 The same table is now rendered with the “Navy_Pro” template — different
 fonts, colours, and border styles, but identical content and structure:
 
-[Download example_01_navy.pdf](pdf/example_01_navy.pdf)
+[Open
+example_01_navy.pdf](https://example.com/articles/example_01_navy.pdf)
 
 **Key take-aways from this example:**
 
@@ -431,7 +432,8 @@ spec_dm_01 <- create_table(data) %>%
 
 ### Rendered output
 
-[Download example_02_demog.pdf](pdf/example_02_demog.pdf)
+[Open
+example_02_demog.pdf](https://example.com/articles/example_02_demog.pdf)
 
 ## Example 3 — Adverse Events table with complex spanning headers
 
@@ -651,7 +653,7 @@ create_report(spec) %>% write_doc("example_03_ae")
 
 ### Rendered output
 
-[Download example_03_ae.pdf](pdf/example_03_ae.pdf)
+[Open example_03_ae.pdf](https://example.com/articles/example_03_ae.pdf)
 
 ## Example 4 — Data listing with automatic two-level TOC
 
@@ -773,7 +775,8 @@ create_report(spec_lbl_01) %>% write_doc("example_04_list", toc = TRUE)
 
 ### Rendered output
 
-[Download example_04_list.pdf](pdf/example_04_list.pdf)
+[Open
+example_04_list.pdf](https://example.com/articles/example_04_list.pdf)
 
 ### Splitting long tables across pages
 
@@ -801,7 +804,8 @@ create_report(spec_lbl_02) %>% write_doc("example_04_list_colbr", toc = TRUE)
 
 ### Split rendered output
 
-[Download example_04_list_colbr.pdf](pdf/example_04_list_colbr.pdf)
+[Open
+example_04_list_colbr.pdf](https://example.com/articles/example_04_list_colbr.pdf)
 
 ## Example 5 — Figures and combined multi-spec reports with TOC
 
@@ -934,7 +938,8 @@ The resulting document contains a TOC page listing all three figures,
 followed by one page per figure. Each figure fills the landscape page
 thanks to `figureScaleMode = "fitPage"`.
 
-[Download figures_single_doc_toc.pdf](pdf/figures_single_doc_toc.pdf)
+[Open
+figures_single_doc_toc.pdf](https://example.com/articles/figures_single_doc_toc.pdf)
 
 ## Example 6 - Table under the figure
 
@@ -1013,8 +1018,8 @@ create_report(spec_fig, spec_tbl) %>%
 
 ### Rendered output
 
-[Download
-table_under_figure.pdf](pdf/example_03.1_table_under_figure.pdf)
+[Open
+table_under_figure.pdf](https://example.com/articles/example_03.1_table_under_figure.pdf)
 
 ### Variation: adding an explicit table title
 
@@ -1103,7 +1108,11 @@ spec <- create_table(demo_data) |>
 The bottom border of the spanning header row will be a solid line,
 making it difficult to see which columns actually belong to which group:
 
-![](images/spanning_headers_gap.png)
+![Table with a solid bottom border on spanning header row, making group
+boundaries ambiguous](images/spanning_headers_gap.png)
+
+Table with a solid bottom border on spanning header row, making group
+boundaries ambiguous
 
 Instead of adding a dummy column to the input dataframe between `TRT_B1`
 and `TRT_A2` to separate them visually, we can use built-in atomic
@@ -1138,4 +1147,5 @@ spec <- create_table(demo_data) |>
 
 With this approach the groups are visually separated from each other:
 
-[Download spanning_headers_gap.pdf](pdf/spanning_headers_gap.pdf)
+[Open
+spanning_headers_gap.pdf](https://example.com/articles/spanning_headers_gap.pdf)

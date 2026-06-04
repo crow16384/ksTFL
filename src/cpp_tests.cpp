@@ -368,6 +368,8 @@ Rcpp::List cpp_test_inline_parser() {
   t.check(has_inline_markup("x<br/>y"), "has markup: br");
   t.check(has_inline_markup("<u>under</u>"), "has markup: u");
   t.check(has_inline_markup("<s>struck</s>"), "has markup: s");
+  t.check(!has_inline_markup("\\<i>literal\\</i>"), "no markup: escaped i tags");
+  t.check(has_inline_markup("\\<i>literal\\</i> <b>real</b>"), "has markup: escaped + real tag");
 
   // --- Plain text (no markup) ---
   {
@@ -637,6 +639,44 @@ Rcpp::List cpp_test_inline_parser() {
     t.check(found, "case-insensitive: <S> treated as strikethrough");
   }
 
+  // --- Escaped tag openers are treated as literal text ---
+  {
+    auto cell = parse_inline_markup("\\<i>literal\\</i>");
+    t.check_eq(cell.paragraphs.size(), size_t(1), "escape: literal i tags -> 1 paragraph");
+    bool found_literal = false;
+    bool any_italic = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text.find("<i>literal</i>") != std::string::npos) found_literal = true;
+      if (run.style.italic_override) any_italic = true;
+    }
+    t.check(found_literal, "escape: literal i tags preserved");
+    t.check(!any_italic, "escape: escaped i does not enable italic");
+  }
+
+  {
+    auto cell = parse_inline_markup("<b>bold \\<i>tag\\</i></b>");
+    bool found_literal_bold = false;
+    bool any_italic = false;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text.find("<i>tag</i>") != std::string::npos && run.style.bold_override) found_literal_bold = true;
+      if (run.style.italic_override) any_italic = true;
+    }
+    t.check(found_literal_bold, "escape: escaped i remains literal inside bold");
+    t.check(!any_italic, "escape: escaped i inside bold does not enable italic");
+  }
+
+  {
+    auto cell = parse_inline_markup("a\\<br/>b");
+    bool has_soft_break = false;
+    std::string merged;
+    for (const auto &run : cell.paragraphs[0].runs) {
+      if (run.text == "\n") has_soft_break = true;
+      merged += run.text;
+    }
+    t.check(!has_soft_break, "escape: escaped br does not create soft break");
+    t.check_eq(merged, std::string("a<br/>b"), "escape: escaped br rendered literally");
+  }
+
   // --- Unknown tags are ignored, text content preserved ---
   {
     auto cell = parse_inline_markup("<span>text</span>");
@@ -725,6 +765,9 @@ Rcpp::List cpp_test_inline_parser() {
   t.check_eq(get_plain_text("no < tags > here"), std::string("no < tags > here"),
              "plain_text: angle brackets not tags");
   t.check_eq(get_plain_text("<B>UPPER</B>"), std::string("UPPER"), "plain_text: case-insensitive");
+  t.check_eq(get_plain_text("\\<i>ital\\</i>"), std::string("<i>ital</i>"), "plain_text: escaped i literal");
+  t.check_eq(get_plain_text("a\\<br/>b"), std::string("a<br/>b"), "plain_text: escaped br literal");
+  t.check_eq(get_plain_text("\\<p>A\\</p>"), std::string("<p>A</p>"), "plain_text: escaped p literal");
 
   return t.to_list();
 }

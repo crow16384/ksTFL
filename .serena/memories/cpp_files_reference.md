@@ -349,3 +349,10 @@ C++ unit test runner invokable from R.
 3. `src/init.cpp`
 4. `R/RcppExports.R`
 5. `tests/testthat/test-18-cpp-units.R`
+
+
+## Inline Parser Update (2026-06-04)
+- `src/kstfl/inline_parser.cpp` supports escaped literal tag openers via `\\<`.
+- Escaped sequences are treated as literal text in `parse_inline_markup()` and `get_plain_text()`.
+- `has_inline_markup()` skips escaped `<` so quick-path detection only triggers for real markup tags.
+- User-visible example: `\\<i>literal\\</i>` renders as `<i>literal</i>` text (no italic formatting).

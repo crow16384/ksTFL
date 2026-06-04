@@ -34,6 +34,23 @@ struct RenderError : public std::runtime_error {
 };
 
 // ---------------------------------------------------------------------------
+// Unit constants
+// ---------------------------------------------------------------------------
+
+/// EMU per inch = 914400
+constexpr int64_t EMU_PER_INCH = 914400;
+/// EMU per cm = 360000
+constexpr int64_t EMU_PER_CM = 360000;
+/// EMU per point = 12700
+constexpr int64_t EMU_PER_PT = 12700;
+/// EMU per twip = 635 (1 twip = 1/20 pt)
+constexpr int64_t EMU_PER_TWIP = 635;
+/// Half-points per point (OOXML uses half-points for font sizes)
+constexpr int HALF_POINTS_PER_PT = 2;
+/// Twips per inch
+constexpr int64_t TWIPS_PER_INCH = 1440;
+
+// ---------------------------------------------------------------------------
 // Fundamental value types
 // ---------------------------------------------------------------------------
 
@@ -52,19 +69,19 @@ struct Length {
 
   // Convenience constructors
   static constexpr Length from_emu(int64_t e) { return Length{e}; }
-  static constexpr Length from_twips(int64_t t) { return Length{t * 635}; }
-  static constexpr Length from_pt(double p) { return Length{static_cast<int64_t>(p * 12700.0)}; }
-  static constexpr Length from_cm(double c) { return Length{static_cast<int64_t>(c * 360000.0)}; }
-  static constexpr Length from_in(double i) { return Length{static_cast<int64_t>(i * 914400.0)}; }
+  static constexpr Length from_twips(int64_t t) { return Length{t * EMU_PER_TWIP}; }
+  static constexpr Length from_pt(double p) { return Length{static_cast<int64_t>(p * EMU_PER_PT)}; }
+  static constexpr Length from_cm(double c) { return Length{static_cast<int64_t>(c * EMU_PER_CM)}; }
+  static constexpr Length from_in(double i) { return Length{static_cast<int64_t>(i * EMU_PER_INCH)}; }
 
   // Conversions
   [[nodiscard]] constexpr int64_t to_twips() const {
     // Round to nearest twip instead of truncating, to minimize systematic error
-    return (emu >= 0) ? (emu + 317) / 635 : (emu - 317) / 635;
+    return (emu >= 0) ? (emu + EMU_PER_TWIP / 2) / EMU_PER_TWIP : (emu - EMU_PER_TWIP / 2) / EMU_PER_TWIP;
   }
-  [[nodiscard]] constexpr double to_pt() const { return static_cast<double>(emu) / 12700.0; }
-  [[nodiscard]] constexpr double to_cm() const { return static_cast<double>(emu) / 360000.0; }
-  [[nodiscard]] constexpr double to_in() const { return static_cast<double>(emu) / 914400.0; }
+  [[nodiscard]] constexpr double to_pt() const { return static_cast<double>(emu) / EMU_PER_PT; }
+  [[nodiscard]] constexpr double to_cm() const { return static_cast<double>(emu) / EMU_PER_CM; }
+  [[nodiscard]] constexpr double to_in() const { return static_cast<double>(emu) / EMU_PER_INCH; }
   [[nodiscard]] constexpr int64_t to_emu() const { return emu; }
 
   // Arithmetic

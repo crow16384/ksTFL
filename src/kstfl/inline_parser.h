@@ -1,6 +1,7 @@
 // kstfl/inline_parser.h — Parse inline markup tags in cell values
 //
-// Supported tags: <sup>, <sub>, <b>, <i>, <u>, <br>, <p>
+// Supported tags: <sup>, <sub>, <b>, <i>, <u>, <s>, <br>, <p>
+// Escape literal '<' before a tag-like sequence with '\<' (e.g. "\<i>").
 // Stack-based state machine (no regex).
 //
 // Copyright (c) 2026 I.Aleschenkov, V.Larchenko. GPL-3.0 License.

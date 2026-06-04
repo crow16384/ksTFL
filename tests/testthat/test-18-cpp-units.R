@@ -247,6 +247,19 @@ test_that("C++ inline_parser — case-insensitive tag names", {
   }
 })
 
+test_that("C++ inline_parser — escaped tags are literal", {
+  result <- cpp_test_inline_parser()
+
+  esc_passed <- result$passed[startsWith(result$passed, "escape:")]
+  esc_failed <- result$failed[startsWith(result$failed, "escape:")]
+
+  for (name in esc_passed) expect_true(TRUE, label = name)
+  for (msg  in esc_failed) {
+    parts  <- strsplit(msg, ": ", fixed = TRUE)[[1L]]
+    expect_true(FALSE, label = paste0(parts[[1L]], " — ", paste(parts[-1L], collapse = ": ")))
+  }
+})
+
 test_that("C++ inline_parser — unknown tags are silently ignored", {
   result <- cpp_test_inline_parser()
 

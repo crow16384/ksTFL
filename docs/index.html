@@ -23,7 +23,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1204,6 +1204,9 @@
 <li>
 <strong>Case-insensitive</strong>: <code>&lt;B&gt;</code>, <code>&lt;b&gt;</code>, both work</li>
 <li>
+<strong>Literal tag text</strong>: escape <code>&lt;</code> with backslash — e.g. <code>\&lt;i&gt;literal\&lt;/i&gt;</code> renders as <code>&lt;i&gt;literal&lt;/i&gt;</code>
+</li>
+<li>
 <strong>No attributes</strong>: tags carry no attributes; use the style system for colors, fonts, etc.</li>
 <li>
 <strong>Unknown tags are ignored</strong>: unrecognized tags are silently stripped, content preserved</li>
@@ -1229,7 +1232,10 @@
 <span><span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"&lt;b&gt;&lt;i&gt;Note:&lt;/i&gt;&lt;/b&gt; All values are &lt;u&gt;least-squares means&lt;/u&gt;"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Paragraph breaks in body text</span></span>
-<span><span class="fu"><a href="reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Section 1 summary.&lt;p&gt;Section 2 begins here."</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Section 1 summary.&lt;p&gt;Section 2 begins here."</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Render literal tag markers (not parsed as markup)</span></span>
+<span><span class="fu"><a href="reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec</span>, <span class="st">"Use \\&lt;i&gt;literal\\&lt;/i&gt; to show tag text"</span><span class="op">)</span></span></code></pre></div>
 <p>Note: <code>&lt;sup&gt;</code> and <code>&lt;sub&gt;</code> are mutually exclusive — if nested, the innermost tag takes effect.</p>
 <hr>
 </div>
