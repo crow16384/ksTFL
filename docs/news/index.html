@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,15 @@
 
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.11.5" id="kstfl-0115">ksTFL 0.11.5<a class="anchor" aria-label="anchor" href="#kstfl-0115"></a></h2>
+<div class="section level3">
+<h3 id="pagination-and-footnotes-0-11-5">Pagination and footnotes<a class="anchor" aria-label="anchor" href="#pagination-and-footnotes-0-11-5"></a></h3>
+<ul><li>Fixed <code>footnotePlace = "last_page"</code> pagination when templates allow row breaks (<code>allow_row_break_across_pages = true</code>): the paginator now skips deterministic LastPage reshuffling in row-break mode and keeps a single logical table flow.</li>
+<li>In deterministic mode (<code>allow_row_break_across_pages = false</code>), last-page footnote reservation is now applied only to the true final page; non-final overflow/interim pages no longer reserve footnote height.</li>
+<li>Added report-writer regression coverage for both row-break and deterministic paths with grouped rows and <code><a href="../reference/c_addrow.html">c_addrow()</a></code>.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.11.4" id="kstfl-0114">ksTFL 0.11.4<a class="anchor" aria-label="anchor" href="#kstfl-0114"></a></h2>
 <div class="section level3">

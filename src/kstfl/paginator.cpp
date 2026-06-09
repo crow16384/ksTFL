@@ -707,7 +707,11 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
     // Post-pass for last_page footnotes (LastPage placement strategy).
     // Run per-segment since body heights differ, but initial breaks are
     // unified.
-    if (fn_place == FootnotePlace::LastPage && footnotes_height.emu > 0) {
+    //
+    // This reshuffling assumes deterministic hard page boundaries. When
+    // row breaks are allowed, Word performs natural row flow and we keep
+    // the initial logical slices unchanged.
+    if (!allow_row_break && fn_place == FootnotePlace::LastPage && footnotes_height.emu > 0) {
       for (auto &segment : segments) {
         if (segment.pages.empty()) continue;
 
@@ -738,13 +742,14 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
           extra.titles_height = repeat_titles ? titles_height : Length{0};
           extra.subtitles_height = subtitles_height;
           extra.table_header_height = repeat_header ? table_header_height : Length{0};
-          extra.footnotes_height = footnotes_height;
+          extra.footnotes_height = Length{0};
           extra.footer_section_height = footer_section_height;
           extra.body_height = removed_h;
           extra.has_footnotes = false;
 
           segment.pages[last_idx].is_last_page = false;
           segment.pages[last_idx].has_footnotes = false;
+          segment.pages[last_idx].footnotes_height = Length{0};
 
           segment.pages.push_back(std::move(extra));
           last_idx = segment.pages.size() - 1;
@@ -772,6 +777,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
 
         final_page.is_last_page = (fill_start >= rows.size());
         final_page.has_footnotes = final_page.is_last_page;
+        final_page.footnotes_height = final_page.is_last_page ? footnotes_height : Length{0};
 
         while (fill_start < rows.size()) {
           PageSlice overflow;
@@ -784,23 +790,38 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
           overflow.titles_height = repeat_titles ? titles_height : Length{0};
           overflow.subtitles_height = subtitles_height;
           overflow.table_header_height = repeat_header ? table_header_height : Length{0};
-          overflow.footnotes_height = footnotes_height;
+          overflow.footnotes_height = Length{0};
           overflow.footer_section_height = footer_section_height;
 
           Length ov_avail = compute_available_height(
               page_config, header_section_height, repeat_titles ? titles_height : Length{0}, subtitles_height,
-              repeat_header ? table_header_height : Length{0}, footnotes_height, footer_section_height, spacer_height);
+              repeat_header ? table_header_height : Length{0}, Length{0}, footer_section_height, spacer_height);
 
           while (
-              fill_start < rows.size() && !rows[fill_start].force_page_break &&
+              fill_start < rows.size() && (overflow.body_height.emu == 0 || !rows[fill_start].force_page_break) &&
               (overflow.body_height.emu == 0 || (overflow.body_height + segment.row_heights[fill_start]) <= ov_avail)) {
             overflow.body_height = overflow.body_height + segment.row_heights[fill_start];
             overflow.last_row = fill_start;
             fill_start++;
           }
 
+          if (fill_start >= rows.size()) {
+            Length ov_avail_with_fn =
+                compute_available_height(page_config, header_section_height, repeat_titles ? titles_height : Length{0},
+                                         subtitles_height, repeat_header ? table_header_height : Length{0},
+                                         footnotes_height, footer_section_height, spacer_height);
+
+            while (overflow.body_height > ov_avail_with_fn && overflow.last_row > overflow.first_row) {
+              Length removed_h = segment.row_heights[overflow.last_row];
+              overflow.body_height = overflow.body_height - removed_h;
+              fill_start = overflow.last_row;
+              overflow.last_row--;
+            }
+          }
+
           overflow.is_last_page = (fill_start >= rows.size());
           overflow.has_footnotes = overflow.is_last_page;
+          overflow.footnotes_height = overflow.is_last_page ? footnotes_height : Length{0};
           segment.pages.push_back(std::move(overflow));
         }
       }

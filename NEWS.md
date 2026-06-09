@@ -1,3 +1,17 @@
+# ksTFL 0.11.5
+
+## Pagination and footnotes
+
+* Fixed `footnotePlace = "last_page"` pagination when templates allow row
+  breaks (`allow_row_break_across_pages = true`): the paginator now skips
+  deterministic LastPage reshuffling in row-break mode and keeps a single
+  logical table flow.
+* In deterministic mode (`allow_row_break_across_pages = false`), last-page
+  footnote reservation is now applied only to the true final page; non-final
+  overflow/interim pages no longer reserve footnote height.
+* Added report-writer regression coverage for both row-break and deterministic
+  paths with grouped rows and `c_addrow()`.
+
 # ksTFL 0.11.4
 
 ## Inline markup escaping

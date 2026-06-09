@@ -17,6 +17,69 @@ create_test_dir <- function() {
   temp_dir
 }
 
+create_last_page_regression_df <- function(n_params = 8L, n_visits = 18L) {
+  n_rows <- n_params * n_visits
+  data.frame(
+    PARAMCD = rep(sprintf("PARAM_%02d", seq_len(n_params)), each = n_visits),
+    AVISITN = rep(sprintf("Week %02d", seq_len(n_visits)), times = n_params),
+    n = rep(5L, n_rows),
+    Normal = rep("4 (80.0%)", n_rows),
+    `Abnormal, NCS` = rep("1 (20.0%)", n_rows),
+    `Abnormal, CS` = rep("0 (0.0%)", n_rows),
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+}
+
+create_custom_template_with_row_break <- function(allow_row_break) {
+  template_src <- system.file("templates", "Classic_landscape.json", package = "ksTFL", mustWork = TRUE)
+  template_dst <- tempfile(pattern = "ksTFL_template_", fileext = ".json")
+
+  template_lines <- readLines(template_src, warn = FALSE)
+  replacement <- paste0('"allow_row_break_across_pages": ', tolower(as.character(allow_row_break)))
+  template_lines <- sub('"allow_row_break_across_pages"\\s*:\\s*(true|false)', replacement, template_lines)
+  writeLines(template_lines, template_dst, useBytes = TRUE)
+
+  template_dst
+}
+
+count_occurrences <- function(text, pattern, fixed = TRUE) {
+  lengths(regmatches(text, gregexpr(pattern, text, fixed = fixed)))
+}
+
+read_document_xml_text <- function(doc_path) {
+  unzip_dir <- create_test_dir()
+  on.exit(unlink(unzip_dir, recursive = TRUE))
+
+  utils::unzip(doc_path, exdir = unzip_dir)
+  doc_xml <- readLines(file.path(unzip_dir, "word", "document.xml"), warn = FALSE)
+  paste(doc_xml, collapse = "")
+}
+
+build_last_page_regression_spec <- function(data, footnote_token, template_path) {
+  create_table(data) |>
+    add_title("Last-page footnote pagination regression") |>
+    add_footnote(footnote_token) |>
+    define_cols(
+      c(PARAMCD, AVISITN, n, Normal, `Abnormal, NCS`, `Abnormal, CS`),
+      label = c("PARAMCD", "Visit", "n", "Normal", "NCS", "CS"),
+      valueStyleRef = c("ar", "ar", rep("ac", 4)),
+      labelStyleRef = c("ac")
+    ) |>
+    add_span_header(cols = -"AVISITN", label = "DRUG-XXX<br>N=5") |>
+    define_cols(PARAMCD, isVisible = FALSE) |>
+    compute_cols(
+      firstOf(PARAMCD),
+      c_addrow("above", value_from = PARAMCD)
+    ) |>
+    set_document(
+      footnotePlace = "last_page",
+      isContinues = TRUE,
+      hasData = TRUE,
+      docTemplate = template_path
+    )
+}
+
 # ============================================================================
 # Tests: save_report() basic functionality
 # ============================================================================
@@ -957,4 +1020,74 @@ test_that("save_report() handles 0-row tibble with typed columns", {
     data_json <- jsonlite::fromJSON(data_path, simplifyVector = FALSE)
     expect_length(data_json, 0L)
   }
+})
+
+# ============================================================================
+# Tests: last_page footnote pagination regressions
+# ============================================================================
+
+test_that("write_doc() keeps single table flow for last_page footnotes when row breaks are allowed", {
+  footnote_token <- "LAST_PAGE_FN_TOKEN_001"
+  row_break_template <- create_custom_template_with_row_break(TRUE)
+  on.exit(unlink(row_break_template), add = TRUE)
+
+  spec <- build_last_page_regression_spec(
+    data = create_last_page_regression_df(),
+    footnote_token = footnote_token,
+    template_path = row_break_template
+  )
+  report <- create_report(spec)
+
+  out_dir <- create_test_dir()
+  meta_dir <- create_test_dir()
+  on.exit({
+    unlink(out_dir, recursive = TRUE)
+    unlink(meta_dir, recursive = TRUE)
+  }, add = TRUE)
+
+  out_path <- write_doc(
+    report,
+    name = "last_page_row_break_true",
+    outDir = out_dir,
+    metaPath = meta_dir
+  )
+  expect_true(file.exists(out_path))
+
+  doc_text <- read_document_xml_text(out_path)
+
+  expect_equal(count_occurrences(doc_text, footnote_token), 1L)
+  expect_equal(count_occurrences(doc_text, "<w:tbl>"), 1L)
+})
+
+test_that("write_doc() keeps last_page footnotes once in deterministic pagination mode", {
+  footnote_token <- "LAST_PAGE_FN_TOKEN_002"
+  deterministic_template <- create_custom_template_with_row_break(FALSE)
+  on.exit(unlink(deterministic_template), add = TRUE)
+
+  spec <- build_last_page_regression_spec(
+    data = create_last_page_regression_df(),
+    footnote_token = footnote_token,
+    template_path = deterministic_template
+  )
+  report <- create_report(spec)
+
+  out_dir <- create_test_dir()
+  meta_dir <- create_test_dir()
+  on.exit({
+    unlink(out_dir, recursive = TRUE)
+    unlink(meta_dir, recursive = TRUE)
+  }, add = TRUE)
+
+  out_path <- write_doc(
+    report,
+    name = "last_page_row_break_false",
+    outDir = out_dir,
+    metaPath = meta_dir
+  )
+  expect_true(file.exists(out_path))
+
+  doc_text <- read_document_xml_text(out_path)
+
+  expect_equal(count_occurrences(doc_text, footnote_token), 1L)
+  expect_gte(count_occurrences(doc_text, "<w:tbl>"), 2L)
 })

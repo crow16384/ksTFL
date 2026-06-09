@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.5</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-06-04</h4>
+            <h4 data-toc-skip class="date">2026-06-09</h4>
       
 
       <div class="d-none name"><code>Rendering_Pipeline.Rmd</code></div>
@@ -247,7 +247,8 @@ docx_toc.cpp</li>
 │      - compute_segment_column_widths(): segment width scaling          │
 │      - compute_segment_row_heights(): per-segment row heights         │
 │      - compute static blocks: titles/subtitles/header/footer/notes    │
-│      - vertical fill + LastPage footnote spill post-pass              │
+│      - vertical fill + LastPage post-pass (deterministic mode only)   │
+│      - row-break mode keeps natural flow; no LastPage reshuffling      │
 │                                                                       │
 │   3e) Dedupe restoration                                               │
 │      Restore deduped values at page boundaries                        │
@@ -335,6 +336,18 @@ minus:
 allow_row_break_across_pages=false and repeat_header_on_each_page=true
 (Phase 1b constraint enforcement, with R warning if values are
 overridden)</li>
+</ul>
+</li>
+<li>Last-page footnotes:
+<ul>
+<li>
+<code>footnotePlace="last_page"</code> has two paths</li>
+<li>deterministic mode (<code>allow_row_break_across_pages=false</code>)
+uses LastPage post-pass to keep footnotes on the true final page</li>
+<li>row-break mode (<code>allow_row_break_across_pages=true</code>)
+skips LastPage reshuffling and keeps natural Word row flow</li>
+<li>for <code>last_page</code>, footnote height is reserved only on the
+true final page; non-final pages keep zero footnote reserve</li>
 </ul>
 </li>
 <li>Row height model:

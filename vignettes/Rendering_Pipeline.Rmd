@@ -154,7 +154,8 @@ Core modules
 │      - compute_segment_column_widths(): segment width scaling          │
 │      - compute_segment_row_heights(): per-segment row heights         │
 │      - compute static blocks: titles/subtitles/header/footer/notes    │
-│      - vertical fill + LastPage footnote spill post-pass              │
+│      - vertical fill + LastPage post-pass (deterministic mode only)   │
+│      - row-break mode keeps natural flow; no LastPage reshuffling      │
 │                                                                       │
 │   3e) Dedupe restoration                                               │
 │      Restore deduped values at page boundaries                        │
@@ -217,6 +218,14 @@ Defined primarily in src/kstfl/types.h.
         allow_row_break_across_pages=false and
         repeat_header_on_each_page=true (Phase 1b constraint
         enforcement, with R warning if values are overridden)
+-   Last-page footnotes:
+    -   `footnotePlace="last_page"` has two paths
+    -   deterministic mode (`allow_row_break_across_pages=false`) uses
+        LastPage post-pass to keep footnotes on the true final page
+    -   row-break mode (`allow_row_break_across_pages=true`) skips
+        LastPage reshuffling and keeps natural Word row flow
+    -   for `last_page`, footnote height is reserved only on the true
+        final page; non-final pages keep zero footnote reserve
 -   Row height model:
     -   baseline full-table row height is retained on LogicalRow
     -   segment-specific row heights are computed and stored on each
