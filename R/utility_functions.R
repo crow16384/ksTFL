@@ -362,7 +362,12 @@ utils::globalVariables(
     } else {
       # Vectorized rendering
       rendered <- if (type == "numeric") {
-        sprintf(fmt, col_sample)  # sprintf is vectorized
+        if (identical(fmt, "%d")) {
+          # Ensure integer input for %d to avoid double-type formatting errors.
+          sprintf(fmt, suppressWarnings(as.integer(round(col_sample))))
+        } else {
+          sprintf(fmt, col_sample)
+        }
       } else {
         as.character(col_sample)
       }

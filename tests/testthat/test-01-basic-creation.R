@@ -90,6 +90,25 @@ test_that("create_table() auto-generates format objects for columns", {
   }
 })
 
+test_that("create_table() handles integer-like double columns", {
+  df <- data.frame(
+    id = c("01001", "01002", "01003", "01004"),
+    int_like = c(10, 20 + 1e-9, NA_real_, 40),
+    decimal_vals = c(12.5, 31.2, 50, 43.8),
+    stringsAsFactors = FALSE
+  )
+
+  spec <- NULL
+  expect_no_error({
+    spec <- create_table(df)
+  })
+
+  expect_equal(spec$columns$int_like$format$type, "numeric")
+  expect_equal(spec$columns$int_like$format$format, "%d")
+  expect_equal(spec$columns$decimal_vals$format$type, "numeric")
+  expect_equal(spec$columns$decimal_vals$format$format, "%.1f")
+})
+
 
 test_that("create_text() creates text-only spec", {
   spec <- create_text()
