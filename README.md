@@ -25,7 +25,17 @@ Under the hood, a built-in **rendering engine** with text shaping converts decla
 
 ## Installation
 
-ksTFL is distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
+Install the CRAN release with:
+
+```r
+install.packages("ksTFL")
+```
+
+If you need a GitHub-hosted binary outside CRAN, use one of the secondary options below.
+
+### Pre-compiled binaries
+
+ksTFL is also distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
 
 ### Windows
 

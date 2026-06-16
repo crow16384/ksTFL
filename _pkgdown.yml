@@ -41,6 +41,10 @@ articles:
       - Getting_Started_with_ksTFL
       - Reporting_Examples_with_ksTFL
       - Real_Examples_with_ksTFL
+  - title: FAQ And Troubleshooting
+    navbar: FAQ
+    contents:
+      - FAQ_with_ksTFL
   - title: Styling And Layout
     navbar: Styling and Layout
     contents:

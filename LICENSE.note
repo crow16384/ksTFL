@@ -1,0 +1,33 @@
+ksTFL as a whole is distributed under the GPL-3 license.
+
+This source package also redistributes the following third-party components
+under licenses that are compatible with GPL-3:
+
+* `src/vendor/freetype` contains selected source files from FreeType 2.13.3.
+  FreeType is dual-licensed under the FreeType License and GPL-2.0-or-later.
+  ksTFL redistributes the vendored files under the FreeType License option.
+  Upstream copyright and license notices are retained in the vendored source
+  tree.
+
+* `src/vendor/harfbuzz` contains selected source files from HarfBuzz 10.2.0.
+  HarfBuzz is distributed under its upstream permissive license. Upstream
+  copyright and license notices are retained in the vendored source tree.
+
+* `src/vendor/minizip` contains the ZIP-writing subset of minizip from zlib
+  1.3.1. The vendored minizip files are distributed under the zlib license.
+  Upstream copyright and license notices are retained in the vendored source
+  files.
+
+* `src/vendor/nlohmann/json.hpp` contains nlohmann/json 3.12.0 under the MIT
+  license. The bundled header also carries upstream notices for incorporated
+  third-party code, including Apache License 2.0 text references for Abseil
+  fragments and MIT-licensed notices for other incorporated sources, as
+  documented in the header itself.
+
+* `inst/fonts` contains bundled Liberation Sans, Liberation Serif, and
+  Liberation Mono font files. These fonts are distributed under the SIL Open
+  Font License 1.1. A copy of the OFL text is provided in `inst/fonts/OFL.txt`.
+
+The vendored third-party code and bundled fonts remain under their original
+licenses; this note documents their redistribution within the GPL-3 ksTFL
+package.
