@@ -779,7 +779,7 @@ write_doc(report, name = "demo", outDir = "output", metaPath = tempdir())
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 or later.
+GPL-3. See <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 ---
 
