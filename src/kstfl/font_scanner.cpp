@@ -12,7 +12,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <algorithm>
 #include <cctype>
 #include <filesystem>
 #include <mutex>

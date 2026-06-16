@@ -7,7 +7,6 @@
 
 #include "docx_emitter.h"
 #include <algorithm>
-#include <ranges>
 #include <string>
 
 namespace kstfl {

@@ -200,13 +200,11 @@ static IndentProps parse_indents(const json &j) {
 }
 
 static Alignment parse_alignment(const std::string &s) {
-  static const std::unordered_map<std::string_view, Alignment> map{{"left", Alignment::Left},
-                                                                   {"center", Alignment::Center},
-                                                                   {"right", Alignment::Right},
-                                                                   {"justify", Alignment::Justify},
-                                                                   {"distributed", Alignment::Justify}};
-  auto it = map.find(s);
-  return (it != map.end()) ? it->second : Alignment::Left;
+  if (s == "left") return Alignment::Left;
+  if (s == "center") return Alignment::Center;
+  if (s == "right") return Alignment::Right;
+  if (s == "justify" || s == "distributed") return Alignment::Justify;
+  return Alignment::Left;
 }
 
 static ParagraphProps parse_paragraph_props(const json &j) {
@@ -234,13 +232,10 @@ static VerticalAlignment parse_valign(const std::string &s) {
 }
 
 static TextOrientation parse_text_orient(const std::string &s) {
-  static const std::unordered_map<std::string_view, TextOrientation> map{{"horizontal", TextOrientation::Horizontal},
-                                                                         {"vertical_90", TextOrientation::BottomToTop},
-                                                                         {"btLr", TextOrientation::BottomToTop},
-                                                                         {"vertical_270", TextOrientation::TopToBottom},
-                                                                         {"tbRl", TextOrientation::TopToBottom}};
-  auto it = map.find(s);
-  return (it != map.end()) ? it->second : TextOrientation::Horizontal;
+  if (s == "horizontal") return TextOrientation::Horizontal;
+  if (s == "vertical_90" || s == "btLr") return TextOrientation::BottomToTop;
+  if (s == "vertical_270" || s == "tbRl") return TextOrientation::TopToBottom;
+  return TextOrientation::Horizontal;
 }
 
 static TableCellProps parse_table_cell_props(const json &j) {
@@ -302,20 +297,18 @@ static StyleDef parse_text_style(const json &j) {
 // ---------------------------------------------------------------------------
 
 static PageSize parse_page_size(const std::string &s) {
-  static const std::unordered_map<std::string_view, PageSize> map{{"A4", PageSize::A4},
-                                                                  {"A3", PageSize::A3},
-                                                                  {"Letter", PageSize::Letter},
-                                                                  {"Legal", PageSize::Legal},
-                                                                  {"Executive", PageSize::Executive}};
-  auto it = map.find(s);
-  return (it != map.end()) ? it->second : PageSize::A4;
+  if (s == "A4") return PageSize::A4;
+  if (s == "A3") return PageSize::A3;
+  if (s == "Letter") return PageSize::Letter;
+  if (s == "Legal") return PageSize::Legal;
+  if (s == "Executive") return PageSize::Executive;
+  return PageSize::A4;
 }
 
 static Orientation parse_orientation(const std::string &s) {
-  static const std::unordered_map<std::string_view, Orientation> map{{"portrait", Orientation::Portrait},
-                                                                     {"landscape", Orientation::Landscape}};
-  auto it = map.find(s);
-  return (it != map.end()) ? it->second : Orientation::Landscape;
+  if (s == "portrait") return Orientation::Portrait;
+  if (s == "landscape") return Orientation::Landscape;
+  return Orientation::Landscape;
 }
 
 /// Parse margin fields from JSON into target T (PageMargins or
