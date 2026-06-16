@@ -51,8 +51,20 @@ hundreds of outputs in a single pipeline run.
 
 ## Installation
 
-ksTFL is distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on
-Windows, Ubuntu/Debian, and Fedora/RHEL.
+Install the CRAN release with:
+
+``` r
+
+install.packages("ksTFL")
+```
+
+If you need a GitHub-hosted binary outside CRAN, use one of the
+secondary options below.
+
+### Pre-compiled binaries
+
+ksTFL is also distributed as **pre-compiled binaries** for R 4.4 and R
+4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
 
 ### Windows
 
@@ -920,8 +932,7 @@ write_doc(report, name = "demo", outDir = "output", metaPath = tempdir())
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 or
-later — see the [LICENSE](https://example.com/LICENSE) file for details.
+GPL-3. See <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 ------------------------------------------------------------------------
 

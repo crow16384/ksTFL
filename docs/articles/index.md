@@ -9,6 +9,11 @@
 - [Real Examples of Clinical Outputs using
   ksTFL](https://example.com/articles/Real_Examples_with_ksTFL.md):
 
+### FAQ And Troubleshooting
+
+- [FAQ and Practical Gotchas in
+  ksTFL](https://example.com/articles/FAQ_with_ksTFL.md):
+
 ### Styling And Layout
 
 - [Styling Guide
