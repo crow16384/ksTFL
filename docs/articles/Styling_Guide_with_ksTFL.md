@@ -10,19 +10,19 @@ This guide covers the complete styling system in ksTFL:
 indentation, tables, and borders
 
 \- **Declaring named styles** with
-[`add_style()`](https://example.com/reference/add_style.md)
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
 
 \- **Referencing and combining styles** with style references and
-[`f_combine()`](https://example.com/reference/f_combine.md)
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
 
 \- **Applying styles** to columns, labels, stubs, and content
 
 \- **Best practices** for maintainable, reusable style systems
 
 For runnable reporting examples integrating styles see [Reporting
-Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd).
+Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md).
 For a quick start see [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd).
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md).
 
 ## Category and scope
 
@@ -54,26 +54,27 @@ update automatically
 without repeating details
 
 ksTFL uses a **named style system**: you declare styles with
-[`add_style()`](https://example.com/reference/add_style.md) giving each
-an `id`, then reference them by name where needed. Styles are composable
-([`f_combine()`](https://example.com/reference/f_combine.md)) and
-consolidated automatically when you build reports.
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+giving each an `id`, then reference them by name where needed. Styles
+are composable
+([`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md))
+and consolidated automatically when you build reports.
 
 ### Best practices workflow
 
 1.  **Define atomic styles first**: Create small, focused styles (bold
     headers, right-aligned text, light gray background)
 2.  **Reference by name**: In
-    [`define_cols()`](https://example.com/reference/define_cols.md),
-    [`add_title()`](https://example.com/reference/add_title.md),
-    [`add_span_header()`](https://example.com/reference/add_span_header.md)
+    [`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md),
+    [`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md),
+    [`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md)
     (with tidyselect support), use `labelStyleRef` or `valueStyleRef` to
     point to styles by id
 3.  **Combine when needed**: Use
-    [`f_combine()`](https://example.com/reference/f_combine.md) to merge
-    multiple styles on-the-fly for ad-hoc combinations
+    [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+    to merge multiple styles on-the-fly for ad-hoc combinations
 4.  **Let
-    [`create_report()`](https://example.com/reference/create_report.md)
+    [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
     consolidate**: The report builder automatically merges combined
     styles so the renderer receives clean, consolidated styles
 5.  **Never inspect internal fields**: Don’t manually look at
@@ -84,9 +85,9 @@ consolidated automatically when you build reports.
 ## Style primitives (s\_\* helpers)
 
 All style primitives begin with `s_` and must be used **only inside
-[`add_style()`](https://example.com/reference/add_style.md)**. The
-helpers validate parameter names and values, raising informative errors
-if used incorrectly.
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)**.
+The helpers validate parameter names and values, raising informative
+errors if used incorrectly.
 
 ### `s_font()` — Font properties
 
@@ -174,10 +175,11 @@ Controls spacing **before** a paragraph, **after** a paragraph, and
 \- `line_spacing`: Line spacing multiplier (e.g., 1.0, 1.5, 2.0 for
 single/1.5-line/double spacing)
 
-**Note**: [`s_spacing()`](https://example.com/reference/s_spacing.md) is
-always used **inside
-[`s_paragraph()`](https://example.com/reference/s_paragraph.md)**, never
-standalone.
+**Note**:
+[`s_spacing()`](https://crow16384.github.io/ksTFL-release/reference/s_spacing.md)
+is always used **inside
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)**,
+never standalone.
 
 **Example**:
 
@@ -203,10 +205,11 @@ paragraph.
 
 \- `first_line`: First-line indent (e.g., “20pt” for hanging indent)
 
-**Note**: [`s_indents()`](https://example.com/reference/s_indents.md) is
-always used **inside
-[`s_paragraph()`](https://example.com/reference/s_paragraph.md)**, never
-standalone.
+**Note**:
+[`s_indents()`](https://crow16384.github.io/ksTFL-release/reference/s_indents.md)
+is always used **inside
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)**,
+never standalone.
 
 **Example**:
 
@@ -273,8 +276,8 @@ spec <- set_document(
 ### `s_borders()` — Border specifications
 
 Define borders for all four sides of a cell. Each side takes
-[`s_border()`](https://example.com/reference/s_border.md) with line
-style, width, and color.
+[`s_border()`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
+with line style, width, and color.
 
 **Parameters** (each side):
 
@@ -286,12 +289,13 @@ style, width, and color.
 
 \- `right`: Right border (use `s_border(...)`)
 
-**Note**: [`s_borders()`](https://example.com/reference/s_borders.md)
+**Note**:
+[`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
 can be used **inside
-[`s_table_style()`](https://example.com/reference/s_table_style.md)**
+[`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)**
 for cell-level borders, or **inside
-[`s_paragraph()`](https://example.com/reference/s_paragraph.md)** for
-paragraph-level borders.
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)**
+for paragraph-level borders.
 
 ### `s_border()` — Individual border line
 
@@ -344,8 +348,9 @@ stretch across all merged columns, but a paragraph border only
 underlines the header label.
 
 Paragraph borders are set via
-[`s_borders()`](https://example.com/reference/s_borders.md) inside
-[`s_paragraph()`](https://example.com/reference/s_paragraph.md):
+[`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
+inside
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md):
 
 ``` r
 
@@ -409,9 +414,9 @@ spec <- add_style(spec, id = "style_name",
 “numeric_right”)
 
 \- `...`: One or more style primitives
-([`s_font()`](https://example.com/reference/s_font.md),
-[`s_paragraph()`](https://example.com/reference/s_paragraph.md),
-[`s_table_style()`](https://example.com/reference/s_table_style.md),
+([`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md),
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md),
+[`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md),
 etc.)
 
 ### Example: Define a complete style
@@ -440,7 +445,8 @@ spec <- add_style(spec, id = "id_bold",
 
 ### Multiple calls merge with last-win strategy
 
-Calling [`add_style()`](https://example.com/reference/add_style.md)
+Calling
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
 multiple times with the same `id` merges the styles (last-win
 semantics):
 
@@ -462,8 +468,8 @@ spec <- add_style(spec, id = "emphasis", s_paragraph(alignment = "center"))
 ## Referencing and applying styles
 
 Once you declare styles with
-[`add_style()`](https://example.com/reference/add_style.md), reference
-them by id in various places:
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md),
+reference them by id in various places:
 
 ### 1. Column labels — `labelStyleRef` in `define_cols()`
 
@@ -536,9 +542,9 @@ spec <- add_title(spec, "Motor Trends Analysis", styleRef = "title_style")
 
 ## Combining styles with `f_combine()`
 
-[`f_combine()`](https://example.com/reference/f_combine.md) lets you
-apply multiple styles to a single element without pre-defining a
-combined style.
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+lets you apply multiple styles to a single element without pre-defining
+a combined style.
 
 ### Basic usage
 
@@ -559,10 +565,10 @@ spec <- define_cols(spec, mpg, label = "MPG",
 
 | Use Case | Approach |
 |----|----|
-| **Reusable style** (used in 3+ places) | Define a named style with [`add_style()`](https://example.com/reference/add_style.md) |
-| **One-off combination** (used once or twice) | Use [`f_combine()`](https://example.com/reference/f_combine.md) inline |
+| **Reusable style** (used in 3+ places) | Define a named style with [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md) |
+| **One-off combination** (used once or twice) | Use [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md) inline |
 | **Complex style** (many properties) | Define named style, then optionally combine with others |
-| **Per-column variations** | Use [`f_combine()`](https://example.com/reference/f_combine.md) with per-column vectors |
+| **Per-column variations** | Use [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md) with per-column vectors |
 
 ### Combining with per-column mapping
 
@@ -717,7 +723,7 @@ spec <- add_span_header(spec, cols = c("var1", "var2"), label = "Safety",
 ### Error: “Context error” or “can only be used inside add_style()”
 
 **Problem**: You used an `s_*` helper outside
-[`add_style()`](https://example.com/reference/add_style.md).
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md).
 
 ``` r
 
@@ -745,8 +751,9 @@ s_font(bold = TRUE)
 ### Styles not applied after `create_report()`
 
 **Problem**: If you used
-[`f_combine()`](https://example.com/reference/f_combine.md), you must
-call [`create_report()`](https://example.com/reference/create_report.md)
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md),
+you must call
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 before the styles are consolidated.
 
 ``` r
@@ -774,13 +781,13 @@ properties. Contact your renderer maintainer for constraints.
 ### Style consolidation in `create_report()`
 
 When you call
-[`create_report()`](https://example.com/reference/create_report.md), the
-package:
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md),
+the package:
 
 1\. Collects all specs
 
 2\. For each spec, finds all style references used with
-[`f_combine()`](https://example.com/reference/f_combine.md)
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
 
 3\. Merges those combined styles into single consolidated styles
 
@@ -796,29 +803,29 @@ consolidation is automatic and transparent.
 Style references are resolved in this order:
 
 1\. **Named styles** defined in the same spec with
-[`add_style()`](https://example.com/reference/add_style.md)
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
 
 2\. **Built-in style atoms** shipped with the package (e.g., `"b"`,
 `"tw_80"`, `"grp_hdr"`)
 
 3\. **Error**: If reference not found,
-[`create_report()`](https://example.com/reference/create_report.md) will
-error with an informative message
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
+will error with an informative message
 
 ------------------------------------------------------------------------
 
 ## Built-in style atoms
 
 ksTFL ships a library of single-property style atoms accessible via
-[`f_combine()`](https://example.com/reference/f_combine.md) or directly
-as `styleRef` values. Each atom sets exactly one visual property;
-compose them freely with
-[`f_combine()`](https://example.com/reference/f_combine.md).
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+or directly as `styleRef` values. Each atom sets exactly one visual
+property; compose them freely with
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
 
 **Discovering atoms programmatically**: Use
-[`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
+[`tfl_print_style_atoms()`](https://crow16384.github.io/ksTFL-release/reference/tfl_print_style_atoms.md)
 (or its alias
-[`tfl_style_atoms_catalog()`](https://example.com/reference/tfl_print_style_atoms.md))
+[`tfl_style_atoms_catalog()`](https://crow16384.github.io/ksTFL-release/reference/tfl_print_style_atoms.md))
 to print all available atoms grouped by category with colour-coded
 output in the console:
 
@@ -964,7 +971,7 @@ spec <- create_table(data) |>
 ```
 
 **Combine with other atoms** using
-[`f_combine()`](https://example.com/reference/f_combine.md):
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md):
 
 ``` r
 
@@ -997,22 +1004,23 @@ spec2 <- add_footnote_80(spec2, "b. LOCF imputation")
 > **Note**: The indent values assume the default A4 landscape page with
 > 0.5 in margins. If you use a different page size, orientation, or
 > margins via
-> [`set_page_style()`](https://example.com/reference/set_page_style.md),
+> [`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md),
 > calculate your own indents with `s_indents(left = ..., right = ...)`
-> inside [`add_style()`](https://example.com/reference/add_style.md).
+> inside
+> [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md).
 
 ------------------------------------------------------------------------
 
 ## See also
 
 - Function documentation:
-  [`?add_style`](https://example.com/reference/add_style.md),
-  [`?s_font`](https://example.com/reference/s_font.md),
-  [`?s_paragraph`](https://example.com/reference/s_paragraph.md),
-  [`?f_combine`](https://example.com/reference/f_combine.md)
+  [`?add_style`](https://crow16384.github.io/ksTFL-release/reference/add_style.md),
+  [`?s_font`](https://crow16384.github.io/ksTFL-release/reference/s_font.md),
+  [`?s_paragraph`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md),
+  [`?f_combine`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
 - [Reporting
-  Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+  Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
   — working examples with styles
 - [Getting
-  Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd)
+  Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md)
   — quick overview

@@ -1,7 +1,7 @@
 # Define font properties for a style
 
 This function can only be used inside
-[`add_style`](https://example.com/reference/add_style.md).
+[`add_style`](https://crow16384.github.io/ksTFL-release/reference/add_style.md).
 
 ## Usage
 
@@ -61,10 +61,11 @@ A font specification object (for internal use)
 
 ## See also
 
-[`add_style()`](https://example.com/reference/add_style.md) for applying
-styles, [`s_paragraph()`](https://example.com/reference/s_paragraph.md),
-[`s_table_style()`](https://example.com/reference/s_table_style.md) for
-other style components
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+for applying styles,
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md),
+[`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)
+for other style components
 
 ## Examples
 

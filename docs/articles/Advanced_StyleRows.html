@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,9 +56,9 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-06-16</h4>
+            <h4 data-toc-skip class="date">2026-06-17</h4>
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Advanced_StyleRows.Rmd" class="external-link"><code>vignettes/Advanced_StyleRows.Rmd</code></a></small>
       <div class="d-none name"><code>Advanced_StyleRows.Rmd</code></div>
     </div>
 
@@ -76,37 +77,33 @@ formatting without manual post-processing.</p>
 <div class="section level2">
 <h2 id="category-and-prerequisites">Category and prerequisites<a class="anchor" aria-label="anchor" href="#category-and-prerequisites"></a>
 </h2>
-<p>This is an advanced conditional-logic vignette.</p>
-<ul>
-<li>Audience: users building data-driven row-level formatting rules</li>
-<li>Prerequisites: complete <code>Getting_Started_with_ksTFL</code> and
-basic <code><a href="../reference/compute_cols.html">compute_cols()</a></code> familiarity</li>
-<li>Focus: lazy evaluation, helper functions, and composable row
-actions</li>
-<li>Outcome: robust, reviewable conditional formatting workflows</li>
-</ul>
+<p>Prerequisites: complete <a href="Getting_Started_with_ksTFL.html">Getting Started</a> and basic
+<code><a href="../reference/compute_cols.html">compute_cols()</a></code> familiarity. The focus here is row-level
+logic, helper functions, and composable actions that stay readable as
+rules grow.</p>
 </div>
 <div class="section level2">
 <h2 id="core-concept-lazy-evaluation">Core Concept: Lazy Evaluation<a class="anchor" aria-label="anchor" href="#core-concept-lazy-evaluation"></a>
 </h2>
-<p><code><a href="../reference/compute_cols.html">compute_cols()</a></code> uses <strong>lazy evaluation</strong>—it
-captures your conditions and actions as unevaluated expressions
-(quosures), storing them in the spec’s metadata. The actual evaluation
-happens later during <code><a href="../reference/create_report.html">create_report()</a></code>, when all specs are
-finalized and the data context is fully established.</p>
+<p><code><a href="../reference/compute_cols.html">compute_cols()</a></code> uses <strong>lazy evaluation</strong>: it
+captures conditions and actions as quosures, stores them in the spec
+metadata, and evaluates them later during
+<code><a href="../reference/create_report.html">create_report()</a></code>.</p>
 <div class="section level3">
 <h3 id="why-lazy-evaluation">Why Lazy Evaluation?<a class="anchor" aria-label="anchor" href="#why-lazy-evaluation"></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li>
-<strong>Deferred Context</strong>: Column selections and data
-references are resolved when the report structure is complete</li>
+<strong>Deferred context</strong>: column selections and data
+references are resolved only after the report structure is
+complete.</li>
 <li>
-<strong>Tidyselect Support</strong>: Use <code>everything()</code>,
-<code>starts_with()</code>, etc. without worrying about timing</li>
+<strong>Tidyselect support</strong>: helpers such as
+<code>everything()</code> and <code>starts_with()</code> stay available
+inside the action definitions.</li>
 <li>
-<strong>Multi-Stage Processing</strong>: Separate specification
-(design time) from execution (render time)</li>
+<strong>Clean staging</strong>: you specify rules first and execute
+them later, which keeps the build pipeline easier to inspect.</li>
 </ol>
 </div>
 </div>
@@ -119,7 +116,7 @@ references are resolved when the report structure is complete</li>
 </h3>
 <p>Apply style references to cells based on conditions:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  patient <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"PAT-%03d"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span>,</span>
@@ -146,7 +143,9 @@ references are resolved when the report structure is complete</li>
 <p><strong>Result:</strong> Rows where <code>response == "CR"</code>
 show green bold text; rows where <code>response == "PD"</code> show red
 bold text:</p>
-<p><img src="images/style-conditional-green-red-response.png"></p>
+<div class="float">
+<img src="images/style-conditional-green-red-response.png" alt="style conditional green red response"><div class="figcaption">style conditional green red response</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="c_merge-conditional-cell-merging">
@@ -170,7 +169,9 @@ bold text:</p>
 <code>group</code>, their <code>group</code> and <code>visit</code>
 cells merge, displaying the merged content in the <code>group</code>
 column.</p>
-<p><img src="images/merge-group-visit-cells.png"></p>
+<div class="float">
+<img src="images/merge-group-visit-cells.png" alt="merge group visit cells"><div class="figcaption">merge group visit cells</div>
+</div>
 <p><strong>Note:</strong> The <code>cols</code> argument to
 <code><a href="../reference/c_merge.html">c_merge()</a></code> must resolve to at least two
 <strong>consecutive</strong> columns in the final report column order.
@@ -192,7 +193,9 @@ first</strong> column in the <code>cols</code> sequence.</p>
 each new group. To copy a single column’s value into the inserted row
 use <code>value_from</code> (see later examples). Use
 <code>pos = "below"</code> to insert after the matching row instead.</p>
-<p><img src="images/addrow-separator-above-groups.png"></p>
+<div class="float">
+<img src="images/addrow-separator-above-groups.png" alt="addrow separator above groups"><div class="figcaption">addrow separator above groups</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="c_pagebreak-conditional-page-break">
@@ -208,7 +211,9 @@ new page when a logical grouping or large block ends.</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Result:</strong> The renderer will start a new page at rows
 matching the condition:</p>
-<p><img src="images/pagebreak-at-group-start.png"></p>
+<div class="float">
+<img src="images/pagebreak-at-group-start.png" alt="pagebreak at group start"><div class="figcaption">pagebreak at group start</div>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -246,7 +251,9 @@ call them outside of <code><a href="../reference/compute_cols.html">compute_cols
 <span>    <span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span> <span class="op">&amp;</span> <span class="va">response</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CR"</span>, <span class="st">"PR"</span><span class="op">)</span>,  <span class="co"># Multi-column condition</span></span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">response</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">'b'</span>, <span class="st">'bg_mint'</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/style-multi-column-conditional.png" width="316"></p>
+<div class="float">
+<img src="images/style-multi-column-conditional.png" width="316" alt="style multi column conditional"><div class="figcaption">style multi column conditional</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="available-helper-functions">Available Helper Functions<a class="anchor" aria-label="anchor" href="#available-helper-functions"></a>
@@ -332,7 +339,9 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="va">cholesterol</span> <span class="op">&gt;</span> <span class="fl">240</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">cholesterol</span>, styleRef <span class="op">=</span> <span class="st">"out_of_range"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/style-out-of-range-highlight.png"></p>
+<div class="float">
+<img src="images/style-out-of-range-highlight.png" alt="style out of range highlight"><div class="figcaption">style out of range highlight</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="conditional-styling-with-complex-logic">Conditional Styling with Complex Logic<a class="anchor" aria-label="anchor" href="#conditional-styling-with-complex-logic"></a>
@@ -347,7 +356,9 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">60</span> <span class="op">&amp;</span> <span class="va">response</span> <span class="op">==</span> <span class="st">"PD"</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">patient</span>, <span class="va">age</span>, <span class="va">response</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"critical_senior"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/style-critical-senior-age.png"></p>
+<div class="float">
+<img src="images/style-critical-senior-age.png" alt="style critical senior age"><div class="figcaption">style critical senior age</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="row-level-styling">Row-Level Styling<a class="anchor" aria-label="anchor" href="#row-level-styling"></a>
@@ -361,7 +372,9 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="fu">rowNumber</span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">==</span> <span class="fl">0</span>,  <span class="co"># Even rows</span></span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu">everything</span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"alternate_row"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/style-alternating-row-colors.png"></p>
+<div class="float">
+<img src="images/style-alternating-row-colors.png" alt="style alternating row colors"><div class="figcaption">style alternating row colors</div>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -390,7 +403,9 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">study</span>, <span class="va">phase</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">phase</span>, <span class="va">site</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/merge-multi-column-grouping.png"></p>
+<div class="float">
+<img src="images/merge-multi-column-grouping.png" alt="merge multi column grouping"><div class="figcaption">merge multi column grouping</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="conditional-display-column-content">Conditional Display Column Content<a class="anchor" aria-label="anchor" href="#conditional-display-column-content"></a>
@@ -413,7 +428,9 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">study</span><span class="op">)</span>,  <span class="co"># First row of group</span></span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">study</span>, styleRef <span class="op">=</span> <span class="st">"merged_header"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/merge-with-styling.png"></p>
+<div class="float">
+<img src="images/merge-with-styling.png" alt="merge with styling"><div class="figcaption">merge with styling</div>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -444,7 +461,9 @@ logical vector marking first row of every n-th block defined by
 <span>             value_from <span class="op">=</span> <span class="va">total</span>, <span class="co">#value from total column</span></span>
 <span>             styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"summary_row"</span>, <span class="st">'ar'</span><span class="op">)</span><span class="op">)</span>  </span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/addrow-summary-subtotals.png"></p>
+<div class="float">
+<img src="images/addrow-summary-subtotals.png" alt="addrow summary subtotals"><div class="figcaption">addrow summary subtotals</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="header-rows">Header Rows<a class="anchor" aria-label="anchor" href="#header-rows"></a>
@@ -479,7 +498,9 @@ logical vector marking first row of every n-th block defined by
 <span>             value_from <span class="op">=</span> <span class="va">region</span>,</span>
 <span>             styleRef <span class="op">=</span> <span class="st">"section_header"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/addrow-header-from-column.png"></p>
+<div class="float">
+<img src="images/addrow-header-from-column.png" alt="addrow header from column"><div class="figcaption">addrow header from column</div>
+</div>
 <p>More complex example with two-level indents:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -518,7 +539,9 @@ logical vector marking first row of every n-th block defined by
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">product</span>, <span class="st">'indent_2'</span><span class="op">)</span> </span>
 <span>  <span class="op">)</span> </span></code></pre></div>
 <p>As a result we are getting two-level stub:</p>
-<p><img src="images/addrow-two-level-stub-indent.png"></p>
+<div class="float">
+<img src="images/addrow-two-level-stub-indent.png" alt="addrow two level stub indent"><div class="figcaption">addrow two level stub indent</div>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -554,7 +577,9 @@ the glued text (default <code>NULL</code>)</p>
 <span>    <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">value</span>, position <span class="op">=</span> <span class="st">"after"</span>, glue_col <span class="op">=</span> <span class="va">unit</span>, separator <span class="op">=</span> <span class="st">" "</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/glue-append-units.png"></p>
+<div class="float">
+<img src="images/glue-append-units.png" alt="glue append units"><div class="figcaption">glue append units</div>
+</div>
 <p><code><a href="../reference/c_glue.html">c_glue()</a></code> is fully compatible with <code><a href="../reference/c_style.html">c_style()</a></code>
 and <code><a href="../reference/c_merge.html">c_merge()</a></code> in the same <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
 call.</p>
@@ -581,7 +606,9 @@ for conditional deduplication, when a <code>dedupe</code> parameter of
 <span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_clear.html">c_clear</a></span><span class="op">(</span><span class="va">group</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/clear-blank-cells.png"></p>
+<div class="float">
+<img src="images/clear-blank-cells.png" alt="clear blank cells"><div class="figcaption">clear blank cells</div>
+</div>
 <p><strong>Note:</strong> <code><a href="../reference/c_clear.html">c_clear()</a></code> only affects the
 rendered display text. The underlying data value is still available for
 conditions in other <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls.</p>
@@ -632,8 +659,10 @@ actions to build a fully formatted table:</p>
 <span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">product</span>, <span class="st">'after'</span>, <span class="va">revenue</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> </span></code></pre></div>
 <p>Here we can see how a simple planar data frame:</p>
-<p><img src="images/data-simple-planar-dataframe.png"></p>
-<p>become a production ready table:<br><img src="images/result-production-ready-table.png"></p>
+<div class="float">
+<img src="images/data-simple-planar-dataframe.png" alt="data simple planar dataframe"><div class="figcaption">data simple planar dataframe</div>
+</div>
+<p>become a production ready table:<br><img src="images/result-production-ready-table.png" alt="result production ready table"></p>
 </div>
 <div class="section level2">
 <h2 id="performance-tips">Performance Tips<a class="anchor" aria-label="anchor" href="#performance-tips"></a>
@@ -1022,16 +1051,16 @@ manually, build incrementally</li>
 <p>For more information, see:</p>
 <ul>
 <li>
-<a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> — full
+<a href="Getting_Started_with_ksTFL.html">Getting Started</a> — full
 pipeline overview and <code><a href="../reference/compute_cols.html">compute_cols()</a></code> introduction</li>
 <li>
-<a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> — styling
+<a href="Styling_Guide_with_ksTFL.html">Styling Guide</a> — styling
 fundamentals and built-in atoms</li>
 <li>
-<a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a> —
-complete end-to-end workflows</li>
+<a href="Reporting_Examples_with_ksTFL.html">Reporting Examples</a>
+— complete end-to-end workflows</li>
 <li>
-<a href="Column_Width_Management.Rmd">Column Width Management</a> —
+<a href="Column_Width_Management.html">Column Width Management</a> —
 invisible columns for conditional logic</li>
 </ul>
 </div>

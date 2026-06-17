@@ -20,9 +20,10 @@ create_report(...)
   `list`s whose elements are `TFL_spec` / `TFL_report` objects.
 
   - `TFL_spec` objects produced by
-    [`create_table()`](https://example.com/reference/create_table.md),
-    [`create_text()`](https://example.com/reference/create_text.md) or
-    [`create_figure()`](https://example.com/reference/create_figure.md).
+    [`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+    [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md)
+    or
+    [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md).
 
   - `TFL_report` objects produced by previous calls to
     `create_report()`.

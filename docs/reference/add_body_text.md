@@ -31,8 +31,8 @@ add_body_text(
 - styleRef:
 
   Character vector of style names or result of
-  [`f_combine()`](https://example.com/reference/f_combine.md). Merged
-  with last-win strategy.
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
+  Merged with last-win strategy.
 
 - order:
 

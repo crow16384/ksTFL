@@ -19,7 +19,7 @@ A named list representing the current ksTFL options.
 The returned object is the internal settings list stored in the package
 environment. Modifying the returned object will not change package
 state; use
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
 to update settings for the current session.
 
 ## Examples

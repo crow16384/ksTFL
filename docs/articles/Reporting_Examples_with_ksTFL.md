@@ -22,23 +22,23 @@ This is an applied workflow vignette.
 **Related vignettes:**
 
 \- [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd) —
-pipeline overview and all core concepts
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md)
+— pipeline overview and all core concepts
 
 \- [Styling
-Guide](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd) —
-complete style reference and built-in atoms
+Guide](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md)
+— complete style reference and built-in atoms
 
 \- [Advanced
-StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd) — deep
-dive into
-[`compute_cols()`](https://example.com/reference/compute_cols.md),
-[`c_glue()`](https://example.com/reference/c_glue.md),
-[`c_clear()`](https://example.com/reference/c_clear.md)
+StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md)
+— deep dive into
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md),
+[`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md),
+[`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md)
 
 \- [Column Width
-Management](https://example.com/articles/Column_Width_Management.Rmd) —
-width locking, auto-calculation, invisible columns
+Management](https://crow16384.github.io/ksTFL-release/articles/Column_Width_Management.md)
+— width locking, auto-calculation, invisible columns
 
 ## Workflow overview
 
@@ -48,26 +48,30 @@ so you can reproduce the full reporting pipeline locally:
 - Prepare small, self-contained sample data (run the setup chunk with
   `eval=TRUE`).
 - Build `TFL_spec` objects using
-  [`create_table()`](https://example.com/reference/create_table.md),
-  [`create_figure()`](https://example.com/reference/create_figure.md) or
-  [`create_text()`](https://example.com/reference/create_text.md).
+  [`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+  [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
+  or
+  [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md).
 - Tune columns and styles via
-  [`define_cols()`](https://example.com/reference/define_cols.md) and
-  [`add_style()`](https://example.com/reference/add_style.md) (use
-  [`f_combine()`](https://example.com/reference/f_combine.md) to
-  reference combined styles).
+  [`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+  and
+  [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+  (use
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+  to reference combined styles).
 - Assemble specs into a `TFL_report` with
-  [`create_report()`](https://example.com/reference/create_report.md)
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
   (this consolidates style references and assigns `dataRef`).
 - Render to a DOCX with
-  [`write_doc()`](https://example.com/reference/write_doc.md) (one-step:
-  saves JSON metadata and produces the final document).
+  [`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+  (one-step: saves JSON metadata and produces the final document).
 
 Best practices:
 
 - Use named styles
-  ([`add_style()`](https://example.com/reference/add_style.md)) and
-  reference them by id; avoid inspecting or mutating internal fields.
+  ([`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md))
+  and reference them by id; avoid inspecting or mutating internal
+  fields.
 - Use `print(spec)` for concise, user-facing previews rather than
   reading internals. Or use package provided Addins
 - Use `metaPath = tempdir()` during examples to avoid writing permanent
@@ -133,7 +137,8 @@ print(spec_min_table)
 ```
 
 print() on a TFL_spec provides a readable overview including titles and
-defined columns: ![](images/print-output-minimal-table.png)
+defined columns: ![print output minimal
+table](images/print-output-minimal-table.png)
 
 ``` r
 
@@ -142,20 +147,20 @@ rpt_min_table <- create_report(spec_min_table)
 write_doc(rpt_min_table, name = "tbl_min")
 ```
 
-## ![](images/rendered-minimal-table.png)
+## ![rendered minimal table](images/rendered-minimal-table.png)
 
 > **A note on the `cols` parameter** — The `cols` argument in
-> [`create_table()`](https://example.com/reference/create_table.md)
+> [`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md)
 > specifies which columns are rendered in the document and their
 > left-to-right order. It acts purely as a *presentation directive*: the
 > underlying data frame is stored in full, so columns omitted from
 > `cols` are **not** dropped from the spec. They remain available for
 > conditional logic in
-> [`compute_cols()`](https://example.com/reference/compute_cols.md). For
-> instance, you could exclude a helper column like `flag` from the
+> [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
+> For instance, you could exclude a helper column like `flag` from the
 > report (`cols = c(subject_id, age, sex, trt)`) yet still reference
 > `flag` in a
-> [`compute_cols()`](https://example.com/reference/compute_cols.md)
+> [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 > condition to drive styling or value transformations. This design means
 > you never need to pre-filter or reorder your data frame before passing
 > it to ksTFL — `cols` handles column selection and ordering in one
@@ -178,7 +183,7 @@ rpt_min_fig <- create_report(spec_min_fig)
 write_doc(rpt_min_fig, name = "fig_min")
 ```
 
-## ![](images/rendered-minimal-figure.png)
+## ![rendered minimal figure](images/rendered-minimal-figure.png)
 
 ## 3 — Simple minimal text (narrative)
 
@@ -214,22 +219,22 @@ rpt_min_text <- create_report(spec_min_text)
 write_doc(rpt_min_text, name = "nar_min")
 ```
 
-## ![](images/rendered-narrative-text.png)
+## ![rendered narrative text](images/rendered-narrative-text.png)
 
 ## 4 — Define columns: single, batch, and parameter recycling
 
 ### Why `define_cols()`?
 
 After creating a table with
-[`create_table()`](https://example.com/reference/create_table.md),
+[`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
 column properties are auto-detected from the data. However, you often
 need to: - Customize column labels for readability - Specify numeric
 formats (e.g., “%.2f” for 2 decimal places) - Control visibility,
 styling, or special behaviors (ID column, deduplicate, page breaks) -
 Lock or adjust column widths for better layout
 
-[`define_cols()`](https://example.com/reference/define_cols.md) is the
-primary tool for these customizations. It supports both
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+is the primary tool for these customizations. It supports both
 **single-column** and **batch updates**, with intelligent **parameter
 recycling** to keep code concise.
 
@@ -272,8 +277,8 @@ print(spec_batch)
 ```
 
 **Why this matters**: Instead of writing three separate
-[`define_cols()`](https://example.com/reference/define_cols.md) calls,
-you write one line and the package applies the same values to all
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+calls, you write one line and the package applies the same values to all
 selected columns.
 
 ### Example 3: Batch update with per-column values (1-to-N mapping)
@@ -305,7 +310,8 @@ print(spec_mapped)
 
 ### Example 4: Multiple `define_cols()` calls (chaining with `|>`)
 
-Combine [`define_cols()`](https://example.com/reference/define_cols.md)
+Combine
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
 calls to layer customizations — each call merges with previous settings
 (last-win strategy):
 
@@ -339,7 +345,7 @@ This approach makes it easy to:
 ## 5 — Set document properties (hasData, content width, placement)
 
 **Key function**:
-[`set_document()`](https://example.com/reference/set_document.md)
+[`set_document()`](https://crow16384.github.io/ksTFL-release/reference/set_document.md)
 
 - `hasData`: Whether document contains data (important for Text specs)
 
@@ -378,8 +384,8 @@ spec <- set_document(spec,
 **Notes**:
 
 \- Most defaults are sensible; you typically only need
-[`set_document()`](https://example.com/reference/set_document.md) for
-content width
+[`set_document()`](https://crow16384.github.io/ksTFL-release/reference/set_document.md)
+for content width
 
 \- Multiple calls merge with last-win strategy (later calls override
 earlier ones)
@@ -400,12 +406,12 @@ write_doc(report_simple, name = "report_simple")
 ```
 
 Notes:
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 preserves input order and consolidates styles. Additionally, with
 `toc = TRUE` parameter the table of contents can be generated \[in order
 this to work the titles in the input specs should be marked for toc
 entries - see
-[`?add_title`](https://example.com/reference/add_title.md)\]
+[`?add_title`](https://crow16384.github.io/ksTFL-release/reference/add_title.md)\]
 
 ### Passing a named list of specs
 
@@ -450,8 +456,8 @@ flattened with their original keys preserved.
 ### How automatic column width works
 
 When you create a table with
-[`create_table()`](https://example.com/reference/create_table.md), ksTFL
-automatically analyzes the data and distributes column widths
+[`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+ksTFL automatically analyzes the data and distributes column widths
 proportionally:
 
 1.  **Initial analysis**: For each column, the package examines data
@@ -462,7 +468,7 @@ proportionally:
     100% (or remaining available width)
 4.  **Default**: `autoColWidth = TRUE` in package options (can be
     changed with
-    [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md))
+    [`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md))
 
 **Example**: A table with columns `id` (short numeric), `description`
 (long text), `value` (numeric): - Auto-detected widths might be:
@@ -483,7 +489,9 @@ spec_auto <- define_cols(spec_auto, c(subject_id, ALT, AST),
 print(spec_auto)
 ```
 
-![](images/colwidth-auto-calculated.png)
+![colwidth auto calculated](images/colwidth-auto-calculated.png)
+
+colwidth auto calculated
 
 ### Example 2: Lock one column, auto-adjust others
 
@@ -504,7 +512,9 @@ spec_lock1 <- define_cols(spec_lock1, subject_id,
 print(spec_lock1)
 ```
 
-![](images/colwidth-single-locked.png)
+![colwidth single locked](images/colwidth-single-locked.png)
+
+colwidth single locked
 
 ### Example 3: Lock multiple columns with relative widths
 
@@ -526,7 +536,9 @@ spec_lock_multi <- define_cols(spec_lock_multi, ALT,
 print(spec_lock_multi)
 ```
 
-![](images/colwidth-multiple-locked.png)
+![colwidth multiple locked](images/colwidth-multiple-locked.png)
+
+colwidth multiple locked
 
 ### Example 4: Mixed units (percentages and absolute)
 
@@ -546,7 +558,9 @@ spec_mixed <- define_cols(spec_mixed, ALT,
 print(spec_mixed)
 ```
 
-![](images/colwidth-mixed-units.png)
+![colwidth mixed units](images/colwidth-mixed-units.png)
+
+colwidth mixed units
 
 **Important**: When mixing units (cm, in, pt) with percentages, **the
 absolute widths are reserved first**, then percentages are calculated
@@ -636,7 +650,7 @@ rpt_multi <- create_report(spec_multi)
 write_doc(rpt_multi, name = "tbl_multi")
 ```
 
-## ![](images/table-titles-subtitles-footnotes.png)
+## ![table titles subtitles footnotes](images/table-titles-subtitles-footnotes.png)
 
 ## 9 — span columns (spanning headers)
 
@@ -673,11 +687,11 @@ print(spec_span_simple)
 
 **Result**: A table with column labels on one row and a “Demographics”
 header spanning age+sex columns above it:\
-![](images/span-header-single.png)
+![span header single](images/span-header-single.png)
 
 ### Example 1b: Using tidyselect helpers with spanning headers
 
-[`add_span_header()`](https://example.com/reference/add_span_header.md)
+[`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md)
 supports all tidyselect expressions — use helpers for flexible column
 selection:
 
@@ -711,7 +725,9 @@ add_span_header(cols = -id,
 print(spec_tidysel)
 ```
 
-![](images/span-header-tidyselect.png)
+![span header tidyselect](images/span-header-tidyselect.png)
+
+span header tidyselect
 
 **Tidyselect expressions supported**:
 
@@ -752,19 +768,21 @@ spec_spans_style <- add_span_header(spec_spans_style,
                                     labelStyleRef = "span_header")
 ```
 
-![](images/span-header-styled.png)
+![span header styled](images/span-header-styled.png)
+
+span header styled
 
 Notes:
 
 \- `labelStyleRef` can be a single style name or multiple styles
 combined with
-[`f_combine()`](https://example.com/reference/f_combine.md)
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
 
 \- Span labels inherit the applied style, making grouped columns
 visually distinct
 
 \- Styles must be defined before referencing them in
-[`add_span_header()`](https://example.com/reference/add_span_header.md)
+[`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md)
 
 ### Example 3: Paragraph borders on spanning headers
 
@@ -822,8 +840,8 @@ automatically pick up the change
 for specific use cases
 
 ksTFL uses a **named style system**: you define styles with
-[`add_style()`](https://example.com/reference/add_style.md) giving each
-an `id`, then reference them by name wherever you need them
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+giving each an `id`, then reference them by name wherever you need them
 (`labelStyleRef`, `valueStyleRef`, `labelStyleRef` in stubs, etc.).
 
 ### Example 1: Define base styles
@@ -858,8 +876,8 @@ print(spec_base_styles)
 ### Example 2: Combine styles with `f_combine()`
 
 Apply multiple styles to a single element using
-[`f_combine()`](https://example.com/reference/f_combine.md) — they merge
-at render time:
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+— they merge at render time:
 
 ``` r
 
@@ -888,9 +906,12 @@ define_cols(age, label = "Age",
             valueStyleRef = 'ac')
 ```
 
-![](images/styles-fcombine-columns.png)
+![styles fcombine columns](images/styles-fcombine-columns.png)
 
-**How [`f_combine()`](https://example.com/reference/f_combine.md)
+styles fcombine columns
+
+**How
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
 works**:
 
 \- Takes multiple style names as arguments
@@ -904,9 +925,9 @@ override earlier ones)
 ## 11 — Conditional row actions with `compute_cols()`
 
 **Overview**: While
-[`define_cols()`](https://example.com/reference/define_cols.md) sets
-properties globally for all rows,
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+sets properties globally for all rows,
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 applies **conditional actions** to specific rows matching a condition.
 
 Common use cases:
@@ -945,12 +966,14 @@ spec <- spec |>
   compute_cols(count > 20, c_style(count, styleRef = "emphasize"))
 ```
 
-![](images/compute-conditional-styling.png)
+![compute conditional styling](images/compute-conditional-styling.png)
+
+compute conditional styling
 
 ### Example 2: Combining styles in conditional rows
 
 Apply multiple styles to a single column using
-[`f_combine()`](https://example.com/reference/f_combine.md):
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md):
 
 ``` r
 
@@ -966,7 +989,9 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-combined-styles.png)
+![compute combined styles](images/compute-combined-styles.png)
+
+compute combined styles
 
 ### Example 3: Column merging in conditional rows
 
@@ -984,7 +1009,9 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-column-merging.png)
+![compute column merging](images/compute-column-merging.png)
+
+compute column merging
 
 ### Example 4: Inserting separator rows
 
@@ -1008,7 +1035,9 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-row-insertion.png)
+![compute row insertion](images/compute-row-insertion.png)
+
+compute row insertion
 
 ### Example 4b: Page break insertion
 
@@ -1025,7 +1054,8 @@ spec <- spec |>
 ### Example 5: Multiple actions on same rows
 
 Combine styling, merging, and row insertion in a single
-[`compute_cols()`](https://example.com/reference/compute_cols.md) call:
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+call:
 
 ``` r
 
@@ -1042,24 +1072,26 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-multiple-actions.png)
+![compute multiple actions](images/compute-multiple-actions.png)
+
+compute multiple actions
 
 **Key concepts**:
 
 \- **Conditions** are unevaluated expressions evaluated at report
 generation time (during
-[`create_report()`](https://example.com/reference/create_report.md))
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md))
 
 \- **Helper functions** (`firstOf()`, `lastOf()`, `firstRow()`,
 `lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`) are only
 available inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 conditions — they are **not** standalone exported functions. See
-[`vignette("Advanced_StyleRows")`](https://example.com/articles/Advanced_StyleRows.md)
+[`vignette("Advanced_StyleRows")`](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md)
 for full details.
 
 \- **Multiple calls accumulate**: calling
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 multiple times on the same spec appends actions
 
 \- **Multiple actions in one call**: same row can have styling, merging,
@@ -1068,8 +1100,8 @@ and row insertion simultaneously
 \- **Overlapping conditions**: if multiple conditions match the same
 row, all actions apply (styling aggregates, merging rules apply) -
 **value_from**: Optional in
-[`c_addrow()`](https://example.com/reference/c_addrow.md) — omit for
-empty separator rows
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
+— omit for empty separator rows
 
 \- **Performance**: Conditions evaluated once per row during report
 assembly; style consolidation happens automatically
@@ -1080,8 +1112,9 @@ assembly; style consolidation happens automatically
 
 ### What `write_doc()` does
 
-[`write_doc()`](https://example.com/reference/write_doc.md) is the
-primary output function. It combines two lower-level steps into one:
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+is the primary output function. It combines two lower-level steps into
+one:
 
 1.  **Validates and serializes** the report to JSON, writing metadata
     and data files to `metaPath`
@@ -1094,10 +1127,10 @@ primary output function. It combines two lower-level steps into one:
 ### Example: Assemble and render a multi-spec report
 
 > **Tip**: Use
-> [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)
+> [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md)
 > to discover available template names (e.g., `"Navy_Pro"`,
 > `"Carbon_Dark"`). Use
-> [`run_styles_editor()`](https://example.com/reference/run_styles_editor.md)
+> [`run_styles_editor()`](https://crow16384.github.io/ksTFL-release/reference/run_styles_editor.md)
 > to interactively preview and customize templates.
 
 ``` r
@@ -1135,7 +1168,7 @@ In this workflow:
   global template to all specs.
 
 **Key parameters**: - `report`: A `TFL_report` object (created via
-[`create_report()`](https://example.com/reference/create_report.md)) -
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)) -
 `name`: Base name for the output DOCX (e.g. `"example_report"` →
 `example_report.docx`) - `outDir`: Directory where the output DOCX is
 written - `metaPath`: Directory where intermediate JSON and data files
@@ -1143,11 +1176,13 @@ are written
 
 **Advanced**: If you need to inspect the JSON before rendering (e.g. for
 debugging or CI pipelines), you can split the call into
-[`save_report()`](https://example.com/reference/save_report.md) +
-[`replay_report()`](https://example.com/reference/replay_report.md). See
-[`?write_doc`](https://example.com/reference/write_doc.md) and
-[`?replay_report`](https://example.com/reference/replay_report.md) for
-details.
+[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md) +
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md).
+See
+[`?write_doc`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+and
+[`?replay_report`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md)
+for details.
 
 ------------------------------------------------------------------------
 
@@ -1161,7 +1196,7 @@ Common footers (company name, page numbers, disclaimers) - Default body
 text (standard disclaimers or methodology notes)
 
 Instead of adding these to every spec, use
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
 to set session defaults once. All specs created afterward inherit these
 settings.
 
@@ -1184,9 +1219,10 @@ print(spec_with_opts)
 ```
 
 **Key point**: Headers and footers from
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
 are automatically applied to new specs. No need to call
-[`add_header()`](https://example.com/reference/add_header.md) again.
+[`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md)
+again.
 
 ### Example 2: Override session options in a specific spec
 
@@ -1249,25 +1285,26 @@ parameter recycling (NEW) 3. Column widths: Auto-calculation, locking,
 mixed units (NEW) 4. Multi-level tables with titles, subtitles, and
 footnotes 5. Combining multiple specs into a report 6. Spanning headers
 (stub columns) with styling 7. Named styles and combining with
-[`f_combine()`](https://example.com/reference/f_combine.md) (expanded)
-8. End-to-end render with
-[`write_doc()`](https://example.com/reference/write_doc.md) 9. Session
-defaults with
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+(expanded) 8. End-to-end render with
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+9. Session defaults with
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
 
 **Key patterns to remember**: - **Batch operations**: Use
 [`c()`](https://rdrr.io/r/base/c.html) to select multiple columns,
 provide single values (recycled) or N values (one-to-one mapping) -
 **Multiple calls**: Chain
-[`define_cols()`](https://example.com/reference/define_cols.md),
-[`add_style()`](https://example.com/reference/add_style.md), etc. — each
-call merges with previous settings - **Flexible column widths**:
-Auto-calculated by default; lock specific columns with `colWidth` to
-trigger recalculation of others - **Combining styles**: Use
-[`f_combine()`](https://example.com/reference/f_combine.md) for
-on-the-fly combinations; define named styles for reuse - **Session
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md),
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md),
+etc. — each call merges with previous settings - **Flexible column
+widths**: Auto-calculated by default; lock specific columns with
+`colWidth` to trigger recalculation of others - **Combining styles**:
+Use
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+for on-the-fly combinations; define named styles for reuse - **Session
 defaults**: Use
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
 once; all new specs inherit settings (override per-spec if needed)
 
 **Running examples locally**: Set the top chunk `eval=TRUE` to generate
@@ -1275,7 +1312,8 @@ sample data, then execute examples in order. All code uses exported
 functions only — no internal API manipulation needed.
 
 For more details on function parameters, see the roxygen documentation:
-[`?create_table`](https://example.com/reference/create_table.md),
-[`?define_cols`](https://example.com/reference/define_cols.md),
-[`?add_style`](https://example.com/reference/add_style.md),
-[`?write_doc`](https://example.com/reference/write_doc.md), etc.
+[`?create_table`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+[`?define_cols`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md),
+[`?add_style`](https://crow16384.github.io/ksTFL-release/reference/add_style.md),
+[`?write_doc`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md),
+etc.

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="ksTFL Development Team" />
+
+<meta name="date" content="2026-06-17" />
+
+<title>Rendering Pipeline and Full C++ Architecture in ksTFL</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Rendering Pipeline and Full C++
+Architecture in ksTFL</h1>
+<h4 class="author">ksTFL Development Team</h4>
+<h4 class="date">2026-06-17</h4>
+
+
+
+<p>This document describes the complete C++ renderer architecture used
+by ksTFL to convert JSON report specifications into deterministic DOCX
+output.</p>
+<div id="end-to-end-architecture" class="section level2">
+<h2>1. End-to-End Architecture</h2>
+<pre><code>R API
+  -&gt; src/rcpp_bindings.cpp
+  -&gt; kstfl::Renderer
+
+Renderer pipeline
+  Parse -&gt; Resolve -&gt; Model -&gt; Measure -&gt; Paginate -&gt; Emit -&gt; Package
+
+Core modules
+  json_parser.cpp      : spec/template/data parsing
+  style_resolver.cpp   : style cascade + page/width resolution
+  logical_table.cpp    : header grid + logical row stream + styleRows actions
+  font_scanner.cpp     : system font discovery + fallback resolution
+  text_measurer.cpp    : HarfBuzz-based deterministic measurement
+  paginator.cpp        : vertical and horizontal pagination
+  docx_*.cpp           : OOXML emission for document parts
+  zip_writer.cpp       : DOCX ZIP packaging</code></pre>
+</div>
+<div id="c-module-map" class="section level2">
+<h2>2. C++ Module Map</h2>
+<div id="entry-and-orchestration" class="section level3">
+<h3>2.1 Entry and orchestration</h3>
+<ul>
+<li>src/rcpp_bindings.cpp
+<ul>
+<li>render_docx_impl()</li>
+<li>render_docx_from_strings_impl()</li>
+</ul></li>
+<li>src/kstfl/renderer.cpp
+<ul>
+<li>Renderer::render()</li>
+<li>Renderer::render_from_strings()</li>
+</ul></li>
+</ul>
+</div>
+<div id="parsing-and-schema-model" class="section level3">
+<h3>2.2 Parsing and schema model</h3>
+<ul>
+<li>src/kstfl/json_parser.cpp
+<ul>
+<li>parse_spec_json_string()</li>
+<li>parse_template_json_string()</li>
+<li>parse_data_json_string()</li>
+</ul></li>
+<li>src/kstfl/types.h
+<ul>
+<li>Complete domain model (page config, styles, table model, pagination
+model)</li>
+</ul></li>
+</ul>
+</div>
+<div id="layout-and-table-engine" class="section level3">
+<h3>2.3 Layout and table engine</h3>
+<ul>
+<li>src/kstfl/style_resolver.cpp
+<ul>
+<li>resolve_page_config()</li>
+<li>resolve_table_width()</li>
+<li>resolve_column_widths()</li>
+<li>style cascade resolution helpers</li>
+</ul></li>
+<li>src/kstfl/logical_table.cpp
+<ul>
+<li>LogicalTableBuilder::build()</li>
+<li>build_header_grid(), build_data_rows()</li>
+<li>apply_dedupe(), apply_style_rows(),
+detect_grouping_boundaries()</li>
+</ul></li>
+</ul>
+</div>
+<div id="font-discovery-measurement-and-pagination" class="section level3">
+<h3>2.4 Font discovery, measurement, and pagination</h3>
+<ul>
+<li>src/kstfl/font_scanner.cpp
+<ul>
+<li>Platform-specific system font directory enumeration</li>
+<li>FreeType-based font family/style classification</li>
+<li>Global font path map (populated once at package load)</li>
+<li>Target font resolution with fallback assignment</li>
+</ul></li>
+<li>src/kstfl/font_cache.cpp
+<ul>
+<li>FreeType/HarfBuzz font loading + metrics cache</li>
+<li>Dynamic font resolution via scanner’s global path map</li>
+</ul></li>
+<li>src/kstfl/text_measurer.cpp
+<ul>
+<li>TextMeasurer::measure_plain()</li>
+<li>measure_cell() with wrapping, spacing, margins, orientation
+support</li>
+</ul></li>
+<li>src/kstfl/paginator.cpp
+<ul>
+<li>Paginator::paginate()</li>
+<li>build_segments(), compute_available_height()</li>
+<li>compute_row_heights(), compute_segment_row_heights()</li>
+</ul></li>
+</ul>
+</div>
+<div id="docx-emission-and-packaging" class="section level3">
+<h3>2.5 DOCX emission and packaging</h3>
+<ul>
+<li>src/kstfl/docx_emitter.cpp (top-level emission)</li>
+<li>src/kstfl/docx_document.cpp, docx_page.cpp, docx_table.cpp,
+docx_styles.cpp, docx_rels.cpp, docx_content_types.cpp, docx_media.cpp,
+docx_toc.cpp</li>
+<li>src/kstfl/xml_writer.cpp</li>
+<li>src/kstfl/zip_writer.cpp</li>
+</ul>
+</div>
+</div>
+<div id="detailed-rendering-pipeline" class="section level2">
+<h2>3. Detailed Rendering Pipeline</h2>
+<pre><code>┌───────────────────────────────────────────────────────────────────────┐
+│ Phase 1: Parse                                                        │
+│   parse_template_bundle()                                             │
+│   parse_spec_json_string() -&gt; TFLDocument                             │
+│   parse_data_json_string()  -&gt; DataTable                              │
+│   resolve figure media paths for Figure specs                         │
+│                                                                       │
+│ Phase 1b: Enforce isColBreak layout constraints                       │
+│   for specs with isColBreak columns: force                            │
+│   allow_row_break_across_pages=false, repeat_header_on_each_page=true │
+│   (warn if template values were overridden)                           │
+└───────────────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────────────┐
+│ Phase 2: Initialize text subsystem                                    │
+│   FontCache: load configured font dirs and fallback font              │
+│   TextMeasurer(font_cache)                                            │
+└───────────────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────────────┐
+│ Phase 3: Per-spec processing                                          │
+│                                                                       │
+│   3a) Resolve                                                         │
+│      StyleResolver(template, spec_styles)                             │
+│      resolve_page_config()                                            │
+│      resolve_table_width()                                            │
+│      resolve_column_widths()                                          │
+│                                                                       │
+│   3b) Model                                                           │
+│      LogicalTableBuilder::build()                                     │
+│      - header grid + vMerge metadata                                  │
+│      - logical data rows                                               │
+│      - styleRows actions (c_style, c_clear, c_merge, c_glue,          │
+│        c_addrow, c_pageBreak)                                         │
+│                                                                       │
+│   3c) Measure                                                         │
+│      Header rows: vMerge-aware 2-pass height balancing                │
+│      Body cells: TextMeasurer::measure_plain()                        │
+│      - inline markup parsing                                           │
+│      - HarfBuzz shaping                                                │
+│      - deterministic wrapping and line-height math                    │
+│                                                                       │
+│   3d) Paginate                                                        │
+│      Paginator::paginate()                                            │
+│      - build_segments(): split by isColBreak, repeat isID columns     │
+│      - compute_row_heights(): baseline full-table heights             │
+│      - compute_segment_column_widths(): segment width scaling          │
+│      - compute_segment_row_heights(): per-segment row heights         │
+│      - compute static blocks: titles/subtitles/header/footer/notes    │
+│      - vertical fill + LastPage post-pass (deterministic mode only)   │
+│      - row-break mode keeps natural flow; no LastPage reshuffling      │
+│                                                                       │
+│   3e) Dedupe restoration                                               │
+│      Restore deduped values at page boundaries                        │
+└───────────────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────────────┐
+│ Phase 4: Emit and package DOCX                                        │
+│   DocxEmitter::emit()                                                  │
+│   - document.xml, styles.xml, rels, header/footer parts               │
+│   - page/section assembly, table/header/body emission                  │
+│   - optional TOC                                                       │
+│   ZipWriter: package all OOXML parts into .docx                       │
+└───────────────────────────────────────────────────────────────────────┘</code></pre>
+</div>
+<div id="core-data-structures" class="section level2">
+<h2>4. Core Data Structures</h2>
+<p>Defined primarily in src/kstfl/types.h.</p>
+<ul>
+<li>Units and geometry
+<ul>
+<li>Length (EMU-based arithmetic)</li>
+<li>PageConfig, Margins</li>
+</ul></li>
+<li>Style system
+<ul>
+<li>FontProps, ParagraphProps, TableCellProps</li>
+<li>StyleDef, StylesTemplate</li>
+</ul></li>
+<li>Table model
+<ul>
+<li>ColumnSpec, StubColumn, TextGroup</li>
+<li>LogicalCell, LogicalRow, HeaderGrid</li>
+</ul></li>
+<li>Pagination model
+<ul>
+<li>PageSlice</li>
+<li>HorizontalSegment (column_indices, pages, row_heights)</li>
+<li>PaginationResult</li>
+</ul></li>
+</ul>
+</div>
+<div id="text-and-font-subsystem" class="section level2">
+<h2>5. Text and Font Subsystem</h2>
+<ul>
+<li>FontCache reads font metrics from OS/2 tables (fallback to hhea when
+needed) to match Word line-height behavior.</li>
+<li>TextMeasurer uses HarfBuzz shaping for run width and deterministic
+wrapping.</li>
+<li>Cell height includes:
+<ul>
+<li>paragraph spacing before/after</li>
+<li>wrapped line heights</li>
+<li>cell top/bottom margins</li>
+</ul></li>
+<li>Rotated text paths (btLr/tbRl) are handled explicitly.</li>
+</ul>
+</div>
+<div id="pagination-internals" class="section level2">
+<h2>6. Pagination Internals</h2>
+<ul>
+<li>Vertical pagination budget is computed from usable page height
+minus:
+<ul>
+<li>safety margin</li>
+<li>header/footer overflow into body</li>
+<li>titles/subtitles</li>
+<li>table header</li>
+<li>reserved footnote space</li>
+</ul></li>
+<li>Horizontal segmentation:
+<ul>
+<li>isColBreak starts a new segment</li>
+<li>isID columns are repeated in each segment</li>
+<li>non-ID columns are scaled to fill available segment width</li>
+<li>when isColBreak is active, the renderer enforces
+allow_row_break_across_pages=false and repeat_header_on_each_page=true
+(Phase 1b constraint enforcement, with R warning if values are
+overridden)</li>
+</ul></li>
+<li>Last-page footnotes:
+<ul>
+<li><code>footnotePlace=&quot;last_page&quot;</code> has two paths</li>
+<li>deterministic mode (<code>allow_row_break_across_pages=false</code>)
+uses LastPage post-pass to keep footnotes on the true final page</li>
+<li>row-break mode (<code>allow_row_break_across_pages=true</code>)
+skips LastPage reshuffling and keeps natural Word row flow</li>
+<li>for <code>last_page</code>, footnote height is reserved only on the
+true final page; non-final pages keep zero footnote reserve</li>
+</ul></li>
+<li>Row height model:
+<ul>
+<li>baseline full-table row height is retained on LogicalRow</li>
+<li>segment-specific row heights are computed and stored on each
+segment</li>
+<li>DOCX row emission uses segment.row_heights for exact per-segment
+trHeight</li>
+</ul></li>
+<li>Warning behavior:
+<ul>
+<li>warning threshold compares against physical page body height</li>
+<li>pagination still uses a safety margin for conservative fitting</li>
+</ul></li>
+</ul>
+</div>
+<div id="style-resolution-cascade" class="section level2">
+<h2>7. Style Resolution Cascade</h2>
+<p>The renderer applies styles in this effective order (later layers
+override earlier ones unless marked structural/non-overridable):</p>
+<ol style="list-style-type: decimal">
+<li>Template default text style</li>
+<li>Region style (tableHeader, tableBody, titles, subtitles,
+footnotes)</li>
+<li>Template row defaults</li>
+<li>Structural styles (header/body structural constraints)</li>
+<li>Column labelStyleRef or valueStyleRef</li>
+<li>Row action style (styleRows c_style)</li>
+<li>Merge/action style overrides</li>
+<li>AddRow style overrides</li>
+</ol>
+</div>
+<div id="rc-integration" class="section level2">
+<h2>8. R/C++ Integration</h2>
+<ul>
+<li>Exported functions in src/rcpp_bindings.cpp
+<ul>
+<li>render_docx_impl(…)</li>
+<li>render_docx_from_strings_impl(…)</li>
+</ul></li>
+<li>Registration in src/init.cpp and src/RcppExports.cpp.</li>
+<li>Error propagation uses RenderError and Rcpp::stop().</li>
+</ul>
+</div>
+<div id="build-and-dependencies" class="section level2">
+<h2>9. Build and Dependencies</h2>
+<ul>
+<li>Language standard: C++20</li>
+<li>C++20 features used:
+<ul>
+<li><code>operator&lt;=&gt;</code> (three-way comparison) for
+<code>Length</code></li>
+<li>Concepts (<code>Mergeable</code>) constraining style merge
+templates</li>
+<li><code>constexpr std::array</code> lookup tables for OOXML enum
+conversions</li>
+<li><code>std::ranges::sort</code>, <code>std::ranges::any_of</code>,
+<code>std::ranges::transform</code></li>
+<li><code>using enum</code> in switch statements</li>
+<li><code>std::to_chars</code> for double formatting</li>
+<li><code>[[nodiscard]]</code> on all pure/value-returning
+functions</li>
+</ul></li>
+<li>Core dependencies:
+<ul>
+<li>HarfBuzz (vendored source)</li>
+<li>FreeType2 (vendored source)</li>
+<li>minizip (vendored source)</li>
+<li>zlib</li>
+<li>nlohmann/json (vendored)</li>
+<li>Rcpp</li>
+</ul></li>
+<li>Build files:
+<ul>
+<li>src/Makevars</li>
+<li>src/Makevars.win</li>
+</ul></li>
+<li>Linux build model:
+<ul>
+<li><code>src/Makevars</code> always compiles vendored HarfBuzz,
+FreeType, and minizip sources under <code>src/vendor/</code></li>
+<li>No <code>pkg-config</code> probe or system-library fallback is used
+on Linux</li>
+<li>Windows continues to use <code>src/Makevars.win</code> with
+Rtools-provided static libraries</li>
+</ul></li>
+</ul>
+</div>
+<div id="practical-trace-one-table-spec" class="section level2">
+<h2>10. Practical Trace (One Table Spec)</h2>
+<pre><code>spec json + data json + template json
+  -&gt; Renderer::render_from_strings()
+  -&gt; StyleResolver::resolve_*()
+  -&gt; LogicalTableBuilder::build()
+  -&gt; TextMeasurer::measure_plain()
+  -&gt; Paginator::paginate()
+      -&gt; segment row heights
+  -&gt; DocxEmitter::emit_table_row()
+      -&gt; exact trHeight from segment.row_heights
+  -&gt; ZipWriter::close()
+  -&gt; output.docx</code></pre>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

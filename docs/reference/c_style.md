@@ -2,7 +2,7 @@
 
 Declares a style or combination of styles to be applied to specified
 columns in rows matching the parent
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 condition.
 
 ## Usage
@@ -21,32 +21,33 @@ c_style(cols, styleRef)
 - styleRef:
 
   Character. Name of the style to apply (defined via
-  [`add_style()`](https://example.com/reference/add_style.md)). Can be a
-  single style name (e.g., `"bold"`) or result of
-  [`f_combine()`](https://example.com/reference/f_combine.md) for
-  combining multiple styles (e.g., `f_combine("bold", "red")`). When
+  [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)).
+  Can be a single style name (e.g., `"bold"`) or result of
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+  for combining multiple styles (e.g., `f_combine("bold", "red")`). When
   multiple styles are provided via
-  [`f_combine()`](https://example.com/reference/f_combine.md), they are
-  merged in the order listed (last wins for conflicting properties).
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md),
+  they are merged in the order listed (last wins for conflicting
+  properties).
 
 ## Value
 
 Quosure structure (internal use within
-[`compute_cols()`](https://example.com/reference/compute_cols.md))
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md))
 
 ## Details
 
 Must be called inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md).
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
 Columns are resolved using tidyselect syntax against the table data.
 
 ## See also
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md) for
-conditional row actions,
-[`c_merge()`](https://example.com/reference/c_merge.md),
-[`c_addrow()`](https://example.com/reference/c_addrow.md) for other
-action types
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+for conditional row actions,
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md),
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
+for other action types
 
 **Behavior:**
 
@@ -54,9 +55,9 @@ action types
   issued
 
 - Same column styled from different
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   calls on same row: automatic style combination (merged via
-  [`create_report()`](https://example.com/reference/create_report.md))
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md))
 
 - Multiple columns in one call: all receive the same style(s)
 
@@ -65,7 +66,7 @@ action types
 - Use `f_combine("style1", "style2")` to apply multiple styles together
 
 - During
-  [`create_report()`](https://example.com/reference/create_report.md),
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md),
   combined styles are consolidated into a single hash
 
 - Consolidation only happens for new specs (not pre-processed reports)

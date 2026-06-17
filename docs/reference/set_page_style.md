@@ -27,7 +27,7 @@ set_page_style(spec, docTemplate = NULL, page = NULL)
 
   - A predefined bundled template name (e.g. `"CRO Example_default"`,
     `"Navy_Pro"`). Use
-    [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)
+    [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md)
     to see all available names.
 
   - A file path (absolute or relative) to an external template JSON
@@ -39,8 +39,8 @@ set_page_style(spec, docTemplate = NULL, page = NULL)
 - page:
 
   Page settings object created with
-  [`p_page`](https://example.com/reference/p_page.md) or a list with
-  keys: size, orientation, margins
+  [`p_page`](https://crow16384.github.io/ksTFL-release/reference/p_page.md)
+  or a list with keys: size, orientation, margins
 
 ## Value
 

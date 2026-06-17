@@ -34,7 +34,7 @@ define_cols(
 - spec:
 
   TFL spec object (must be initialized with
-  [`create_table`](https://example.com/reference/create_table.md))
+  [`create_table`](https://crow16384.github.io/ksTFL-release/reference/create_table.md))
 
 - cols:
 
@@ -81,8 +81,9 @@ define_cols(
   List of style names to be applied. Provided styles will be merged with
   last-win strategy for report. Can be: single string (recycled),
   character vector from
-  [`f_combine`](https://example.com/reference/f_combine.md) (recycled),
-  or list of [`f_combine`](https://example.com/reference/f_combine.md)
+  [`f_combine`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+  (recycled), or list of
+  [`f_combine`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
   results or `NA` sentinels (one-to-one mapping to columns). Use `NA` as
   a list element to skip updating `labelStyleRef` for that column.
 
@@ -124,7 +125,7 @@ define_cols(
   Optional. When at least one non-`NA` value is specified, affected
   columns are marked as LOCKED and automatic recalculation of remaining
   unlocked columns is triggered if `autoColWidth = TRUE` in
-  [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md).
+  [`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md).
   Locked columns maintain their exact width while unlocked columns
   normalize to fill remaining available space.
 

@@ -2,7 +2,7 @@
 
 Fetch a single named option from the active ksTFL settings. This is a
 convenience wrapper around
-[`tfl_get_options()`](https://example.com/reference/tfl_get_options.md)
+[`tfl_get_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_options.md)
 that returns one element or throws a friendly error if the option does
 not exist.
 

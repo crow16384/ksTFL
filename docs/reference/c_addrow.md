@@ -2,7 +2,7 @@
 
 Declares an additional row to be inserted above or below rows matching
 the parent
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 condition. Content can optionally be copied from a specified column; if
 omitted, creates an empty separator row.
 
@@ -27,23 +27,24 @@ c_addrow(pos, value_from = NULL, styleRef = NULL)
 - styleRef:
 
   Character vector or result of
-  [`f_combine()`](https://example.com/reference/f_combine.md). Optional
-  style to apply to the inserted row. If NULL, no special styling.
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
+  Optional style to apply to the inserted row. If NULL, no special
+  styling.
 
 ## Value
 
 Quosure structure (internal use within
-[`compute_cols()`](https://example.com/reference/compute_cols.md))
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md))
 
 ## Details
 
 Must be called inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md).
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
 
 **Behavior:**
 
 - Multiple `c_addrow()` calls in one
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   accumulate
 
 - Order of appearance is preserved
@@ -57,11 +58,11 @@ Must be called inside
 
 ## See also
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md) for
-conditional row actions,
-[`c_style()`](https://example.com/reference/c_style.md),
-[`c_merge()`](https://example.com/reference/c_merge.md) for other action
-types
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+for conditional row actions,
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+for other action types
 
 ## Examples
 

@@ -25,8 +25,9 @@ into an R session with ksTFL loaded and run it.
 Every example follows the same structure:
 
 1.  **Input data** — the data frame that feeds
-    [`create_table()`](https://example.com/reference/create_table.md) or
-    [`create_figure()`](https://example.com/reference/create_figure.md)
+    [`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md)
+    or
+    [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
 2.  **Spec-building pipeline** — the ksTFL calls that define the
     document (with inline comments explaining each step)
 3.  **Rendered output** — the resulting document embedded as PDF
@@ -38,20 +39,20 @@ their unique logic.
 **Related vignettes:**
 
 - [Getting
-  Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd)
+  Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md)
   — pipeline overview and core concepts
 - [Reporting
-  Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+  Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
   — simpler worked examples covering each feature in isolation
 - [Styling
-  Guide](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd) —
-  style primitives and templates
+  Guide](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md)
+  — style primitives and templates
 - [Advanced
-  StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd) — deep
-  dive into
-  [`compute_cols()`](https://example.com/reference/compute_cols.md),
-  [`c_glue()`](https://example.com/reference/c_glue.md),
-  [`c_clear()`](https://example.com/reference/c_clear.md)
+  StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md)
+  — deep dive into
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md),
+  [`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md),
+  [`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md)
 
 ------------------------------------------------------------------------
 
@@ -59,7 +60,7 @@ their unique logic.
 
 Every example in this vignette assumes the following session-wide
 settings are in place. The
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
 call registers default page headers (company name, confidentiality
 notice, page numbering), a study-level sub-header, and page footers. It
 also sets the output directory and footnote placement strategy. Because
@@ -96,19 +97,19 @@ techniques demonstrated here are:
 
 - **Invisible helper columns** — `SECTION`, `SECTION_ID`, and `MODELVAL`
   are kept out of the rendered document but drive conditional logic via
-  [`compute_cols()`](https://example.com/reference/compute_cols.md).
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
   This is a core ksTFL pattern: your data frame can carry metadata
   columns that the rendering engine never prints but uses to control
   formatting.
-- **[`c_addrow()`](https://example.com/reference/c_addrow.md)** —
-  inserts bold section headers (Age, Sex, Race) above the first row of
+- **[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)**
+  — inserts bold section headers (Age, Sex, Race) above the first row of
   each group, pulling values directly from the hidden `SECTION` column.
-- **[`c_merge()`](https://example.com/reference/c_merge.md) +
-  [`c_glue()`](https://example.com/reference/c_glue.md)** — on p-value
-  rows the treatment columns are merged into one cell and the p-value is
-  appended, creating the typical “p = 0.041” display.
-- **[`c_pageBreak()`](https://example.com/reference/c_pageBreak.md)** —
-  forces a page break before the “Race” section for readability.
+- **[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md) +
+  [`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md)**
+  — on p-value rows the treatment columns are merged into one cell and
+  the p-value is appended, creating the typical “p = 0.041” display.
+- **[`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md)**
+  — forces a page break before the “Race” section for readability.
 - **Spacer rows** — `c_addrow("below")` with `row_h4` adds visual
   separation between sections.
 
@@ -118,9 +119,9 @@ The data frame has three demographic sections (Age, Sex, Race), each
 containing summary statistics and an optional p-value stored in the
 `MODELVAL` column. Note that `MODELVAL` is only populated on the p-value
 rows — it is `NA` everywhere else, which is how we target those rows in
-[`compute_cols()`](https://example.com/reference/compute_cols.md). The
-`SECTION_ID` column is derived from the grouping and used for spacing
-and page-break logic:
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
+The `SECTION_ID` column is derived from the grouping and used for
+spacing and page-break logic:
 
 ``` r
 
@@ -264,7 +265,8 @@ create_report(spec) %>% write_doc("example_01")
 
 ### Rendered output
 
-[Open example_01.pdf](https://example.com/articles/example_01.pdf)
+[Open
+example_01.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/example_01.pdf)
 
 ### Switching style templates
 
@@ -284,7 +286,7 @@ The same table is now rendered with the “Navy_Pro” template — different
 fonts, colours, and border styles, but identical content and structure:
 
 [Open
-example_01_navy.pdf](https://example.com/articles/example_01_navy.pdf)
+example_01_navy.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/example_01_navy.pdf)
 
 **Key take-aways from this example:**
 
@@ -294,12 +296,12 @@ example_01_navy.pdf](https://example.com/articles/example_01_navy.pdf)
 - **`c_addrow(value_from = ...)`** pulls text from a hidden column into
   a dynamically inserted header row — no manual string duplication
   needed.
-- **[`c_merge()`](https://example.com/reference/c_merge.md) +
-  [`c_glue()`](https://example.com/reference/c_glue.md)** combine cells
-  and append content from another column in a single
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+- **[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md) +
+  [`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md)**
+  combine cells and append content from another column in a single
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   call, producing the merged p-value display.
-- **[`c_pageBreak()`](https://example.com/reference/c_pageBreak.md)**
+- **[`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md)**
   gives fine-grained control over pagination.
 - **Template switching** — `set_document(docTemplate = ...)` re-skins
   the entire output without modifying the spec pipeline.
@@ -433,7 +435,7 @@ spec_dm_01 <- create_table(data) %>%
 ### Rendered output
 
 [Open
-example_02_demog.pdf](https://example.com/articles/example_02_demog.pdf)
+example_02_demog.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/example_02_demog.pdf)
 
 ## Example 3 — Adverse Events table with complex spanning headers
 
@@ -444,7 +446,7 @@ windows, overall totals) arranged under multi-level spanning headers.
 This example demonstrates:
 
 - **Three-tier spanning headers** via
-  [`add_span_header()`](https://example.com/reference/add_span_header.md)
+  [`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md)
   with `stubOrder` to stack period sub-headers, a follow-up banner, and
   a top-level drug-arm header.
 - **Custom page layout** — landscape A4 with tight margins to fit 14
@@ -653,7 +655,8 @@ create_report(spec) %>% write_doc("example_03_ae")
 
 ### Rendered output
 
-[Open example_03_ae.pdf](https://example.com/articles/example_03_ae.pdf)
+[Open
+example_03_ae.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/example_03_ae.pdf)
 
 ## Example 4 — Data listing with automatic two-level TOC
 
@@ -670,7 +673,7 @@ become essential. This example demonstrates:
 - **Two-level TOC** — the title and subtitle together create a nested
   TOC: listing title at level 1, per-subject entries at level 2.
 - **Value-dependent formatting** —
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   flags pH values above 5.5 in red with a checkmark symbol.
 - **Rotated column labels** — `to_90` rotates headers 90° to save
   horizontal space for the many narrow lab-parameter columns.
@@ -776,15 +779,15 @@ create_report(spec_lbl_01) %>% write_doc("example_04_list", toc = TRUE)
 ### Rendered output
 
 [Open
-example_04_list.pdf](https://example.com/articles/example_04_list.pdf)
+example_04_list.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/example_04_list.pdf)
 
 ### Splitting long tables across pages
 
 When a table has too many columns to fit on one page, ksTFL can
 automatically split the columns across multiple pages. The `isColBreak`
 parameter on
-[`define_cols()`](https://example.com/reference/define_cols.md) tells
-the engine where to start a new column page. Columns marked with
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+tells the engine where to start a new column page. Columns marked with
 `isID = TRUE` repeat on every column-page, ensuring the reader always
 sees the identifying context.
 
@@ -805,24 +808,24 @@ create_report(spec_lbl_02) %>% write_doc("example_04_list_colbr", toc = TRUE)
 ### Split rendered output
 
 [Open
-example_04_list_colbr.pdf](https://example.com/articles/example_04_list_colbr.pdf)
+example_04_list_colbr.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/example_04_list_colbr.pdf)
 
 ## Example 5 — Figures and combined multi-spec reports with TOC
 
 ksTFL is not limited to tables. The
-[`create_figure()`](https://example.com/reference/create_figure.md)
+[`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
 function wraps a ggplot2 object (or an image file path) into a
 `TFL_spec`, which can then receive titles, subtitles, footnotes, and
 document settings just like a table.
 
 The real power shows when you combine multiple specs into a single
 document.
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 accepts any number of `TFL_spec` objects — tables, figures, and text —
 and merges them into one report. When
-[`write_doc()`](https://example.com/reference/write_doc.md) is called
-with `toc = TRUE`, a Table of Contents is generated automatically from
-the `toclevel` values set in titles.
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+is called with `toc = TRUE`, a Table of Contents is generated
+automatically from the `toclevel` values set in titles.
 
 This example creates three ggplot2 figures and writes them into a single
 landscape document with a TOC page.
@@ -939,7 +942,7 @@ followed by one page per figure. Each figure fills the landscape page
 thanks to `figureScaleMode = "fitPage"`.
 
 [Open
-figures_single_doc_toc.pdf](https://example.com/articles/figures_single_doc_toc.pdf)
+figures_single_doc_toc.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/figures_single_doc_toc.pdf)
 
 ## Example 6 - Table under the figure
 
@@ -1019,7 +1022,7 @@ create_report(spec_fig, spec_tbl) %>%
 ### Rendered output
 
 [Open
-table_under_figure.pdf](https://example.com/articles/example_03.1_table_under_figure.pdf)
+table_under_figure.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/example_03.1_table_under_figure.pdf)
 
 ### Variation: adding an explicit table title
 
@@ -1148,4 +1151,4 @@ spec <- create_table(demo_data) |>
 With this approach the groups are visually separated from each other:
 
 [Open
-spanning_headers_gap.pdf](https://example.com/articles/spanning_headers_gap.pdf)
+spanning_headers_gap.pdf](https://crow16384.github.io/ksTFL-release/articles/pdf/spanning_headers_gap.pdf)

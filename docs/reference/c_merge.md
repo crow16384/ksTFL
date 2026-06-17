@@ -1,7 +1,7 @@
 # Merge Adjacent Columns in Conditional Rows
 
 Declares adjacent columns to be merged in rows matching the parent
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 condition. Merged columns appear as a single spanned cell.
 
 ## Usage
@@ -20,34 +20,35 @@ c_merge(cols, styleRef = NULL)
 - styleRef:
 
   Character vector or result of
-  [`f_combine()`](https://example.com/reference/f_combine.md). Optional
-  style to apply to the merged cell. If NULL, no special styling.
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
+  Optional style to apply to the merged cell. If NULL, no special
+  styling.
 
 ## Value
 
 Quosure structure (internal use within
-[`compute_cols()`](https://example.com/reference/compute_cols.md))
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md))
 
 ## Details
 
 Must be called inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md).
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
 Columns must be adjacent in the final report column order.
 
 ## See also
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md) for
-conditional row actions,
-[`c_style()`](https://example.com/reference/c_style.md),
-[`c_addrow()`](https://example.com/reference/c_addrow.md) for other
-action types
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+for conditional row actions,
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
+for other action types
 
 **Validation:**
 
 - Immediate: columns exist and are consecutive (error if not)
 
 - Deferred: overlapping merge ranges from multiple
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   calls (warning if resolvable, error if ambiguous)
 
 **Behavior:**
@@ -55,7 +56,7 @@ action types
 - Multiple merge actions in one row: all applied if non-overlapping
 
 - Overlapping merges from different
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   blocks: raises warning/error
 
 ## Examples

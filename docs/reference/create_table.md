@@ -31,9 +31,9 @@ A `TFL_spec` object with `docType = "Table"`.
 Column Width Initialization: Initial column widths are automatically
 calculated based on data values and their types and sum to 100%. To lock
 specific columns and trigger automatic recalculation of others, use
-[`define_cols()`](https://example.com/reference/define_cols.md) with the
-`colWidth` parameter (when `autoColWidth = TRUE` in the tfl_options, the
-default).
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+with the `colWidth` parameter (when `autoColWidth = TRUE` in the
+tfl_options, the default).
 
 Example workflow:
 
@@ -47,11 +47,11 @@ Example workflow:
 
 ## See also
 
-[`create_text()`](https://example.com/reference/create_text.md),
-[`create_figure()`](https://example.com/reference/create_figure.md),
-[`define_cols()`](https://example.com/reference/define_cols.md),
-[`add_title()`](https://example.com/reference/add_title.md),
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md),
+[`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md),
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md),
+[`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md),
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 
 ## Examples
 

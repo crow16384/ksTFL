@@ -12,9 +12,9 @@ Primary language: R Secondary language: C++20 (Rcpp)
 
 - Main object: `TFL_spec`
 - User-facing initializers:
-  [`create_table()`](https://example.com/reference/create_table.md),
-  [`create_text()`](https://example.com/reference/create_text.md),
-  [`create_figure()`](https://example.com/reference/create_figure.md)
+  [`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+  [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md),
+  [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
 - Rendering entrypoint: `render_docx()`
 - Serialization pipeline is schema-driven and relies on constants in
   `R/constants.R`
@@ -46,13 +46,13 @@ Primary language: R Secondary language: C++20 (Rcpp)
 Follow context-based style nesting constraints:
 
 - `add_style(...)` can contain
-  [`s_font()`](https://example.com/reference/s_font.md),
-  [`s_paragraph()`](https://example.com/reference/s_paragraph.md),
-  [`s_table_style()`](https://example.com/reference/s_table_style.md).
-- [`s_borders()`](https://example.com/reference/s_borders.md) must be
-  nested inside `s_table_style(...)`.
-- [`s_border()`](https://example.com/reference/s_border.md) is used only
-  as side values inside `s_borders(...)`.
+  [`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md),
+  [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md),
+  [`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md).
+- [`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
+  must be nested inside `s_table_style(...)`.
+- [`s_border()`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
+  is used only as side values inside `s_borders(...)`.
 
 ## Supported Inline Markup
 

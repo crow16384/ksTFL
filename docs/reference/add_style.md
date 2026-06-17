@@ -24,18 +24,20 @@ add_style(spec, id, ...)
 
   Style modifiers created with s\_\* functions
 
-  - [`s_font`](https://example.com/reference/s_font.md) — font
-    properties.
+  - [`s_font`](https://crow16384.github.io/ksTFL-release/reference/s_font.md)
+    — font properties.
 
-  - [`s_paragraph`](https://example.com/reference/s_paragraph.md) —
-    paragraph-level formatting (may include nested
-    [`s_spacing`](https://example.com/reference/s_spacing.md) and
-    [`s_indents`](https://example.com/reference/s_indents.md)).
+  - [`s_paragraph`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
+    — paragraph-level formatting (may include nested
+    [`s_spacing`](https://crow16384.github.io/ksTFL-release/reference/s_spacing.md)
+    and
+    [`s_indents`](https://crow16384.github.io/ksTFL-release/reference/s_indents.md)).
 
-  - [`s_table_style`](https://example.com/reference/s_table_style.md) —
-    table-cell styling (may include nested
-    [`s_borders`](https://example.com/reference/s_borders.md) /
-    [`s_border`](https://example.com/reference/s_border.md)).
+  - [`s_table_style`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)
+    — table-cell styling (may include nested
+    [`s_borders`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
+    /
+    [`s_border`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)).
 
 ## Value
 
@@ -48,12 +50,13 @@ modifier function will merge with last-win strategy.
 
 Available modifiers inside this function:
 
-- [`s_font`](https://example.com/reference/s_font.md) - Font properties
+- [`s_font`](https://crow16384.github.io/ksTFL-release/reference/s_font.md) -
+  Font properties
 
-- [`s_paragraph`](https://example.com/reference/s_paragraph.md) -
+- [`s_paragraph`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md) -
   Paragraph formatting
 
-- [`s_table_style`](https://example.com/reference/s_table_style.md) -
+- [`s_table_style`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md) -
   Table cell styling
 
 ## Examples

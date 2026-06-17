@@ -19,8 +19,9 @@ files)
 
 \- **Built-in C++ renderer**: Produces submission-quality DOCX documents
 with deterministic HarfBuzz-based pagination via
-[`write_doc()`](https://example.com/reference/write_doc.md) /
-[`replay_report()`](https://example.com/reference/replay_report.md)
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+/
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md)
 
 This separation enables:
 
@@ -55,28 +56,29 @@ This is the foundation vignette and best starting point for new users.
 Recommended reading order after this vignette:
 
 1\. [Reporting
-Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
 for realistic workflow patterns.
 
 2\. [Styling
-Guide](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd) for
-style primitives and reusable style systems.
+Guide](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md)
+for style primitives and reusable style systems.
 
 3\. [Column Width
-Management](https://example.com/articles/Column_Width_Management.Rmd)
+Management](https://crow16384.github.io/ksTFL-release/articles/Column_Width_Management.md)
 for layout tuning.
 
 4\. [Advanced
-StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd) for
-conditional row actions.
+StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md)
+for conditional row actions.
 
-5\. [Font Management](https://example.com/articles/Font_Management.Rmd)
+5\. [Font
+Management](https://crow16384.github.io/ksTFL-release/articles/Font_Management.md)
 for system font discovery, custom font directories, and fallback
 behavior.
 
 6\. [Rendering
-Pipeline](https://example.com/articles/Rendering_Pipeline.Rmd) for
-detailed C++ architecture and DOCX emission internals.
+Pipeline](https://crow16384.github.io/ksTFL-release/articles/Rendering_Pipeline.md)
+for detailed C++ architecture and DOCX emission internals.
 
 ------------------------------------------------------------------------
 
@@ -106,16 +108,16 @@ Each `TFL_spec` contains:
 
 | Component | Purpose | How to modify |
 |----|----|----|
-| **document** | Metadata (docType, title, page settings) | [`set_document()`](https://example.com/reference/set_document.md), [`set_page_style()`](https://example.com/reference/set_page_style.md) |
-| **columns** | Column definitions, labels, formats, styles | [`define_cols()`](https://example.com/reference/define_cols.md) |
-| **stubColumns** | Spanning headers above column groups | [`add_span_header()`](https://example.com/reference/add_span_header.md) |
-| **headers** | Page header text (left/center/right) | [`add_header()`](https://example.com/reference/add_header.md) |
-| **titles** | Main document titles | [`add_title()`](https://example.com/reference/add_title.md) |
-| **subtitles** | Secondary titles | [`add_subtitle()`](https://example.com/reference/add_subtitle.md) |
-| **bodyText** | Narrative content | [`add_body_text()`](https://example.com/reference/add_body_text.md) |
-| **footnotes** | Document footnotes | [`add_footnote()`](https://example.com/reference/add_footnote.md) |
-| **footers** | Page footer text | [`add_footer()`](https://example.com/reference/add_footer.md) |
-| **styles** | Named styles defined with [`add_style()`](https://example.com/reference/add_style.md) | [`add_style()`](https://example.com/reference/add_style.md) |
+| **document** | Metadata (docType, title, page settings) | [`set_document()`](https://crow16384.github.io/ksTFL-release/reference/set_document.md), [`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md) |
+| **columns** | Column definitions, labels, formats, styles | [`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md) |
+| **stubColumns** | Spanning headers above column groups | [`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md) |
+| **headers** | Page header text (left/center/right) | [`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md) |
+| **titles** | Main document titles | [`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md) |
+| **subtitles** | Secondary titles | [`add_subtitle()`](https://crow16384.github.io/ksTFL-release/reference/add_subtitle.md) |
+| **bodyText** | Narrative content | [`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md) |
+| **footnotes** | Document footnotes | [`add_footnote()`](https://crow16384.github.io/ksTFL-release/reference/add_footnote.md) |
+| **footers** | Page footer text | [`add_footer()`](https://crow16384.github.io/ksTFL-release/reference/add_footer.md) |
+| **styles** | Named styles defined with [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md) | [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md) |
 
 ------------------------------------------------------------------------
 
@@ -187,9 +189,10 @@ still stored inside the spec, but only the columns listed in `cols` are
 emitted to the final report.
 
 This distinction matters when you use
-[`compute_cols()`](https://example.com/reference/compute_cols.md) later
-in the pipeline. Because the original data frame is preserved intact,
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+later in the pipeline. Because the original data frame is preserved
+intact,
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 conditions can reference **any** column in the data — including columns
 that are **not** listed in `cols` and will never appear in the output.
 For example, you might exclude a `flag` column from the report but still
@@ -257,14 +260,14 @@ spec_txt <- add_body_text(spec_txt, "This analysis includes all subjects in the 
 
 **What happens**: - Empty spec with no data - Ready for narrative
 content via
-[`add_body_text()`](https://example.com/reference/add_body_text.md)
+[`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md)
 
 ------------------------------------------------------------------------
 
 ## Step 2: Customize columns (define_cols)
 
 After creating a table spec, customize columns with
-[`define_cols()`](https://example.com/reference/define_cols.md):
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md):
 
 ### Single column
 
@@ -339,7 +342,7 @@ spec <- create_table(data) |>
 ```
 
 See [Reporting
-Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
 for detailed column customization patterns.
 
 ------------------------------------------------------------------------
@@ -347,7 +350,7 @@ for detailed column customization patterns.
 ## Step 3: Define styles (add_style)
 
 Create reusable named styles with
-[`add_style()`](https://example.com/reference/add_style.md):
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md):
 
 ``` r
 
@@ -371,18 +374,18 @@ spec <- define_cols(spec, c(mpg, hp),
 
 **Best practice**: Define styles once, reference by id (name) throughout
 your spec. If style needs to be used across many tables define it thru
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
 to make it available session-wide.
 
 For comprehensive styling details see [Styling
-Guide](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd).
+Guide](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md).
 
 ------------------------------------------------------------------------
 
 ## Step 4: Add spanning headers (span headers)
 
 Create multi-level headers with
-[`add_span_header()`](https://example.com/reference/add_span_header.md)
+[`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md)
 using tidyselect expressions:
 
 ``` r
@@ -405,7 +408,7 @@ add_span_header(cols = wt,
 ```
 
 **Tidyselect support**:
-[`add_span_header()`](https://example.com/reference/add_span_header.md)
+[`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md)
 accepts all tidyselect expressions:
 
 ``` r
@@ -450,12 +453,13 @@ hierarchical structure)
 \- Multiple stubs at the same order are allowed as long as their column
 sets don’t overlap
 
-\- Use [`add_style()`](https://example.com/reference/add_style.md) to
-style stub labels or use embedded atomic styles
+\- Use
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+to style stub labels or use embedded atomic styles
 
 See [Styling
-Guide](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd) for
-styling stubs.
+Guide](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md)
+for styling stubs.
 
 ------------------------------------------------------------------------
 
@@ -486,28 +490,33 @@ spec <- add_body_text(spec, "This analysis includes all subjects in the safety p
 
 **Notes**:
 
-\- [`add_header()`](https://example.com/reference/add_header.md) and
-[`add_footer()`](https://example.com/reference/add_footer.md) take up to
-3 separate string arguments: left, center, right
+\-
+[`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md)
+and
+[`add_footer()`](https://crow16384.github.io/ksTFL-release/reference/add_footer.md)
+take up to 3 separate string arguments: left, center, right
 
 \- Placeholders like `{PAGE}` and `{NUMPAGES}` are filled in by the
 renderer
 
 \- Multiple
-[`add_header()`](https://example.com/reference/add_header.md) calls
-append additional header rows; use the `level` parameter to replace a
-specific row
+[`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md)
+calls append additional header rows; use the `level` parameter to
+replace a specific row
 
 \- Multiple
-[`add_footnote()`](https://example.com/reference/add_footnote.md) calls
-stack in order
+[`add_footnote()`](https://crow16384.github.io/ksTFL-release/reference/add_footnote.md)
+calls stack in order
 
-\- [`add_title()`](https://example.com/reference/add_title.md) and
-[`add_subtitle()`](https://example.com/reference/add_subtitle.md) accept
-an optional `toclevel` parameter (integer, `1` to `9`). When set, the
-title is included in the Table of Contents generated by
+\-
+[`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md)
+and
+[`add_subtitle()`](https://crow16384.github.io/ksTFL-release/reference/add_subtitle.md)
+accept an optional `toclevel` parameter (integer, `1` to `9`). When set,
+the title is included in the Table of Contents generated by
 `write_doc(toc = TRUE)`. See
-[`?add_title`](https://example.com/reference/add_title.md) for details.
+[`?add_title`](https://crow16384.github.io/ksTFL-release/reference/add_title.md)
+for details.
 
 ------------------------------------------------------------------------
 
@@ -516,10 +525,12 @@ title is included in the Table of Contents generated by
 ### Page size, orientation, and margins
 
 Use
-[`set_page_style()`](https://example.com/reference/set_page_style.md)
-with [`p_page()`](https://example.com/reference/p_page.md) and
-[`p_margins()`](https://example.com/reference/p_margins.md) to control
-the physical page layout:
+[`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md)
+with
+[`p_page()`](https://crow16384.github.io/ksTFL-release/reference/p_page.md)
+and
+[`p_margins()`](https://crow16384.github.io/ksTFL-release/reference/p_margins.md)
+to control the physical page layout:
 
 ``` r
 
@@ -540,16 +551,17 @@ spec <- create_table(mtcars) |>
   )
 ```
 
-**[`p_page()`](https://example.com/reference/p_page.md) parameters**:
+**[`p_page()`](https://crow16384.github.io/ksTFL-release/reference/p_page.md)
+parameters**:
 
 \- `size`: Page size — `"A4"` (default), `"Letter"`, or `"Legal"`
 
 \- `orientation`: `"portrait"` (default) or `"landscape"`
 
 \- `margins`: A margins object from
-[`p_margins()`](https://example.com/reference/p_margins.md)
+[`p_margins()`](https://crow16384.github.io/ksTFL-release/reference/p_margins.md)
 
-**[`p_margins()`](https://example.com/reference/p_margins.md)
+**[`p_margins()`](https://crow16384.github.io/ksTFL-release/reference/p_margins.md)
 parameters** (all accept dimension strings like `"1in"`, `"2.54cm"`,
 `"72pt"`, `"25.4mm"`):
 
@@ -581,7 +593,7 @@ spec <- create_table(mtcars) |>
 ```
 
 Use
-[`run_styles_editor()`](https://example.com/reference/run_styles_editor.md)
+[`run_styles_editor()`](https://crow16384.github.io/ksTFL-release/reference/run_styles_editor.md)
 to interactively create and edit template JSON files.
 
 ------------------------------------------------------------------------
@@ -589,7 +601,7 @@ to interactively create and edit template JSON files.
 ## Step 6: Combine specs into a report
 
 Assemble multiple specs with
-[`create_report()`](https://example.com/reference/create_report.md):
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md):
 
 ``` r
 
@@ -610,7 +622,7 @@ print(report)
 ```
 
 **What
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 does**:
 
 1\. Flattens inputs — including plain `list` arguments (see below)
@@ -618,7 +630,7 @@ does**:
 2\. Validates structure
 
 3\. Consolidates combined styles (if any used
-[`f_combine()`](https://example.com/reference/f_combine.md))
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md))
 
 4\. Assigns sequential `docOrder` (1, 2, 3, …)
 
@@ -685,14 +697,14 @@ groups - **Merge columns**: Create group headers by merging columns -
 `value > 100`)
 
 **Key action functions** (used inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md)):
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)):
 
 | Function | Purpose | Example |
 |----|----|----|
 | `c_style(cols, styleRef)` | Apply style to columns in matching rows | `c_style(c(mpg, hp), styleRef = "bold")` |
 | `c_merge(cols, styleRef = NULL)` | Merge adjacent columns | `c_merge(c(col1, col2), styleRef = "header")` |
 | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below | `c_addrow(pos = "above")` for empty separator |
-| [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) | Insert a page break at the matching row (no args) | [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) |
+| [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md) | Insert a page break at the matching row (no args) | [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md) |
 
 **Condition syntax**:
 
@@ -726,23 +738,23 @@ compute_cols(spec, cyl == 8 & hp > 100, c_style(mpg, styleRef = "high_power"))
 **Key concepts**:
 
 \- Conditions are evaluated during
-[`create_report()`](https://example.com/reference/create_report.md) — at
-that point, all data is available
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
+— at that point, all data is available
 
 \- Multiple
-[`compute_cols()`](https://example.com/reference/compute_cols.md) calls
-accumulate on the same spec
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+calls accumulate on the same spec
 
 \- Actions on the same row from different
-[`compute_cols()`](https://example.com/reference/compute_cols.md) blocks
-are combined
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+blocks are combined
 
 \- `value_from = NULL` in
-[`c_addrow()`](https://example.com/reference/c_addrow.md) creates an
-empty separator row
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
+creates an empty separator row
 
 For detailed examples see [Reporting Examples: Conditional Row
-Actions](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd#conditional-row-actions).
+Actions](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.html#conditional-row-actions).
 
 ------------------------------------------------------------------------
 
@@ -750,8 +762,8 @@ Actions](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd#conditio
 
 ### Option A: One step with `write_doc()` (recommended)
 
-[`write_doc()`](https://example.com/reference/write_doc.md) combines
-save + render into a single call:
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+combines save + render into a single call:
 
 ``` r
 
@@ -768,7 +780,7 @@ doc_path <- write_doc(report,
 
 \- `toc`: If `TRUE`, prepends a Table of Contents page (requires
 `toclevel` on titles - see
-[`?add_title`](https://example.com/reference/add_title.md))
+[`?add_title`](https://crow16384.github.io/ksTFL-release/reference/add_title.md))
 
 \- `tocTitle`: Heading above the TOC field (default
 `"Table of Contents"`)
@@ -815,8 +827,8 @@ replay_report(
   output_path = file.path("./output", "my_report.docx"))
 ```
 
-**[`save_report()`](https://example.com/reference/save_report.md) output
-files**:
+**[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+output files**:
 
 \- `{metaPath}/{spec_hash}.json` — Main specification (consumed by
 renderer)
@@ -830,8 +842,10 @@ Figure files copied to `metaPath` as-is
 
 ### What is the metadata folder?
 
-Every time [`write_doc()`](https://example.com/reference/write_doc.md)
-(or [`save_report()`](https://example.com/reference/save_report.md))
+Every time
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+(or
+[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md))
 runs, it writes intermediate files to `metaPath`:
 
 - **`{hash}.json`** — The main spec file: document structure, column
@@ -861,9 +875,9 @@ Rendering on a different machine or in a CI/CD pipeline - Reproducing an
 output months later
 
 **Version management**: Each
-[`write_doc()`](https://example.com/reference/write_doc.md) call writes
-a new hash-named spec file. You can keep multiple versions and compare
-them.
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+call writes a new hash-named spec file. You can keep multiple versions
+and compare them.
 
 ### Managing metadata files
 
@@ -887,16 +901,16 @@ clean_reports(meta_dir, dry_run = TRUE)   # Preview what would be deleted
 clean_reports(meta_dir, dry_run = FALSE)  # Actually delete
 ```
 
-**[`list_reports()`](https://example.com/reference/list_reports.md)**
+**[`list_reports()`](https://crow16384.github.io/ksTFL-release/reference/list_reports.md)**
 returns a data frame with columns: `doc_file`, `datetime`, `is_latest`,
 `n_specs`, `spec_file`, `data_refs`.
 
-**[`replay_report()`](https://example.com/reference/replay_report.md)**
+**[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md)**
 re-renders from JSON — no R spec objects, no data frames required. Pass
 either the target `.docx` name (re-renders the latest version) or the
 exact spec hash filename.
 
-**[`clean_reports()`](https://example.com/reference/clean_reports.md)**
+**[`clean_reports()`](https://crow16384.github.io/ksTFL-release/reference/clean_reports.md)**
 removes obsolete JSON files. By default keeps 1 version per document
 (`keep_versions = 1`). Always run with `dry_run = TRUE` first.
 
@@ -938,7 +952,7 @@ spec <- define_cols(spec, id, colWidth = "15%")
 ```
 
 See [Reporting
-Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
 for detailed width customization.
 
 ### Data references (dataRef)
@@ -1025,18 +1039,21 @@ report <- create_report(spec) |>  write_doc('demographics')
 # Done!
 ```
 
-![](images/example-complete-demographics.png)
+![example complete
+demographics](images/example-complete-demographics.png)
+
+example complete demographics
 
 ## Key gotchas and tips
 
 | Gotcha | Solution |
 |----|----|
-| **Calling s\_\* helpers outside add_style()** | Always use s\_\* inside [`add_style()`](https://example.com/reference/add_style.md) — they validate context |
+| **Calling s\_\* helpers outside add_style()** | Always use s\_\* inside [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md) — they validate context |
 | **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns |
-| **Styles from f_combine() not consolidated** | Call [`create_report()`](https://example.com/reference/create_report.md) before [`write_doc()`](https://example.com/reference/write_doc.md) |
+| **Styles from f_combine() not consolidated** | Call [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md) before [`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md) |
 | **Multiple add_header() calls stack** | Each call **appends** a new header level; use `level =` to replace a specific level |
 | **Figure file not found** | Check path is absolute or relative to current working directory |
-| **create_text() does not accept data** | [`create_text()`](https://example.com/reference/create_text.md) takes no arguments — add content via [`add_body_text()`](https://example.com/reference/add_body_text.md) |
+| **create_text() does not accept data** | [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md) takes no arguments — add content via [`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md) |
 | **Overlapping stubs at same stubOrder** | Error; use different `stubOrder` or non-overlapping column sets |
 
 ------------------------------------------------------------------------
@@ -1052,15 +1069,19 @@ switching to the console.
 
 Launches a Shiny application for creating and editing style templates
 interactively. You can load any bundled template from
-[`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md),
+[`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md),
 modify fonts, borders, spacing, and colours in a WYSIWYG editor, then
 download the result as a JSON file ready for use with
-[`set_page_style()`](https://example.com/reference/set_page_style.md) or
-[`write_doc()`](https://example.com/reference/write_doc.md). This is
-especially useful when you need to fine-tune a template visually rather
-than writing [`s_font()`](https://example.com/reference/s_font.md) /
-[`s_paragraph()`](https://example.com/reference/s_paragraph.md) /
-[`s_table_style()`](https://example.com/reference/s_table_style.md)
+[`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md)
+or
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md).
+This is especially useful when you need to fine-tune a template visually
+rather than writing
+[`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md)
+/
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
+/
+[`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)
 calls by hand.
 
 Requires the `shiny` package.
@@ -1076,8 +1097,9 @@ run_styles_editor()
 Opens a Shiny application for selecting, reordering, and combining
 previously saved reports into a single DOCX document. You point the app
 at one or more meta-data folders (produced by
-[`save_report()`](https://example.com/reference/save_report.md) or
-[`write_doc()`](https://example.com/reference/write_doc.md)),
+[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+or
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)),
 drag-and-drop reports into the desired order, optionally enable a table
 of contents, and render the combined output — all without writing any R
 code.
@@ -1114,11 +1136,14 @@ Prints all built-in style atoms to the console with colour-coded
 categories (font decoration, font family, font size, text colour,
 highlight, alignment, indentation, spacing, borders, backgrounds, row
 height, and more). Each atom is a short name you can reference directly
-in [`add_style()`](https://example.com/reference/add_style.md) or
-[`define_cols()`](https://example.com/reference/define_cols.md) via
-[`f_combine()`](https://example.com/reference/f_combine.md). Running
-this catalog helps you discover what is available without consulting
-documentation.
+in
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+or
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+via
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
+Running this catalog helps you discover what is available without
+consulting documentation.
 
 ``` r
 
@@ -1136,35 +1161,36 @@ You now understand ksTFL’s core workflow. Next steps:
 
 1.  **Run the quick example** above with your own data
 2.  **Explore [Reporting
-    Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)**
+    Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)**
     for detailed patterns
 3.  **Read [Styling
-    Guide](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd)**
+    Guide](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md)**
     for advanced styling
 4.  **Read [Advanced
-    StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd)**
+    StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md)**
     for conditional formatting
 5.  **Check function docs**:
-    [`?create_table`](https://example.com/reference/create_table.md),
-    [`?define_cols`](https://example.com/reference/define_cols.md),
-    [`?add_style`](https://example.com/reference/add_style.md),
-    [`?write_doc`](https://example.com/reference/write_doc.md),
-    [`?list_reports`](https://example.com/reference/list_reports.md)
+    [`?create_table`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+    [`?define_cols`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md),
+    [`?add_style`](https://crow16384.github.io/ksTFL-release/reference/add_style.md),
+    [`?write_doc`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md),
+    [`?list_reports`](https://crow16384.github.io/ksTFL-release/reference/list_reports.md)
 
 ------------------------------------------------------------------------
 
 ## Resources
 
 - **Function reference**:
-  [`?ksTFL`](https://example.com/reference/ksTFL-package.md) (package
-  overview) or
-  [`?create_table`](https://example.com/reference/create_table.md),
-  [`?define_cols`](https://example.com/reference/define_cols.md), etc.
+  [`?ksTFL`](https://crow16384.github.io/ksTFL-release/reference/ksTFL-package.md)
+  (package overview) or
+  [`?create_table`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+  [`?define_cols`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md),
+  etc.
 - **Reporting Examples**: [Detailed working examples with
-  explanations](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+  explanations](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
 - **Styling Guide**: [Comprehensive style
-  reference](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd)
-- **GitHub**: [ksTFL repository](https://example.com)
+  reference](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md)
+- **GitHub**: [ksTFL repository](https://github.com/crow16384/ksTFL)
 
 ------------------------------------------------------------------------
 
@@ -1174,23 +1200,23 @@ You now understand ksTFL’s core workflow. Next steps:
 |----|----|----|
 | Create table spec | `create_table(data, cols = ...)` | Auto-detects columns, types, widths |
 | Create figure spec | `create_figure(plot_or_path, dpi = 300L)` | File path or ggplot2 object; path must be readable |
-| Create text spec | [`create_text()`](https://example.com/reference/create_text.md) | For narrative content only |
+| Create text spec | [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md) | For narrative content only |
 | Set document properties | `set_document(spec, hasData = ...)` | Optional: configure content width, placement |
 | Customize columns | `define_cols(spec, cols, ...)` | Use [`c()`](https://rdrr.io/r/base/c.html) for multiple columns |
-| Define styles | `add_style(spec, id = "name", ...)` | Use [`s_font()`](https://example.com/reference/s_font.md), [`s_paragraph()`](https://example.com/reference/s_paragraph.md), [`s_table_style()`](https://example.com/reference/s_table_style.md) |
+| Define styles | `add_style(spec, id = "name", ...)` | Use [`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md), [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md), [`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md) |
 | Add spanning header | `add_span_header(spec, cols, label, ...)` | Supports tidyselect; multi-level headers |
-| Add titles/content | [`add_title()`](https://example.com/reference/add_title.md), [`add_footnote()`](https://example.com/reference/add_footnote.md), [`add_body_text()`](https://example.com/reference/add_body_text.md) | Layer document content |
-| Add page headers/footers | [`add_header()`](https://example.com/reference/add_header.md), [`add_footer()`](https://example.com/reference/add_footer.md) | 3 parts: left/center/right |
-| Conditional row actions | `compute_cols(spec, cond, ...)` | Use [`c_style()`](https://example.com/reference/c_style.md), [`c_merge()`](https://example.com/reference/c_merge.md), [`c_addrow()`](https://example.com/reference/c_addrow.md), [`c_glue()`](https://example.com/reference/c_glue.md), [`c_clear()`](https://example.com/reference/c_clear.md), [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) |
+| Add titles/content | [`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md), [`add_footnote()`](https://crow16384.github.io/ksTFL-release/reference/add_footnote.md), [`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md) | Layer document content |
+| Add page headers/footers | [`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md), [`add_footer()`](https://crow16384.github.io/ksTFL-release/reference/add_footer.md) | 3 parts: left/center/right |
+| Conditional row actions | `compute_cols(spec, cond, ...)` | Use [`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md), [`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md), [`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md), [`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md), [`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md), [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md) |
 | Set page style | `set_page_style(spec, page = p_page(...))` | Configure page size, orientation, margins |
-| Page settings helper | `p_page(size, orientation, margins)` | `"A4"` / `"Letter"` / `"Legal"`, margins via [`p_margins()`](https://example.com/reference/p_margins.md) |
-| List templates | [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md) | Shows all bundled template names |
-| Discover style atoms | [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md) | Prints all built-in style atoms grouped by category |
-| Font status | [`tfl_font_status()`](https://example.com/reference/tfl_font_status.md), [`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md) | Check or re-run font discovery |
+| Page settings helper | `p_page(size, orientation, margins)` | `"A4"` / `"Letter"` / `"Legal"`, margins via [`p_margins()`](https://crow16384.github.io/ksTFL-release/reference/p_margins.md) |
+| List templates | [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md) | Shows all bundled template names |
+| Discover style atoms | [`tfl_print_style_atoms()`](https://crow16384.github.io/ksTFL-release/reference/tfl_print_style_atoms.md) | Prints all built-in style atoms grouped by category |
+| Font status | [`tfl_font_status()`](https://crow16384.github.io/ksTFL-release/reference/tfl_font_status.md), [`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md) | Check or re-run font discovery |
 | Combine specs | `create_report(spec1, spec2, ...)` | Consolidates styles, assigns order |
 | Save + render (one step) | `write_doc(report, name, ...)` | Recommended: saves JSON + renders DOCX |
 | Save only | `save_report(report, ...)` | Writes JSON + data files for manual rendering |
 | Render from JSON | `replay_report(spec_json, meta_dir, output_path, overrideTemplate = NULL)` | C++ renderer: JSON → styled DOCX |
 | Set session defaults | `tfl_set_options(...)` | Inherited by new specs in session |
-| Check options | [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md), `tfl_get_option(name)` | View current session settings |
-| Reset options | [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md) | Back to package defaults |
+| Check options | [`tfl_get_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_options.md), `tfl_get_option(name)` | View current session settings |
+| Reset options | [`tfl_reset_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_reset_options.md) | Back to package defaults |

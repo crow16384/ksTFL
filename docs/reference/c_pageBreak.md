@@ -1,8 +1,8 @@
 # Insert a page break at the matching row
 
 Used inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md) to
-signal the renderer to start a new page at every row matching the
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+to signal the renderer to start a new page at every row matching the
 condition. Takes no arguments.
 
 ## Usage
@@ -14,14 +14,14 @@ c_pageBreak()
 ## Value
 
 Action marker (internal use within
-[`compute_cols()`](https://example.com/reference/compute_cols.md))
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md))
 
 ## See also
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md),
-[`c_style()`](https://example.com/reference/c_style.md),
-[`c_addrow()`](https://example.com/reference/c_addrow.md),
-[`c_merge()`](https://example.com/reference/c_merge.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md),
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md),
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
 
 ## Examples
 

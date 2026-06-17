@@ -36,9 +36,9 @@ packages.
 
 ## See also
 
-[`list_reports()`](https://example.com/reference/list_reports.md),
-[`replay_report()`](https://example.com/reference/replay_report.md),
-[`clean_reports()`](https://example.com/reference/clean_reports.md)
+[`list_reports()`](https://crow16384.github.io/ksTFL-release/reference/list_reports.md),
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md),
+[`clean_reports()`](https://crow16384.github.io/ksTFL-release/reference/clean_reports.md)
 
 ## Examples
 

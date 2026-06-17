@@ -45,7 +45,7 @@ When a ggplot2 object is passed:
 
 2.  The temporary file path is stored in `spec$.metadata$filePath`.
 
-3.  [`save_report()`](https://example.com/reference/save_report.md)
+3.  [`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
     copies the file (prefixed with `dataRef`) into `metaPath`, where the
     C++ renderer reads it.
 
@@ -56,9 +56,9 @@ formats.
 
 ## See also
 
-[`create_table()`](https://example.com/reference/create_table.md),
-[`create_text()`](https://example.com/reference/create_text.md),
-[`set_document()`](https://example.com/reference/set_document.md)
+[`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+[`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md),
+[`set_document()`](https://crow16384.github.io/ksTFL-release/reference/set_document.md)
 
 ## Examples
 

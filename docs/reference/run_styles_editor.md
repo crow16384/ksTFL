@@ -4,8 +4,9 @@ Opens an interactive Shiny application for creating and editing ksTFL
 styles templates that conform to `styles_schema_v2.json`. Templates can
 be loaded from the bundled `inst/templates/` directory or uploaded from
 disk, then edited and downloaded as JSON for use with
-[`set_page_style()`](https://example.com/reference/set_page_style.md) /
-[`write_doc()`](https://example.com/reference/write_doc.md).
+[`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md)
+/
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md).
 
 ## Usage
 
@@ -32,8 +33,8 @@ This function requires the shiny package to be installed.
 
 ## See also
 
-[`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md),
-[`set_page_style()`](https://example.com/reference/set_page_style.md)
+[`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md),
+[`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md)
 
 ## Examples
 

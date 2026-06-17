@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,9 +56,9 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-06-16</h4>
+            <h4 data-toc-skip class="date">2026-06-17</h4>
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Column_Width_Management.Rmd" class="external-link"><code>vignettes/Column_Width_Management.Rmd</code></a></small>
       <div class="d-none name"><code>Column_Width_Management.Rmd</code></div>
     </div>
 
@@ -67,23 +68,10 @@ Development Team</h4>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This vignette explains how column widths are managed in ksTFL,
-including the LOCKED/UNLOCKED/VISIBLE partitioning system, automatic
-recalculation behavior, and strategies for fine-tuning table
-layouts.</p>
-</div>
-<div class="section level2">
-<h2 id="category-and-scope">Category and scope<a class="anchor" aria-label="anchor" href="#category-and-scope"></a>
-</h2>
-<p>This is a layout and pagination control vignette.</p>
-<ul>
-<li>Audience: users optimizing table readability and page-fit
-behavior</li>
-<li>Focus: width locking, auto-recalculation, invisible columns, and
-tradeoffs</li>
-<li>Outcome: predictable, reproducible table geometry in rendered DOCX
-output</li>
-</ul>
+<p>This guide covers column width management in ksTFL: the
+LOCKED/UNLOCKED/VISIBLE model, automatic recalculation, invisible-column
+rules, and the tradeoffs involved in making tables fit cleanly on the
+page.</p>
 </div>
 <div class="section level2">
 <h2 id="core-concepts">Core Concepts<a class="anchor" aria-label="anchor" href="#core-concepts"></a>
@@ -150,7 +138,7 @@ weights</li>
 <li>Applies minimum width constraints (0.5% for relative widths)</li>
 </ol>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Create sample data</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -576,13 +564,13 @@ width management</li>
 <p>For more examples, see:</p>
 <ul>
 <li>
-<a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a> —
-complete end-to-end workflows including column width patterns</li>
+<a href="Reporting_Examples_with_ksTFL.html">Reporting Examples</a>
+— complete end-to-end workflows including column width patterns</li>
 <li>
-<a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> —
+<a href="Getting_Started_with_ksTFL.html">Getting Started</a> —
 overview of the full pipeline</li>
 <li>
-<a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a> — using
+<a href="Advanced_StyleRows.html">Advanced StyleRows</a> — using
 invisible columns with <code><a href="../reference/compute_cols.html">compute_cols()</a></code> for conditional
 logic</li>
 </ul>

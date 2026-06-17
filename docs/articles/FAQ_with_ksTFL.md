@@ -8,8 +8,9 @@ This vignette collects short answers to the ksTFL questions that usually
 appear after the first successful output: hidden helper columns, width
 recalculation, span header levels, replay metadata, template precedence,
 Table of Contents behavior, and practical
-[`define_cols()`](https://example.com/reference/define_cols.md) /
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+/
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 recipes.
 
 It is intentionally practical:
@@ -26,26 +27,28 @@ script under `inst/examples/showcase/`.
 Related reading:
 
 - [Getting
-  Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd)
+  Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md)
   for the core pipeline and object model
 - [Reporting
-  Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+  Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
   for minimal end-to- end patterns
 - [Real
-  Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd)
+  Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md)
   for fuller clinical-style outputs
 - [Advanced
-  StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd) for
-  [`compute_cols()`](https://example.com/reference/compute_cols.md) and
-  row actions
+  StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md)
+  for
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+  and row actions
 - [Column Width
-  Management](https://example.com/articles/Column_Width_Management.Rmd)
+  Management](https://crow16384.github.io/ksTFL-release/articles/Column_Width_Management.md)
   for width locking and hidden-column rules
-- [Font Management](https://example.com/articles/Font_Management.Rmd)
+- [Font
+  Management](https://crow16384.github.io/ksTFL-release/articles/Font_Management.md)
   for font discovery and fallback
 - [Rendering
-  Pipeline](https://example.com/articles/Rendering_Pipeline.Rmd) for
-  renderer internals
+  Pipeline](https://crow16384.github.io/ksTFL-release/articles/Rendering_Pipeline.md)
+  for renderer internals
 
 ------------------------------------------------------------------------
 
@@ -55,13 +58,14 @@ Related reading:
 
 Because `cols` is a presentation lens, not a data-mutation step. ksTFL
 keeps the full input data inside the spec’s shadow data so later
-[`compute_cols()`](https://example.com/reference/compute_cols.md) calls
-can still reference helper fields that never appear in the document.
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+calls can still reference helper fields that never appear in the
+document.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 [Reporting
-Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd),
+Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md),
 `01_clinical_table_showcase.R`.
 
 ### 2. Can I hide a column and still use it in `compute_cols()`?
@@ -72,9 +76,9 @@ package examples do this with fields such as `SECTION`, `SECTION_ID`,
 `MODELVAL`, and `SOC_GROUP`.
 
 See also: [Real
-Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd),
+Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md),
 [Advanced
-StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd),
+StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md),
 `01_clinical_table_showcase.R`, `10_ae_template_ru_real_counts.R`.
 
 ### 3. Why can I not set `colWidth` on an invisible column?
@@ -84,9 +88,9 @@ recalculation entirely. If a column must reserve visual space, it is not
 truly invisible and should stay visible.
 
 See also: [Column Width
-Management](https://example.com/articles/Column_Width_Management.Rmd),
+Management](https://crow16384.github.io/ksTFL-release/articles/Column_Width_Management.md),
 [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd).
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md).
 
 ### 4. Why did the other column widths change after I locked one column?
 
@@ -95,18 +99,19 @@ default), ksTFL re-normalizes the remaining visible unlocked columns so
 they fill the leftover width.
 
 See also: [Column Width
-Management](https://example.com/articles/Column_Width_Management.Rmd),
+Management](https://crow16384.github.io/ksTFL-release/articles/Column_Width_Management.md),
 `16_table_layout_options.R`.
 
 ### 5. Why did `c_glue()` not modify a repeated value?
 
 If a cell was already suppressed by `dedupe = TRUE`,
-[`c_glue()`](https://example.com/reference/c_glue.md) skips it on
-purpose. The same skip happens for non-leader cells inside a merge, so
-glue the leader column or turn deduplication off for that field.
+[`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md)
+skips it on purpose. The same skip happens for non-leader cells inside a
+merge, so glue the leader column or turn deduplication off for that
+field.
 
 See also: [Advanced
-StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd),
+StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md),
 `02_listing_paging_colbreak.R`, `13_dm_table.R`.
 
 ------------------------------------------------------------------------
@@ -115,28 +120,29 @@ StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd),
 
 ### 6. Why does `compute_cols()` not like aggregate logic such as `mean(x)`?
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 conditions are captured lazily and evaluated row-wise. If you need
 section-level or whole-table aggregates, calculate them upstream or
 write them into a helper column before creating the spec.
 
 See also: [Advanced
-StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd), [Real
-Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd).
+StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md),
+[Real
+Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md).
 
 ### 7. Can I nest `c_*()` actions inside each other?
 
 No. Row actions are siblings, not nested verbs. Either pass multiple
 actions to one
-[`compute_cols()`](https://example.com/reference/compute_cols.md) call
-or use several
-[`compute_cols()`](https://example.com/reference/compute_cols.md) calls
-with the same condition.
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+call or use several
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+calls with the same condition.
 
 See also: [Advanced
-StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd),
+StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md),
 [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd).
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md).
 
 ### 8. Why does every `add_span_header()` call create a new row of headers?
 
@@ -145,9 +151,9 @@ Because `stubOrder` auto-increments when you omit it. Reuse the same
 only increase it when you really want a new level.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 [Real
-Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd),
+Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md),
 `12_ae_table.R`.
 
 ### 9. Can span headers overlap?
@@ -157,9 +163,9 @@ same `stubOrder` must not share columns, but parent and child levels can
 overlap freely.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 [Real
-Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd).
+Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md).
 
 ### 10. How do I keep a small table under a figure on the same page?
 
@@ -178,9 +184,9 @@ group, and `isColBreak` when a wide listing should split horizontally
 into segments while repeating ID columns.
 
 See also: [Real
-Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd),
+Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md),
 [Rendering
-Pipeline](https://example.com/articles/Rendering_Pipeline.Rmd),
+Pipeline](https://crow16384.github.io/ksTFL-release/articles/Rendering_Pipeline.md),
 `02_listing_paging_colbreak.R`.
 
 ### 12. Why do my footnotes repeat on every page?
@@ -190,9 +196,9 @@ That is the default: `footnotePlace = "repeated"`. Switch to
 when the note belongs in the Word footer area.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 [Real
-Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd).
+Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md).
 
 ------------------------------------------------------------------------
 
@@ -200,19 +206,20 @@ Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd).
 
 ### 13. What is the practical difference between `write_doc()`,
 
-[`save_report()`](https://example.com/reference/save_report.md), and
-[`replay_report()`](https://example.com/reference/replay_report.md)?
+[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md),
+and
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md)?
 
-[`write_doc()`](https://example.com/reference/write_doc.md) is the
-one-step path for everyday use.
-[`save_report()`](https://example.com/reference/save_report.md) writes
-the spec JSON plus table/figure payloads without rendering, while
-[`replay_report()`](https://example.com/reference/replay_report.md)
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+is the one-step path for everyday use.
+[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+writes the spec JSON plus table/figure payloads without rendering, while
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md)
 renders later from those saved artifacts and can also combine previously
 saved outputs into one document.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 `04_meta_replay_clean.R`, `19_join_outputs_with_toc.R`.
 
 ### 14. When do I need a persistent `metaPath` instead of `tempdir()`?
@@ -227,7 +234,7 @@ meta folder; if you need an exact historical version, replay by the
 saved JSON file name instead.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 `04_meta_replay_clean.R`, `06_premium_qc_repro.R`.
 
 ### 15. Can I delete the original figure file after saving a report?
@@ -237,7 +244,7 @@ copies the figure into `metaPath` under its `dataRef`. The saved meta
 folder becomes the durable rendering input.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 `14_figures.R`.
 
 ### 16. Why did different sections of one report use different templates?
@@ -247,14 +254,15 @@ its own `docTemplate`, so a table can use one bundled template while a
 text or figure section uses another.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 `09_template_override_multi_spec.R`.
 
 ### 17. How do I force one template across every section?
 
 Use `overrideTemplate` in
-[`write_doc()`](https://example.com/reference/write_doc.md) or
-[`replay_report()`](https://example.com/reference/replay_report.md).
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+or
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md).
 That global override wins over per-spec `docTemplate` values and is the
 cleanest way to re-skin a finished bundle.
 
@@ -272,9 +280,9 @@ or subtitle with `toclevel`. A TOC request with no `toclevel` entries
 has nothing to index.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 [Real
-Examples](https://example.com/articles/Real_Examples_with_ksTFL.Rmd).
+Examples](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md).
 
 ### 19. Why is the TOC still just a placeholder when I open the DOCX?
 
@@ -283,31 +291,34 @@ file in Word, click inside the TOC, and update fields with `F9` to
 populate it.
 
 See also: [Getting
-Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd),
+Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md),
 `19_join_outputs_with_toc.R`.
 
 ### 20. Can `create_report()` accept a named list of specs built in a loop?
 
-Yes. [`create_report()`](https://example.com/reference/create_report.md)
+Yes.
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 accepts named lists of `TFL_spec` objects, which is useful when specs
 are created dynamically or in separate program files. The list names
 become the key prefixes inside the final `TFL_report`.
 
 See also: `18_list_of_specs_bundle.R`, \[Reporting Examples\]
-(Reporting_Examples_with_ksTFL.Rmd).
+(Reporting_Examples_with_ksTFL.html).
 
 ------------------------------------------------------------------------
 
 ## Practical column and action recipes
 
 These are short copy-paste patterns for the
-[`define_cols()`](https://example.com/reference/define_cols.md) and
-[`compute_cols()`](https://example.com/reference/compute_cols.md) cases
-that usually come up after the first working table.
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+and
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+cases that usually come up after the first working table.
 
 ### 21. How do I define several display columns in one place?
 
-Use one [`define_cols()`](https://example.com/reference/define_cols.md)
+Use one
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
 call when the columns share the same labels, widths, or base value
 styles.
 
@@ -349,8 +360,8 @@ when you want to skip `colWidth` because invisible columns are forced to
 ### 23. How do I hide a helper column but still use it to drive formatting?
 
 Hide the helper with `isVisible = FALSE`, then refer to it in
-[`compute_cols()`](https://example.com/reference/compute_cols.md) as
-usual.
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+as usual.
 
 ``` r
 
@@ -369,8 +380,9 @@ totals.
 
 ### 24. How do I turn a hidden grouping column into a stub header?
 
-Use [`c_addrow()`](https://example.com/reference/c_addrow.md) on the
-first row of each group and pull the display text from the hidden
+Use
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
+on the first row of each group and pull the display text from the hidden
 column.
 
 ``` r
@@ -425,8 +437,8 @@ stored summary text.
 ### 26. How do I apply one condition to several visible columns at once?
 
 Pass a column vector to
-[`c_style()`](https://example.com/reference/c_style.md) instead of
-repeating the same condition in separate calls.
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md)
+instead of repeating the same condition in separate calls.
 
 ``` r
 
@@ -444,8 +456,8 @@ show it.
 ### 27. How do I combine font and background styles for one rule?
 
 Compose styles with
-[`f_combine()`](https://example.com/reference/f_combine.md) instead of
-defining a new style for every font-plus-fill pairing.
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+instead of defining a new style for every font-plus-fill pairing.
 
 ``` r
 
@@ -467,9 +479,9 @@ This is a good fit for one-off emphasis rules.
 highlighting later?
 
 Put default alignment or indentation in
-[`define_cols()`](https://example.com/reference/define_cols.md), then
-add the conditional layer in
-[`compute_cols()`](https://example.com/reference/compute_cols.md).
+[`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md),
+then add the conditional layer in
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
 
 ``` r
 
@@ -490,11 +502,12 @@ The base column styles stay in place; the row style adds on top.
 
 ### 29. How do I build a total line by combining `c_merge()`, `c_clear()`,
 
-and [`c_glue()`](https://example.com/reference/c_glue.md)?
+and
+[`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md)?
 
 Use one
-[`compute_cols()`](https://example.com/reference/compute_cols.md) call
-when the same rows need several sibling actions.
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+call when the same rows need several sibling actions.
 
 ``` r
 
@@ -517,7 +530,8 @@ column.
 nested `c_*()` calls?
 
 Keep the actions as separate arguments inside one
-[`compute_cols()`](https://example.com/reference/compute_cols.md) call.
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+call.
 
 ``` r
 

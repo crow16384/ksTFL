@@ -3,7 +3,7 @@
 Declares a glue action to concatenate a value — from a data column or a
 literal string — to the display text of specified cells in rows matching
 the parent
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 condition.
 
 ## Usage
@@ -45,12 +45,12 @@ c_glue(cols, position, glue_col = NULL, text = NULL, separator = NULL)
 ## Value
 
 Quosure-style marker (internal use within
-[`compute_cols()`](https://example.com/reference/compute_cols.md))
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md))
 
 ## Details
 
 Must be called inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md).
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
 
 **Constraints:**
 
@@ -72,37 +72,39 @@ Must be called inside
   suppression of repeated values.
 
 - When a target cell is suppressed by a concurrent
-  [`c_merge()`](https://example.com/reference/c_merge.md) action (i.e.,
-  it is a non-leader merged cell), the glue is silently skipped.
+  [`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+  action (i.e., it is a non-leader merged cell), the glue is silently
+  skipped.
 
 - The merge leader cell is glued normally when `c_glue()` targets a
   column involved in
-  [`c_merge()`](https://example.com/reference/c_merge.md) as the first
-  column.
+  [`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+  as the first column.
 
 - Multiple `c_glue()` calls on the same column accumulate in call order.
 
 **Interaction with other actions:**
 
-- [`c_style()`](https://example.com/reference/c_style.md): Fully
-  compatible — styling and text modification are independent.
+- [`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md):
+  Fully compatible — styling and text modification are independent.
 
-- [`c_merge()`](https://example.com/reference/c_merge.md): Compatible.
-  Glue is processed after merge in the renderer. Non-leader (suppressed)
-  merge cells are skipped; the merge-leader cell is glued normally.
+- [`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md):
+  Compatible. Glue is processed after merge in the renderer. Non-leader
+  (suppressed) merge cells are skipped; the merge-leader cell is glued
+  normally.
 
-- [`c_addrow()`](https://example.com/reference/c_addrow.md): Fully
-  compatible (affects different rows/cells).
+- [`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md):
+  Fully compatible (affects different rows/cells).
 
-- [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md): Fully
-  compatible.
+- [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md):
+  Fully compatible.
 
 ## See also
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md),
-[`c_style()`](https://example.com/reference/c_style.md),
-[`c_merge()`](https://example.com/reference/c_merge.md),
-[`c_addrow()`](https://example.com/reference/c_addrow.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md),
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md),
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
 
 ## Examples
 

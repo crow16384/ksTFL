@@ -6,12 +6,13 @@
 
 This vignette explains the powerful conditional row styling system in
 ksTFL, centered around
-[`compute_cols()`](https://example.com/reference/compute_cols.md) and
-its action functions:
-[`c_style()`](https://example.com/reference/c_style.md),
-[`c_merge()`](https://example.com/reference/c_merge.md), and
-[`c_addrow()`](https://example.com/reference/c_addrow.md). These tools
-enable sophisticated data-driven formatting without manual
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+and its action functions:
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md),
+and
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md).
+These tools enable sophisticated data-driven formatting without manual
 post-processing.
 
 ## Category and prerequisites
@@ -20,18 +21,18 @@ This is an advanced conditional-logic vignette.
 
 - Audience: users building data-driven row-level formatting rules
 - Prerequisites: complete `Getting_Started_with_ksTFL` and basic
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   familiarity
 - Focus: lazy evaluation, helper functions, and composable row actions
 - Outcome: robust, reviewable conditional formatting workflows
 
 ## Core Concept: Lazy Evaluation
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md) uses
-**lazy evaluation**—it captures your conditions and actions as
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+uses **lazy evaluation**—it captures your conditions and actions as
 unevaluated expressions (quosures), storing them in the spec’s metadata.
 The actual evaluation happens later during
-[`create_report()`](https://example.com/reference/create_report.md),
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md),
 when all specs are finalized and the data context is fully established.
 
 ### Why Lazy Evaluation?
@@ -80,7 +81,10 @@ spec <- spec |>
 **Result:** Rows where `response == "CR"` show green bold text; rows
 where `response == "PD"` show red bold text:
 
-![](images/style-conditional-green-red-response.png)
+![style conditional green red
+response](images/style-conditional-green-red-response.png)
+
+style conditional green red response
 
 ### `c_merge()`: Conditional Cell Merging
 
@@ -106,13 +110,15 @@ spec <- create_table(data_groups) |>
 and `visit` cells merge, displaying the merged content in the `group`
 column.
 
-![](images/merge-group-visit-cells.png)
+![merge group visit cells](images/merge-group-visit-cells.png)
+
+merge group visit cells
 
 **Note:** The `cols` argument to
-[`c_merge()`](https://example.com/reference/c_merge.md) must resolve to
-at least two **consecutive** columns in the final report column order.
-The value shown in the merged cell is taken **from the first** column in
-the `cols` sequence.
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+must resolve to at least two **consecutive** columns in the final report
+column order. The value shown in the merged cell is taken **from the
+first** column in the `cols` sequence.
 
 ### `c_addrow()`: Conditional Row Insertion
 
@@ -132,7 +138,10 @@ copy a single column’s value into the inserted row use `value_from` (see
 later examples). Use `pos = "below"` to insert after the matching row
 instead.
 
-![](images/addrow-separator-above-groups.png)
+![addrow separator above
+groups](images/addrow-separator-above-groups.png)
+
+addrow separator above groups
 
 ### `c_pageBreak()`: Conditional Page Break
 
@@ -151,7 +160,9 @@ spec <- create_table(data_groups) |>
 **Result:** The renderer will start a new page at rows matching the
 condition:
 
-![](images/pagebreak-at-group-start.png)
+![pagebreak at group start](images/pagebreak-at-group-start.png)
+
+pagebreak at group start
 
 ## Evaluation Context
 
@@ -167,10 +178,10 @@ contains:
 
 > **Important**: These helper functions are only available inside the
 > `cond` argument of
-> [`compute_cols()`](https://example.com/reference/compute_cols.md).
+> [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
 > **They are not standalone exported functions** — you cannot call them
 > outside of
-> [`compute_cols()`](https://example.com/reference/compute_cols.md).
+> [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md).
 
 ``` r
 
@@ -182,12 +193,15 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/style-multi-column-conditional.png)
+![style multi column
+conditional](images/style-multi-column-conditional.png)
+
+style multi column conditional
 
 ### Available Helper Functions
 
 The following helpers are available exclusively inside
-[`compute_cols()`](https://example.com/reference/compute_cols.md)
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 conditions:
 
 - **`firstOf(...)`**: Logical vector marking first occurrence of each
@@ -258,7 +272,9 @@ spec <- create_table(data_lab) |>
   )
 ```
 
-![](images/style-out-of-range-highlight.png)
+![style out of range highlight](images/style-out-of-range-highlight.png)
+
+style out of range highlight
 
 ### Conditional Styling with Complex Logic
 
@@ -276,7 +292,9 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/style-critical-senior-age.png)
+![style critical senior age](images/style-critical-senior-age.png)
+
+style critical senior age
 
 ### Row-Level Styling
 
@@ -293,7 +311,9 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/style-alternating-row-colors.png)
+![style alternating row colors](images/style-alternating-row-colors.png)
+
+style alternating row colors
 
 ## Advanced `c_merge()` Patterns
 
@@ -323,7 +343,9 @@ spec <- create_table(data_nested) |>
   )
 ```
 
-![](images/merge-multi-column-grouping.png)
+![merge multi column grouping](images/merge-multi-column-grouping.png)
+
+merge multi column grouping
 
 ### Conditional Display Column Content
 
@@ -347,7 +369,9 @@ spec <- create_table(data_nested) |>
   )
 ```
 
-![](images/merge-with-styling.png)
+![merge with styling](images/merge-with-styling.png)
+
+merge with styling
 
 ## Advanced `c_addrow()` Patterns
 
@@ -379,7 +403,9 @@ spec <- create_table(data_sales) |>
   )
 ```
 
-![](images/addrow-summary-subtotals.png)
+![addrow summary subtotals](images/addrow-summary-subtotals.png)
+
+addrow summary subtotals
 
 ### Header Rows
 
@@ -417,7 +443,9 @@ spec <- create_table(data_sales) |>
   )
 ```
 
-![](images/addrow-header-from-column.png)
+![addrow header from column](images/addrow-header-from-column.png)
+
+addrow header from column
 
 More complex example with two-level indents:
 
@@ -462,14 +490,16 @@ spec <- create_table(data_sales) |>
 
 As a result we are getting two-level stub:
 
-![](images/addrow-two-level-stub-indent.png)
+![addrow two level stub indent](images/addrow-two-level-stub-indent.png)
+
+addrow two level stub indent
 
 ## `c_glue()`: Append or Prepend Text to Cell Values
 
-[`c_glue()`](https://example.com/reference/c_glue.md) concatenates a
-literal string or a data column value to the display text of matching
-cells — useful for appending units, prefixing markers, or building
-composite labels without creating extra columns.
+[`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md)
+concatenates a literal string or a data column value to the display text
+of matching cells — useful for appending units, prefixing markers, or
+building composite labels without creating extra columns.
 
 **Parameters:**
 
@@ -504,21 +534,28 @@ spec <- create_table(data_units) |>
   )
 ```
 
-![](images/glue-append-units.png)
+![glue append units](images/glue-append-units.png)
 
-[`c_glue()`](https://example.com/reference/c_glue.md) is fully
-compatible with [`c_style()`](https://example.com/reference/c_style.md)
-and [`c_merge()`](https://example.com/reference/c_merge.md) in the same
-[`compute_cols()`](https://example.com/reference/compute_cols.md) call.
+glue append units
+
+[`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md)
+is fully compatible with
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md)
+and
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+in the same
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+call.
 
 ------------------------------------------------------------------------
 
 ## `c_clear()`: Blank Cell Content in Matching Rows
 
-[`c_clear()`](https://example.com/reference/c_clear.md) renders
-specified cells as empty (blank) in matching rows without removing the
-column or affecting layout. Useful for conditional deduplication, when a
-`dedupe` parameter of `define_col()` is not enough.
+[`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md)
+renders specified cells as empty (blank) in matching rows without
+removing the column or affecting layout. Useful for conditional
+deduplication, when a `dedupe` parameter of `define_col()` is not
+enough.
 
 ``` r
 
@@ -536,20 +573,24 @@ spec <- create_table(data_groups) |>
   )
 ```
 
-![](images/clear-blank-cells.png)
+![clear blank cells](images/clear-blank-cells.png)
 
-**Note:** [`c_clear()`](https://example.com/reference/c_clear.md) only
-affects the rendered display text. The underlying data value is still
-available for conditions in other
-[`compute_cols()`](https://example.com/reference/compute_cols.md) calls.
+clear blank cells
+
+**Note:**
+[`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md)
+only affects the rendered display text. The underlying data value is
+still available for conditions in other
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+calls.
 
 ------------------------------------------------------------------------
 
 ## Combining Actions Together
 
 Chain multiple
-[`compute_cols()`](https://example.com/reference/compute_cols.md) calls
-and `c_*` actions to build a fully formatted table:
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+calls and `c_*` actions to build a fully formatted table:
 
 ``` r
 
@@ -595,10 +636,13 @@ spec <- create_table(data_sales) |>
 
 Here we can see how a simple planar data frame:
 
-![](images/data-simple-planar-dataframe.png)
+![data simple planar dataframe](images/data-simple-planar-dataframe.png)
+
+data simple planar dataframe
 
 become a production ready table:\
-![](images/result-production-ready-table.png)
+![result production ready
+table](images/result-production-ready-table.png)
 
 ## Performance Tips
 
@@ -703,8 +747,8 @@ spec <- create_table(data) |>
 ### Viewing Captured Actions
 
 Inspect what
-[`compute_cols()`](https://example.com/reference/compute_cols.md) has
-stored:
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+has stored:
 
 ``` r
 
@@ -737,7 +781,8 @@ spec <- spec |>
 
 ### Incremental Building
 
-Add [`compute_cols()`](https://example.com/reference/compute_cols.md)
+Add
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 one at a time and inspect results:
 
 ``` r
@@ -871,7 +916,8 @@ spec <- create_table(data) |>
 ```
 
 **Workaround:** Use separate
-[`compute_cols()`](https://example.com/reference/compute_cols.md) calls:
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+calls:
 
 ``` r
 
@@ -904,8 +950,8 @@ spec <- create_table(data) |>
 
 ### Using with `define_cols()`
 
-[`compute_cols()`](https://example.com/reference/compute_cols.md) works
-alongside column definitions:
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+works alongside column definitions:
 
 ``` r
 
@@ -936,7 +982,8 @@ spec <- create_table(data) |>
 ### Using in Multi-Spec Reports
 
 Each spec can have independent
-[`compute_cols()`](https://example.com/reference/compute_cols.md) logic:
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+logic:
 
 ``` r
 
@@ -954,11 +1001,12 @@ report <- create_report(spec1, spec2)
 ## Best Practices
 
 1.  **Define styles first**: Use
-    [`add_style()`](https://example.com/reference/add_style.md) before
-    [`compute_cols()`](https://example.com/reference/compute_cols.md)
+    [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+    before
+    [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
 2.  **Test conditions incrementally**: Add one
-    [`compute_cols()`](https://example.com/reference/compute_cols.md) at
-    a time
+    [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+    at a time
 3.  **Use meaningful style names**: “elderly” is clearer than “style1”
 4.  **Document complex logic**: Add comments explaining condition
     rationale
@@ -971,18 +1019,18 @@ report <- create_report(spec1, spec2)
 
 ## Summary
 
-- **[`compute_cols()`](https://example.com/reference/compute_cols.md)**:
+- **[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)**:
   Captures conditions and actions via lazy evaluation
-- **[`c_style()`](https://example.com/reference/c_style.md)**: Apply
-  conditional styling to cells
-- **[`c_merge()`](https://example.com/reference/c_merge.md)**: Merge
-  cells across columns based on conditions
-- **[`c_addrow()`](https://example.com/reference/c_addrow.md)**: Insert
-  new rows dynamically (`pos = "above"` or `"below"`)
-- **[`c_pageBreak()`](https://example.com/reference/c_pageBreak.md)**:
+- **[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md)**:
+  Apply conditional styling to cells
+- **[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)**:
+  Merge cells across columns based on conditions
+- **[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)**:
+  Insert new rows dynamically (`pos = "above"` or `"below"`)
+- **[`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md)**:
   Insert a page break at the matching row
-- **[`c_clear()`](https://example.com/reference/c_clear.md)**: Blank the
-  rendered display text of specified cells in matching rows
+- **[`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md)**:
+  Blank the rendered display text of specified cells in matching rows
   (deduplication)
 - **Evaluation context**: Data environment with helper functions
   (`firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`,
@@ -995,16 +1043,16 @@ report <- create_report(spec1, spec2)
 For more information, see:
 
 - [Getting
-  Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd)
+  Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md)
   — full pipeline overview and
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   introduction
 - [Styling
-  Guide](https://example.com/articles/Styling_Guide_with_ksTFL.Rmd) —
-  styling fundamentals and built-in atoms
+  Guide](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md)
+  — styling fundamentals and built-in atoms
 - [Reporting
-  Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+  Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
   — complete end-to-end workflows
 - [Column Width
-  Management](https://example.com/articles/Column_Width_Management.Rmd)
+  Management](https://crow16384.github.io/ksTFL-release/articles/Column_Width_Management.md)
   — invisible columns for conditional logic

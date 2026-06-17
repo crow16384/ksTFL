@@ -1,7 +1,7 @@
 # Define page margins
 
 This function can only be used inside
-[`p_page`](https://example.com/reference/p_page.md).
+[`p_page`](https://crow16384.github.io/ksTFL-release/reference/p_page.md).
 
 ## Usage
 

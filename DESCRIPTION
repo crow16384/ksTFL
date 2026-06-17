@@ -24,6 +24,7 @@ Description: Library provides framework for generation of clinical TFLs. The
     details.
 License: GPL-3
 URL: https://crow16384.github.io/ksTFL-release/
+BugReports: https://github.com/crow16384/ksTFL/issues
 Encoding: UTF-8
 Imports:
     cli,

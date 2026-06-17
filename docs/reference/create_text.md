@@ -18,9 +18,9 @@ A `TFL_spec` object with `docType = "Text"`.
 
 ## See also
 
-[`create_table()`](https://example.com/reference/create_table.md),
-[`create_figure()`](https://example.com/reference/create_figure.md),
-[`add_body_text()`](https://example.com/reference/add_body_text.md)
+[`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+[`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md),
+[`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md)
 
 ## Examples
 

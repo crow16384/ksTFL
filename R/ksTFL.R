@@ -18,8 +18,10 @@
 #' To get started, see the vignettes:
 #' \itemize{
 #'   \item \code{vignette("Getting_Started_with_ksTFL")} — Quick start and full workflow overview
+#'   \item \code{vignette("FAQ_with_ksTFL")} — Common gotchas, replay workflow, and practical troubleshooting
 #'   \item \code{vignette("Styling_Guide_with_ksTFL")} — Complete styling reference and built-in atoms
 #'   \item \code{vignette("Reporting_Examples_with_ksTFL")} — Progressive real-world examples
+#'   \item \code{vignette("Real_Examples_with_ksTFL")} — Clinical-style outputs and multi-spec assembly patterns
 #'   \item \code{vignette("Advanced_StyleRows")} — Conditional formatting with \code{compute_cols()}
 #'   \item \code{vignette("Column_Width_Management")} — Column width locking and auto-calculation
 #'   \item \code{vignette("Font_Management")} — System font discovery, fallbacks, and rescanning

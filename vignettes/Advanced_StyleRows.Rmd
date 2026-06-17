@@ -41,30 +41,24 @@ sophisticated data-driven formatting without manual post-processing.
 
 ## Category and prerequisites
 
-This is an advanced conditional-logic vignette.
-
--   Audience: users building data-driven row-level formatting rules
--   Prerequisites: complete `Getting_Started_with_ksTFL` and basic
-    `compute_cols()` familiarity
--   Focus: lazy evaluation, helper functions, and composable row actions
--   Outcome: robust, reviewable conditional formatting workflows
+Prerequisites: complete [Getting Started](Getting_Started_with_ksTFL.html)
+and basic `compute_cols()` familiarity. The focus here is row-level logic,
+helper functions, and composable actions that stay readable as rules grow.
 
 ## Core Concept: Lazy Evaluation
 
-`compute_cols()` uses **lazy evaluation**—it captures your conditions
-and actions as unevaluated expressions (quosures), storing them in the
-spec's metadata. The actual evaluation happens later during
-`create_report()`, when all specs are finalized and the data context is
-fully established.
+`compute_cols()` uses **lazy evaluation**: it captures conditions and actions
+as quosures, stores them in the spec metadata, and evaluates them later during
+`create_report()`.
 
 ### Why Lazy Evaluation?
 
-1.  **Deferred Context**: Column selections and data references are
-    resolved when the report structure is complete
-2.  **Tidyselect Support**: Use `everything()`, `starts_with()`, etc.
-    without worrying about timing
-3.  **Multi-Stage Processing**: Separate specification (design time)
-    from execution (render time)
+1.  **Deferred context**: column selections and data references are
+  resolved only after the report structure is complete.
+2.  **Tidyselect support**: helpers such as `everything()` and
+  `starts_with()` stay available inside the action definitions.
+3.  **Clean staging**: you specify rules first and execute them later,
+  which keeps the build pipeline easier to inspect.
 
 ## The Three Action Functions
 
@@ -102,7 +96,7 @@ spec <- spec |>
 **Result:** Rows where `response == "CR"` show green bold text; rows
 where `response == "PD"` show red bold text:
 
-![](images/style-conditional-green-red-response.png)
+![style conditional green red response](images/style-conditional-green-red-response.png)
 
 ### `c_merge()`: Conditional Cell Merging
 
@@ -127,7 +121,7 @@ spec <- create_table(data_groups) |>
 and `visit` cells merge, displaying the merged content in the `group`
 column.
 
-![](images/merge-group-visit-cells.png)
+![merge group visit cells](images/merge-group-visit-cells.png)
 
 **Note:** The `cols` argument to `c_merge()` must resolve to at least
 two **consecutive** columns in the final report column order. The value
@@ -151,7 +145,7 @@ copy a single column's value into the inserted row use `value_from` (see
 later examples). Use `pos = "below"` to insert after the matching row
 instead.
 
-![](images/addrow-separator-above-groups.png)
+![addrow separator above groups](images/addrow-separator-above-groups.png)
 
 ### `c_pageBreak()`: Conditional Page Break
 
@@ -169,7 +163,7 @@ spec <- create_table(data_groups) |>
 **Result:** The renderer will start a new page at rows matching the
 condition:
 
-![](images/pagebreak-at-group-start.png)
+![pagebreak at group start](images/pagebreak-at-group-start.png)
 
 ## Evaluation Context
 
@@ -197,7 +191,7 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/style-multi-column-conditional.png){width="316"}
+![style multi column conditional](images/style-multi-column-conditional.png){width="316"}
 
 ### Available Helper Functions
 
@@ -270,7 +264,7 @@ spec <- create_table(data_lab) |>
   )
 ```
 
-![](images/style-out-of-range-highlight.png)
+![style out of range highlight](images/style-out-of-range-highlight.png)
 
 ### Conditional Styling with Complex Logic
 
@@ -287,7 +281,7 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/style-critical-senior-age.png)
+![style critical senior age](images/style-critical-senior-age.png)
 
 ### Row-Level Styling
 
@@ -303,7 +297,7 @@ spec <- create_table(data) |>
   )
 ```
 
-![](images/style-alternating-row-colors.png)
+![style alternating row colors](images/style-alternating-row-colors.png)
 
 ## Advanced `c_merge()` Patterns
 
@@ -332,7 +326,7 @@ spec <- create_table(data_nested) |>
   )
 ```
 
-![](images/merge-multi-column-grouping.png)
+![merge multi column grouping](images/merge-multi-column-grouping.png)
 
 ### Conditional Display Column Content
 
@@ -355,7 +349,7 @@ spec <- create_table(data_nested) |>
   )
 ```
 
-![](images/merge-with-styling.png)
+![merge with styling](images/merge-with-styling.png)
 
 ## Advanced `c_addrow()` Patterns
 
@@ -386,7 +380,7 @@ spec <- create_table(data_sales) |>
   )
 ```
 
-![](images/addrow-summary-subtotals.png)
+![addrow summary subtotals](images/addrow-summary-subtotals.png)
 
 ### Header Rows
 
@@ -423,7 +417,7 @@ spec <- create_table(data_sales) |>
   )
 ```
 
-![](images/addrow-header-from-column.png)
+![addrow header from column](images/addrow-header-from-column.png)
 
 More complex example with two-level indents:
 
@@ -467,7 +461,7 @@ spec <- create_table(data_sales) |>
 
 As a result we are getting two-level stub:
 
-![](images/addrow-two-level-stub-indent.png)
+![addrow two level stub indent](images/addrow-two-level-stub-indent.png)
 
 ## `c_glue()`: Append or Prepend Text to Cell Values
 
@@ -507,7 +501,7 @@ spec <- create_table(data_units) |>
   )
 ```
 
-![](images/glue-append-units.png)
+![glue append units](images/glue-append-units.png)
 
 `c_glue()` is fully compatible with `c_style()` and `c_merge()` in the
 same `compute_cols()` call.
@@ -536,7 +530,7 @@ spec <- create_table(data_groups) |>
   )
 ```
 
-![](images/clear-blank-cells.png)
+![clear blank cells](images/clear-blank-cells.png)
 
 **Note:** `c_clear()` only affects the rendered display text. The
 underlying data value is still available for conditions in other
@@ -592,10 +586,10 @@ spec <- create_table(data_sales) |>
 
 Here we can see how a simple planar data frame:
 
-![](images/data-simple-planar-dataframe.png)
+![data simple planar dataframe](images/data-simple-planar-dataframe.png)
 
 become a production ready table:\
-![](images/result-production-ready-table.png)
+![result production ready table](images/result-production-ready-table.png)
 
 ## Performance Tips
 
@@ -956,11 +950,11 @@ report <- create_report(spec1, spec2)
 
 For more information, see:
 
--   [Getting Started](Getting_Started_with_ksTFL.Rmd) — full pipeline
+-   [Getting Started](Getting_Started_with_ksTFL.html) — full pipeline
     overview and `compute_cols()` introduction
--   [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — styling fundamentals
+-   [Styling Guide](Styling_Guide_with_ksTFL.html) — styling fundamentals
     and built-in atoms
--   [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — complete
+-   [Reporting Examples](Reporting_Examples_with_ksTFL.html) — complete
     end-to-end workflows
--   [Column Width Management](Column_Width_Management.Rmd) — invisible
+-   [Column Width Management](Column_Width_Management.html) — invisible
     columns for conditional logic

@@ -62,7 +62,7 @@ replay_report(
   Character string. A bundled template name (e.g. `"Navy_Pro"`) or file
   path to a custom styles JSON. When non-`NULL`, this takes precedence
   over `template_json`. See
-  [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)
+  [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md)
   for available names.
 
 - insertTOC:

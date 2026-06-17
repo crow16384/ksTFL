@@ -1,7 +1,7 @@
 # Define table-specific styling
 
 This function can only be used inside
-[`add_style`](https://example.com/reference/add_style.md).
+[`add_style`](https://crow16384.github.io/ksTFL-release/reference/add_style.md).
 
 ## Usage
 
@@ -47,7 +47,7 @@ s_table_style(
 - borders:
 
   Borders object created with
-  [`s_borders`](https://example.com/reference/s_borders.md)
+  [`s_borders`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
 
 ## Value
 
@@ -55,12 +55,14 @@ A table style specification object
 
 ## See also
 
-[`add_style()`](https://example.com/reference/add_style.md) for applying
-styles, [`s_borders()`](https://example.com/reference/s_borders.md),
-[`s_border()`](https://example.com/reference/s_border.md) for border
-components, [`s_font()`](https://example.com/reference/s_font.md),
-[`s_paragraph()`](https://example.com/reference/s_paragraph.md) for
-other style components
+[`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+for applying styles,
+[`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md),
+[`s_border()`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
+for border components,
+[`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md),
+[`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
+for other style components
 
 ## Examples
 

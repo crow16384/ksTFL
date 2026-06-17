@@ -1,7 +1,7 @@
 # ksTFL: Clinical Tables, Figures, and Listings Framework
 
 [![License: GPL
-v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://example.com/LICENSE)
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://crow16384.github.io/ksTFL-release/LICENSE)
 
 ![ksTFL logo](reference/figures/ksTFL-logo.svg)
 
@@ -221,7 +221,7 @@ Create specification objects for different document types:
 |----|----|----|
 | `create_table(data, cols = everything())` | Initialize table spec with data frame | `TFL_spec` |
 | `create_figure(plot_or_path, dpi = 300L)` | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
-| [`create_text()`](https://example.com/reference/create_text.md) | Initialize text-only spec (no data) | `TFL_spec` |
+| [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md) | Initialize text-only spec (no data) | `TFL_spec` |
 
 ### Content Functions
 
@@ -277,7 +277,7 @@ Apply dynamic styling based on data conditions:
 | `c_style(cols, styleRef)` | Apply style to specified cells | `c_style(c(col1, col2), styleRef = "bold")` |
 | `c_merge(cols, styleRef)` | Merge specified cells into one cell | `c_merge(c(col1, col2, col3))` |
 | `c_addrow(position, value_from, styleRef)` | Insert row above/below | `c_addrow("above", group_col, styleRef = "header")` |
-| [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) | Insert page break at matching rows | [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) |
+| [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md) | Insert page break at matching rows | [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md) |
 
 **Helper Functions for Conditions**:
 
@@ -292,10 +292,10 @@ Apply dynamic styling based on data conditions:
   every n-th block defined by `col`
 
 Note: The `cols` argument passed to
-[`c_merge()`](https://example.com/reference/c_merge.md) must resolve to
-at least two consecutive columns in the final report column order. The
-merged cell’s displayed value is taken from the first column in the
-`cols` sequence.
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+must resolve to at least two consecutive columns in the final report
+column order. The merged cell’s displayed value is taken from the first
+column in the `cols` sequence.
 
 ### Style Definitions
 
@@ -315,16 +315,17 @@ Define and compose styles:
 
 **Context-Based Nesting Rules**:
 
-- [`s_font()`](https://example.com/reference/s_font.md),
-  [`s_paragraph()`](https://example.com/reference/s_paragraph.md),
-  [`s_table_style()`](https://example.com/reference/s_table_style.md) —
-  direct children of
-  [`add_style()`](https://example.com/reference/add_style.md)
-- [`s_borders()`](https://example.com/reference/s_borders.md) — must be
-  inside `s_table_style(borders = s_borders(...))`
-- [`s_spacing()`](https://example.com/reference/s_spacing.md),
-  [`s_indents()`](https://example.com/reference/s_indents.md) — must be
-  inside [`s_paragraph()`](https://example.com/reference/s_paragraph.md)
+- [`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md),
+  [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md),
+  [`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)
+  — direct children of
+  [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+- [`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
+  — must be inside `s_table_style(borders = s_borders(...))`
+- [`s_spacing()`](https://crow16384.github.io/ksTFL-release/reference/s_spacing.md),
+  [`s_indents()`](https://crow16384.github.io/ksTFL-release/reference/s_indents.md)
+  — must be inside
+  [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
 - Built-in target font atoms are available for direct `styleRef`
   composition: `font_arial`, `font_courier_new`, `font_times_new_roman`,
   `font_georgia`, `font_verdana`, `font_trebuchet_ms`
@@ -374,14 +375,14 @@ Combine specifications into reports and render to DOCX:
 - Assigns sequential document order
 - Generates unique data references
 - Evaluates deferred
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   conditions against data environment
 - Supports mixing `TFL_spec` and `TFL_report` objects
 
 **save_report() Parameters**:
 
 - `report`: A `TFL_report` object from
-  [`create_report()`](https://example.com/reference/create_report.md)
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 - `docFileName`: Output filename (e.g., `"report.docx"`)
 - `outDir`: Output directory (defaults to tfl_options)
 - `metaPath`: Directory for metadata/data files (defaults to
@@ -391,7 +392,7 @@ Combine specifications into reports and render to DOCX:
 **write_doc() Parameters**:
 
 - `report`: A `TFL_report` object from
-  [`create_report()`](https://example.com/reference/create_report.md)
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 - `name`: Base output filename (without `.docx`)
 - `outDir`: Output directory for the final DOCX
 - `metaPath`: Directory for metadata/data files
@@ -408,16 +409,16 @@ Configure global defaults that apply to all specs in a session:
 | Function | Purpose |
 |----|----|
 | `tfl_set_options(...)` | Set package-level options (replaces, not accumulates) |
-| [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md) | Retrieve all current options |
+| [`tfl_get_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_options.md) | Retrieve all current options |
 | `tfl_get_option(name)` | Retrieve single option value |
-| [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md) | Reset all options to defaults |
-| [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md) | List available bundled document templates |
+| [`tfl_reset_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_reset_options.md) | Reset all options to defaults |
+| [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md) | List available bundled document templates |
 
 **All Configurable Parameters**:
 
 | Parameter | Default | Type | Description |
 |----|----|----|----|
-| `docTemplate` | `"CRO Example_default"` | Character | Document style template (bundled name or path to JSON). Use [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md) to list available embedded templates, or use template editor shiny addin to create your own |
+| `docTemplate` | `"CRO Example_default"` | Character | Document style template (bundled name or path to JSON). Use [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md) to list available embedded templates, or use template editor shiny addin to create your own |
 | `contentWidth` | `"100%"` | Character | Main content area width (e.g., `"95%"`, `"16.51cm"`, `"6.5in"`) |
 | `footnotePlace` | `"repeated"` | Character | Footnote placement: `"repeated"` (every page), `"last_page"`, or `"doc_footer"` |
 | `isContinues` | `FALSE` | Logical | Suppress repeating headers on every page of the document |
@@ -434,8 +435,8 @@ Configure global defaults that apply to all specs in a session:
 | `meta_directory` | `NULL` | Character | Directory for intermediate metadata files; `NULL` defaults to output dir or temp |
 
 **Page Layout** (via
-[`set_page_style()`](https://example.com/reference/set_page_style.md) or
-`tfl_set_options(set_page_style(...))`):
+[`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md)
+or `tfl_set_options(set_page_style(...))`):
 
 | Parameter | Default | Valid Values |
 |----|----|----|
@@ -477,10 +478,10 @@ tfl_set_options(
 
 ksTFL ships with 100+ **atomic styles** — single-property building
 blocks that can be used directly as `styleRef` values or combined with
-[`f_combine()`](https://example.com/reference/f_combine.md). Each atom
-sets exactly **one** visual property, making styles composable and
-predictable. Use
-[`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
+Each atom sets exactly **one** visual property, making styles composable
+and predictable. Use
+[`tfl_print_style_atoms()`](https://crow16384.github.io/ksTFL-release/reference/tfl_print_style_atoms.md)
 to print all avaialbe atomic styles, or use addin to call this function.
 
 **Usage**: pass atom IDs directly to any `styleRef` parameter, or
@@ -720,7 +721,7 @@ define_cols(spec, where(is.numeric), colWidth = "auto")
 
 ### 2. Style Consolidation
 
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 automatically:
 
 - Merges `f_combine("style1", "style2")` into single `style_<hash>`
@@ -739,10 +740,10 @@ C++ renderer
 
 Original data preserved (shadow-copy) in `.metadata$data_env` for: -
 Conditional expressions in
-[`compute_cols()`](https://example.com/reference/compute_cols.md) -
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md) -
 Helper functions (`firstOf()`, `lastOf()`, etc.) - Deferred evaluation
 until
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 
 ### 5. Vectorized Parameters
 
@@ -843,7 +844,7 @@ sudo fc-cache -f
 ```
 
 After installing, restart R (or call
-[`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)
+[`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md)
 in a running session) so ksTFL picks up the new fonts.
 
 #### Rocker Docker images
@@ -884,8 +885,8 @@ tfl_rescan_fonts()
 
 | Function | Purpose |
 |----|----|
-| [`tfl_font_status()`](https://example.com/reference/tfl_font_status.md) | Print current font resolution report |
-| [`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md) | Re-scan all font directories and print updated report |
+| [`tfl_font_status()`](https://crow16384.github.io/ksTFL-release/reference/tfl_font_status.md) | Print current font resolution report |
+| [`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md) | Re-scan all font directories and print updated report |
 
 ------------------------------------------------------------------------
 
@@ -950,8 +951,9 @@ single R package:
 - The **R layer** generates validated JSON specifications describing
   document structure, content, column formats, and styles
 - The **C++ rendering engine** (built-in, C++20, used by
-  [`write_doc()`](https://example.com/reference/write_doc.md) /
-  [`replay_report()`](https://example.com/reference/replay_report.md))
+  [`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+  /
+  [`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md))
   consumes these specifications and produces styled DOCX documents with
   deterministic pagination
 

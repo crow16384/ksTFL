@@ -42,7 +42,7 @@ widths are calculated:
     - Automatically assigned width “0.0cm”
     - Excluded from all width calculations
     - Data still accessible for conditional logic (e.g.,
-      [`compute_cols()`](https://example.com/reference/compute_cols.md))
+      [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md))
 
 ### Initial Width Distribution
 
@@ -413,8 +413,8 @@ control - Or lock all columns explicitly
 
 > **Note**: `spec$.metadata` is an internal field. Its structure may
 > change between package versions. Use `print(spec)` and
-> [`define_cols()`](https://example.com/reference/define_cols.md) for
-> all user-facing width inspection and control.
+> [`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+> for all user-facing width inspection and control.
 
 ksTFL stores width metadata internally in `spec$.metadata$colWidths`.
 This is used by the package itself to: - Recalculate widths without
@@ -430,7 +430,8 @@ to modify them.
 1.  **Start with defaults**: Let ksTFL auto-detect widths initially
 2.  **Lock strategically**: Fix only the columns that need exact widths
 3.  **Use print()**: Inspect the spec after each
-    [`define_cols()`](https://example.com/reference/define_cols.md) call
+    [`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+    call
 4.  **Test rendering**: Verify widths in actual output documents
 5.  **Document intent**: Add comments explaining width choices
 6.  **Use invisibility**: Hide helper columns instead of tiny widths
@@ -448,13 +449,13 @@ to modify them.
 For more examples, see:
 
 - [Reporting
-  Examples](https://example.com/articles/Reporting_Examples_with_ksTFL.Rmd)
+  Examples](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md)
   — complete end-to-end workflows including column width patterns
 - [Getting
-  Started](https://example.com/articles/Getting_Started_with_ksTFL.Rmd)
+  Started](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md)
   — overview of the full pipeline
 - [Advanced
-  StyleRows](https://example.com/articles/Advanced_StyleRows.Rmd) —
-  using invisible columns with
-  [`compute_cols()`](https://example.com/reference/compute_cols.md) for
-  conditional logic
+  StyleRows](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md)
+  — using invisible columns with
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+  for conditional logic

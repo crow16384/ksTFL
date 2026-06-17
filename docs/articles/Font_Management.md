@@ -75,12 +75,12 @@ font families: `font_arial`, `font_courier_new`, `font_times_new_roman`,
 `font_georgia`, `font_verdana`, and `font_trebuchet_ms`. These atoms set
 only `font_name`, so they can be safely combined with size, colour,
 alignment, and other style atoms via
-[`f_combine()`](https://example.com/reference/f_combine.md).
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
 
 ## Checking Font Status
 
 After loading the package, call
-[`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)
+[`tfl_font_status()`](https://crow16384.github.io/ksTFL-release/reference/tfl_font_status.md)
 to see the current font resolution:
 
 ``` r
@@ -134,7 +134,7 @@ accepts a character vector of directory paths.
 ## Rescanning Fonts
 
 Call
-[`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)
+[`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md)
 after:
 
 - Installing new system fonts
@@ -170,9 +170,10 @@ shown.
 
 ## Interaction with `write_doc()`
 
-The [`write_doc()`](https://example.com/reference/write_doc.md) function
-(and
-[`replay_report()`](https://example.com/reference/replay_report.md))
+The
+[`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+function (and
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md))
 automatically uses the font directories from the scanner cache. You can
 still pass additional per-call directories via the `font_dirs` argument:
 

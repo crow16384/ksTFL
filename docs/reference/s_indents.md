@@ -1,7 +1,7 @@
 # Define indentation properties for paragraphs
 
 This function can only be used inside
-[`s_paragraph`](https://example.com/reference/s_paragraph.md).
+[`s_paragraph`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md).
 
 ## Usage
 

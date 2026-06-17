@@ -1,8 +1,8 @@
 # List Saved Reports in a Meta Folder
 
 Scans a meta folder produced by
-[`save_report`](https://example.com/reference/save_report.md) and
-returns a summary data frame with one row per spec JSON file. Uses
+[`save_report`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+and returns a summary data frame with one row per spec JSON file. Uses
 `_index.json` when available (fast); falls back to scanning every JSON
 file otherwise.
 
@@ -43,8 +43,8 @@ A data frame with columns:
 - datetime:
 
   ISO-8601 timestamp of when
-  [`save_report()`](https://example.com/reference/save_report.md) was
-  called.
+  [`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+  was called.
 
 - n_specs:
 

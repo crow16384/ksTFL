@@ -5,11 +5,11 @@ Update ksTFL session options. This function accepts:
 - Named scalar options (e.g. `contentWidth = "95%"`, `missings = "."`).
 
 - Settings objects produced by helper constructors such as
-  [`add_header()`](https://example.com/reference/add_header.md),
-  [`add_footer()`](https://example.com/reference/add_footer.md),
-  [`add_body_text()`](https://example.com/reference/add_body_text.md),
+  [`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md),
+  [`add_footer()`](https://crow16384.github.io/ksTFL-release/reference/add_footer.md),
+  [`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md),
   or page objects from
-  [`p_page()`](https://example.com/reference/p_page.md).
+  [`p_page()`](https://crow16384.github.io/ksTFL-release/reference/p_page.md).
 
 - A mixture of both named values and settings objects.
 
@@ -46,12 +46,12 @@ tfl_set_options(
     `missings = "."`).
 
   - Settings objects produced by helper constructors such as
-    [`add_header()`](https://example.com/reference/add_header.md),
-    [`add_footer()`](https://example.com/reference/add_footer.md),
-    [`add_style()`](https://example.com/reference/add_style.md),
-    [`add_body_text()`](https://example.com/reference/add_body_text.md),
+    [`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md),
+    [`add_footer()`](https://crow16384.github.io/ksTFL-release/reference/add_footer.md),
+    [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md),
+    [`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md),
     and
-    `set_page_style(`p_page([`p_margins()`](https://example.com/reference/p_margins.md))`)`.
+    `set_page_style(`p_page([`p_margins()`](https://crow16384.github.io/ksTFL-release/reference/p_margins.md))`)`.
 
   - A mixture of both named values and settings objects is accepted; the
     function routes each into the appropriate internal slot.
@@ -62,7 +62,7 @@ tfl_set_options(
   `"CRO Example_default"`, `"Navy_Pro"`) or a file path to an external
   template JSON file. When `NULL` (default) the current session template
   is left unchanged. Use
-  [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md)
+  [`tfl_reset_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_reset_options.md)
   to restore the built-in default (`"CRO Example_default"`).
 
 - footnotePlace:
@@ -89,14 +89,14 @@ tfl_set_options(
 
   Character; default width for figure output (e.g. `"6in"`, `"16cm"`).
   Applied when
-  [`create_figure()`](https://example.com/reference/create_figure.md)
+  [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
   specs do not specify their own width.
 
 - figureHeight:
 
   Character; default height for figure output (e.g. `"4in"`, `"10cm"`).
   Applied when
-  [`create_figure()`](https://example.com/reference/create_figure.md)
+  [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
   specs do not specify their own height.
 
 - figureDevice:
@@ -113,7 +113,7 @@ tfl_set_options(
 
   Logical; enable automatic column width recalculation when user sets
   `colWidth` via
-  [`define_cols()`](https://example.com/reference/define_cols.md).
+  [`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md).
   Default TRUE. When TRUE, locked columns maintain exact width while
   unlocked columns normalize to fill remaining space. Set FALSE to
   disable auto-recalculation and manage widths manually.
@@ -128,8 +128,10 @@ tfl_set_options(
 
   Logical; when `TRUE` the renderer prepends a Table of Contents page
   (using a `{ TOC \f \h \z }` field) before the first spec. Requires at
-  least one [`add_title()`](https://example.com/reference/add_title.md)
-  or [`add_subtitle()`](https://example.com/reference/add_subtitle.md)
+  least one
+  [`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md)
+  or
+  [`add_subtitle()`](https://crow16384.github.io/ksTFL-release/reference/add_subtitle.md)
   call with `toclevel` set. Default `FALSE`. Can be overridden
   per-render via `save_report(insertTOC = )`.
 
@@ -151,7 +153,7 @@ tfl_set_options(
 ## Value
 
 The updated settings list, returned invisibly. Use
-[`tfl_get_options()`](https://example.com/reference/tfl_get_options.md)
+[`tfl_get_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_options.md)
 to inspect.
 
 ## Details

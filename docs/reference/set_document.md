@@ -2,11 +2,13 @@
 
 Define document-level properties. Multiple calls merge with last-win
 strategy. Document type (`docType`) is set automatically by
-[`create_table()`](https://example.com/reference/create_table.md),
-[`create_figure()`](https://example.com/reference/create_figure.md), or
-[`create_text()`](https://example.com/reference/create_text.md) and
-cannot be changed here. Global document order (`docOrder`) is assigned
-by [`create_report()`](https://example.com/reference/create_report.md).
+[`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md),
+[`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md),
+or
+[`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md)
+and cannot be changed here. Global document order (`docOrder`) is
+assigned by
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md).
 
 ## Usage
 
@@ -82,7 +84,7 @@ set_document(
   Character. Template to use for rendering. Accepts either:
 
   - Name of a bundled template (see
-    [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)).
+    [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md)).
 
   - Full path to a custom styles JSON file.
 

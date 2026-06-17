@@ -14,7 +14,7 @@
   height.
 - Added report-writer regression coverage for both row-break and
   deterministic paths with grouped rows and
-  [`c_addrow()`](https://example.com/reference/c_addrow.md).
+  [`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md).
 
 ## ksTFL 0.11.4
 
@@ -35,13 +35,13 @@
 ### Bug fixes
 
 - Fixed `inst/examples/full_cycle_render.R`: five
-  [`create_figure()`](https://example.com/reference/create_figure.md)
+  [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
   calls incorrectly passed non-existent `width`, `height`, and `device`
   arguments. Replaced with
   `tfl_set_options(figureWidth =, figureHeight =, figureDevice =)` calls
   placed immediately before each
-  [`create_figure()`](https://example.com/reference/create_figure.md).
-  [`create_figure()`](https://example.com/reference/create_figure.md)
+  [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md).
+  [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
   reads figure dimensions and device from session options at call time;
   only `dpi` is a valid direct argument.
 
@@ -49,7 +49,7 @@
 
 ### `create_report()` accepts list-of-specs arguments
 
-- [`create_report()`](https://example.com/reference/create_report.md)
+- [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
   now accepts plain `list` arguments whose elements are `TFL_spec` or
   `TFL_report` objects. Specs may be built independently (e.g. in a loop
   or across separate program files), collected into a named list, and
@@ -67,7 +67,7 @@
   elements inside a list are flattened with their original keys
   preserved. Nested lists are rejected.
 
-- [`create_report()`](https://example.com/reference/create_report.md)
+- [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
   now auto-disambiguates duplicate keys among newly-added specs by
   appending a numeric suffix (`_2`, `_3`, …) instead of erroring. A
   `cli_inform()` message is emitted for each renamed key. Key collisions
@@ -131,7 +131,7 @@ locale independence, and hot paths in the rendering engine.
 - **Font registry thread-safety** (`font_scanner.h/.cpp`): migrated to
   `std::shared_mutex`; reader accessors take `std::shared_lock` and
   return by value, so
-  [`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)
+  [`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md)
   remains safe to call while renders run. (`std::call_once` rejected
   because rescanning is an explicit user feature.)
 - **UTF-8 decoder validation** (`text_measurer.cpp`): each continuation
@@ -266,7 +266,7 @@ locale independence, and hot paths in the rendering engine.
 ### Fixes
 
 - **Style deep-merge across
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   blocks**: `.append_style_action()` no longer removes entire
   multi-column style actions when a later block partially overlaps
   columns; only the overlapping columns are surgically replaced,
@@ -281,20 +281,21 @@ locale independence, and hot paths in the rendering engine.
   `._consolidate_styles_in_spec()` now merges styles in the order
   specified by the user (e.g. `f_combine("a", "b")` applies `a` first,
   then `b` wins) instead of sorting alphabetically.
-- **[`f_combine()`](https://example.com/reference/f_combine.md) accepted
-  in [`c_style()`](https://example.com/reference/c_style.md),
-  [`c_merge()`](https://example.com/reference/c_merge.md),
-  [`c_addrow()`](https://example.com/reference/c_addrow.md)**:
+- **[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+  accepted in
+  [`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+  [`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md),
+  [`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)**:
   `styleRef` parameters in row-action functions now accept multi-element
   style vectors produced by
-  [`f_combine()`](https://example.com/reference/f_combine.md).
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
 - **`.combine_column_styles()` handles nested
-  [`f_combine()`](https://example.com/reference/f_combine.md)**:
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)**:
   replaced `do.call(f_combine, ...)` with direct
   [`unlist()`](https://rdrr.io/r/base/unlist.html) + class assignment to
   correctly flatten style refs that already contain multi-element
   vectors.
-- **[`compute_cols()`](https://example.com/reference/compute_cols.md)
+- **[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   accepts scalar `TRUE`/`FALSE`**: a scalar logical condition is now
   recycled to match `nrow(data)`, allowing
   `compute_cols(spec, TRUE, ...)` as shorthand for “all rows”.
@@ -314,10 +315,11 @@ locale independence, and hot paths in the rendering engine.
   borders underline only the text content within a cell, enabling visual
   gaps between spanning header groups without inserting dummy columns.
   - New `borders` parameter in
-    [`s_paragraph()`](https://example.com/reference/s_paragraph.md)
+    [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
     accepts a border spec built with
-    [`s_borders()`](https://example.com/reference/s_borders.md) /
-    [`s_border()`](https://example.com/reference/s_border.md).
+    [`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
+    /
+    [`s_border()`](https://crow16384.github.io/ksTFL-release/reference/s_border.md).
   - C++ rendering engine emits `<w:pBdr>` elements in paragraph
     properties.
   - JSON schema (`styles_schema_v2.json`) updated to allow `borders`
@@ -334,10 +336,11 @@ locale independence, and hot paths in the rendering engine.
 ### Documentation
 
 - Updated roxygen documentation for
-  [`s_paragraph()`](https://example.com/reference/s_paragraph.md),
-  [`s_borders()`](https://example.com/reference/s_borders.md), and
-  [`s_border()`](https://example.com/reference/s_border.md) to describe
-  paragraph border usage.
+  [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md),
+  [`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md),
+  and
+  [`s_border()`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
+  to describe paragraph border usage.
 - New “Paragraph-level borders” subsection and updated atom reference
   table in the Styling Guide vignette.
 - New Example 3 (paragraph borders on spanning headers) in the Reporting
@@ -368,25 +371,28 @@ locale independence, and hot paths in the rendering engine.
 
 ### New Features
 
-- Page settings ([`p_page()`](https://example.com/reference/p_page.md) /
-  [`set_page_style()`](https://example.com/reference/set_page_style.md))
+- Page settings
+  ([`p_page()`](https://crow16384.github.io/ksTFL-release/reference/p_page.md)
+  /
+  [`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md))
   now support partial overrides — only explicitly specified fields
   override the template defaults, enabling lighter per-spec
   customisation.
 - Per-column style mapping: character vector `style_refs` in
-  [`add_style()`](https://example.com/reference/add_style.md) now
-  accepts a vector of length equal to the number of columns, with `NA`
-  to skip individual columns.
+  [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+  now accepts a vector of length equal to the number of columns, with
+  `NA` to skip individual columns.
 - New `Listings_times` built-in template (Times New Roman variant of the
   Listings template).
 
 ### Fixes
 
-- [`add_header()`](https://example.com/reference/add_header.md) /
-  [`add_footer()`](https://example.com/reference/add_footer.md) with
-  `level` replacement now correctly returns the right
+- [`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md)
+  /
+  [`add_footer()`](https://crow16384.github.io/ksTFL-release/reference/add_footer.md)
+  with `level` replacement now correctly returns the right
   `TFL_options_header` / `TFL_options_footer` class when used via
-  [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md).
+  [`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md).
 - Default page settings changed from a fixed `A4 / portrait` override to
   `NULL`, so bare specs inherit all page properties from the active
   template without unintended overrides.
@@ -453,7 +459,7 @@ locale independence, and hot paths in the rendering engine.
   `font_verdana`, and `font_trebuchet_ms`. These atoms set `font_name`
   only and are intended for composition with existing size, colour,
   alignment, and spacing atoms via
-  [`f_combine()`](https://example.com/reference/f_combine.md).
+  [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
 
 ### Documentation
 

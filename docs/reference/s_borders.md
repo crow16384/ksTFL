@@ -1,9 +1,9 @@
 # Define borders for table cells or paragraphs
 
 This function can be used inside
-[`s_table_style`](https://example.com/reference/s_table_style.md)
+[`s_table_style`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)
 (cell-level borders) or
-[`s_paragraph`](https://example.com/reference/s_paragraph.md)
+[`s_paragraph`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
 (paragraph-level borders).
 
 ## Usage
@@ -17,22 +17,22 @@ s_borders(top = NULL, bottom = NULL, left = NULL, right = NULL)
 - top:
 
   Top border created with
-  [`s_border`](https://example.com/reference/s_border.md)
+  [`s_border`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
 
 - bottom:
 
   Bottom border created with
-  [`s_border`](https://example.com/reference/s_border.md)
+  [`s_border`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
 
 - left:
 
   Left border created with
-  [`s_border`](https://example.com/reference/s_border.md)
+  [`s_border`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
 
 - right:
 
   Right border created with
-  [`s_border`](https://example.com/reference/s_border.md)
+  [`s_border`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
 
 ## Value
 

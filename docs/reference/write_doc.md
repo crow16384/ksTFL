@@ -1,10 +1,10 @@
 # Save and Render a TFL Report to DOCX
 
 Convenience wrapper around
-[`save_report()`](https://example.com/reference/save_report.md) and the
-internal DOCX renderer that saves a `TFL_report` object to JSON (plus
-any required data/figure files) and immediately renders it to a DOCX
-file in a single call.
+[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+and the internal DOCX renderer that saves a `TFL_report` object to JSON
+(plus any required data/figure files) and immediately renders it to a
+DOCX file in a single call.
 
 ## Usage
 
@@ -29,7 +29,7 @@ write_doc(
 - report:
 
   A `TFL_report` object created by
-  [`create_report()`](https://example.com/reference/create_report.md).
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md).
 
 - name:
 
@@ -50,14 +50,14 @@ write_doc(
 - prettify:
 
   Logical. When `TRUE`, pretty‑prints the JSON written by
-  [`save_report()`](https://example.com/reference/save_report.md) for
-  easier inspection. Default `FALSE` (compact JSON).
+  [`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+  for easier inspection. Default `FALSE` (compact JSON).
 
 - toc:
 
   Logical. When `TRUE`, enables automatic insertion of a Table of
   Contents page via
-  [`save_report()`](https://example.com/reference/save_report.md).
+  [`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md).
   Defaults to `tfl_get_option("insertTOC")`.
 
 - tocTitle:
@@ -106,11 +106,11 @@ public, documented API function named `write_doc()`.
 
 ## See also
 
-[`create_report()`](https://example.com/reference/create_report.md),
-[`save_report()`](https://example.com/reference/save_report.md),
-[`replay_report()`](https://example.com/reference/replay_report.md),
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md),
-[`tfl_get_option()`](https://example.com/reference/tfl_get_option.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md),
+[`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md),
+[`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md),
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md),
+[`tfl_get_option()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_option.md)
 
 ## Examples
 

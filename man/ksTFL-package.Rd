@@ -35,6 +35,8 @@ To get started, see the vignettes:
 Useful links:
 \itemize{
   \item \url{https://crow16384.github.io/ksTFL-release/}
+  \item \url{https://github.com/crow16384/ksTFL}
+  \item Report bugs at \url{https://github.com/crow16384/ksTFL/issues}
 }
 
 }

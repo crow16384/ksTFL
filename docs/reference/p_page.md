@@ -1,7 +1,7 @@
 # Define page settings
 
 This function can only be used inside
-[`set_page_style`](https://example.com/reference/set_page_style.md).
+[`set_page_style`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md).
 
 ## Usage
 
@@ -22,8 +22,8 @@ p_page(size = NULL, orientation = NULL, margins = NULL)
 - margins:
 
   Margins object created with
-  [`p_margins`](https://example.com/reference/p_margins.md) or a list
-  with keys: top, bottom, left, right, header, footer
+  [`p_margins`](https://crow16384.github.io/ksTFL-release/reference/p_margins.md)
+  or a list with keys: top, bottom, left, right, header, footer
 
 ## Value
 

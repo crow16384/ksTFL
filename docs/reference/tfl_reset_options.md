@@ -4,7 +4,7 @@ Restores all ksTFL session options (headers, footers, body text, styles,
 page settings, column width behavior, etc.) to their original package
 defaults. Useful at the start of a new reporting session or after
 experimenting with
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md).
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md).
 
 ## Usage
 
@@ -18,9 +18,9 @@ The default options list, returned invisibly.
 
 ## See also
 
-[`tfl_set_options()`](https://example.com/reference/tfl_set_options.md),
-[`tfl_get_options()`](https://example.com/reference/tfl_get_options.md),
-[`tfl_get_option()`](https://example.com/reference/tfl_get_option.md)
+[`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md),
+[`tfl_get_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_options.md),
+[`tfl_get_option()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_option.md)
 
 ## Examples
 

@@ -24,7 +24,7 @@ save_report(
 - report:
 
   A TFL_report object (output from
-  [`create_report()`](https://example.com/reference/create_report.md))
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md))
 
 - docFileName:
 
@@ -56,11 +56,13 @@ save_report(
 
   Logical. When `TRUE` the renderer prepends a Table of Contents page
   (using a `{ TOC \f \h \z }` field) before the first spec. Requires at
-  least one [`add_title()`](https://example.com/reference/add_title.md)
-  or [`add_subtitle()`](https://example.com/reference/add_subtitle.md)
+  least one
+  [`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md)
+  or
+  [`add_subtitle()`](https://crow16384.github.io/ksTFL-release/reference/add_subtitle.md)
   call with `toclevel` set. Defaults to the `insertTOC` package option
   (see
-  [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)).
+  [`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)).
   Default `FALSE`.
 
 - tocTitle:

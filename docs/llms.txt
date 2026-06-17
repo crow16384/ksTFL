@@ -1,7 +1,7 @@
 # ksTFL: Clinical Tables, Figures, and Listings Framework
 
 [![License: GPL
-v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://example.com/LICENSE)
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://crow16384.github.io/ksTFL-release/LICENSE)
 
 ![ksTFL logo](reference/figures/ksTFL-logo.svg)
 
@@ -221,7 +221,7 @@ Create specification objects for different document types:
 |----|----|----|
 | `create_table(data, cols = everything())` | Initialize table spec with data frame | `TFL_spec` |
 | `create_figure(plot_or_path, dpi = 300L)` | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
-| [`create_text()`](https://example.com/reference/create_text.md) | Initialize text-only spec (no data) | `TFL_spec` |
+| [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md) | Initialize text-only spec (no data) | `TFL_spec` |
 
 ### Content Functions
 
@@ -277,7 +277,7 @@ Apply dynamic styling based on data conditions:
 | `c_style(cols, styleRef)` | Apply style to specified cells | `c_style(c(col1, col2), styleRef = "bold")` |
 | `c_merge(cols, styleRef)` | Merge specified cells into one cell | `c_merge(c(col1, col2, col3))` |
 | `c_addrow(position, value_from, styleRef)` | Insert row above/below | `c_addrow("above", group_col, styleRef = "header")` |
-| [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) | Insert page break at matching rows | [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) |
+| [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md) | Insert page break at matching rows | [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md) |
 
 **Helper Functions for Conditions**:
 
@@ -292,10 +292,10 @@ Apply dynamic styling based on data conditions:
   every n-th block defined by `col`
 
 Note: The `cols` argument passed to
-[`c_merge()`](https://example.com/reference/c_merge.md) must resolve to
-at least two consecutive columns in the final report column order. The
-merged cell’s displayed value is taken from the first column in the
-`cols` sequence.
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+must resolve to at least two consecutive columns in the final report
+column order. The merged cell’s displayed value is taken from the first
+column in the `cols` sequence.
 
 ### Style Definitions
 
@@ -315,16 +315,17 @@ Define and compose styles:
 
 **Context-Based Nesting Rules**:
 
-- [`s_font()`](https://example.com/reference/s_font.md),
-  [`s_paragraph()`](https://example.com/reference/s_paragraph.md),
-  [`s_table_style()`](https://example.com/reference/s_table_style.md) —
-  direct children of
-  [`add_style()`](https://example.com/reference/add_style.md)
-- [`s_borders()`](https://example.com/reference/s_borders.md) — must be
-  inside `s_table_style(borders = s_borders(...))`
-- [`s_spacing()`](https://example.com/reference/s_spacing.md),
-  [`s_indents()`](https://example.com/reference/s_indents.md) — must be
-  inside [`s_paragraph()`](https://example.com/reference/s_paragraph.md)
+- [`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md),
+  [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md),
+  [`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)
+  — direct children of
+  [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+- [`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
+  — must be inside `s_table_style(borders = s_borders(...))`
+- [`s_spacing()`](https://crow16384.github.io/ksTFL-release/reference/s_spacing.md),
+  [`s_indents()`](https://crow16384.github.io/ksTFL-release/reference/s_indents.md)
+  — must be inside
+  [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
 - Built-in target font atoms are available for direct `styleRef`
   composition: `font_arial`, `font_courier_new`, `font_times_new_roman`,
   `font_georgia`, `font_verdana`, `font_trebuchet_ms`
@@ -374,14 +375,14 @@ Combine specifications into reports and render to DOCX:
 - Assigns sequential document order
 - Generates unique data references
 - Evaluates deferred
-  [`compute_cols()`](https://example.com/reference/compute_cols.md)
+  [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
   conditions against data environment
 - Supports mixing `TFL_spec` and `TFL_report` objects
 
 **save_report() Parameters**:
 
 - `report`: A `TFL_report` object from
-  [`create_report()`](https://example.com/reference/create_report.md)
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 - `docFileName`: Output filename (e.g., `"report.docx"`)
 - `outDir`: Output directory (defaults to tfl_options)
 - `metaPath`: Directory for metadata/data files (defaults to
@@ -391,7 +392,7 @@ Combine specifications into reports and render to DOCX:
 **write_doc() Parameters**:
 
 - `report`: A `TFL_report` object from
-  [`create_report()`](https://example.com/reference/create_report.md)
+  [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 - `name`: Base output filename (without `.docx`)
 - `outDir`: Output directory for the final DOCX
 - `metaPath`: Directory for metadata/data files
@@ -408,16 +409,16 @@ Configure global defaults that apply to all specs in a session:
 | Function | Purpose |
 |----|----|
 | `tfl_set_options(...)` | Set package-level options (replaces, not accumulates) |
-| [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md) | Retrieve all current options |
+| [`tfl_get_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_options.md) | Retrieve all current options |
 | `tfl_get_option(name)` | Retrieve single option value |
-| [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md) | Reset all options to defaults |
-| [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md) | List available bundled document templates |
+| [`tfl_reset_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_reset_options.md) | Reset all options to defaults |
+| [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md) | List available bundled document templates |
 
 **All Configurable Parameters**:
 
 | Parameter | Default | Type | Description |
 |----|----|----|----|
-| `docTemplate` | `"CRO Example_default"` | Character | Document style template (bundled name or path to JSON). Use [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md) to list available embedded templates, or use template editor shiny addin to create your own |
+| `docTemplate` | `"CRO Example_default"` | Character | Document style template (bundled name or path to JSON). Use [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md) to list available embedded templates, or use template editor shiny addin to create your own |
 | `contentWidth` | `"100%"` | Character | Main content area width (e.g., `"95%"`, `"16.51cm"`, `"6.5in"`) |
 | `footnotePlace` | `"repeated"` | Character | Footnote placement: `"repeated"` (every page), `"last_page"`, or `"doc_footer"` |
 | `isContinues` | `FALSE` | Logical | Suppress repeating headers on every page of the document |
@@ -434,8 +435,8 @@ Configure global defaults that apply to all specs in a session:
 | `meta_directory` | `NULL` | Character | Directory for intermediate metadata files; `NULL` defaults to output dir or temp |
 
 **Page Layout** (via
-[`set_page_style()`](https://example.com/reference/set_page_style.md) or
-`tfl_set_options(set_page_style(...))`):
+[`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md)
+or `tfl_set_options(set_page_style(...))`):
 
 | Parameter | Default | Valid Values |
 |----|----|----|
@@ -477,10 +478,10 @@ tfl_set_options(
 
 ksTFL ships with 100+ **atomic styles** — single-property building
 blocks that can be used directly as `styleRef` values or combined with
-[`f_combine()`](https://example.com/reference/f_combine.md). Each atom
-sets exactly **one** visual property, making styles composable and
-predictable. Use
-[`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
+[`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md).
+Each atom sets exactly **one** visual property, making styles composable
+and predictable. Use
+[`tfl_print_style_atoms()`](https://crow16384.github.io/ksTFL-release/reference/tfl_print_style_atoms.md)
 to print all avaialbe atomic styles, or use addin to call this function.
 
 **Usage**: pass atom IDs directly to any `styleRef` parameter, or
@@ -720,7 +721,7 @@ define_cols(spec, where(is.numeric), colWidth = "auto")
 
 ### 2. Style Consolidation
 
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 automatically:
 
 - Merges `f_combine("style1", "style2")` into single `style_<hash>`
@@ -739,10 +740,10 @@ C++ renderer
 
 Original data preserved (shadow-copy) in `.metadata$data_env` for: -
 Conditional expressions in
-[`compute_cols()`](https://example.com/reference/compute_cols.md) -
+[`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md) -
 Helper functions (`firstOf()`, `lastOf()`, etc.) - Deferred evaluation
 until
-[`create_report()`](https://example.com/reference/create_report.md)
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
 
 ### 5. Vectorized Parameters
 
@@ -843,7 +844,7 @@ sudo fc-cache -f
 ```
 
 After installing, restart R (or call
-[`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)
+[`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md)
 in a running session) so ksTFL picks up the new fonts.
 
 #### Rocker Docker images
@@ -884,8 +885,8 @@ tfl_rescan_fonts()
 
 | Function | Purpose |
 |----|----|
-| [`tfl_font_status()`](https://example.com/reference/tfl_font_status.md) | Print current font resolution report |
-| [`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md) | Re-scan all font directories and print updated report |
+| [`tfl_font_status()`](https://crow16384.github.io/ksTFL-release/reference/tfl_font_status.md) | Print current font resolution report |
+| [`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md) | Re-scan all font directories and print updated report |
 
 ------------------------------------------------------------------------
 
@@ -950,8 +951,9 @@ single R package:
 - The **R layer** generates validated JSON specifications describing
   document structure, content, column formats, and styles
 - The **C++ rendering engine** (built-in, C++20, used by
-  [`write_doc()`](https://example.com/reference/write_doc.md) /
-  [`replay_report()`](https://example.com/reference/replay_report.md))
+  [`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+  /
+  [`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md))
   consumes these specifications and produces styled DOCX documents with
   deterministic pagination
 
@@ -965,165 +967,165 @@ auditability from data to final document
 
 ## All functions
 
-- [`add_body_text()`](https://example.com/reference/add_body_text.md) :
-  Add body text
-- [`add_body_text(`*`<TFL_options>`*`)`](https://example.com/reference/add_body_text.TFL_options.md)
+- [`add_body_text()`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.md)
+  : Add body text
+- [`add_body_text(`*`<TFL_options>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.TFL_options.md)
   : Add body text for TFL_options
-- [`add_body_text(`*`<TFL_spec>`*`)`](https://example.com/reference/add_body_text.TFL_spec.md)
+- [`add_body_text(`*`<TFL_spec>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.TFL_spec.md)
   : Add body text for TFL_spec
-- [`add_body_text(`*`<default>`*`)`](https://example.com/reference/add_body_text.default.md)
+- [`add_body_text(`*`<default>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_body_text.default.md)
   : Default method for add_body_text
-- [`add_footer()`](https://example.com/reference/add_footer.md) : Add a
-  footer row
-- [`add_footer(`*`<TFL_options>`*`)`](https://example.com/reference/add_footer.TFL_options.md)
+- [`add_footer()`](https://crow16384.github.io/ksTFL-release/reference/add_footer.md)
+  : Add a footer row
+- [`add_footer(`*`<TFL_options>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_footer.TFL_options.md)
   : Add a footer row for TFL_options
-- [`add_footer(`*`<TFL_spec>`*`)`](https://example.com/reference/add_footer.TFL_spec.md)
+- [`add_footer(`*`<TFL_spec>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_footer.TFL_spec.md)
   : Add a footer row for TFL_spec
-- [`add_footer(`*`<default>`*`)`](https://example.com/reference/add_footer.default.md)
+- [`add_footer(`*`<default>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_footer.default.md)
   : Default method for add_footer
-- [`add_footnote()`](https://example.com/reference/add_footnote.md) :
-  Add a footnote
-- [`add_header()`](https://example.com/reference/add_header.md) : Add a
-  header row
-- [`add_header(`*`<TFL_options>`*`)`](https://example.com/reference/add_header.TFL_options.md)
+- [`add_footnote()`](https://crow16384.github.io/ksTFL-release/reference/add_footnote.md)
+  : Add a footnote
+- [`add_header()`](https://crow16384.github.io/ksTFL-release/reference/add_header.md)
+  : Add a header row
+- [`add_header(`*`<TFL_options>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_header.TFL_options.md)
   : Add a header row for TFL_options
-- [`add_header(`*`<TFL_spec>`*`)`](https://example.com/reference/add_header.TFL_spec.md)
+- [`add_header(`*`<TFL_spec>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_header.TFL_spec.md)
   : Add a header row for TFL_spec
-- [`add_header(`*`<default>`*`)`](https://example.com/reference/add_header.default.md)
+- [`add_header(`*`<default>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_header.default.md)
   : Default method for add_header
-- [`add_span_header()`](https://example.com/reference/add_span_header.md)
+- [`add_span_header()`](https://crow16384.github.io/ksTFL-release/reference/add_span_header.md)
   : Add stub (spanning) column definition
-- [`add_style()`](https://example.com/reference/add_style.md) : Add or
-  update a style definition
-- [`add_style(`*`<TFL_options>`*`)`](https://example.com/reference/add_style.TFL_options.md)
+- [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+  : Add or update a style definition
+- [`add_style(`*`<TFL_options>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_style.TFL_options.md)
   : Add or update a style definition for TFL_options
-- [`add_style(`*`<TFL_spec>`*`)`](https://example.com/reference/add_style.TFL_spec.md)
+- [`add_style(`*`<TFL_spec>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_style.TFL_spec.md)
   : Add or update a style definition for TFL_spec
-- [`add_style(`*`<default>`*`)`](https://example.com/reference/add_style.default.md)
+- [`add_style(`*`<default>`*`)`](https://crow16384.github.io/ksTFL-release/reference/add_style.default.md)
   : Default method for add_style
-- [`add_subtitle()`](https://example.com/reference/add_subtitle.md) :
-  Add a subtitle
-- [`add_title()`](https://example.com/reference/add_title.md) : Add a
-  title
-- [`c_addrow()`](https://example.com/reference/c_addrow.md) : Insert
-  Additional Row in Conditional Rows
-- [`c_clear()`](https://example.com/reference/c_clear.md) : Clear Cell
-  Content in Conditional Rows
-- [`c_glue()`](https://example.com/reference/c_glue.md) : Concatenate a
-  Value to Cell Text in Conditional Rows
-- [`c_merge()`](https://example.com/reference/c_merge.md) : Merge
-  Adjacent Columns in Conditional Rows
-- [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md) :
-  Insert a page break at the matching row
-- [`c_style()`](https://example.com/reference/c_style.md) : Apply Style
-  to Columns in Conditional Rows
-- [`clean_reports()`](https://example.com/reference/clean_reports.md) :
-  Clean Obsolete and Orphaned JSON Files from a Meta Folder
-- [`compute_cols()`](https://example.com/reference/compute_cols.md) :
-  Define Conditional Row Actions for Tables
-- [`create_figure()`](https://example.com/reference/create_figure.md) :
-  Create a Figure Specification
-- [`create_report()`](https://example.com/reference/create_report.md) :
-  Combine Multiple TFL Specifications and/or Reports into a Single
+- [`add_subtitle()`](https://crow16384.github.io/ksTFL-release/reference/add_subtitle.md)
+  : Add a subtitle
+- [`add_title()`](https://crow16384.github.io/ksTFL-release/reference/add_title.md)
+  : Add a title
+- [`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
+  : Insert Additional Row in Conditional Rows
+- [`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md)
+  : Clear Cell Content in Conditional Rows
+- [`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md)
+  : Concatenate a Value to Cell Text in Conditional Rows
+- [`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md)
+  : Merge Adjacent Columns in Conditional Rows
+- [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md)
+  : Insert a page break at the matching row
+- [`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md)
+  : Apply Style to Columns in Conditional Rows
+- [`clean_reports()`](https://crow16384.github.io/ksTFL-release/reference/clean_reports.md)
+  : Clean Obsolete and Orphaned JSON Files from a Meta Folder
+- [`compute_cols()`](https://crow16384.github.io/ksTFL-release/reference/compute_cols.md)
+  : Define Conditional Row Actions for Tables
+- [`create_figure()`](https://crow16384.github.io/ksTFL-release/reference/create_figure.md)
+  : Create a Figure Specification
+- [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md)
+  : Combine Multiple TFL Specifications and/or Reports into a Single
   Report
-- [`create_table()`](https://example.com/reference/create_table.md) :
-  Create a Table Specification
-- [`create_text()`](https://example.com/reference/create_text.md) :
-  Create a Text Document Specification
-- [`define_cols()`](https://example.com/reference/define_cols.md) :
-  Define or modify column properties
-- [`f_combine()`](https://example.com/reference/f_combine.md) : Combine
-  multiple style names for explicit grouping
-- [`list_reports()`](https://example.com/reference/list_reports.md) :
-  List Saved Reports in a Meta Folder
-- [`p_margins()`](https://example.com/reference/p_margins.md) : Define
-  page margins
-- [`p_page()`](https://example.com/reference/p_page.md) : Define page
-  settings
-- [`print(`*`<TFL_spec>`*`)`](https://example.com/reference/print.TFL_spec.md)
+- [`create_table()`](https://crow16384.github.io/ksTFL-release/reference/create_table.md)
+  : Create a Table Specification
+- [`create_text()`](https://crow16384.github.io/ksTFL-release/reference/create_text.md)
+  : Create a Text Document Specification
+- [`define_cols()`](https://crow16384.github.io/ksTFL-release/reference/define_cols.md)
+  : Define or modify column properties
+- [`f_combine()`](https://crow16384.github.io/ksTFL-release/reference/f_combine.md)
+  : Combine multiple style names for explicit grouping
+- [`list_reports()`](https://crow16384.github.io/ksTFL-release/reference/list_reports.md)
+  : List Saved Reports in a Meta Folder
+- [`p_margins()`](https://crow16384.github.io/ksTFL-release/reference/p_margins.md)
+  : Define page margins
+- [`p_page()`](https://crow16384.github.io/ksTFL-release/reference/p_page.md)
+  : Define page settings
+- [`print(`*`<TFL_spec>`*`)`](https://crow16384.github.io/ksTFL-release/reference/print.TFL_spec.md)
   : Print method for TFL specification objects
-- [`replay_report()`](https://example.com/reference/replay_report.md) :
-  Re-render a DOCX from Stored JSON
-- [`run_replay_app()`](https://example.com/reference/run_replay_app.md)
+- [`replay_report()`](https://crow16384.github.io/ksTFL-release/reference/replay_report.md)
+  : Re-render a DOCX from Stored JSON
+- [`run_replay_app()`](https://crow16384.github.io/ksTFL-release/reference/run_replay_app.md)
   : Launch the Combined Replay Shiny App
-- [`run_styles_editor()`](https://example.com/reference/run_styles_editor.md)
+- [`run_styles_editor()`](https://crow16384.github.io/ksTFL-release/reference/run_styles_editor.md)
   : Launch the styles template editor Shiny app
-- [`s_border()`](https://example.com/reference/s_border.md) : Define
-  border properties
-- [`s_borders()`](https://example.com/reference/s_borders.md) : Define
-  borders for table cells or paragraphs
-- [`s_font()`](https://example.com/reference/s_font.md) : Define font
-  properties for a style
-- [`s_indents()`](https://example.com/reference/s_indents.md) : Define
-  indentation properties for paragraphs
-- [`s_paragraph()`](https://example.com/reference/s_paragraph.md) :
-  Define paragraph properties for a style
-- [`s_spacing()`](https://example.com/reference/s_spacing.md) : Define
-  spacing properties for paragraphs
-- [`s_table_style()`](https://example.com/reference/s_table_style.md) :
-  Define table-specific styling
-- [`save_report()`](https://example.com/reference/save_report.md) : Save
-  TFL Report to JSON with Data Files
-- [`set_document()`](https://example.com/reference/set_document.md) :
-  Set document properties
-- [`set_page_style()`](https://example.com/reference/set_page_style.md)
+- [`s_border()`](https://crow16384.github.io/ksTFL-release/reference/s_border.md)
+  : Define border properties
+- [`s_borders()`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md)
+  : Define borders for table cells or paragraphs
+- [`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md)
+  : Define font properties for a style
+- [`s_indents()`](https://crow16384.github.io/ksTFL-release/reference/s_indents.md)
+  : Define indentation properties for paragraphs
+- [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)
+  : Define paragraph properties for a style
+- [`s_spacing()`](https://crow16384.github.io/ksTFL-release/reference/s_spacing.md)
+  : Define spacing properties for paragraphs
+- [`s_table_style()`](https://crow16384.github.io/ksTFL-release/reference/s_table_style.md)
+  : Define table-specific styling
+- [`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md)
+  : Save TFL Report to JSON with Data Files
+- [`set_document()`](https://crow16384.github.io/ksTFL-release/reference/set_document.md)
+  : Set document properties
+- [`set_page_style()`](https://crow16384.github.io/ksTFL-release/reference/set_page_style.md)
   : Set document style properties
-- [`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)
+- [`tfl_font_status()`](https://crow16384.github.io/ksTFL-release/reference/tfl_font_status.md)
   : Show current font status
-- [`tfl_get_option()`](https://example.com/reference/tfl_get_option.md)
+- [`tfl_get_option()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_option.md)
   : Retrieve a single package option
-- [`tfl_get_options()`](https://example.com/reference/tfl_get_options.md)
+- [`tfl_get_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_get_options.md)
   : Return the active package options
-- [`tfl_list_templates()`](https://example.com/reference/tfl_list_templates.md)
+- [`tfl_list_templates()`](https://crow16384.github.io/ksTFL-release/reference/tfl_list_templates.md)
   : List available bundled templates
-- [`tfl_print_style_atoms()`](https://example.com/reference/tfl_print_style_atoms.md)
-  [`tfl_style_atoms_catalog()`](https://example.com/reference/tfl_print_style_atoms.md)
+- [`tfl_print_style_atoms()`](https://crow16384.github.io/ksTFL-release/reference/tfl_print_style_atoms.md)
+  [`tfl_style_atoms_catalog()`](https://crow16384.github.io/ksTFL-release/reference/tfl_print_style_atoms.md)
   : Print all built-in style atoms to the console
-- [`tfl_rescan_fonts()`](https://example.com/reference/tfl_rescan_fonts.md)
+- [`tfl_rescan_fonts()`](https://crow16384.github.io/ksTFL-release/reference/tfl_rescan_fonts.md)
   : Rescan system fonts
-- [`tfl_reset_options()`](https://example.com/reference/tfl_reset_options.md)
+- [`tfl_reset_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_reset_options.md)
   : Reset all session options to package defaults
-- [`tfl_set_options()`](https://example.com/reference/tfl_set_options.md)
+- [`tfl_set_options()`](https://crow16384.github.io/ksTFL-release/reference/tfl_set_options.md)
   : Update the session package settings
-- [`tfl_spec_preview_selection()`](https://example.com/reference/tfl_spec_addins.md)
-  [`tfl_spec_preview_prompt()`](https://example.com/reference/tfl_spec_addins.md)
+- [`tfl_spec_preview_selection()`](https://crow16384.github.io/ksTFL-release/reference/tfl_spec_addins.md)
+  [`tfl_spec_preview_prompt()`](https://crow16384.github.io/ksTFL-release/reference/tfl_spec_addins.md)
   : RStudio Addins for TFL Specification Preview
-- [`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md) :
-  Open the HTML TFL Specification Preview in the RStudio Viewer
-- [`write_doc()`](https://example.com/reference/write_doc.md) : Save and
-  Render a TFL Report to DOCX
+- [`view_tfl_spec()`](https://crow16384.github.io/ksTFL-release/reference/view_tfl_spec.md)
+  : Open the HTML TFL Specification Preview in the RStudio Viewer
+- [`write_doc()`](https://crow16384.github.io/ksTFL-release/reference/write_doc.md)
+  : Save and Render a TFL Report to DOCX
 
 # Articles
 
 ### Foundations
 
 - [Getting Started with
-  ksTFL](https://example.com/articles/Getting_Started_with_ksTFL.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/Getting_Started_with_ksTFL.md):
 - [Reporting Examples using
-  ksTFL](https://example.com/articles/Reporting_Examples_with_ksTFL.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/Reporting_Examples_with_ksTFL.md):
 - [Real Examples of Clinical Outputs using
-  ksTFL](https://example.com/articles/Real_Examples_with_ksTFL.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/Real_Examples_with_ksTFL.md):
 
 ### FAQ And Troubleshooting
 
 - [FAQ and Practical Gotchas in
-  ksTFL](https://example.com/articles/FAQ_with_ksTFL.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/FAQ_with_ksTFL.md):
 
 ### Styling And Layout
 
 - [Styling Guide
-  (ksTFL)](https://example.com/articles/Styling_Guide_with_ksTFL.md):
+  (ksTFL)](https://crow16384.github.io/ksTFL-release/articles/Styling_Guide_with_ksTFL.md):
 - [Column Width Management in
-  ksTFL](https://example.com/articles/Column_Width_Management.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/Column_Width_Management.md):
 
 ### Advanced Workflows
 
 - [Advanced StyleRows and Conditional Formatting in
-  ksTFL](https://example.com/articles/Advanced_StyleRows.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/Advanced_StyleRows.md):
 
 ### Internals
 
 - [Rendering Pipeline and Full C++ Architecture in
-  ksTFL](https://example.com/articles/Rendering_Pipeline.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/Rendering_Pipeline.md):
 - [Font Management in
-  ksTFL](https://example.com/articles/Font_Management.md):
+  ksTFL](https://crow16384.github.io/ksTFL-release/articles/Font_Management.md):

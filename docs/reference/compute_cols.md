@@ -3,7 +3,7 @@
 Declares a set of styling, merging, and row insertion actions to be
 applied to rows matching a condition. Actions are captured as
 unevaluated expressions and evaluated later during
-[`create_report()`](https://example.com/reference/create_report.md).
+[`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md).
 Supports complex conditions using data columns and helper functions.
 
 ## Usage
@@ -32,12 +32,12 @@ compute_cols(spec, cond, ...)
 - ...:
 
   Action function calls:
-  [`c_style()`](https://example.com/reference/c_style.md),
-  [`c_merge()`](https://example.com/reference/c_merge.md),
-  [`c_addrow()`](https://example.com/reference/c_addrow.md),
-  [`c_glue()`](https://example.com/reference/c_glue.md),
-  [`c_clear()`](https://example.com/reference/c_clear.md). Multiple
-  actions allowed, including duplicates. Actions are captured
+  [`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+  [`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md),
+  [`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md),
+  [`c_glue()`](https://crow16384.github.io/ksTFL-release/reference/c_glue.md),
+  [`c_clear()`](https://crow16384.github.io/ksTFL-release/reference/c_clear.md).
+  Multiple actions allowed, including duplicates. Actions are captured
   unevaluated.
 
 ## Value
@@ -55,7 +55,7 @@ enable piping workflows.
 2.  Appends to `spec$.metadata$compute_cols` list
 
 3.  During
-    [`create_report()`](https://example.com/reference/create_report.md),
+    [`create_report()`](https://crow16384.github.io/ksTFL-release/reference/create_report.md),
     conditions are evaluated and matched rows identified
 
 4.  Actions are applied to matching rows (styling, merging, row
@@ -84,7 +84,7 @@ enable piping workflows.
 - `c_addrow(pos, value_from = NULL, styleRef = NULL)`: Insert row
   above/below matching rows
 
-- [`c_pageBreak()`](https://example.com/reference/c_pageBreak.md):
+- [`c_pageBreak()`](https://crow16384.github.io/ksTFL-release/reference/c_pageBreak.md):
   Insert a page break at the matching row (no args)
 
 - `c_glue(cols, position, glue_col = NULL, text = NULL, separator = NULL)`:
@@ -95,10 +95,10 @@ enable piping workflows.
 
 ## See also
 
-[`c_style()`](https://example.com/reference/c_style.md),
-[`c_merge()`](https://example.com/reference/c_merge.md),
-[`c_addrow()`](https://example.com/reference/c_addrow.md) for action
-functions used within `compute_cols()`
+[`c_style()`](https://crow16384.github.io/ksTFL-release/reference/c_style.md),
+[`c_merge()`](https://crow16384.github.io/ksTFL-release/reference/c_merge.md),
+[`c_addrow()`](https://crow16384.github.io/ksTFL-release/reference/c_addrow.md)
+for action functions used within `compute_cols()`
 
 ## Examples
 

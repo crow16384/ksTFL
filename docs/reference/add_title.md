@@ -51,8 +51,8 @@ add_title(
   To generate a TOC page, set `toclevel` here and either call
   `tfl_set_options(insertTOC = TRUE)` for the whole session or pass
   `insertTOC = TRUE` to
-  [`save_report()`](https://example.com/reference/save_report.md). The
-  renderer will prepend a "Table of Contents" page with a
+  [`save_report()`](https://crow16384.github.io/ksTFL-release/reference/save_report.md).
+  The renderer will prepend a "Table of Contents" page with a
   `{ TOC \f \h \z }` field. Open the generated document in Word, click
   inside the TOC area, and press **F9** to populate it.
 

@@ -32,30 +32,19 @@ after the first successful output: hidden helper columns, width recalculation,
 span header levels, replay metadata, template precedence, Table of
 Contents behavior, and practical `define_cols()` / `compute_cols()` recipes.
 
-It is intentionally practical:
-
-- Audience: users who already built at least one spec and now need to debug or
-  sharpen a workflow
-- Focus: small but important behaviors that are easy to miss on a first read
-- Outcome: faster diagnosis and cleaner report programs
-
-When a source program is mentioned below, it refers to the corresponding script
-under `inst/examples/showcase/`.
+It is intentionally practical: the audience is readers who already built at
+least one spec and now need to debug or sharpen a workflow.
 
 Related reading:
 
-- [Getting Started](Getting_Started_with_ksTFL.Rmd) for the core pipeline and
-  object model
-- [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for minimal end-to-
-  end patterns
-- [Real Examples](Real_Examples_with_ksTFL.Rmd) for fuller clinical-style
-  outputs
-- [Advanced StyleRows](Advanced_StyleRows.Rmd) for `compute_cols()` and row
-  actions
-- [Column Width Management](Column_Width_Management.Rmd) for width locking and
-  hidden-column rules
-- [Font Management](Font_Management.Rmd) for font discovery and fallback
-- [Rendering Pipeline](Rendering_Pipeline.Rmd) for renderer internals
+- [Getting Started](Getting_Started_with_ksTFL.html) for the pipeline and
+  object model.
+- [Advanced StyleRows](Advanced_StyleRows.html),
+  [Column Width Management](Column_Width_Management.html), and
+  [Real Examples](Real_Examples_with_ksTFL.html) when a question turns into a
+  deeper workflow problem.
+- [Font Management](Font_Management.html) for font discovery and fallback
+- [Rendering Pipeline](Rendering_Pipeline.html) for renderer internals
 
 ------------------------------------------------------------------------
 
@@ -67,9 +56,6 @@ Because `cols` is a presentation lens, not a data-mutation step. ksTFL keeps
 the full input data inside the spec's shadow data so later `compute_cols()`
 calls can still reference helper fields that never appear in the document.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd), [Reporting
-Examples](Reporting_Examples_with_ksTFL.Rmd), `01_clinical_table_showcase.R`.
-
 ### 2. Can I hide a column and still use it in `compute_cols()`?
 
 Yes. This is the standard helper-column pattern: set `isVisible = FALSE` and
@@ -77,9 +63,11 @@ keep using that column in conditions or `value_from` arguments. The package
 examples do this with fields such as `SECTION`, `SECTION_ID`, `MODELVAL`, and
 `SOC_GROUP`.
 
-See also: [Real Examples](Real_Examples_with_ksTFL.Rmd), [Advanced
-StyleRows](Advanced_StyleRows.Rmd), `01_clinical_table_showcase.R`,
-`10_ae_template_ru_real_counts.R`.
+```r
+spec <- create_table(df) |>
+  define_cols(FLAG, isVisible = FALSE) |>
+  compute_cols(FLAG == "Y", c_style(c(PARAM, VALUE), styleRef = "flagged"))
+```
 
 ### 3. Why can I not set `colWidth` on an invisible column?
 
@@ -87,26 +75,25 @@ Invisible columns are forced to width `"0.0cm"` and removed from width
 recalculation entirely. If a column must reserve visual space, it is not truly
 invisible and should stay visible.
 
-See also: [Column Width Management](Column_Width_Management.Rmd), [Getting
-Started](Getting_Started_with_ksTFL.Rmd).
-
 ### 4. Why did the other column widths change after I locked one column?
 
 Setting `colWidth` locks those columns. With `autoColWidth = TRUE` (the
 default), ksTFL re-normalizes the remaining visible unlocked columns so they
 fill the leftover width.
 
-See also: [Column Width Management](Column_Width_Management.Rmd),
-`16_table_layout_options.R`.
+```r
+spec <- create_table(df) |>
+  define_cols(ID, colWidth = "20%")
+```
+
+After that call, `ID` stays fixed at `20%` and the remaining visible unlocked
+columns are recalculated to fill the rest.
 
 ### 5. Why did `c_glue()` not modify a repeated value?
 
 If a cell was already suppressed by `dedupe = TRUE`, `c_glue()` skips it on
 purpose. The same skip happens for non-leader cells inside a merge, so glue the
 leader column or turn deduplication off for that field.
-
-See also: [Advanced StyleRows](Advanced_StyleRows.Rmd),
-`02_listing_paging_colbreak.R`, `13_dm_table.R`.
 
 ------------------------------------------------------------------------
 
@@ -118,8 +105,12 @@ See also: [Advanced StyleRows](Advanced_StyleRows.Rmd),
 need section-level or whole-table aggregates, calculate them upstream or write
 them into a helper column before creating the spec.
 
-See also: [Advanced StyleRows](Advanced_StyleRows.Rmd), [Real
-Examples](Real_Examples_with_ksTFL.Rmd).
+```r
+df$group_mean <- ave(df$AVAL, df$GROUP, FUN = mean)
+
+spec <- create_table(df) |>
+  compute_cols(group_mean > 10, c_style(AVAL, styleRef = "flagged"))
+```
 
 ### 7. Can I nest `c_*()` actions inside each other?
 
@@ -127,17 +118,17 @@ No. Row actions are siblings, not nested verbs. Either pass multiple actions to
 one `compute_cols()` call or use several `compute_cols()` calls with the same
 condition.
 
-See also: [Advanced StyleRows](Advanced_StyleRows.Rmd), [Getting
-Started](Getting_Started_with_ksTFL.Rmd).
-
 ### 8. Why does every `add_span_header()` call create a new row of headers?
 
 Because `stubOrder` auto-increments when you omit it. Reuse the same
 `stubOrder` for sibling span headers that belong on one header row, and only
 increase it when you really want a new level.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd), [Real
-Examples](Real_Examples_with_ksTFL.Rmd), `12_ae_table.R`.
+```r
+spec <- create_table(df) |>
+  add_span_header(c(TRT_A_N, TRT_A_PCT), label = "Treatment A", stubOrder = 1) |>
+  add_span_header(c(TRT_B_N, TRT_B_PCT), label = "Treatment B", stubOrder = 1)
+```
 
 ### 9. Can span headers overlap?
 
@@ -145,16 +136,20 @@ Yes across different levels, no within the same level. Headers at the same
 `stubOrder` must not share columns, but parent and child levels can overlap
 freely.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd), [Real
-Examples](Real_Examples_with_ksTFL.Rmd).
-
 ### 10. How do I keep a small table under a figure on the same page?
 
 Set `continuousSection = TRUE` on the following spec, not the first one. Keep
 page size and margins compatible across both sections, and use this pattern for
 short follow-on content because Word still handles overflow naturally.
 
-See also: `03.1_table_under_figure.R`, `03_narrative_figure_table.R`.
+```r
+report <- create_report(
+  create_figure(plot_obj) |>
+    set_document(continuousSection = TRUE),
+  create_table(summary_tbl) |>
+    set_document(continuousSection = TRUE)
+)
+```
 
 ### 11. When should I use `isGrouping`, `isPaging`, and `isColBreak`?
 
@@ -163,17 +158,15 @@ that value change should start a new vertical page group, and `isColBreak` when
 a wide listing should split horizontally into segments while repeating ID
 columns.
 
-See also: [Real Examples](Real_Examples_with_ksTFL.Rmd), [Rendering
-Pipeline](Rendering_Pipeline.Rmd), `02_listing_paging_colbreak.R`.
-
 ### 12. Why do my footnotes repeat on every page?
 
 That is the default: `footnotePlace = "repeated"`. Switch to `"last_page"`
 when you want a final note block only, or `"doc_footer"` when the note belongs
 in the Word footer area.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd), [Real
-Examples](Real_Examples_with_ksTFL.Rmd).
+```r
+tfl_set_options(footnotePlace = "last_page")
+```
 
 ------------------------------------------------------------------------
 
@@ -187,8 +180,12 @@ spec JSON plus table/figure payloads without rendering, while `replay_report()`
 renders later from those saved artifacts and can also combine previously saved
 outputs into one document.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd),
-`04_meta_replay_clean.R`, `19_join_outputs_with_toc.R`.
+```r
+write_doc(report, name = "tables")
+
+saved <- save_report(report, docFileName = "tables.docx", metaPath = "meta")
+replay_report(saved$spec_file, meta_dir = "meta")
+```
 
 ### 14. When do I need a persistent `metaPath` instead of `tempdir()`?
 
@@ -200,8 +197,10 @@ If you replay by DOCX name, ksTFL resolves the latest saved spec in that meta
 folder; if you need an exact historical version, replay by the saved JSON file
 name instead.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd),
-`04_meta_replay_clean.R`, `06_premium_qc_repro.R`.
+```r
+replay_report("tables.docx", meta_dir = "meta")
+replay_report("abc123def456.json", meta_dir = "meta")
+```
 
 ### 15. Can I delete the original figure file after saving a report?
 
@@ -209,17 +208,18 @@ For replay-based workflows, yes after a successful save, because ksTFL copies
 the figure into `metaPath` under its `dataRef`. The saved meta folder becomes
 the durable rendering input.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd),
-`14_figures.R`.
-
 ### 16. Why did different sections of one report use different templates?
 
 That is the default behavior for multi-spec reports. Each spec resolves its own
 `docTemplate`, so a table can use one bundled template while a text or figure
 section uses another.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd),
-`09_template_override_multi_spec.R`.
+```r
+report <- create_report(
+  create_table(adsl) |> set_page_style(docTemplate = "Navy_Pro"),
+  create_text() |> set_page_style(docTemplate = "Carbon_Dark")
+)
+```
 
 ### 17. How do I force one template across every section?
 
@@ -227,7 +227,10 @@ Use `overrideTemplate` in `write_doc()` or `replay_report()`. That global
 override wins over per-spec `docTemplate` values and is the cleanest way to
 re-skin a finished bundle.
 
-See also: `09_template_override_multi_spec.R`, `17_combined_replay.R`.
+```r
+write_doc(report, name = "tables", overrideTemplate = "Navy_Pro")
+replay_report("tables.docx", meta_dir = "meta", overrideTemplate = "Navy_Pro")
+```
 
 ------------------------------------------------------------------------
 
@@ -240,16 +243,17 @@ You need both parts of the contract: request a TOC (`toc = TRUE`,
 subtitle with `toclevel`. A TOC request with no `toclevel` entries has nothing
 to index.
 
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd), [Real
-Examples](Real_Examples_with_ksTFL.Rmd).
+```r
+spec <- create_table(df) |>
+  add_title("Table 1", toclevel = 1)
+
+write_doc(create_report(spec), name = "tables", toc = TRUE)
+```
 
 ### 19. Why is the TOC still just a placeholder when I open the DOCX?
 
 ksTFL writes a Word TOC field, not a pre-expanded static table. Open the file
 in Word, click inside the TOC, and update fields with `F9` to populate it.
-
-See also: [Getting Started](Getting_Started_with_ksTFL.Rmd),
-`19_join_outputs_with_toc.R`.
 
 ### 20. Can `create_report()` accept a named list of specs built in a loop?
 
@@ -257,8 +261,14 @@ Yes. `create_report()` accepts named lists of `TFL_spec` objects, which is
 useful when specs are created dynamically or in separate program files. The
 list names become the key prefixes inside the final `TFL_report`.
 
-See also: `18_list_of_specs_bundle.R`, [Reporting Examples]
-(Reporting_Examples_with_ksTFL.Rmd).
+```r
+specs <- list(
+  demog = create_table(adsl),
+  labs = create_table(adlb)
+)
+
+report <- create_report(specs)
+```
 
 ------------------------------------------------------------------------
 
@@ -276,7 +286,7 @@ or base value styles.
 spec <- create_table(adsl) |>
   define_cols(
     c(AGE, WEIGHT, HEIGHT),
-    label = c("Age", "Weight\n(kg)", "Height\n(cm)"),
+    label = c("Age", "Weight<br>(kg)", "Height<br>(cm)"),
     colWidth = c("12%", "14%", "14%"),
     valueStyleRef = c("ar", "ar", "ar")
   )
@@ -467,8 +477,7 @@ spec <- create_table(df) |>
 
 Row actions are siblings, not nested verbs.
 
-### 31. How do I build a two-level stub with one hidden column and two style
-rules?
+### 31. How do I build a two-level stub with one hidden column and two style rules?
 
 Insert the group header from the hidden column, then use separate style rules
 for summary rows and detail rows.
@@ -494,3 +503,154 @@ spec <- create_table(df) |>
 
 That pattern is handy when the output stub needs visible hierarchy even though
 the source data is still flat.
+
+### 32. Can I combine multiple actions of the same or different types, and how do they work together?
+
+Yes, but as sibling actions, not nested calls. You can pass any mix of
+`c_style()`, `c_addrow()`, `c_merge()`, `c_clear()`, `c_glue()`, and
+`c_pageBreak()` in one `compute_cols()` call.
+
+```r
+spec <- create_table(df) |>
+  compute_cols(
+    firstOf(GROUP),
+    c_addrow("above", value_from = GROUP, styleRef = "b"),
+    c_style(c(PARAM, VALUE), styleRef = f_combine("b", "fc_navy"))
+  ) |>
+  compute_cols(
+    PARAM == "TOTAL",
+    c_merge(c(PARAM, VALUE), styleRef = "ar"),
+    c_clear(PARAM),
+    c_glue(PARAM, "after", text = "Total: "),
+    c_glue(PARAM, "after", VALUE)
+  )
+```
+
+Practical rule: when one action depends on the visual result of another,
+prefer separate `compute_cols()` calls (as above) to keep intent explicit.
+
+### 33. How can I create three- or four-level nested text in one column (for example Parameter/Visit/Statistic indentation)?
+
+It depends on the input data shape. Two common patterns are shown below.
+
+#### Pattern A: detail rows only, hierarchy injected with `c_addrow()`
+
+```r
+dt <- tibble::tribble(
+  ~PARAM, ~VISIT, ~STATISTICS, ~VALUE,
+  "ALT", "Visit 1", "Mean", 1L,
+  "ALT", "Visit 1", "Median", 2L,
+  "ALT", "Visit 2", "Mean", 1L,
+  "ALT", "Visit 2", "Median", 2L,
+  "AST", "Visit 1", "Mean", 1L,
+  "AST", "Visit 1", "Median", 2L,
+  "AST", "Visit 2", "Mean", 1L,
+  "AST", "Visit 2", "Median", 2L
+)
+
+spec <- create_table(dt) |>
+  define_cols(c(PARAM, VISIT), isVisible = FALSE) |>
+  define_cols(
+    c(STATISTICS, VALUE),
+    label = c("Parameter<br>  Visit<br>    Statistics", "Value"),
+    valueStyleRef = c("indent_2", NA),
+    labelStyleRef = c("al", NA)
+  ) |>
+  compute_cols(
+    firstOf(PARAM),
+    c_addrow("above", value_from = PARAM)
+  ) |>
+  compute_cols(
+    firstOf(VISIT),
+    c_addrow("above", value_from = VISIT, styleRef = "indent_1")
+  )
+```
+
+What this does and why:
+
+- Input contains only detail rows (`STATISTICS` + `VALUE`).
+- `PARAM` and `VISIT` are hidden helper columns that drive layout.
+- `c_addrow()` inserts visible hierarchy rows above first parameter/visit
+  boundaries.
+- This keeps source data tidy while producing a nested visual stub.
+
+#### Pattern B: placeholder hierarchy rows in data, collapsed with `c_merge()`
+
+```r
+dt <- tibble::tribble(
+  ~PARAM, ~VISIT, ~STATISTICS, ~VALUE,
+  "ALT", "Visit 1", NA, NA,
+  "ALT", "Visit 1", NA, NA,
+  "ALT", "Visit 1", "Mean", 1L,
+  "ALT", "Visit 1", "Median", 2L,
+  "ALT", "Visit 2", NA, NA,
+  "ALT", "Visit 2", NA, NA,
+  "ALT", "Visit 2", "Mean", 1L,
+  "ALT", "Visit 2", "Median", 2L,
+  "AST", "Visit 1", NA, NA,
+  "AST", "Visit 1", NA, NA,
+  "AST", "Visit 1", "Mean", 1L,
+  "AST", "Visit 1", "Median", 2L,
+  "AST", "Visit 2", NA, NA,
+  "AST", "Visit 2", NA, NA,
+  "AST", "Visit 2", "Mean", 1L,
+  "AST", "Visit 2", "Median", 2L
+)
+
+spec <- create_table(dt) |>
+  define_cols(c(PARAM, VISIT), isVisible = FALSE) |>
+  define_cols(
+    c(STATISTICS, VALUE),
+    label = c("Parameter<br>  Visit<br>    Statistics", "Value"),
+    valueStyleRef = c("indent_2", NA),
+    labelStyleRef = c("al", NA)
+  ) |>
+  compute_cols(
+    firstOf(PARAM, VISIT),
+    c_merge(c(PARAM, VISIT, STATISTICS), styleRef = "indent_0")
+  ) |>
+  compute_cols(
+    !firstOf(PARAM, VISIT) & is.na(STATISTICS),
+    c_merge(c(VISIT, STATISTICS), styleRef = "indent_1")
+  )
+```
+
+What this does and why:
+
+- Input already contains placeholder hierarchy rows (`STATISTICS = NA`).
+- `c_merge()` turns those rows into spanning hierarchy lines.
+- First merge call builds the top level (`PARAM` + `VISIT` context).
+- Second merge call handles lower placeholder rows (visit-level line).
+- This pattern is useful when source extracts already contain structural rows
+  and you want to preserve that model.
+
+Both patterns are valid. Choose by source shape:
+
+- Use Pattern A when hierarchy should be derived from boundaries.
+- Use Pattern B when hierarchy rows already exist in incoming data.
+
+### 34. How do I switch between continuous sections, repeating/not repeating headers, and row-break behavior across pages?
+
+These controls come from different layers:
+
+- Continuous sections between specs: use `set_document(continuousSection = TRUE)`
+  on the following spec.
+- Repeating title/subtitle groups across pages: controlled by `isContinues`
+  (`FALSE` repeats, `TRUE` suppresses repeated title/subtitle output).
+- Table header repetition and row splitting across pages are template layout
+  settings (`repeat_header_on_each_page`, `allow_row_break_across_pages`).
+
+```r
+report <- create_report(
+  create_table(tbl_a) |>
+    set_document(isContinues = FALSE),
+  create_table(tbl_b) |>
+    set_document(continuousSection = TRUE, isContinues = TRUE)
+)
+
+write_doc(report, name = "layout_switch")
+```
+
+Important caveat: when `isColBreak` is active, ksTFL enforces
+`repeat_header_on_each_page = TRUE` and
+`allow_row_break_across_pages = FALSE` for correct horizontal pagination.

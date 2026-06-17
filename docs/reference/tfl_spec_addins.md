@@ -28,4 +28,4 @@ Both functions require RStudio
 
 ## See also
 
-[`view_tfl_spec()`](https://example.com/reference/view_tfl_spec.md)
+[`view_tfl_spec()`](https://crow16384.github.io/ksTFL-release/reference/view_tfl_spec.md)

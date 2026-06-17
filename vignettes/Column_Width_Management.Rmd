@@ -32,19 +32,9 @@ options(pkgdown.internet = FALSE)
 
 ## Overview
 
-This vignette explains how column widths are managed in ksTFL, including
-the LOCKED/UNLOCKED/VISIBLE partitioning system, automatic recalculation
-behavior, and strategies for fine-tuning table layouts.
-
-## Category and scope
-
-This is a layout and pagination control vignette.
-
--   Audience: users optimizing table readability and page-fit behavior
--   Focus: width locking, auto-recalculation, invisible columns, and
-    tradeoffs
--   Outcome: predictable, reproducible table geometry in rendered DOCX
-    output
+This guide covers column width management in ksTFL: the
+LOCKED/UNLOCKED/VISIBLE model, automatic recalculation, invisible-column
+rules, and the tradeoffs involved in making tables fit cleanly on the page.
 
 ## Core Concepts
 
@@ -457,9 +447,9 @@ to modify them.
 
 For more examples, see:
 
--   [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — complete
+-   [Reporting Examples](Reporting_Examples_with_ksTFL.html) — complete
     end-to-end workflows including column width patterns
--   [Getting Started](Getting_Started_with_ksTFL.Rmd) — overview of the
+-   [Getting Started](Getting_Started_with_ksTFL.html) — overview of the
     full pipeline
--   [Advanced StyleRows](Advanced_StyleRows.Rmd) — using invisible
+-   [Advanced StyleRows](Advanced_StyleRows.html) — using invisible
     columns with `compute_cols()` for conditional logic

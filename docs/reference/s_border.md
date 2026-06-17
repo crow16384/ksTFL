@@ -1,7 +1,7 @@
 # Define border properties
 
 This function can only be used inside
-[`s_borders`](https://example.com/reference/s_borders.md).
+[`s_borders`](https://crow16384.github.io/ksTFL-release/reference/s_borders.md).
 
 ## Usage
 

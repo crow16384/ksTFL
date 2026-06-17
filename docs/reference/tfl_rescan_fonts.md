@@ -38,7 +38,7 @@ that. To make the setting persistent across sessions, add the
 
 ## See also
 
-[`tfl_font_status()`](https://example.com/reference/tfl_font_status.md)
+[`tfl_font_status()`](https://crow16384.github.io/ksTFL-release/reference/tfl_font_status.md)
 to print the cached report without rescanning.
 
 ## Examples

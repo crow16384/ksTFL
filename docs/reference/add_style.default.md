@@ -24,12 +24,12 @@ add_style(spec, id = NULL, ...)
   Style modifiers
 
   - Functions created with `s_*()` helpers (e.g.,
-    [`s_font()`](https://example.com/reference/s_font.md),
-    [`s_paragraph()`](https://example.com/reference/s_paragraph.md)).
+    [`s_font()`](https://crow16384.github.io/ksTFL-release/reference/s_font.md),
+    [`s_paragraph()`](https://crow16384.github.io/ksTFL-release/reference/s_paragraph.md)).
 
   - These modifiers are evaluated in the
-    [`add_style()`](https://example.com/reference/add_style.md) context
-    and merged into the style definition.
+    [`add_style()`](https://crow16384.github.io/ksTFL-release/reference/add_style.md)
+    context and merged into the style definition.
 
 ## Value
 

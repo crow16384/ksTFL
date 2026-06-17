@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,7 +56,7 @@
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/FAQ_with_ksTFL.Rmd" class="external-link"><code>vignettes/FAQ_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>FAQ_with_ksTFL.Rmd</code></div>
     </div>
 
@@ -70,39 +71,22 @@ usually appear after the first successful output: hidden helper columns,
 width recalculation, span header levels, replay metadata, template
 precedence, Table of Contents behavior, and practical
 <code><a href="../reference/define_cols.html">define_cols()</a></code> / <code><a href="../reference/compute_cols.html">compute_cols()</a></code> recipes.</p>
-<p>It is intentionally practical:</p>
-<ul>
-<li>Audience: users who already built at least one spec and now need to
-debug or sharpen a workflow</li>
-<li>Focus: small but important behaviors that are easy to miss on a
-first read</li>
-<li>Outcome: faster diagnosis and cleaner report programs</li>
-</ul>
-<p>When a source program is mentioned below, it refers to the
-corresponding script under <code>inst/examples/showcase/</code>.</p>
+<p>It is intentionally practical: the audience is readers who already
+built at least one spec and now need to debug or sharpen a workflow.</p>
 <p>Related reading:</p>
 <ul>
 <li>
-<a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> for the
-core pipeline and object model</li>
+<a href="Getting_Started_with_ksTFL.html">Getting Started</a> for
+the pipeline and object model.</li>
 <li>
-<a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a>
-for minimal end-to- end patterns</li>
+<a href="Advanced_StyleRows.html">Advanced StyleRows</a>, <a href="Column_Width_Management.html">Column Width Management</a>, and <a href="Real_Examples_with_ksTFL.html">Real Examples</a> when a question
+turns into a deeper workflow problem.</li>
 <li>
-<a href="Real_Examples_with_ksTFL.Rmd">Real Examples</a> for fuller
-clinical-style outputs</li>
+<a href="Font_Management.html">Font Management</a> for font
+discovery and fallback</li>
 <li>
-<a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a> for
-<code><a href="../reference/compute_cols.html">compute_cols()</a></code> and row actions</li>
-<li>
-<a href="Column_Width_Management.Rmd">Column Width Management</a>
-for width locking and hidden-column rules</li>
-<li>
-<a href="Font_Management.Rmd">Font Management</a> for font discovery
-and fallback</li>
-<li>
-<a href="Rendering_Pipeline.Rmd">Rendering Pipeline</a> for renderer
-internals</li>
+<a href="Rendering_Pipeline.html">Rendering Pipeline</a> for
+renderer internals</li>
 </ul>
 <hr>
 </div>
@@ -117,9 +101,6 @@ data?<a class="anchor" aria-label="anchor" href="#why-does-cols-not-drop-the-oth
 step. ksTFL keeps the full input data inside the spec’s shadow data so
 later <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls can still reference helper
 fields that never appear in the document.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting
-Examples</a>, <code>01_clinical_table_showcase.R</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="can-i-hide-a-column-and-still-use-it-in-compute_cols">2. Can I hide a column and still use it in
@@ -130,10 +111,10 @@ Examples</a>, <code>01_clinical_table_showcase.R</code>.</p>
 or <code>value_from</code> arguments. The package examples do this with
 fields such as <code>SECTION</code>, <code>SECTION_ID</code>,
 <code>MODELVAL</code>, and <code>SOC_GROUP</code>.</p>
-<p>See also: <a href="Real_Examples_with_ksTFL.Rmd">Real Examples</a>,
-<a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a>,
-<code>01_clinical_table_showcase.R</code>,
-<code>10_ae_template_ru_real_counts.R</code>.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">FLAG</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">FLAG</span> <span class="op">==</span> <span class="st">"Y"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"flagged"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="why-can-i-not-set-colwidth-on-an-invisible-column">3. Why can I not set <code>colWidth</code> on an invisible
@@ -142,9 +123,6 @@ column?<a class="anchor" aria-label="anchor" href="#why-can-i-not-set-colwidth-o
 <p>Invisible columns are forced to width <code>"0.0cm"</code> and
 removed from width recalculation entirely. If a column must reserve
 visual space, it is not truly invisible and should stay visible.</p>
-<p>See also: <a href="Column_Width_Management.Rmd">Column Width
-Management</a>, <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>.</p>
 </div>
 <div class="section level3">
 <h3 id="why-did-the-other-column-widths-change-after-i-locked-one-column">4. Why did the other column widths change after I locked one
@@ -153,8 +131,12 @@ column?<a class="anchor" aria-label="anchor" href="#why-did-the-other-column-wid
 <p>Setting <code>colWidth</code> locks those columns. With
 <code>autoColWidth = TRUE</code> (the default), ksTFL re-normalizes the
 remaining visible unlocked columns so they fill the leftover width.</p>
-<p>See also: <a href="Column_Width_Management.Rmd">Column Width
-Management</a>, <code>16_table_layout_options.R</code>.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">ID</span>, colWidth <span class="op">=</span> <span class="st">"20%"</span><span class="op">)</span></span></code></pre></div>
+<p>After that call, <code>ID</code> stays fixed at <code>20%</code> and
+the remaining visible unlocked columns are recalculated to fill the
+rest.</p>
 </div>
 <div class="section level3">
 <h3 id="why-did-c_glue-not-modify-a-repeated-value">5. Why did <code>c_glue()</code> not modify a repeated value?<a class="anchor" aria-label="anchor" href="#why-did-c_glue-not-modify-a-repeated-value"></a>
@@ -163,9 +145,6 @@ Management</a>, <code>16_table_layout_options.R</code>.</p>
 <code><a href="../reference/c_glue.html">c_glue()</a></code> skips it on purpose. The same skip happens for
 non-leader cells inside a merge, so glue the leader column or turn
 deduplication off for that field.</p>
-<p>See also: <a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a>,
-<code>02_listing_paging_colbreak.R</code>,
-<code>13_dm_table.R</code>.</p>
 <hr>
 </div>
 </div>
@@ -180,7 +159,11 @@ such as <code>mean(x)</code>?<a class="anchor" aria-label="anchor" href="#why-do
 evaluated row-wise. If you need section-level or whole-table aggregates,
 calculate them upstream or write them into a helper column before
 creating the spec.</p>
-<p>See also: <a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a>, <a href="Real_Examples_with_ksTFL.Rmd">Real Examples</a>.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">df</span><span class="op">$</span><span class="va">group_mean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">AVAL</span>, <span class="va">df</span><span class="op">$</span><span class="va">GROUP</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">group_mean</span> <span class="op">&gt;</span> <span class="fl">10</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">AVAL</span>, styleRef <span class="op">=</span> <span class="st">"flagged"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="can-i-nest-c_-actions-inside-each-other">7. Can I nest <code>c_*()</code> actions inside each other?<a class="anchor" aria-label="anchor" href="#can-i-nest-c_-actions-inside-each-other"></a>
@@ -188,7 +171,6 @@ creating the spec.</p>
 <p>No. Row actions are siblings, not nested verbs. Either pass multiple
 actions to one <code><a href="../reference/compute_cols.html">compute_cols()</a></code> call or use several
 <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls with the same condition.</p>
-<p>See also: <a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a>, <a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a>.</p>
 </div>
 <div class="section level3">
 <h3 id="why-does-every-add_span_header-call-create-a-new-row-of-headers">8. Why does every <code>add_span_header()</code> call create a new
@@ -198,9 +180,10 @@ row of headers?<a class="anchor" aria-label="anchor" href="#why-does-every-add_s
 Reuse the same <code>stubOrder</code> for sibling span headers that
 belong on one header row, and only increase it when you really want a
 new level.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <a href="Real_Examples_with_ksTFL.Rmd">Real Examples</a>,
-<code>12_ae_table.R</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A_N</span>, <span class="va">TRT_A_PCT</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"Treatment A"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_B_N</span>, <span class="va">TRT_B_PCT</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"Treatment B"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="can-span-headers-overlap">9. Can span headers overlap?<a class="anchor" aria-label="anchor" href="#can-span-headers-overlap"></a>
@@ -208,9 +191,6 @@ Started</a>, <a href="Real_Examples_with_ksTFL.Rmd">Real Examples</a>,
 <p>Yes across different levels, no within the same level. Headers at the
 same <code>stubOrder</code> must not share columns, but parent and child
 levels can overlap freely.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <a href="Real_Examples_with_ksTFL.Rmd">Real
-Examples</a>.</p>
 </div>
 <div class="section level3">
 <h3 id="how-do-i-keep-a-small-table-under-a-figure-on-the-same-page">10. How do I keep a small table under a figure on the same
@@ -220,8 +200,13 @@ page?<a class="anchor" aria-label="anchor" href="#how-do-i-keep-a-small-table-un
 the first one. Keep page size and margins compatible across both
 sections, and use this pattern for short follow-on content because Word
 still handles overflow naturally.</p>
-<p>See also: <code>03.1_table_under_figure.R</code>,
-<code>03_narrative_figure_table.R</code>.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">plot_obj</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary_tbl</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="when-should-i-use-isgrouping-ispaging-and-iscolbreak">11. When should I use <code>isGrouping</code>,
@@ -231,9 +216,6 @@ still handles overflow naturally.</p>
 section, <code>isPaging</code> when that value change should start a new
 vertical page group, and <code>isColBreak</code> when a wide listing
 should split horizontally into segments while repeating ID columns.</p>
-<p>See also: <a href="Real_Examples_with_ksTFL.Rmd">Real Examples</a>,
-<a href="Rendering_Pipeline.Rmd">Rendering Pipeline</a>,
-<code>02_listing_paging_colbreak.R</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="why-do-my-footnotes-repeat-on-every-page">12. Why do my footnotes repeat on every page?<a class="anchor" aria-label="anchor" href="#why-do-my-footnotes-repeat-on-every-page"></a>
@@ -242,9 +224,8 @@ should split horizontally into segments while repeating ID columns.</p>
 to <code>"last_page"</code> when you want a final note block only, or
 <code>"doc_footer"</code> when the note belongs in the Word footer
 area.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <a href="Real_Examples_with_ksTFL.Rmd">Real
-Examples</a>.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span>footnotePlace <span class="op">=</span> <span class="st">"last_page"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>
@@ -261,9 +242,11 @@ Examples</a>.</p>
 payloads without rendering, while <code><a href="../reference/replay_report.html">replay_report()</a></code> renders
 later from those saved artifacts and can also combine previously saved
 outputs into one document.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <code>04_meta_replay_clean.R</code>,
-<code>19_join_outputs_with_toc.R</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"tables"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">saved</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/save_report.html">save_report</a></span><span class="op">(</span><span class="va">report</span>, docFileName <span class="op">=</span> <span class="st">"tables.docx"</span>, metaPath <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="va">saved</span><span class="op">$</span><span class="va">spec_file</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="when-do-i-need-a-persistent-metapath-instead-of-tempdir">14. When do I need a persistent <code>metaPath</code> instead of
@@ -276,9 +259,9 @@ workflow.</p>
 <p>If you replay by DOCX name, ksTFL resolves the latest saved spec in
 that meta folder; if you need an exact historical version, replay by the
 saved JSON file name instead.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <code>04_meta_replay_clean.R</code>,
-<code>06_premium_qc_repro.R</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"tables.docx"</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"abc123def456.json"</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="can-i-delete-the-original-figure-file-after-saving-a-report">15. Can I delete the original figure file after saving a
@@ -288,8 +271,6 @@ report?<a class="anchor" aria-label="anchor" href="#can-i-delete-the-original-fi
 ksTFL copies the figure into <code>metaPath</code> under its
 <code>dataRef</code>. The saved meta folder becomes the durable
 rendering input.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <code>14_figures.R</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="why-did-different-sections-of-one-report-use-different-templates">16. Why did different sections of one report use different
@@ -298,8 +279,11 @@ templates?<a class="anchor" aria-label="anchor" href="#why-did-different-section
 <p>That is the default behavior for multi-spec reports. Each spec
 resolves its own <code>docTemplate</code>, so a table can use one
 bundled template while a text or figure section uses another.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <code>09_template_override_multi_spec.R</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"Carbon_Dark"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="how-do-i-force-one-template-across-every-section">17. How do I force one template across every section?<a class="anchor" aria-label="anchor" href="#how-do-i-force-one-template-across-every-section"></a>
@@ -308,8 +292,9 @@ Started</a>, <code>09_template_override_multi_spec.R</code>.</p>
 <code><a href="../reference/replay_report.html">replay_report()</a></code>. That global override wins over per-spec
 <code>docTemplate</code> values and is the cleanest way to re-skin a
 finished bundle.</p>
-<p>See also: <code>09_template_override_multi_spec.R</code>,
-<code>17_combined_replay.R</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"tables"</span>, overrideTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"tables.docx"</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span>, overrideTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>
@@ -325,9 +310,11 @@ one?<a class="anchor" aria-label="anchor" href="#why-does-a-table-of-contents-no
 option) and mark at least one title or subtitle with
 <code>toclevel</code>. A TOC request with no <code>toclevel</code>
 entries has nothing to index.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <a href="Real_Examples_with_ksTFL.Rmd">Real
-Examples</a>.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 1"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"tables"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="why-is-the-toc-still-just-a-placeholder-when-i-open-the-docx">19. Why is the TOC still just a placeholder when I open the
@@ -336,8 +323,6 @@ DOCX?<a class="anchor" aria-label="anchor" href="#why-is-the-toc-still-just-a-pl
 <p>ksTFL writes a Word TOC field, not a pre-expanded static table. Open
 the file in Word, click inside the TOC, and update fields with
 <code>F9</code> to populate it.</p>
-<p>See also: <a href="Getting_Started_with_ksTFL.Rmd">Getting
-Started</a>, <code>19_join_outputs_with_toc.R</code>.</p>
 </div>
 <div class="section level3">
 <h3 id="can-create_report-accept-a-named-list-of-specs-built-in-a-loop">20. Can <code>create_report()</code> accept a named list of specs
@@ -347,8 +332,13 @@ built in a loop?<a class="anchor" aria-label="anchor" href="#can-create_report-a
 <code>TFL_spec</code> objects, which is useful when specs are created
 dynamically or in separate program files. The list names become the key
 prefixes inside the final <code>TFL_report</code>.</p>
-<p>See also: <code>18_list_of_specs_bundle.R</code>, [Reporting
-Examples] (Reporting_Examples_with_ksTFL.Rmd).</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">specs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  demog <span class="op">=</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span>,</span>
+<span>  labs <span class="op">=</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adlb</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">specs</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>
@@ -363,7 +353,7 @@ usually come up after the first working table.</p>
 </h3>
 <p>Use one <code><a href="../reference/define_cols.html">define_cols()</a></code> call when the columns share the
 same labels, widths, or base value styles.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">AGE</span>, <span class="va">WEIGHT</span>, <span class="va">HEIGHT</span><span class="op">)</span>,</span>
@@ -380,7 +370,7 @@ same labels, widths, or base value styles.</p>
 <p>Use <code>NA</code> at the position you want to leave unchanged. This
 is handy when most columns share one update but one column should keep
 its existing definition.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">USUBJID</span>, <span class="va">AGE</span>, <span class="va">TRT01A</span><span class="op">)</span>,</span>
@@ -399,7 +389,7 @@ formatting?<a class="anchor" aria-label="anchor" href="#how-do-i-hide-a-helper-c
 </h3>
 <p>Hide the helper with <code>isVisible = FALSE</code>, then refer to it
 in <code><a href="../reference/compute_cols.html">compute_cols()</a></code> as usual.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">FLAG</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Parameter"</span>, <span class="st">"Value"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -416,7 +406,7 @@ totals.</p>
 </h3>
 <p>Use <code><a href="../reference/c_addrow.html">c_addrow()</a></code> on the first row of each group and pull
 the display text from the hidden column.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span></span>
 <span>    <span class="st">"section_header"</span>,</span>
@@ -441,7 +431,7 @@ row.</p>
 </h3>
 <p>Precompute the subtotal upstream, hide that helper column, and insert
 it on the last row of each group.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span></span>
 <span>    <span class="st">"subtotal_row"</span>,</span>
@@ -466,7 +456,7 @@ once?<a class="anchor" aria-label="anchor" href="#how-do-i-apply-one-condition-t
 </h3>
 <p>Pass a column vector to <code><a href="../reference/c_style.html">c_style()</a></code> instead of repeating
 the same condition in separate calls.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">labs</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="st">"out_of_range"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#FF4500"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -481,7 +471,7 @@ should show it.</p>
 </h3>
 <p>Compose styles with <code><a href="../reference/f_combine.html">f_combine()</a></code> instead of defining a
 new style for every font-plus-fill pairing.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span></span>
 <span>    <span class="st">"warn_bg"</span>,</span>
@@ -499,7 +489,7 @@ new style for every font-plus-fill pairing.</p>
 <p>highlighting later?</p>
 <p>Put default alignment or indentation in <code><a href="../reference/define_cols.html">define_cols()</a></code>,
 then add the conditional layer in <code><a href="../reference/compute_cols.html">compute_cols()</a></code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span></span>
 <span>    <span class="st">"warn_row"</span>,</span>
@@ -520,7 +510,7 @@ then add the conditional layer in <code><a href="../reference/compute_cols.html"
 <p>and <code><a href="../reference/c_glue.html">c_glue()</a></code>?</p>
 <p>Use one <code><a href="../reference/compute_cols.html">compute_cols()</a></code> call when the same rows need
 several sibling actions.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="va">PRODUCT</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
@@ -540,7 +530,7 @@ without<a class="anchor" aria-label="anchor" href="#how-do-i-apply-more-than-one
 <p>nested <code>c_*()</code> calls?</p>
 <p>Keep the actions as separate arguments inside one
 <code><a href="../reference/compute_cols.html">compute_cols()</a></code> call.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="st">"boundary"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -557,7 +547,7 @@ style<a class="anchor" aria-label="anchor" href="#how-do-i-build-a-two-level-stu
 <p>rules?</p>
 <p>Insert the group header from the hidden column, then use separate
 style rules for summary rows and detail rows.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">REGION</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PRODUCT</span>, <span class="va">REVENUE</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Product"</span>, <span class="st">"Revenue"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>

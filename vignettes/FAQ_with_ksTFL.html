@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="ksTFL Team" />
+
+
+<title>FAQ and Practical Gotchas in ksTFL</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">FAQ and Practical Gotchas in ksTFL</h1>
+<h4 class="author">ksTFL Team</h4>
+
+
+
+<p><img role="img" aria-label="ksTFL logo" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTE4MCIgaGVpZ2h0PSIzNDAiIHZpZXdCb3g9IjAgMCAxMTgwIDM0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9ImtzVEZMIG1vbm9jaHJvbWUgbG9nbyI+CgoKICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyMCwyMCkgc2NhbGUoMC40KSI+CiAgICA8cG9seWdvbiBwb2ludHM9IjQ5MCw3MCA4MDAsMjUwIDgwMCw2MTAgNDkwLDc5MCAxODAsNjEwIDE4MCwyNTAiCiAgICAgICAgICAgICBmaWxsPSIjMkU4NkMxIiBzdHJva2U9IiMyRTg2QzEiIHN0cm9rZS13aWR0aD0iMTQiLz4KICAgIDxyZWN0IHg9IjI2NSIgeT0iMjIwIiB3aWR0aD0iNDUwIiBoZWlnaHQ9IjQxMCIgcng9IjI4IiBmaWxsPSIjRkZGRkZGIi8+CgogICAgPHJlY3QgeD0iMzAwIiB5PSIyNTUiIHdpZHRoPSIzODAiIGhlaWdodD0iMTA0IiByeD0iMTIiIGZpbGw9IiNGRkZGRkYiIHN0cm9rZT0iIzJFODZDMSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgICA8bGluZSB4MT0iMzAwIiB5MT0iMjg5IiB4Mj0iNjgwIiB5Mj0iMjg5IiBzdHJva2U9IiMyRTg2QzEiIHN0cm9rZS13aWR0aD0iMyIvPgogICAgPGxpbmUgeDE9IjMwMCIgeTE9IjMyMyIgeDI9IjY4MCIgeTI9IjMyMyIgc3Ryb2tlPSIjMkU4NkMxIiBzdHJva2Utd2lkdGg9IjMiLz4KICAgIDxsaW5lIHgxPSI0MjciIHkxPSIyNTUiIHgyPSI0MjciIHkyPSIzNTkiIHN0cm9rZT0iIzJFODZDMSIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgICA8bGluZSB4MT0iNTUzIiB5MT0iMjU1IiB4Mj0iNTUzIiB5Mj0iMzU5IiBzdHJva2U9IiMyRTg2QzEiIHN0cm9rZS13aWR0aD0iMyIvPgoKICAgIDxyZWN0IHg9IjMwOCIgeT0iMzkwIiB3aWR0aD0iNTIiIGhlaWdodD0iMTQ0IiByeD0iOCIgZmlsbD0iIzJFODZDMSIvPgogICAgPHJlY3QgeD0iMzgwIiB5PSIzNjIiIHdpZHRoPSI1MiIgaGVpZ2h0PSIxNzIiIHJ4PSI4IiBmaWxsPSIjMkU4NkMxIi8+CiAgICA8cmVjdCB4PSI0NTIiIHk9IjMzMCIgd2lkdGg9IjUyIiBoZWlnaHQ9IjIwNCIgcng9IjgiIGZpbGw9IiMyRTg2QzEiLz4KCiAgICA8bGluZSB4MT0iNTMyIiB5MT0iNDEwIiB4Mj0iNjQ4IiB5Mj0iNDEwIiBzdHJva2U9IiMyRTg2QzEiIHN0cm9rZS13aWR0aD0iMTAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogICAgPGxpbmUgeDE9IjUzMiIgeTE9IjQ0MiIgeDI9IjYyOCIgeTI9IjQ0MiIgc3Ryb2tlPSIjMkU4NkMxIiBzdHJva2Utd2lkdGg9IjEwIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KICAgIDxsaW5lIHgxPSI1MzIiIHkxPSI0NzQiIHgyPSI2MDgiIHkyPSI0NzQiIHN0cm9rZT0iIzJFODZDMSIgc3Ryb2tlLXdpZHRoPSIxMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CgogICAgPHRleHQgeD0iNDkwIiB5PSI3MTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgICBmb250LWZhbWlseT0iU3BhY2UgR3JvdGVzaywgU2Vnb2UgVUksIEFyaWFsLCBzYW5zLXNlcmlmIgogICAgICAgICAgZm9udC1zaXplPSIxMDgiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiMyRTg2QzEiPmtzVEZMPC90ZXh0PgogIDwvZz4KCiAgPHRleHQgeD0iMzgwIiB5PSIxODgiIGZvbnQtZmFtaWx5PSJNb250c2VycmF0LCBBdmVuaXIgTmV4dCwgU2Vnb2UgVUksIEFyaWFsLCBzYW5zLXNlcmlmIgogICAgICAgIGZvbnQtc2l6ZT0iMTI4IiBmb250LXdlaWdodD0iODAwIiBmaWxsPSIjMkU4NkMxIj5rc1RGTDwvdGV4dD4KICA8dGV4dCB4PSIzODIiIHk9IjIzNCIgZm9udC1mYW1pbHk9Ik1hbnJvcGUsIFNlZ29lIFVJLCBBcmlhbCwgc2Fucy1zZXJpZiIKICAgICAgICBmb250LXNpemU9IjI2IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMkU4NkMxIj5LZXkgU3RhdGlzdGljczwvdGV4dD4KICA8dGV4dCB4PSIzODIiIHk9IjI3NCIgZm9udC1mYW1pbHk9Ik1hbnJvcGUsIFNlZ29lIFVJLCBBcmlhbCwgc2Fucy1zZXJpZiIKICAgICAgICBmb250LXNpemU9IjMyIiBmb250LXdlaWdodD0iODAwIiBmaWxsPSIjMkU4NkMxIj5UYWJsZXMsIEZpZ3VyZXMsIExpc3RpbmdzPC90ZXh0Pgo8L3N2Zz4K" alt="ksTFL logo" width="700" /></p>
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>This vignette collects short answers to the ksTFL questions that
+usually appear after the first successful output: hidden helper columns,
+width recalculation, span header levels, replay metadata, template
+precedence, Table of Contents behavior, and practical
+<code>define_cols()</code> / <code>compute_cols()</code> recipes.</p>
+<p>It is intentionally practical:</p>
+<ul>
+<li>Audience: users who already built at least one spec and now need to
+debug or sharpen a workflow</li>
+<li>Focus: small but important behaviors that are easy to miss on a
+first read</li>
+<li>Outcome: faster diagnosis and cleaner report programs</li>
+</ul>
+<p>When a source program is mentioned below, it refers to the
+corresponding script under <code>inst/examples/showcase/</code>.</p>
+<p>Related reading:</p>
+<ul>
+<li><a href="Getting_Started_with_ksTFL.html">Getting Started</a> for
+the core pipeline and object model</li>
+<li><a href="Reporting_Examples_with_ksTFL.html">Reporting Examples</a>
+for minimal end-to- end patterns</li>
+<li><a href="Real_Examples_with_ksTFL.html">Real Examples</a> for fuller
+clinical-style outputs</li>
+<li><a href="Advanced_StyleRows.html">Advanced StyleRows</a> for
+<code>compute_cols()</code> and row actions</li>
+<li><a href="Column_Width_Management.html">Column Width Management</a>
+for width locking and hidden-column rules</li>
+<li><a href="Font_Management.html">Font Management</a> for font
+discovery and fallback</li>
+<li><a href="Rendering_Pipeline.html">Rendering Pipeline</a> for
+renderer internals</li>
+</ul>
+<hr />
+</div>
+<div id="data-and-spec-behavior" class="section level2">
+<h2>Data and spec behavior</h2>
+<div id="why-does-cols-not-drop-the-other-columns-from-my-data" class="section level3">
+<h3>1. Why does <code>cols</code> not drop the other columns from my
+data?</h3>
+<p>Because <code>cols</code> is a presentation lens, not a data-mutation
+step. ksTFL keeps the full input data inside the spec’s shadow data so
+later <code>compute_cols()</code> calls can still reference helper
+fields that never appear in the document.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <a href="Reporting_Examples_with_ksTFL.html">Reporting
+Examples</a>, <code>01_clinical_table_showcase.R</code>.</p>
+</div>
+<div id="can-i-hide-a-column-and-still-use-it-in-compute_cols" class="section level3">
+<h3>2. Can I hide a column and still use it in
+<code>compute_cols()</code>?</h3>
+<p>Yes. This is the standard helper-column pattern: set
+<code>isVisible = FALSE</code> and keep using that column in conditions
+or <code>value_from</code> arguments. The package examples do this with
+fields such as <code>SECTION</code>, <code>SECTION_ID</code>,
+<code>MODELVAL</code>, and <code>SOC_GROUP</code>.</p>
+<p>See also: <a href="Real_Examples_with_ksTFL.html">Real Examples</a>,
+<a href="Advanced_StyleRows.html">Advanced StyleRows</a>,
+<code>01_clinical_table_showcase.R</code>,
+<code>10_ae_template_ru_real_counts.R</code>.</p>
+</div>
+<div id="why-can-i-not-set-colwidth-on-an-invisible-column" class="section level3">
+<h3>3. Why can I not set <code>colWidth</code> on an invisible
+column?</h3>
+<p>Invisible columns are forced to width <code>&quot;0.0cm&quot;</code> and
+removed from width recalculation entirely. If a column must reserve
+visual space, it is not truly invisible and should stay visible.</p>
+<p>See also: <a href="Column_Width_Management.html">Column Width
+Management</a>, <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>.</p>
+</div>
+<div id="why-did-the-other-column-widths-change-after-i-locked-one-column" class="section level3">
+<h3>4. Why did the other column widths change after I locked one
+column?</h3>
+<p>Setting <code>colWidth</code> locks those columns. With
+<code>autoColWidth = TRUE</code> (the default), ksTFL re-normalizes the
+remaining visible unlocked columns so they fill the leftover width.</p>
+<p>See also: <a href="Column_Width_Management.html">Column Width
+Management</a>, <code>16_table_layout_options.R</code>.</p>
+</div>
+<div id="why-did-c_glue-not-modify-a-repeated-value" class="section level3">
+<h3>5. Why did <code>c_glue()</code> not modify a repeated value?</h3>
+<p>If a cell was already suppressed by <code>dedupe = TRUE</code>,
+<code>c_glue()</code> skips it on purpose. The same skip happens for
+non-leader cells inside a merge, so glue the leader column or turn
+deduplication off for that field.</p>
+<p>See also: <a href="Advanced_StyleRows.html">Advanced StyleRows</a>,
+<code>02_listing_paging_colbreak.R</code>,
+<code>13_dm_table.R</code>.</p>
+<hr />
+</div>
+</div>
+<div id="row-actions-and-layout-rules" class="section level2">
+<h2>Row actions and layout rules</h2>
+<div id="why-does-compute_cols-not-like-aggregate-logic-such-as-meanx" class="section level3">
+<h3>6. Why does <code>compute_cols()</code> not like aggregate logic
+such as <code>mean(x)</code>?</h3>
+<p><code>compute_cols()</code> conditions are captured lazily and
+evaluated row-wise. If you need section-level or whole-table aggregates,
+calculate them upstream or write them into a helper column before
+creating the spec.</p>
+<p>See also: <a href="Advanced_StyleRows.html">Advanced StyleRows</a>,
+<a href="Real_Examples_with_ksTFL.html">Real Examples</a>.</p>
+</div>
+<div id="can-i-nest-c_-actions-inside-each-other" class="section level3">
+<h3>7. Can I nest <code>c_*()</code> actions inside each other?</h3>
+<p>No. Row actions are siblings, not nested verbs. Either pass multiple
+actions to one <code>compute_cols()</code> call or use several
+<code>compute_cols()</code> calls with the same condition.</p>
+<p>See also: <a href="Advanced_StyleRows.html">Advanced StyleRows</a>,
+<a href="Getting_Started_with_ksTFL.html">Getting Started</a>.</p>
+</div>
+<div id="why-does-every-add_span_header-call-create-a-new-row-of-headers" class="section level3">
+<h3>8. Why does every <code>add_span_header()</code> call create a new
+row of headers?</h3>
+<p>Because <code>stubOrder</code> auto-increments when you omit it.
+Reuse the same <code>stubOrder</code> for sibling span headers that
+belong on one header row, and only increase it when you really want a
+new level.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <a href="Real_Examples_with_ksTFL.html">Real Examples</a>,
+<code>12_ae_table.R</code>.</p>
+</div>
+<div id="can-span-headers-overlap" class="section level3">
+<h3>9. Can span headers overlap?</h3>
+<p>Yes across different levels, no within the same level. Headers at the
+same <code>stubOrder</code> must not share columns, but parent and child
+levels can overlap freely.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <a href="Real_Examples_with_ksTFL.html">Real
+Examples</a>.</p>
+</div>
+<div id="how-do-i-keep-a-small-table-under-a-figure-on-the-same-page" class="section level3">
+<h3>10. How do I keep a small table under a figure on the same
+page?</h3>
+<p>Set <code>continuousSection = TRUE</code> on the following spec, not
+the first one. Keep page size and margins compatible across both
+sections, and use this pattern for short follow-on content because Word
+still handles overflow naturally.</p>
+<p>See also: <code>03.1_table_under_figure.R</code>,
+<code>03_narrative_figure_table.R</code>.</p>
+</div>
+<div id="when-should-i-use-isgrouping-ispaging-and-iscolbreak" class="section level3">
+<h3>11. When should I use <code>isGrouping</code>,
+<code>isPaging</code>, and <code>isColBreak</code>?</h3>
+<p>Use <code>isGrouping</code> when a value change defines a logical
+section, <code>isPaging</code> when that value change should start a new
+vertical page group, and <code>isColBreak</code> when a wide listing
+should split horizontally into segments while repeating ID columns.</p>
+<p>See also: <a href="Real_Examples_with_ksTFL.html">Real Examples</a>,
+<a href="Rendering_Pipeline.html">Rendering Pipeline</a>,
+<code>02_listing_paging_colbreak.R</code>.</p>
+</div>
+<div id="why-do-my-footnotes-repeat-on-every-page" class="section level3">
+<h3>12. Why do my footnotes repeat on every page?</h3>
+<p>That is the default: <code>footnotePlace = &quot;repeated&quot;</code>. Switch
+to <code>&quot;last_page&quot;</code> when you want a final note block only, or
+<code>&quot;doc_footer&quot;</code> when the note belongs in the Word footer
+area.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <a href="Real_Examples_with_ksTFL.html">Real
+Examples</a>.</p>
+<hr />
+</div>
+</div>
+<div id="rendering-replay-and-reproducibility" class="section level2">
+<h2>Rendering, replay, and reproducibility</h2>
+<div id="what-is-the-practical-difference-between-write_doc" class="section level3">
+<h3>13. What is the practical difference between
+<code>write_doc()</code>,</h3>
+<p><code>save_report()</code>, and <code>replay_report()</code>?</p>
+<p><code>write_doc()</code> is the one-step path for everyday use.
+<code>save_report()</code> writes the spec JSON plus table/figure
+payloads without rendering, while <code>replay_report()</code> renders
+later from those saved artifacts and can also combine previously saved
+outputs into one document.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <code>04_meta_replay_clean.R</code>,
+<code>19_join_outputs_with_toc.R</code>.</p>
+</div>
+<div id="when-do-i-need-a-persistent-metapath-instead-of-tempdir" class="section level3">
+<h3>14. When do I need a persistent <code>metaPath</code> instead of
+<code>tempdir()</code>?</h3>
+<p>Use <code>tempdir()</code> when you only need the final DOCX right
+now. Use a persistent <code>metaPath</code> when you want exact replays,
+QC comparison, report inventories, or a later combined replay
+workflow.</p>
+<p>If you replay by DOCX name, ksTFL resolves the latest saved spec in
+that meta folder; if you need an exact historical version, replay by the
+saved JSON file name instead.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <code>04_meta_replay_clean.R</code>,
+<code>06_premium_qc_repro.R</code>.</p>
+</div>
+<div id="can-i-delete-the-original-figure-file-after-saving-a-report" class="section level3">
+<h3>15. Can I delete the original figure file after saving a
+report?</h3>
+<p>For replay-based workflows, yes after a successful save, because
+ksTFL copies the figure into <code>metaPath</code> under its
+<code>dataRef</code>. The saved meta folder becomes the durable
+rendering input.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <code>14_figures.R</code>.</p>
+</div>
+<div id="why-did-different-sections-of-one-report-use-different-templates" class="section level3">
+<h3>16. Why did different sections of one report use different
+templates?</h3>
+<p>That is the default behavior for multi-spec reports. Each spec
+resolves its own <code>docTemplate</code>, so a table can use one
+bundled template while a text or figure section uses another.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <code>09_template_override_multi_spec.R</code>.</p>
+</div>
+<div id="how-do-i-force-one-template-across-every-section" class="section level3">
+<h3>17. How do I force one template across every section?</h3>
+<p>Use <code>overrideTemplate</code> in <code>write_doc()</code> or
+<code>replay_report()</code>. That global override wins over per-spec
+<code>docTemplate</code> values and is the cleanest way to re-skin a
+finished bundle.</p>
+<p>See also: <code>09_template_override_multi_spec.R</code>,
+<code>17_combined_replay.R</code>.</p>
+<hr />
+</div>
+</div>
+<div id="toc-and-report-assembly" class="section level2">
+<h2>TOC and report assembly</h2>
+<div id="why-does-a-table-of-contents-not-appear-even-though-i-asked-for-one" class="section level3">
+<h3>18. Why does a Table of Contents not appear even though I asked for
+one?</h3>
+<p>You need both parts of the contract: request a TOC
+(<code>toc = TRUE</code>, <code>insertTOC = TRUE</code>, or the package
+option) and mark at least one title or subtitle with
+<code>toclevel</code>. A TOC request with no <code>toclevel</code>
+entries has nothing to index.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <a href="Real_Examples_with_ksTFL.html">Real
+Examples</a>.</p>
+</div>
+<div id="why-is-the-toc-still-just-a-placeholder-when-i-open-the-docx" class="section level3">
+<h3>19. Why is the TOC still just a placeholder when I open the
+DOCX?</h3>
+<p>ksTFL writes a Word TOC field, not a pre-expanded static table. Open
+the file in Word, click inside the TOC, and update fields with
+<code>F9</code> to populate it.</p>
+<p>See also: <a href="Getting_Started_with_ksTFL.html">Getting
+Started</a>, <code>19_join_outputs_with_toc.R</code>.</p>
+</div>
+<div id="can-create_report-accept-a-named-list-of-specs-built-in-a-loop" class="section level3">
+<h3>20. Can <code>create_report()</code> accept a named list of specs
+built in a loop?</h3>
+<p>Yes. <code>create_report()</code> accepts named lists of
+<code>TFL_spec</code> objects, which is useful when specs are created
+dynamically or in separate program files. The list names become the key
+prefixes inside the final <code>TFL_report</code>.</p>
+<p>See also: <code>18_list_of_specs_bundle.R</code>, [Reporting
+Examples] (Reporting_Examples_with_ksTFL.html).</p>
+<hr />
+</div>
+</div>
+<div id="practical-column-and-action-recipes" class="section level2">
+<h2>Practical column and action recipes</h2>
+<p>These are short copy-paste patterns for the
+<code>define_cols()</code> and <code>compute_cols()</code> cases that
+usually come up after the first working table.</p>
+<div id="how-do-i-define-several-display-columns-in-one-place" class="section level3">
+<h3>21. How do I define several display columns in one place?</h3>
+<p>Use one <code>define_cols()</code> call when the columns share the
+same labels, widths, or base value styles.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(adsl) <span class="sc">|&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    <span class="fu">c</span>(AGE, WEIGHT, HEIGHT),</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;Age&quot;</span>, <span class="st">&quot;Weight</span><span class="sc">\n</span><span class="st">(kg)&quot;</span>, <span class="st">&quot;Height</span><span class="sc">\n</span><span class="st">(cm)&quot;</span>),</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>    <span class="at">colWidth =</span> <span class="fu">c</span>(<span class="st">&quot;12%&quot;</span>, <span class="st">&quot;14%&quot;</span>, <span class="st">&quot;14%&quot;</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>    <span class="at">valueStyleRef =</span> <span class="fu">c</span>(<span class="st">&quot;ar&quot;</span>, <span class="st">&quot;ar&quot;</span>, <span class="st">&quot;ar&quot;</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  )</span></code></pre></div>
+<p>This keeps aligned numeric columns easy to maintain.</p>
+</div>
+<div id="how-do-i-use-na-to-skip-one-column-inside-a-batch-define_cols-call" class="section level3">
+<h3>22. How do I use <code>NA</code> to skip one column inside a batch
+<code>define_cols()</code> call?</h3>
+<p>Use <code>NA</code> at the position you want to leave unchanged. This
+is handy when most columns share one update but one column should keep
+its existing definition.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(adsl) <span class="sc">|&gt;</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    <span class="fu">c</span>(USUBJID, AGE, TRT01A),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;Subject ID&quot;</span>, <span class="cn">NA</span>, <span class="st">&quot;Treatment&quot;</span>),</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    <span class="at">colWidth =</span> <span class="fu">c</span>(<span class="st">&quot;18%&quot;</span>, <span class="cn">NA</span>, <span class="st">&quot;20%&quot;</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>    <span class="at">valueStyleRef =</span> <span class="fu">c</span>(<span class="st">&quot;mono&quot;</span>, <span class="st">&quot;ar&quot;</span>, <span class="cn">NA</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  )</span></code></pre></div>
+<p>Here <code>AGE</code> keeps its current label and width, and
+<code>TRT01A</code> keeps its current value style. This also works well
+with hidden helper columns when you want to skip <code>colWidth</code>
+because invisible columns are forced to <code>&quot;0.0cm&quot;</code>.</p>
+</div>
+<div id="how-do-i-hide-a-helper-column-but-still-use-it-to-drive-formatting" class="section level3">
+<h3>23. How do I hide a helper column but still use it to drive
+formatting?</h3>
+<p>Hide the helper with <code>isVisible = FALSE</code>, then refer to it
+in <code>compute_cols()</code> as usual.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(FLAG, <span class="at">isVisible =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(<span class="fu">c</span>(PARAM, VALUE), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;Parameter&quot;</span>, <span class="st">&quot;Value&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="fu">add_style</span>(<span class="st">&quot;flagged&quot;</span>, <span class="fu">s_font</span>(<span class="at">color =</span> <span class="st">&quot;#8B0000&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    FLAG <span class="sc">==</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>    <span class="fu">c_style</span>(<span class="fu">c</span>(PARAM, VALUE), <span class="at">styleRef =</span> <span class="st">&quot;flagged&quot;</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  )</span></code></pre></div>
+<p>This is the standard pattern for QC flags, section ids, and hidden
+totals.</p>
+</div>
+<div id="how-do-i-turn-a-hidden-grouping-column-into-a-stub-header" class="section level3">
+<h3>24. How do I turn a hidden grouping column into a stub header?</h3>
+<p>Use <code>c_addrow()</code> on the first row of each group and pull
+the display text from the hidden column.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">add_style</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>    <span class="st">&quot;section_header&quot;</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>, <span class="at">color =</span> <span class="st">&quot;#FFFFFF&quot;</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#4682B4&quot;</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="fu">define_cols</span>(REGION, <span class="at">isVisible =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="fu">define_cols</span>(<span class="fu">c</span>(PRODUCT, REVENUE), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;Product&quot;</span>, <span class="st">&quot;Revenue&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>    <span class="fu">firstOf</span>(REGION),</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>    <span class="fu">c_addrow</span>(</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>      <span class="at">pos =</span> <span class="st">&quot;above&quot;</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>      <span class="at">value_from =</span> REGION,</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>      <span class="at">styleRef =</span> <span class="st">&quot;section_header&quot;</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>    )</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  )</span></code></pre></div>
+<p>This is usually cleaner than repeating the region on every detail
+row.</p>
+</div>
+<div id="how-do-i-insert-subtotals-from-a-hidden-total-column" class="section level3">
+<h3>25. How do I insert subtotals from a hidden total column?</h3>
+<p>Precompute the subtotal upstream, hide that helper column, and insert
+it on the last row of each group.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">add_style</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    <span class="st">&quot;subtotal_row&quot;</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#D9D9D9&quot;</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="fu">define_cols</span>(TOTAL, <span class="at">isVisible =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>    <span class="fu">lastOf</span>(REGION),</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>    <span class="fu">c_addrow</span>(</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>      <span class="at">pos =</span> <span class="st">&quot;below&quot;</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>      <span class="at">value_from =</span> TOTAL,</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>      <span class="at">styleRef =</span> <span class="fu">f_combine</span>(<span class="st">&quot;subtotal_row&quot;</span>, <span class="st">&quot;ar&quot;</span>)</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>    )</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  )</span></code></pre></div>
+<p>This works well when the display row is just a formatted version of
+stored summary text.</p>
+</div>
+<div id="how-do-i-apply-one-condition-to-several-visible-columns-at-once" class="section level3">
+<h3>26. How do I apply one condition to several visible columns at
+once?</h3>
+<p>Pass a column vector to <code>c_style()</code> instead of repeating
+the same condition in separate calls.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(labs) <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">add_style</span>(<span class="st">&quot;out_of_range&quot;</span>, <span class="fu">s_font</span>(<span class="at">color =</span> <span class="st">&quot;#FF4500&quot;</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>    VISIT <span class="sc">==</span> <span class="st">&quot;Week 8&quot;</span> <span class="sc">&amp;</span> AVAL <span class="sc">&gt;</span> AVAL_ULN,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>    <span class="fu">c_style</span>(<span class="fu">c</span>(PARAM, AVAL, UNIT), <span class="at">styleRef =</span> <span class="st">&quot;out_of_range&quot;</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  )</span></code></pre></div>
+<p>Use this when the flag belongs to the row but only a few columns
+should show it.</p>
+</div>
+<div id="how-do-i-combine-font-and-background-styles-for-one-rule" class="section level3">
+<h3>27. How do I combine font and background styles for one rule?</h3>
+<p>Compose styles with <code>f_combine()</code> instead of defining a
+new style for every font-plus-fill pairing.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">add_style</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>    <span class="st">&quot;warn_bg&quot;</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>    <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#FFF4E5&quot;</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>    CRITFL <span class="sc">==</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>    <span class="fu">c_style</span>(<span class="fu">c</span>(PARAM, VALUE), <span class="at">styleRef =</span> <span class="fu">f_combine</span>(<span class="st">&quot;b&quot;</span>, <span class="st">&quot;warn_bg&quot;</span>))</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  )</span></code></pre></div>
+<p>This is a good fit for one-off emphasis rules.</p>
+</div>
+<div id="how-do-i-give-columns-a-base-style-and-still-add-row-level" class="section level3">
+<h3>28. How do I give columns a base style and still add row-level</h3>
+<p>highlighting later?</p>
+<p>Put default alignment or indentation in <code>define_cols()</code>,
+then add the conditional layer in <code>compute_cols()</code>.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">add_style</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>    <span class="st">&quot;warn_row&quot;</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>    <span class="fu">s_table_style</span>(<span class="at">background_color =</span> <span class="st">&quot;#FFF4E5&quot;</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="fu">define_cols</span>(PARAM, <span class="at">valueStyleRef =</span> <span class="st">&quot;indent_1&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="fu">define_cols</span>(VALUE, <span class="at">valueStyleRef =</span> <span class="st">&quot;ar&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>    FLAG <span class="sc">==</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>    <span class="fu">c_style</span>(<span class="fu">everything</span>(), <span class="at">styleRef =</span> <span class="st">&quot;warn_row&quot;</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  )</span></code></pre></div>
+<p>The base column styles stay in place; the row style adds on top.</p>
+</div>
+<div id="how-do-i-build-a-total-line-by-combining-c_merge-c_clear" class="section level3">
+<h3>29. How do I build a total line by combining <code>c_merge()</code>,
+<code>c_clear()</code>,</h3>
+<p>and <code>c_glue()</code>?</p>
+<p>Use one <code>compute_cols()</code> call when the same rows need
+several sibling actions.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>    PRODUCT <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>    <span class="fu">c_merge</span>(<span class="fu">c</span>(PRODUCT, REVENUE), <span class="at">styleRef =</span> <span class="fu">f_combine</span>(<span class="st">&quot;b&quot;</span>, <span class="st">&quot;ar&quot;</span>)),</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>    <span class="fu">c_clear</span>(PRODUCT),</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>    <span class="fu">c_glue</span>(PRODUCT, <span class="st">&quot;after&quot;</span>, REGION),</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>    <span class="fu">c_glue</span>(PRODUCT, <span class="st">&quot;after&quot;</span>, <span class="at">text =</span> <span class="st">&quot; total: &quot;</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>    <span class="fu">c_glue</span>(PRODUCT, <span class="st">&quot;after&quot;</span>, REVENUE)</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  )</span></code></pre></div>
+<p>This is useful when the display string does not exist as one input
+column.</p>
+</div>
+<div id="how-do-i-apply-more-than-one-action-to-the-same-condition-without" class="section level3">
+<h3>30. How do I apply more than one action to the same condition
+without</h3>
+<p>nested <code>c_*()</code> calls?</p>
+<p>Keep the actions as separate arguments inside one
+<code>compute_cols()</code> call.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">add_style</span>(<span class="st">&quot;boundary&quot;</span>, <span class="fu">s_font</span>(<span class="at">bold =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>    <span class="fu">firstOf</span>(GROUP),</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>    <span class="fu">c_addrow</span>(<span class="at">pos =</span> <span class="st">&quot;above&quot;</span>, <span class="at">value_from =</span> GROUP, <span class="at">styleRef =</span> <span class="st">&quot;boundary&quot;</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>    <span class="fu">c_style</span>(<span class="fu">c</span>(PARAM, VALUE), <span class="at">styleRef =</span> <span class="st">&quot;boundary&quot;</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  )</span></code></pre></div>
+<p>Row actions are siblings, not nested verbs.</p>
+</div>
+<div id="how-do-i-build-a-two-level-stub-with-one-hidden-column-and-two-style" class="section level3">
+<h3>31. How do I build a two-level stub with one hidden column and two
+style</h3>
+<p>rules?</p>
+<p>Insert the group header from the hidden column, then use separate
+style rules for summary rows and detail rows.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">create_table</span>(df) <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">define_cols</span>(REGION, <span class="at">isVisible =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="fu">define_cols</span>(<span class="fu">c</span>(PRODUCT, REVENUE), <span class="at">label =</span> <span class="fu">c</span>(<span class="st">&quot;Product&quot;</span>, <span class="st">&quot;Revenue&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    <span class="fu">firstOf</span>(REGION),</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>    <span class="fu">c_addrow</span>(<span class="at">pos =</span> <span class="st">&quot;above&quot;</span>, <span class="at">value_from =</span> REGION, <span class="at">styleRef =</span> <span class="st">&quot;b&quot;</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>    PRODUCT <span class="sc">==</span> <span class="st">&quot;TOTAL&quot;</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>    <span class="fu">c_style</span>(PRODUCT, <span class="at">styleRef =</span> <span class="fu">f_combine</span>(<span class="st">&quot;i&quot;</span>, <span class="st">&quot;indent_1&quot;</span>)),</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    <span class="fu">c_style</span>(REVENUE, <span class="at">styleRef =</span> <span class="st">&quot;i&quot;</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>  <span class="fu">compute_cols</span>(</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>    PRODUCT <span class="sc">!=</span> <span class="st">&quot;TOTAL&quot;</span>,</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>    <span class="fu">c_style</span>(PRODUCT, <span class="at">styleRef =</span> <span class="st">&quot;indent_2&quot;</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>  )</span></code></pre></div>
+<p>That pattern is handy when the output stub needs visible hierarchy
+even though the source data is still flat.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
