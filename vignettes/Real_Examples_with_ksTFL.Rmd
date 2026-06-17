@@ -12,7 +12,7 @@ resource_files:
   - example_03_ae.pdf
   - example_04_list.pdf
   - example_04_list_colbr.pdf
-  - figures_single_doc_toc.pdf
+  - example_05_figures_single_doc_toc.pdf
   - example_03.1_table_under_figure.pdf
   - spanning_headers_gap.pdf
 vignette: >
@@ -931,7 +931,7 @@ t.fig.spec3 <- t.fig3 %>% create_figure() %>%
 # the toclevel values set in each spec's title.
 t.fig.report <- create_report(t.fig.spec, t.fig.spec2, t.fig.spec3)
 
-write_doc(t.fig.report, "figures_single_doc_toc", toc = TRUE)
+write_doc(t.fig.report, "example_05_figures_single_doc_toc", toc = TRUE)
 ```
 
 ### Rendered output
@@ -940,9 +940,9 @@ The resulting document contains a TOC page listing all three figures, followed
 by one page per figure. Each figure fills the landscape page thanks to
 `figureScaleMode = "fitPage"`.
 
-[Open figures_single_doc_toc.pdf](figures_single_doc_toc.pdf)
+[Open example_05_figures_single_doc_toc.pdf](example_05_figures_single_doc_toc.pdf)
 
-<iframe src="figures_single_doc_toc.pdf" title="figures_single_doc_toc.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_05_figures_single_doc_toc.pdf" title="example_05_figures_single_doc_toc.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ## Example 6 - Table under the figure
 
