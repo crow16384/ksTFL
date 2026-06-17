@@ -109,6 +109,19 @@ test_that("create_table() handles integer-like double columns", {
   expect_equal(spec$columns$decimal_vals$format$format, "%.1f")
 })
 
+test_that("create_table() applies session missings option to column formats", {
+  tfl_reset_options()
+  old_missings <- tfl_get_option("missings")
+  on.exit(tfl_set_options(missings = old_missings), add = TRUE)
+
+  tfl_set_options(missings = "NC")
+  spec <- create_table(test_df)
+
+  expect_equal(spec$columns$id$format$missings, "NC")
+  expect_equal(spec$columns$value$format$missings, "NC")
+  expect_equal(spec$columns$group$format$missings, "NC")
+})
+
 
 test_that("create_text() creates text-only spec", {
   spec <- create_text()
