@@ -390,6 +390,7 @@ utils::globalVariables(
     result[[i]] <- list(
       type = type,
       format = fmt,
+      missings = missings,
       colWidth = NA_character_
     )
   }

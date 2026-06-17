@@ -1,6 +1,9 @@
 source(file.path(getwd(),'inst','examples','showcase','structures','dummy_data.R'))
 source(file.path(getwd(),'inst','examples','showcase','structures','lb_lst_01.R')) 
 
+library(dplyr)
+library(tidyr)
+
 spec_lbl_01 <- create_table(data) %>% 
   add_title(c("Перечень 16.1", "Лабораторные показатели<sup> Бла бла</sup> ❌"), toclevel = 1) %>% 
   add_subtitle("Пациент: #ByGroup1, Пол: #ByGroup2, Возраст: #ByGroup3", toclevel = 2) %>% 

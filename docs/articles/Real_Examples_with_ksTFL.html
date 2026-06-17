@@ -754,97 +754,130 @@ columns.</li>
 <div class="section level3">
 <h3 id="input-data-3">Input data<a class="anchor" aria-label="anchor" href="#input-data-3"></a>
 </h3>
-<pre><code># A tibble: 164 × 15
-   col_01 col_02 col_03 col_04          col_05    col_06     BILIU GLUCU KETONES NITRITE PH    PROTU RBCU  SPGRAV WBCU 
-   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt;           &lt;chr&gt;     &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;
- 1 01001  26     M      Placebo         Screening 21-05-2021 -     -     -       -       5.5   -     -     1.030  -    
- 2 01001  26     M      Placebo         Baseline  08-06-2021 -     -     -       -       6.0   -     -     1.025  -    
- 3 01001  26     M      Placebo         Visit 2   15-06-2021 -     -     -       -       5.5   -     -     1.030  -    
- 4 01001  26     M      Placebo + DrugX Baseline  15-06-2021 -     -     -       -       5.5   -     -     1.030  -    
- 5 01001  26     M      Placebo + DrugX Visit 3   22-06-2021 -     -     -       -       6.0   -     -     1.030  -    
- 6 01001  26     M      Placebo + DrugX Visit 4   05-07-2021 -     -     -       -       5.0   -     -     1.030  -    
- 7 01001  26     M      Placebo + DrugX Visit 5   23-07-2021 -     -     -       -       5.5   -     -     1.030  -    
- 8 01001  26     M      Placebo + DrugX Visit 6   02-08-2021 -     -     -       -       5.0   -     -     1.025  -    
- 9 01001  26     M      Placebo + DrugX Visit 7   17-08-2021 -     -     -       -       5.5   -     -     1.030  -    
-10 01001  26     M      Placebo + DrugX Visit 8   02-09-2021 -     -     -       -       6.0   -     -     1.025  -    </code></pre>
+<pre><code># A tibble: 550 × 16
+        ID AGE SEX     TRT    VISIT       DATE   ALT  ALTNR   AST  ASTNR BILI BILINR  HGB  HGBNR  PH WBCU
+1  SUBJ001  45   M  Drug A Baseline 2024-08-02 162.6   high  62.9   high 0.78 normal 14.1 normal 6.6    -
+2  SUBJ001  45   M  Drug A  Visit 1 2024-08-14  89.2   high 153.5   high 1.12 normal 13.7 normal 6.4  +++
+3  SUBJ001  45   M  Drug A  Visit 2 2024-08-30 154.3   high 110.7   high 0.97 normal 13.9 normal 6.8    -
+4  SUBJ001  45   M  Drug A  Visit 3 2024-09-12 171.4   high 116.1   high 0.69 normal   NA   &lt;NA&gt; 5.5   ++
+5  SUBJ001  45   M  Drug A  Visit 4 2024-09-29 203.1   high  69.0   high 0.37 normal 12.9 normal 6.2    -
+6  SUBJ001  45   M  Drug A  Visit 5 2024-10-22 231.4   high  65.0   high 0.54 normal 13.9 normal 6.4    +
+7  SUBJ001  45   M  Drug A  Visit 6 2024-11-25  82.3   high 104.7   high 1.91   high 11.9    low 6.6    -
+8  SUBJ001  45   M  Drug A  Visit 7 2024-12-22 145.7   high  64.9   high 0.80 normal 13.5 normal 5.5    -
+9  SUBJ001  45   M  Drug A  Visit 8 2025-01-16  69.8   high  64.4   high 0.96 normal 14.1 normal 5.1    -
+10 SUBJ001  45   M  Drug A  Visit 9 2025-02-16 189.4   high  58.3   high 0.68 normal 15.3 normal 6.9    +
+11 SUBJ001  45   M  Drug A Visit 10 2025-03-16 167.7   high  99.8   high 1.34   high 13.7 normal 5.5    -
+12 SUBJ002  39   F  Drug A Baseline 2024-01-28  34.7 normal  24.5 normal 0.80 normal 17.4   high 6.4    -
+13 SUBJ002  39   F  Drug A  Visit 1 2024-02-13  17.1 normal  22.0 normal 0.50 normal 12.4 normal 5.6    -
+14 SUBJ002  39   F  Drug A  Visit 2 2024-02-26  31.5 normal  19.3 normal 0.89 normal 13.4 normal 6.3    +
+15 SUBJ002  39   F  Drug A  Visit 3 2024-03-10  42.0   high  11.9 normal 0.52 normal 13.0 normal 6.8    -</code></pre>
 </div>
 <div class="section level3">
 <h3 id="code-2">Code<a class="anchor" aria-label="anchor" href="#code-2"></a>
 </h3>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec_lbl_01</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># --- Title and dynamic subtitle ---</span></span>
-<span>  <span class="co"># toclevel = 1 creates the top-level TOC entry for this listing.</span></span>
-<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Listing 16.1"</span>, <span class="st">"Laboratory Data"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="co"># Dynamic subtitle: #ByGroup1/2/3 are replaced at render time with the</span></span>
-<span>  <span class="co"># current values of the grouping columns (col_01, col_02, col_03).</span></span>
-<span>  <span class="co"># toclevel = 2 creates a nested TOC entry per subject.</span></span>
-<span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Subject: #ByGroup1, Sex: #ByGroup2, Age (years): #ByGroup3"</span>,</span>
-<span>    toclevel <span class="op">=</span> <span class="fl">2</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">'✓ - Value Outside Normal Ranges'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># --- Column definitions ---</span></span>
-<span>  <span class="co"># Hide subject-level columns and mark them as grouping variables.</span></span>
-<span>  <span class="co"># isGrouping = TRUE triggers automatic page breaks when any of these</span></span>
-<span>  <span class="co"># columns change value, and populates the #ByGroupN placeholders.</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col_01</span>, <span class="va">col_02</span>, <span class="va">col_03</span><span class="op">)</span>,</span>
-<span>    isVisible <span class="op">=</span> <span class="cn">FALSE</span>, isGrouping <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># Lab parameter columns: rotated 90° headers (to_90), left-aligned,</span></span>
-<span>  <span class="co"># top-aligned (va_t), with a small indent.</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
-<span>    <span class="op">!</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">'col_'</span><span class="op">)</span>,</span>
-<span>    labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span></span>
-<span>      <span class="st">'al'</span>, <span class="st">'va_t'</span>, <span class="st">'to_90'</span>, <span class="st">'indent_1'</span></span>
+<code class="sourceCode R"><span><span class="va">spec_lbl_01</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">lab_listing</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    </span>
+<span>    <span class="co"># --- Title and dynamic subtitle ---</span></span>
+<span>    <span class="co"># toclevel = 1 creates the top-level TOC entry for this listing.</span></span>
+<span>    <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Listing 16.1"</span>, <span class="st">"Laboratory Data"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="co"># Dynamic subtitle: #ByGroup1/2/3 are replaced at render time with the</span></span>
+<span>    <span class="co"># current values of the grouping columns (ID, AGE, SEX).</span></span>
+<span>    <span class="co"># toclevel = 2 creates a nested TOC entry per subject.</span></span>
+<span>    <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span></span>
+<span>        <span class="st">"Subject: #ByGroup1, Sex: #ByGroup3, Age (years): #ByGroup2"</span>,</span>
+<span>        toclevel <span class="op">=</span> <span class="fl">2</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">'H, L - Value Outside Normal Ranges'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    </span>
+<span>    <span class="co"># --- Column definitions ---</span></span>
+<span>    <span class="co"># Hide subject-level columns and mark them as grouping variables.</span></span>
+<span>    <span class="co"># isGrouping = TRUE triggers automatic page breaks when any of these</span></span>
+<span>    <span class="co"># columns change value, and populates the #ByGroupN placeholders.</span></span>
+<span>    <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">ID</span>, <span class="va">SEX</span>, <span class="va">AGE</span><span class="op">)</span>,</span>
+<span>        isVisible <span class="op">=</span> <span class="cn">FALSE</span>, </span>
+<span>        isGrouping <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    </span>
+<span>    <span class="co"># Lab parameter columns: rotated 90° headers (to_90), left-aligned,</span></span>
+<span>    <span class="co"># top-aligned (va_t).</span></span>
+<span>    <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="va">TRT</span>, <span class="op">-</span><span class="va">VISIT</span>, <span class="op">-</span><span class="va">DATE</span><span class="op">)</span>,</span>
+<span>        labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span></span>
+<span>            <span class="st">'al'</span>, <span class="st">'va_t'</span>, <span class="st">'to_90'</span></span>
+<span>        <span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    </span>
+<span>    <span class="co"># Identifier columns: Treatment, Visit </span></span>
+<span>    <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT</span>, <span class="va">VISIT</span>, <span class="va">DATE</span><span class="op">)</span>,</span>
+<span>                            label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Treatment'</span>, <span class="st">'Visit'</span>, <span class="st">'Date'</span><span class="op">)</span>,</span>
+<span>                            valueStyleRef <span class="op">=</span> <span class="st">'i'</span> <span class="co"># Italicise Treatment and Visit values for visual distinction</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>    <span class="co">#Hide Normal Ranges columns - we will use them to mark the lab value itself</span></span>
+<span>    <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">ends_with</a></span><span class="op">(</span><span class="st">'NR'</span><span class="op">)</span>,   isVisible <span class="op">=</span> <span class="cn">FALSE</span>   <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>    <span class="co"># Lab parameter columns (positions 7-15): narrow equal</span></span>
+<span>    <span class="co"># widths, descriptive labels</span></span>
+<span>    <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">ALT</span>, <span class="va">AST</span>, <span class="va">BILI</span>, <span class="va">HGB</span>, <span class="va">PH</span>, <span class="va">WBCU</span><span class="op">)</span>,</span>
+<span>                            colWidth <span class="op">=</span> <span class="st">'7%'</span>, <span class="co">#set equal width for all result columns</span></span>
+<span>                            label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'ALT (U/L)'</span>, <span class="st">'AST (U/L)'</span>,</span>
+<span>                                <span class="st">'Bilirubin (g/dL)'</span>, <span class="st">'Hemoglobin (g/dL)'</span>, </span>
+<span>                                <span class="st">'pH'</span>,   <span class="st">'Leukocytes, urine (/HPF)'</span></span>
+<span>                            <span class="op">)</span>,</span>
+<span>                            missings <span class="op">=</span> <span class="st">'NC'</span> <span class="co">#defines how to report NA values</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    </span>
+<span>    <span class="co"># --- Conditional formatting ---</span></span>
+<span>    <span class="co"># Flag abnormal ALT values: if ALTNR is Low append 'L' to the value, </span></span>
+<span>    <span class="co">#                           if is High append 'H' to the value</span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>            <span class="op">(</span><span class="va">ALTNR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">ALT</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">ALT</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>            <span class="op">(</span><span class="va">ALTNR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">ALT</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
+<span>            <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">ALT</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>        <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="co"># Repeat the same trick with other result </span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>        <span class="op">(</span><span class="va">ASTNR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">AST</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">AST</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>        <span class="op">(</span><span class="va">ASTNR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">AST</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">AST</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>        <span class="op">(</span><span class="va">HGBNR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">HGB</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">HGB</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>        <span class="op">(</span><span class="va">HGBNR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">HGB</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">HGB</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>        <span class="op">(</span><span class="va">BILINR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">BILI</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">BILI</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>        <span class="op">(</span><span class="va">BILINR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">BILI</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">BILI</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>    <span class="co"># --- Document settings ---</span></span>
+<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span></span>
+<span>        docTemplate <span class="op">=</span> <span class="st">'Default'</span>,</span>
+<span>        topEmptyLine <span class="op">=</span> <span class="st">'6pt'</span>,</span>
+<span>        bottomEmptyLine <span class="op">=</span> <span class="st">'6pt'</span>,</span>
+<span>  </span>
 <span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># Identifier columns: Treatment, Visit, Date repeat on</span></span>
-<span>  <span class="co"># every page (isID = TRUE)</span></span>
-<span>  <span class="co"># so the reader always knows the context.</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col_04</span>, <span class="va">col_05</span>, <span class="va">col_06</span><span class="op">)</span>,</span>
-<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Treatment'</span>, <span class="st">'Visit'</span>, <span class="st">'Date'</span><span class="op">)</span>,</span>
-<span>              isID <span class="op">=</span> <span class="cn">TRUE</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="co"># Italicise Treatment and Visit values for visual distinction</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col_04</span>, <span class="va">col_05</span><span class="op">)</span>, valueStyleRef <span class="op">=</span> <span class="st">'i'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="co"># Fix Date column width to prevent it from stretching</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">col_06</span>, colWidth <span class="op">=</span> <span class="st">'10%'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># Lab parameter columns (positions 7-15): narrow equal</span></span>
-<span>  <span class="co"># widths, descriptive labels</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fl">7</span><span class="op">:</span><span class="fl">15</span>,</span>
-<span>              colWidth <span class="op">=</span> <span class="st">'6%'</span>,</span>
-<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>                <span class="st">'Bilirubin'</span>, <span class="st">'Glucose'</span>, <span class="st">'Ketones'</span>,</span>
-<span>                <span class="st">'Nitrites'</span>, <span class="st">'pH'</span>, <span class="st">'Protein'</span>,</span>
-<span>                <span class="st">'Red Blood Cells'</span>,</span>
-<span>                <span class="st">'Specific&lt;br&gt;Gravity'</span>,</span>
-<span>                <span class="st">'White Blood Cells'</span></span>
-<span>              <span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># --- Conditional formatting ---</span></span>
-<span>  <span class="co"># Flag abnormal pH values: if pH &gt; 5.5, colour the cell red and</span></span>
-<span>  <span class="co"># append a checkmark. replace_na(FALSE) prevents NA rows from matching.</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">PH</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">5.5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">PH</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">PH</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'✓'</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># --- Document settings ---</span></span>
-<span>  <span class="co"># Use the Listings template (optimised for dense tabular data)</span></span>
-<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span></span>
-<span>    docTemplate <span class="op">=</span> <span class="st">'Listings'</span>,</span>
-<span>    topEmptyLine <span class="op">=</span> <span class="st">'6pt'</span>,</span>
-<span>    bottomEmptyLine <span class="op">=</span> <span class="st">'6pt'</span></span>
-<span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="co">## Write the document with a Table of Contents page</span></span>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_lbl_01</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"example_04_list"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>

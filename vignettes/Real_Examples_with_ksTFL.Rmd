@@ -686,100 +686,134 @@ example demonstrates:
 ### Input data
 
 ```         
-# A tibble: 164 × 15
-   col_01 col_02 col_03 col_04          col_05    col_06     BILIU GLUCU KETONES NITRITE PH    PROTU RBCU  SPGRAV WBCU 
-   <chr>  <chr>  <chr>  <chr>           <chr>     <chr>      <chr> <chr> <chr>   <chr>   <chr> <chr> <chr> <chr>  <chr>
- 1 01001  26     M      Placebo         Screening 21-05-2021 -     -     -       -       5.5   -     -     1.030  -    
- 2 01001  26     M      Placebo         Baseline  08-06-2021 -     -     -       -       6.0   -     -     1.025  -    
- 3 01001  26     M      Placebo         Visit 2   15-06-2021 -     -     -       -       5.5   -     -     1.030  -    
- 4 01001  26     M      Placebo + DrugX Baseline  15-06-2021 -     -     -       -       5.5   -     -     1.030  -    
- 5 01001  26     M      Placebo + DrugX Visit 3   22-06-2021 -     -     -       -       6.0   -     -     1.030  -    
- 6 01001  26     M      Placebo + DrugX Visit 4   05-07-2021 -     -     -       -       5.0   -     -     1.030  -    
- 7 01001  26     M      Placebo + DrugX Visit 5   23-07-2021 -     -     -       -       5.5   -     -     1.030  -    
- 8 01001  26     M      Placebo + DrugX Visit 6   02-08-2021 -     -     -       -       5.0   -     -     1.025  -    
- 9 01001  26     M      Placebo + DrugX Visit 7   17-08-2021 -     -     -       -       5.5   -     -     1.030  -    
-10 01001  26     M      Placebo + DrugX Visit 8   02-09-2021 -     -     -       -       6.0   -     -     1.025  -    
+# A tibble: 550 × 16
+        ID AGE SEX     TRT    VISIT       DATE   ALT  ALTNR   AST  ASTNR BILI BILINR  HGB  HGBNR  PH WBCU
+1  SUBJ001  45   M  Drug A Baseline 2024-08-02 162.6   high  62.9   high 0.78 normal 14.1 normal 6.6    -
+2  SUBJ001  45   M  Drug A  Visit 1 2024-08-14  89.2   high 153.5   high 1.12 normal 13.7 normal 6.4  +++
+3  SUBJ001  45   M  Drug A  Visit 2 2024-08-30 154.3   high 110.7   high 0.97 normal 13.9 normal 6.8    -
+4  SUBJ001  45   M  Drug A  Visit 3 2024-09-12 171.4   high 116.1   high 0.69 normal   NA   <NA> 5.5   ++
+5  SUBJ001  45   M  Drug A  Visit 4 2024-09-29 203.1   high  69.0   high 0.37 normal 12.9 normal 6.2    -
+6  SUBJ001  45   M  Drug A  Visit 5 2024-10-22 231.4   high  65.0   high 0.54 normal 13.9 normal 6.4    +
+7  SUBJ001  45   M  Drug A  Visit 6 2024-11-25  82.3   high 104.7   high 1.91   high 11.9    low 6.6    -
+8  SUBJ001  45   M  Drug A  Visit 7 2024-12-22 145.7   high  64.9   high 0.80 normal 13.5 normal 5.5    -
+9  SUBJ001  45   M  Drug A  Visit 8 2025-01-16  69.8   high  64.4   high 0.96 normal 14.1 normal 5.1    -
+10 SUBJ001  45   M  Drug A  Visit 9 2025-02-16 189.4   high  58.3   high 0.68 normal 15.3 normal 6.9    +
+11 SUBJ001  45   M  Drug A Visit 10 2025-03-16 167.7   high  99.8   high 1.34   high 13.7 normal 5.5    -
+12 SUBJ002  39   F  Drug A Baseline 2024-01-28  34.7 normal  24.5 normal 0.80 normal 17.4   high 6.4    -
+13 SUBJ002  39   F  Drug A  Visit 1 2024-02-13  17.1 normal  22.0 normal 0.50 normal 12.4 normal 5.6    -
+14 SUBJ002  39   F  Drug A  Visit 2 2024-02-26  31.5 normal  19.3 normal 0.89 normal 13.4 normal 6.3    +
+15 SUBJ002  39   F  Drug A  Visit 3 2024-03-10  42.0   high  11.9 normal 0.52 normal 13.0 normal 6.8    -
 ```
 
 ### Code
 
 ```{r example_04_render, eval = FALSE}
-spec_lbl_01 <- create_table(data) %>%
-
-  # --- Title and dynamic subtitle ---
-  # toclevel = 1 creates the top-level TOC entry for this listing.
-  add_title(c("Listing 16.1", "Laboratory Data"), toclevel = 1) %>%
-  # Dynamic subtitle: #ByGroup1/2/3 are replaced at render time with the
-  # current values of the grouping columns (col_01, col_02, col_03).
-  # toclevel = 2 creates a nested TOC entry per subject.
-  add_subtitle(
-    "Subject: #ByGroup1, Sex: #ByGroup2, Age (years): #ByGroup3",
-    toclevel = 2
-  ) %>%
-  add_footnote('✓ - Value Outside Normal Ranges') %>%
-
-  # --- Column definitions ---
-  # Hide subject-level columns and mark them as grouping variables.
-  # isGrouping = TRUE triggers automatic page breaks when any of these
-  # columns change value, and populates the #ByGroupN placeholders.
-  define_cols(
-    c(col_01, col_02, col_03),
-    isVisible = FALSE, isGrouping = TRUE
-  ) %>%
-
-  # Lab parameter columns: rotated 90° headers (to_90), left-aligned,
-  # top-aligned (va_t), with a small indent.
-  define_cols(
-    !starts_with('col_'),
-    labelStyleRef = f_combine(
-      'al', 'va_t', 'to_90', 'indent_1'
-    )
-  ) %>%
-
-  # Identifier columns: Treatment, Visit, Date repeat on
-  # every page (isID = TRUE)
-  # so the reader always knows the context.
-  define_cols(c(col_04, col_05, col_06),
-              label = c('Treatment', 'Visit', 'Date'),
-              isID = TRUE
-  ) %>%
-  # Italicise Treatment and Visit values for visual distinction
-  define_cols(c(col_04, col_05), valueStyleRef = 'i') %>%
-  # Fix Date column width to prevent it from stretching
-  define_cols(col_06, colWidth = '10%') %>%
-
-  # Lab parameter columns (positions 7-15): narrow equal
-  # widths, descriptive labels
-  define_cols(7:15,
-              colWidth = '6%',
-              label = c(
-                'Bilirubin', 'Glucose', 'Ketones',
-                'Nitrites', 'pH', 'Protein',
-                'Red Blood Cells',
-                'Specific<br>Gravity',
-                'White Blood Cells'
-              )
-  ) %>%
-
-  # --- Conditional formatting ---
-  # Flag abnormal pH values: if pH > 5.5, colour the cell red and
-  # append a checkmark. replace_na(FALSE) prevents NA rows from matching.
-  compute_cols(
-    (as.numeric(PH) > 5.5) %>% replace_na(FALSE),
-    c_style(PH, styleRef = 'fc_red'),
-    c_glue(PH, 'after', text = '✓')
-  ) %>%
-
-  # --- Document settings ---
-  # Use the Listings template (optimised for dense tabular data)
-  set_document(
-    docTemplate = 'Listings',
-    topEmptyLine = '6pt',
-    bottomEmptyLine = '6pt'
-  )
+spec_lbl_01 <- create_table(lab_listing) %>%
+	
+	# --- Title and dynamic subtitle ---
+	# toclevel = 1 creates the top-level TOC entry for this listing.
+	add_title(c("Listing 16.1", "Laboratory Data"), toclevel = 1) %>%
+	# Dynamic subtitle: #ByGroup1/2/3 are replaced at render time with the
+	# current values of the grouping columns (ID, AGE, SEX).
+	# toclevel = 2 creates a nested TOC entry per subject.
+	add_subtitle(
+		"Subject: #ByGroup1, Sex: #ByGroup3, Age (years): #ByGroup2",
+		toclevel = 2
+	) %>%
+	add_footnote('H, L - Value Outside Normal Ranges') %>%
+	
+	# --- Column definitions ---
+	# Hide subject-level columns and mark them as grouping variables.
+	# isGrouping = TRUE triggers automatic page breaks when any of these
+	# columns change value, and populates the #ByGroupN placeholders.
+	define_cols(
+		c(ID, SEX, AGE),
+		isVisible = FALSE, 
+		isGrouping = TRUE
+	) %>%
+	
+	# Lab parameter columns: rotated 90° headers (to_90), left-aligned,
+	# top-aligned (va_t).
+	define_cols(
+		c(-TRT, -VISIT, -DATE),
+		labelStyleRef = f_combine(
+			'al', 'va_t', 'to_90'
+		)
+	) %>%
+	
+	# Identifier columns: Treatment, Visit 
+	define_cols(c(TRT, VISIT, DATE),
+							label = c('Treatment', 'Visit', 'Date'),
+							valueStyleRef = 'i' # Italicise Treatment and Visit values for visual distinction
+	) %>% 
+	#Hide Normal Ranges columns - we will use them to mark the lab value itself
+	define_cols( ends_with('NR'),	isVisible = FALSE	) %>% 
+	# Lab parameter columns (positions 7-15): narrow equal
+	# widths, descriptive labels
+	define_cols(c(ALT, AST, BILI, HGB, PH, WBCU),
+							colWidth = '7%', #set equal width for all result columns
+							label = c('ALT (U/L)', 'AST (U/L)',
+								'Bilirubin (g/dL)', 'Hemoglobin (g/dL)', 
+								'pH',	'Leukocytes, urine (/HPF)'
+							),
+							missings = 'NC' #defines how to report NA values
+	) %>%
+	
+	# --- Conditional formatting ---
+	# Flag abnormal ALT values: if ALTNR is Low append 'L' to the value, 
+	#                           if is High append 'H' to the value
+	compute_cols(
+			(ALTNR == 'low') %>% replace_na(FALSE),
+			c_style(ALT, styleRef = 'fc_green'),
+			c_glue(ALT, 'after', text = '<sup>L</sup>')
+	) %>%
+	compute_cols(
+			(ALTNR == 'high') %>% replace_na(FALSE),
+			c_style(ALT, styleRef = 'fc_red'),
+			c_glue(ALT, 'after', text = '<sup>H</sup>')
+		) %>%
+	# Repeat the same trick with other result 
+	compute_cols(
+		(ASTNR == 'low') %>% replace_na(FALSE),
+		c_style(AST, styleRef = 'fc_green'),
+		c_glue(AST, 'after', text = '<sup>L</sup>')
+	) %>%
+	compute_cols(
+		(ASTNR == 'high') %>% replace_na(FALSE),
+		c_style(AST, styleRef = 'fc_red'),
+		c_glue(AST, 'after', text = '<sup>H</sup>')
+	) %>%
+	compute_cols(
+		(HGBNR == 'low') %>% replace_na(FALSE),
+		c_style(HGB, styleRef = 'fc_green'),
+		c_glue(HGB, 'after', text = '<sup>L</sup>')
+	) %>%
+	compute_cols(
+		(HGBNR == 'high') %>% replace_na(FALSE),
+		c_style(HGB, styleRef = 'fc_red'),
+		c_glue(HGB, 'after', text = '<sup>H</sup>')
+	) %>%
+	compute_cols(
+		(BILINR == 'low') %>% replace_na(FALSE),
+		c_style(BILI, styleRef = 'fc_green'),
+		c_glue(BILI, 'after', text = '<sup>L</sup>')
+	) %>%
+	compute_cols(
+		(BILINR == 'high') %>% replace_na(FALSE),
+		c_style(BILI, styleRef = 'fc_red'),
+		c_glue(BILI, 'after', text = '<sup>H</sup>')
+	) %>% 
+	# --- Document settings ---
+	set_document(
+		docTemplate = 'Default',
+		topEmptyLine = '6pt',
+		bottomEmptyLine = '6pt',
+  
+	)
 
 ## Write the document with a Table of Contents page
 create_report(spec_lbl_01) %>% write_doc("example_04_list", toc = TRUE)
+
 ```
 
 ### Rendered output
