@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Getting Started with ksTFL • ksTFL</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Getting Started with ksTFL">
@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,7 +56,7 @@
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Getting_Started_with_ksTFL.Rmd" class="external-link"><code>vignettes/Getting_Started_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Getting_Started_with_ksTFL.Rmd</code></div>
     </div>
 
@@ -97,28 +98,19 @@ downstream processing</p>
 <h2 id="how-to-use-this-guide">How to use this guide<a class="anchor" aria-label="anchor" href="#how-to-use-this-guide"></a>
 </h2>
 <p>This is the foundation vignette and best starting point for new
-users.</p>
-<ul>
-<li>Audience: users building first end-to-end TFL workflows</li>
-<li>Focus: core objects (<code>TFL_spec</code>,
-<code>TFL_report</code>), function flow, and minimal working
-examples</li>
-<li>Outcome: ability to create, assemble, and render reports
-confidently</li>
-</ul>
+users. It introduces the core objects, the main function flow, and the
+smallest complete pipeline needed to create, assemble, and render
+reports confidently.</p>
 <p>Recommended reading order after this vignette:</p>
-<p>1. <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a>
-for realistic workflow patterns.</p>
-<p>2. <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> for style
-primitives and reusable style systems.</p>
-<p>3. <a href="Column_Width_Management.Rmd">Column Width Management</a>
-for layout tuning.</p>
-<p>4. <a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a> for
-conditional row actions.</p>
-<p>5. <a href="Font_Management.Rmd">Font Management</a> for system font
-discovery, custom font directories, and fallback behavior.</p>
-<p>6. <a href="Rendering_Pipeline.Rmd">Rendering Pipeline</a> for
-detailed C++ architecture and DOCX emission internals.</p>
+<p>1. <a href="Reporting_Examples_with_ksTFL.html">Reporting
+Examples</a> and <a href="FAQ_with_ksTFL.html">FAQ</a> for the quickest
+practical follow-up.</p>
+<p>2. <a href="Styling_Guide_with_ksTFL.html">Styling Guide</a>, <a href="Column_Width_Management.html">Column Width Management</a>, and <a href="Advanced_StyleRows.html">Advanced StyleRows</a> for focused
+feature depth.</p>
+<p>3. <a href="Real_Examples_with_ksTFL.html">Real Examples</a> for
+fuller clinical-style outputs, then <a href="Font_Management.html">Font
+Management</a> and <a href="Rendering_Pipeline.html">Rendering
+Pipeline</a> when you need environment or renderer internals.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -222,7 +214,7 @@ Styled .docx (C++ engine, deterministic HarfBuzz pagination)</code></pre>
 </h2>
 <p>Get a working spec in 5 minutes:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 1. Create a table spec from data</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span><span class="op">)</span><span class="op">)</span></span>
@@ -396,7 +388,7 @@ the next page (break long tables)</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">group_id</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span>  <span class="co"># Result: group_id is hidden, other columns recalculated to fill 100%</span></span></code></pre></div>
-<p>See <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting
+<p>See <a href="Reporting_Examples_with_ksTFL.html">Reporting
 Examples</a> for detailed column customization patterns.</p>
 <hr>
 </div>
@@ -426,7 +418,7 @@ Examples</a> for detailed column customization patterns.</p>
 (name) throughout your spec. If style needs to be used across many
 tables define it thru <code><a href="../reference/tfl_set_options.html">tfl_set_options()</a></code> to make it
 available session-wide.</p>
-<p>For comprehensive styling details see <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a>.</p>
+<p>For comprehensive styling details see <a href="Styling_Guide_with_ksTFL.html">Styling Guide</a>.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -482,7 +474,7 @@ can overlap freely (enables hierarchical structure)</p>
 column sets don’t overlap</p>
 <p>- Use <code><a href="../reference/add_style.html">add_style()</a></code> to style stub labels or use embedded
 atomic styles</p>
-<p>See <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> for
+<p>See <a href="Styling_Guide_with_ksTFL.html">Styling Guide</a> for
 styling stubs.</p>
 <hr>
 </div>
@@ -582,6 +574,11 @@ the rendered DOCX:</p>
 <span><span class="co"># Use a custom external template (JSON file)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"path/to/my_custom_template.json"</span><span class="op">)</span></span></code></pre></div>
+<p>Use <code>docTemplate</code> on the spec when different sections of
+one report should keep different looks. Use
+<code>write_doc(..., overrideTemplate = ...)</code> or
+<code>replay_report(..., overrideTemplate = ...)</code> when you want
+one global template to override every spec in the rendered document.</p>
 <p>Use <code><a href="../reference/run_styles_editor.html">run_styles_editor()</a></code> to interactively create and edit
 template JSON files.</p>
 <hr>
@@ -734,7 +731,7 @@ spec</p>
 blocks are combined</p>
 <p>- <code>value_from = NULL</code> in <code><a href="../reference/c_addrow.html">c_addrow()</a></code> creates
 an empty separator row</p>
-<p>For detailed examples see <a href="Reporting_Examples_with_ksTFL.Rmd#conditional-row-actions">Reporting
+<p>For detailed examples see <a href="Reporting_Examples_with_ksTFL.html#conditional-row-actions">Reporting
 Examples: Conditional Row Actions</a>.</p>
 <hr>
 </div>
@@ -915,7 +912,7 @@ characteristics:</p>
 <span></span>
 <span><span class="co"># Lock id to 15%; others recalculate to fill 85%</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"15%"</span><span class="op">)</span></span></code></pre></div>
-<p>See <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting
+<p>See <a href="Reporting_Examples_with_ksTFL.html">Reporting
 Examples</a> for detailed width customization.</p>
 </div>
 <div class="section level3">
@@ -958,7 +955,7 @@ file:</p>
 <h2 id="complete-example-from-data-to-document">Complete example: From data to document<a class="anchor" aria-label="anchor" href="#complete-example-from-data-to-document"></a>
 </h2>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- Setup ---</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -996,7 +993,9 @@ file:</p>
 <span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'demographics'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Done!</span></span></code></pre></div>
-<p><img src="images/example-complete-demographics.png"></p>
+<div class="float">
+<img src="images/example-complete-demographics.png" alt="example complete demographics"><div class="figcaption">example complete demographics</div>
+</div>
 </div>
 <div class="section level2">
 <h2 id="key-gotchas-and-tips">Key gotchas and tips<a class="anchor" aria-label="anchor" href="#key-gotchas-and-tips"></a>
@@ -1139,13 +1138,13 @@ is available without consulting documentation.</p>
 <li>
 <strong>Run the quick example</strong> above with your own data</li>
 <li>
-<strong>Explore <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a></strong>
-for detailed patterns</li>
+<strong>Explore <a href="Reporting_Examples_with_ksTFL.html">Reporting
+Examples</a></strong> for detailed patterns</li>
 <li>
-<strong>Read <a href="Styling_Guide_with_ksTFL.Rmd">Styling
+<strong>Read <a href="Styling_Guide_with_ksTFL.html">Styling
 Guide</a></strong> for advanced styling</li>
 <li>
-<strong>Read <a href="Advanced_StyleRows.Rmd">Advanced
+<strong>Read <a href="Advanced_StyleRows.html">Advanced
 StyleRows</a></strong> for conditional formatting</li>
 <li>
 <strong>Check function docs</strong>: <code><a href="../reference/create_table.html">?create_table</a></code>,
@@ -1164,16 +1163,15 @@ StyleRows</a></strong> for conditional formatting</li>
 overview) or <code><a href="../reference/create_table.html">?create_table</a></code>, <code><a href="../reference/define_cols.html">?define_cols</a></code>,
 etc.</li>
 <li>
-<strong>Reporting Examples</strong>: <a href="Reporting_Examples_with_ksTFL.Rmd">Detailed working examples with
+<strong>Reporting Examples</strong>: <a href="Reporting_Examples_with_ksTFL.html">Detailed working examples with
 explanations</a>
 </li>
 <li>
-<strong>Styling Guide</strong>: <a href="Styling_Guide_with_ksTFL.Rmd">Comprehensive style
+<strong>Styling Guide</strong>: <a href="Styling_Guide_with_ksTFL.html">Comprehensive style
 reference</a>
 </li>
 <li>
-<strong>GitHub</strong>: <a href="https://example.com">ksTFL
-repository</a>
+<strong>GitHub</strong>: <a href="https://github.com/crow16384/ksTFL" class="external-link">ksTFL repository</a>
 </li>
 </ul>
 <hr>

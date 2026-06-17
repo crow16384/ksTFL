@@ -413,7 +413,7 @@ tfl_set_options <- function(..., docTemplate = NULL,
 #' # Set some session defaults
 #' tfl_set_options(
 #'   add_header("Study ABC", "Phase II", "CONFIDENTIAL"),
-#'   add_footer("Company", "Page {page}", "2025")
+#'   add_footer("Company", "Page {PAGE}", "2025")
 #' )
 #'
 #' # ... build tables ...

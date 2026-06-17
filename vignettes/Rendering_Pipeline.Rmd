@@ -175,66 +175,41 @@ Core modules
 
 Defined primarily in src/kstfl/types.h.
 
--   Units and geometry
-    -   Length (EMU-based arithmetic)
-    -   PageConfig, Margins
--   Style system
-    -   FontProps, ParagraphProps, TableCellProps
-    -   StyleDef, StylesTemplate
--   Table model
-    -   ColumnSpec, StubColumn, TextGroup
-    -   LogicalCell, LogicalRow, HeaderGrid
--   Pagination model
-    -   PageSlice
-    -   HorizontalSegment (column_indices, pages, row_heights)
-    -   PaginationResult
+-   **Units and geometry**: `Length`, `PageConfig`, `Margins`
+-   **Style system**: `FontProps`, `ParagraphProps`, `TableCellProps`,
+    `StyleDef`, `StylesTemplate`
+-   **Table model**: `ColumnSpec`, `StubColumn`, `TextGroup`,
+    `LogicalCell`, `LogicalRow`, `HeaderGrid`
+-   **Pagination model**: `PageSlice`, `HorizontalSegment`,
+    `PaginationResult`
 
 ## 5. Text and Font Subsystem
 
--   FontCache reads font metrics from OS/2 tables (fallback to hhea when
-    needed) to match Word line-height behavior.
--   TextMeasurer uses HarfBuzz shaping for run width and deterministic
+-   `FontCache` reads font metrics from OS/2 tables, with `hhea` as fallback,
+    to match Word line-height behavior.
+-   `TextMeasurer` uses HarfBuzz shaping for deterministic run widths and
     wrapping.
--   Cell height includes:
-    -   paragraph spacing before/after
-    -   wrapped line heights
-    -   cell top/bottom margins
--   Rotated text paths (btLr/tbRl) are handled explicitly.
+-   Cell height includes paragraph spacing, wrapped line heights, and
+    top/bottom cell margins.
+-   Rotated text paths (`btLr`, `tbRl`) are handled explicitly.
 
 ## 6. Pagination Internals
 
--   Vertical pagination budget is computed from usable page height
-    minus:
-    -   safety margin
-    -   header/footer overflow into body
-    -   titles/subtitles
-    -   table header
-    -   reserved footnote space
--   Horizontal segmentation:
-    -   isColBreak starts a new segment
-    -   isID columns are repeated in each segment
-    -   non-ID columns are scaled to fill available segment width
-    -   when isColBreak is active, the renderer enforces
-        allow_row_break_across_pages=false and
-        repeat_header_on_each_page=true (Phase 1b constraint
-        enforcement, with R warning if values are overridden)
--   Last-page footnotes:
-    -   `footnotePlace="last_page"` has two paths
-    -   deterministic mode (`allow_row_break_across_pages=false`) uses
-        LastPage post-pass to keep footnotes on the true final page
-    -   row-break mode (`allow_row_break_across_pages=true`) skips
-        LastPage reshuffling and keeps natural Word row flow
-    -   for `last_page`, footnote height is reserved only on the true
-        final page; non-final pages keep zero footnote reserve
--   Row height model:
-    -   baseline full-table row height is retained on LogicalRow
-    -   segment-specific row heights are computed and stored on each
-        segment
-    -   DOCX row emission uses segment.row_heights for exact per-segment
-        trHeight
--   Warning behavior:
-    -   warning threshold compares against physical page body height
-    -   pagination still uses a safety margin for conservative fitting
+-   Vertical pagination starts from usable page height, then subtracts the
+    safety margin, header/footer overflow, titles, table header, and reserved
+    footnote space.
+-   Horizontal segmentation starts a new segment at `isColBreak`, repeats
+    `isID` columns in each segment, and scales non-ID columns to the remaining
+    width. When `isColBreak` is active, the renderer also enforces
+    `allow_row_break_across_pages = FALSE` and
+    `repeat_header_on_each_page = TRUE`.
+-   Last-page footnotes use two paths: deterministic mode keeps them on the
+    true final page through a post-pass, while row-break mode keeps natural
+    Word flow and skips that reshuffling.
+-   Row heights are tracked both at the full-table level and at the
+    segment-specific level so emitted `trHeight` values remain exact.
+-   Warning thresholds compare against the physical page body height, while
+    pagination still uses a safety margin for conservative fitting.
 
 ## 7. Style Resolution Cascade
 

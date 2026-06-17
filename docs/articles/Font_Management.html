@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Font Management in ksTFL • ksTFL</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Font Management in ksTFL">
@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,9 +56,9 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-06-09</h4>
+            <h4 data-toc-skip class="date">2026-06-17</h4>
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Font_Management.Rmd" class="external-link"><code>vignettes/Font_Management.Rmd</code></a></small>
       <div class="d-none name"><code>Font_Management.Rmd</code></div>
     </div>
 
@@ -72,29 +73,27 @@ Starting with version 0.7.0, the package <strong>automatically discovers
 fonts installed on the operating system</strong> at load time. If a
 required font is not available on the system, a metrically compatible
 open-source fallback is used.</p>
-<p>This article explains how font discovery works, which fallback fonts
+<p>This guide explains how font discovery works, which fallback fonts
 are bundled, and how to configure custom font directories.</p>
 </div>
 <div class="section level2">
 <h2 id="how-font-discovery-works">How Font Discovery Works<a class="anchor" aria-label="anchor" href="#how-font-discovery-works"></a>
 </h2>
-<p>When ksTFL is loaded (via <code><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">library(ksTFL)</a></code> or
-<code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code>), the following happens:</p>
+<p>When ksTFL is loaded, it performs four steps:</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>System directories are scanned.</strong> The C++ font
-scanner inspects platform-specific directories using FreeType to read
-font family names and style flags from each <code>.ttf</code>,
-<code>.otf</code>, and <code>.ttc</code> file.</p></li>
-<li><p><strong>User directories are scanned.</strong> If the R option
+<li><p><strong>Scan system directories.</strong> The C++ font scanner
+inspects platform-specific directories and reads family names and style
+flags from <code>.ttf</code>, <code>.otf</code>, and <code>.ttc</code>
+files.</p></li>
+<li><p><strong>Scan user directories.</strong> If the R option
 <code>ksTFL.font_dirs</code> is set, those directories are scanned as
 well.</p></li>
-<li><p><strong>Bundled fallback fonts are scanned.</strong> The
-package’s own <code>inst/fonts/</code> directory (containing
-license-free alternatives) is scanned last.</p></li>
-<li><p><strong>Target fonts are resolved.</strong> For each target font
-family (Arial, Times New Roman, Courier New, Georgia, Verdana, Trebuchet
-MS), the scanner checks whether the font was found in any scanned
-directory. If not, a designated fallback is assigned.</p></li>
+<li><p><strong>Scan bundled fallbacks.</strong> The package’s own
+<code>inst/fonts/</code> directory is scanned last.</p></li>
+<li><p><strong>Resolve target fonts.</strong> For each target family
+(Arial, Times New Roman, Courier New, Georgia, Verdana, Trebuchet MS),
+ksTFL keeps the discovered font when available or assigns a designated
+fallback.</p></li>
 </ol>
 <p><strong>Key rule:</strong> system-installed fonts always take
 priority. The bundled fallbacks are only used when a target font is not
@@ -105,8 +104,8 @@ found anywhere on the system.</p>
 <p>The scanner inspects the following directories by default:</p>
 <table class="table">
 <colgroup>
-<col width="43%">
-<col width="56%">
+<col width="9%">
+<col width="90%">
 </colgroup>
 <thead><tr class="header">
 <th>Platform</th>
@@ -145,9 +144,9 @@ clinical documents. Each has a metrically compatible open-source
 fallback bundled with the package:</p>
 <table class="table">
 <colgroup>
-<col width="37%">
-<col width="42%">
-<col width="20%">
+<col width="25%">
+<col width="21%">
+<col width="52%">
 </colgroup>
 <thead><tr class="header">
 <th>Target Font</th>
@@ -207,7 +206,7 @@ with size, colour, alignment, and other style atoms via
 <p>After loading the package, call <code><a href="../reference/tfl_font_status.html">tfl_font_status()</a></code> to see
 the current font resolution:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/tfl_font_status.html">tfl_font_status</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ksTFL font scan: 3 target(s) resolved, 3 using fallback</span></span>
 <span><span class="co">#&gt;   [ok]       Arial                -&gt; Arial</span></span>
@@ -239,13 +238,13 @@ a network share or a project-local folder), point the
 </h3>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/opt/company-fonts"</span>, <span class="st">"/mnt/shared/fonts"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="option-b-set-and-rescan-after-loading">Option B: Set and rescan after loading<a class="anchor" aria-label="anchor" href="#option-b-set-and-rescan-after-loading"></a>
 </h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="st">"/opt/company-fonts"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Both approaches produce the same result. The
@@ -337,7 +336,7 @@ glyph-level differences may exist, but document layout is preserved.</p>
 </h3>
 <p>You can suppress all startup messages with:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressPackageStartupMessages</a></span><span class="op">(</span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Or install the missing fonts and the message will not appear.</p>
 </div>
 </div>

@@ -46,6 +46,7 @@
 #'
 #' @name print.TFL_spec
 #' @aliases print.TFL_spec
+#' @export
 #'
 #' @examples
 #' \dontrun{

@@ -21,9 +21,13 @@ navbar:
     - text: Changelog
       href: news/index.html
 
-# Required by pkgdown (placeholder until you deploy; e.g. GitHub Pages)
-# When you have a site URL, set it here: url: https://your-org.github.io/ksTFL/
-url: https://example.com
+# Required by pkgdown so absolute links, sitemap entries, and installed
+# metadata point to the published site.
+url: https://crow16384.github.io/ksTFL-release/
+
+# The LLM export pass tries to resolve embedded PDF resources as fetchable URLs,
+# which does not work for local pkgdown article assets and adds noisy warnings.
+llm-docs: false
 
 # Install package metadata into the package so autolinking works without
 # fetching CRAN packages.rds (avoids timeout when building behind firewall/proxy)
@@ -41,6 +45,10 @@ articles:
       - Getting_Started_with_ksTFL
       - Reporting_Examples_with_ksTFL
       - Real_Examples_with_ksTFL
+  - title: FAQ And Troubleshooting
+    navbar: FAQ
+    contents:
+      - FAQ_with_ksTFL
   - title: Styling And Layout
     navbar: Styling and Layout
     contents:

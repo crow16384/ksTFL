@@ -1,41 +1,38 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 1 note
 
 ---
 
-### Note 1 — Non-standard top-level file
+### Note 1 — Compilation flags used
 
-> Non-standard file/directory found at top level: 'CLAUDE.md'
+> Compilation used the following non-portable flag(s):
+> `-Wdate-time` `-Werror=format-security` `-Wformat`
 
-`CLAUDE.md` is an AI-assistant context file used during development. It is listed in `.Rbuildignore` and is not included in the package tarball.
+This note comes from the Ubuntu R 4.6.0 build environment used for the local
+check, not from ksTFL package flags. The package `src/Makevars` files do not add
+these flags; they are inherited from the platform `CFLAGS`/`CXXFLAGS` configured
+into that R build.
 
----
-
-### Note 2 — Compiled code: use of `stderr`, `rand`, `srand`
-
-> Found 'stderr' in the following object(s): ksTFL.so
-> Found 'rand'/'srand' in the following object(s): ksTFL.so
-
-These come from two vendored C libraries that are statically compiled into the package:
-
-- **HarfBuzz** (text shaping engine, `src/vendor/harfbuzz/`): uses `fprintf(stderr, ...)` internally for optional debug output that is compiled away in our build (`HB_NO_MT` is defined; debug paths are never reached from R). No debug output is produced during normal use.
-
-- **minizip** (`src/vendor/minizip/`): uses `rand()` internally for generating temporary file name suffixes when creating ZIP archives. This is not used for statistical randomness and does not affect reproducibility of results from R code.
-
-Neither library is accessible to R users and neither alters R's global state (e.g., R's RNG seed is not touched).
+Per the R check documentation, such toolchain-supplied flags can be declared as
+known for local checks via `_R_CHECK_COMPILATION_FLAGS_KNOWN_`. The package
+source itself is clean after removing vendored-source pragma warnings and the
+compiled-code notes from the previous check run.
 
 ---
 
-### Vendored libraries
+### Bundled third-party components
 
-The package bundles the following C/C++ libraries to avoid external system dependencies:
+The package bundles the following third-party components to avoid external system
+dependencies at install time:
 
-| Library       | Version   | License     | Source                         |
-|---------------|-----------|-------------|--------------------------------|
-| HarfBuzz      | 11.2.0    | MIT         | https://harfbuzz.github.io     |
-| FreeType      | 2.13.3    | FTL / GPLv2 | https://freetype.org           |
-| nlohmann/json | 3.11.3    | MIT         | https://github.com/nlohmann/json |
-| minizip-ng    | 4.0.8     | MIT         | https://github.com/zlib-ng/minizip-ng |
+| Component | Version | License | Notes |
+|-----------|---------|---------|-------|
+| HarfBuzz | 10.2.0 | HarfBuzz permissive license | Vendored in `src/vendor/harfbuzz/` |
+| FreeType | 2.13.3 | FTL / GPL-2.0-or-later | Redistributed under the FTL option |
+| minizip | zlib 1.3.1 contrib/minizip | zlib | ZIP-writing subset only |
+| nlohmann/json | 3.12.0 | MIT | Single bundled header |
+| Liberation fonts | 2.1.5 font metadata | SIL OFL 1.1 | Bundled in `inst/fonts/` |
 
-All vendored sources are in `src/vendor/` and compiled as part of the package. No system libraries are required.
+Third-party redistribution details are recorded in `LICENSE.note`. The bundled
+font license text required for redistribution is included in `inst/fonts/OFL.txt`.

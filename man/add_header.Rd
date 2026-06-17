@@ -33,7 +33,7 @@ Each call adds a new header row. Per schema, headers are arrays of arrays (each 
 # Add to a spec object
 spec <- create_text() |>
   add_header("Study ABC-123", "CONFIDENTIAL", "Page {PAGE}") |>
-  add_header("Protocol v2.0", "", "Date: {DATE}")
+  add_header("Protocol v2.0", "", paste("Date:", format(Sys.Date(), "\%Y-\%m-\%d")))
 
 # Add to global options
 options <- tfl_get_options()

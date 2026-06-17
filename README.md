@@ -19,13 +19,23 @@ Under the hood, a built-in **rendering engine** with text shaping converts decla
 - **Deterministic Pagination**: font shaping guarantees pixel-perfect, reproducible layouts and pagination
 - **High Performance**: C++ engine renders large multi-spec reports in seconds
 - **Type Safety**: Comprehensive input validation with informative error messages
-- **Reproducibility**: Specifications are serializable. That allows to store the metadata for replay without re-runnig of the whole code
+- **Reproducibility**: Specifications are serializable. This allows storing metadata for replay without re-running the full pipeline
 
 ---
 
 ## Installation
 
-ksTFL is distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
+Install the CRAN release with:
+
+```r
+install.packages("ksTFL")
+```
+
+If you need a GitHub-hosted binary outside CRAN, use one of the secondary options below.
+
+### Pre-compiled binaries
+
+ksTFL is also distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
 
 ### Windows
 
@@ -123,15 +133,15 @@ spec <- create_table(mtcars, cols = c(cyl, mpg, hp, wt))
 # 2. Add document content
 spec <- spec |>
   add_title("Motor Trend Car Road Tests", styleRef = "i") |>
-  add_title("Performance Metrics by Cylinder Count", styleRef = 'i') |>
-  add_subtitle("Number of Cylinders: #ByGroup1", styleRef = f_combine('fc_blue','tw_50')) |>
-  add_footnote("Source: 1974 Motor Trend US magazine", styleRef = 'tw_50')
+  add_title("Performance Metrics by Cylinder Count", styleRef = "i") |>
+  add_subtitle("Number of Cylinders: #ByGroup1", styleRef = f_combine("fc_blue", "tw_50")) |>
+  add_footnote("Source: 1974 Motor Trend US magazine", styleRef = "tw_50")
 
 # 3. Define column properties
 spec <- spec |>
   define_cols(c(mpg, hp, wt), 
               label = c("Miles/(US) gallon", "Horsepower", "Weight<br>(1000 lbs)"),
-              valueStyleRef = 'ac'
+              valueStyleRef = "ac"
               ) |>
   define_cols(cyl, 
               isGrouping = TRUE, 
@@ -142,7 +152,7 @@ spec <- spec |>
   compute_cols(hp > 200, 
                c_style(hp, styleRef = "fc_red"))
 
-spec <- spec |> set_document(contentWidth = '50%')
+spec <- spec |> set_document(contentWidth = "50%")
 
 # 5. Create report and render to DOCX
 report <- create_report(spec)
@@ -156,25 +166,25 @@ report <- create_report(spec)
 
 Create specification objects for different document types:
 
-| Function | Purpose | Returns |
-|----------|---------|---------|
-| `create_table(data, cols = everything())` | Initialize table spec with data frame | `TFL_spec` |
-| `create_figure(plot_or_path, dpi = 300L)` | Initialize figure spec from image path or ggplot2 object | `TFL_spec` |
-| `create_text()` | Initialize text-only spec (no data) | `TFL_spec` |
+| Function | Purpose | Typical usage |
+|----------|---------|---------------|
+| `create_table(data, cols = everything())` | Start a table specification from a data frame | `create_table(adsl, cols = c(USUBJID, AGE, TRT01A))` |
+| `create_figure(plot_or_path, dpi = 300L)` | Start a figure specification from a file path or ggplot object | `create_figure(p)` or `create_figure("figures/pk_plot.png")` |
+| `create_text()` | Start a text-only specification for narratives and notes | `create_text() |> add_body_text("No protocol deviations.")` |
 
 ### Content Functions
 
 Add document elements to specifications:
 
-| Function | Purpose | Supports Style References |
-|----------|---------|---------------------------|
-| `add_title(spec, text, id, styleRef, order)` | Add title(s) to document | Yes |
-| `add_subtitle(spec, text, id, styleRef, order)` | Add subtitle(s) to document | Yes |
-| `add_footnote(spec, text, id, styleRef, order)` | Add footnote(s) to document | Yes |
-| `add_body_text(spec, text, id, styleRef, order)` | Add body text paragraphs | Yes |
-| `add_header(spec, ..., level)` | Add header row(s) (max 3 parts: left/center/right) | Yes |
-| `add_footer(spec, ..., level)` | Add footer row(s) (max 3 parts: left/center/right) | Yes |
-| `add_span_header(spec, cols, label, stubOrder, id, labelStyleRef)` | Add spanning column header | Yes |
+| Function | What it adds | Practical usage notes |
+|----------|--------------|-----------------------|
+| `add_title(spec, text, id, styleRef, order)` | Main document title rows | Use `toclevel` when you want entries in TOC. `styleRef` can be a named style or `f_combine(...)`. |
+| `add_subtitle(spec, text, id, styleRef, order)` | Secondary title rows | Useful for dynamic section context such as group labels. Also supports `toclevel`. |
+| `add_footnote(spec, text, id, styleRef, order)` | Footnotes tied to table/figure/text output | Placement is controlled by `footnotePlace` in `set_document()` / options. |
+| `add_body_text(spec, text, id, styleRef, order)` | Narrative paragraphs inside Text specs, or fallback text | Great for listings, narrative outputs, and no-data messages. |
+| `add_header(spec, ..., level)` | Page header rows (left/center/right cells) | Up to 3 cells per row; combine with `tfl_set_options(add_header(...))` for session defaults. |
+| `add_footer(spec, ..., level)` | Page footer rows (left/center/right cells) | Works like headers; useful for confidentiality and page metadata. |
+| `add_span_header(spec, cols, label, stubOrder, id, labelStyleRef)` | Multi-column group headers above labels | `stubOrder` controls hierarchy depth; use same `stubOrder` for siblings in one header row. |
 
 ### Column Configuration
 
@@ -208,45 +218,55 @@ define_cols(spec, cols, label, isVisible, isID, isGrouping, isPaging,
 
 ### Conditional Row Styling
 
-Apply dynamic styling based on data conditions:
+`compute_cols()` is the parent rule function. You define one condition and pass one or
+more action helpers as sibling arguments in the same call.
 
-| Function | Purpose | Example |
-|----------|---------|---------|
-| `compute_cols(spec, condition, ...)` | Evaluate condition and apply set of actions | `compute_cols(spec, age > 65, c_style(value, styleRef = "alert"))` |
-| `c_style(cols, styleRef)` | Apply style to specified cells | `c_style(c(col1, col2), styleRef = "bold")` |
-| `c_merge(cols, styleRef)` | Merge specified cells into one cell | `c_merge(c(col1, col2, col3))` |
-| `c_addrow(position, value_from, styleRef)` | Insert row above/below | `c_addrow("above", group_col, styleRef = "header")` |
-| `c_pageBreak()` | Insert page break at matching rows | `c_pageBreak()` |
+| Layer | Function | What it does | Example |
+|------|----------|--------------|---------|
+| Parent rule | `compute_cols(spec, condition, ...)` | Evaluates `condition` row-wise during `create_report()` and applies all provided actions to matching rows | `compute_cols(spec, AGE > 65, c_style(AGE, "b"), c_addrow("above"))` |
+| Action helper | `c_style(cols, styleRef)` | Apply style(s) to selected columns in matching rows | `c_style(c(PARAM, AVAL), styleRef = f_combine("b", "fc_red"))` |
+| Action helper | `c_merge(cols, styleRef = NULL)` | Merge adjacent columns into one displayed span in matching rows | `c_merge(c(TRT_A, TRT_B), styleRef = "ac")` |
+| Action helper | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert a row above/below matching rows, optionally populated from a source column | `c_addrow("below", value_from = PARAM)` |
+| Action helper | `c_pageBreak()` | Force a page break at matching rows | `c_pageBreak()` |
+| Action helper | `c_glue(cols, position, glue_col = NULL, text = NULL, separator = NULL)` | Append/prepend a column value or literal text to existing cell text | `c_glue(PARAM, "after", glue_col = UNIT, separator = " ")` |
+| Action helper | `c_clear(cols)` | Clear displayed text in selected cells while keeping structure/styling | `c_clear(PARAM)` |
 
 **Helper Functions for Conditions**:
 
-- `firstOf(...)`: TRUE for first occurrence of each value combination
-- `lastOf(...)`: TRUE for last occurrence of each value combination
-- `firstRow()`: TRUE only for first data row
-- `lastRow()`: TRUE only for last data row
-- `everyNth(n)`: TRUE every n-th row (e.g., `everyNth(3)` for rows 1, 4, 7, ...)
-- `rowNumber()`: Row index (1-based)
-- `firstOfBlock(col, n, offset)`: Logical vector marking first row of every n-th block defined by `col`
+These helpers exist because many reporting rules are boundary-based (first row
+in a group, last row in a block, alternating stripes, etc.) and are hard to
+express clearly with raw boolean logic alone.
 
-Note: The `cols` argument passed to `c_merge()` must resolve to at least two consecutive
-columns in the final report column order. The merged cell's displayed value is taken
-from the first column in the `cols` sequence.
+| Helper | What it returns | When it is most useful |
+|--------|------------------|------------------------|
+| `firstOf(...)` | `TRUE` at first row of each unique value combination | Insert section headers, style group starts, trigger page breaks at group boundaries |
+| `lastOf(...)` | `TRUE` at last row of each unique value combination | Add subtotal/summary rows, blank-after separators, final group emphasis |
+| `firstRow()` | `TRUE` only for row 1 | Add top banners, first-row highlights, initial spacing rows |
+| `lastRow()` | `TRUE` only for last row | Add closing notes, final-row separators, tail summaries |
+| `everyNth(n)` | `TRUE` on rows `1, n+1, 2n+1, ...` | Zebra striping and periodic visual guides in dense listings |
+| `rowNumber()` | 1-based integer row index | Positional rules such as “top 5”, modulo patterns, custom ranking displays |
+| `firstOfBlock(col, n, offset)` | `TRUE` at first row of every `n`-th block by `col` | Controlled periodic headers/page breaks in repeating grouped structures |
 
 ### Style Definitions
 
 Define and compose styles:
 
-| Function | Purpose | Returns |
-|----------|---------|---------|
-| `add_style(spec, id, ...)` | Add named style to spec | `TFL_spec` |
-| `s_font(font_name, font_size, bold, italic, underline, color, highlight)` | Font properties | Style component |
-| `s_paragraph(word_style, alignment, spacing, indents)` | Paragraph formatting | Style component |
-| `s_spacing(before, after, line_spacing)` | Spacing settings | Style component |
-| `s_indents(left, right, first_line)` | Indentation settings | Style component |
-| `s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)` | Table cell styling | Style component |
-| `s_borders(top, bottom, left, right)` | Border definitions | Style component |
-| `s_border(color, width, line_style)` | Individual border | Style component |
-| `f_combine(...)` | Combine multiple style references | Combined style reference |
+ksTFL already ships with a large set of predefined atomic styles (font,
+alignment, spacing, borders, colors, indentation, etc.). In many real workflows
+you do not need to author many new styles: combine existing atoms with
+`f_combine()` and add only a small number of study-specific named styles.
+
+| Function | Purpose | Affects in MS Word output |
+|----------|---------|---------------------------|
+| `add_style(spec, id, ...)` | Define a reusable named style | Creates/updates a style entry used later by `styleRef` fields |
+| `s_font(font_name, font_size, bold, italic, underline, color, highlight)` | Run-level text appearance | Font family, size, emphasis, text color, highlight/shading |
+| `s_paragraph(alignment, spacing, indents, ...)` | Paragraph block formatting | Alignment, spacing, indentation, keep-with-next / keep-lines behaviors |
+| `s_spacing(before, after, line_spacing)` | Paragraph spacing micro-control | Space before/after paragraph and line spacing |
+| `s_indents(left, right, first_line)` | Paragraph indentation control | Left/right indents and first-line/hanging indent behavior |
+| `s_table_style(background_color, row_height, topEmptyLine, bottomEmptyLine, vertical_alignment, text_orientation, borders)` | Cell and row presentation | Cell fill, row height, vertical align, text direction, cell borders |
+| `s_borders(top, bottom, left, right)` | Border set for cell edges | Border presence/style on each side of a cell |
+| `s_border(color, width, line_style)` | One border edge definition | Border color, thickness, and line style (single/double/etc.) |
+| `f_combine(...)` | Combine multiple style references | Merge several style refs into one effective style application |
 
 **Context-Based Nesting Rules**:
 
@@ -258,6 +278,7 @@ Define and compose styles:
 **Example Style Definition**:
 
 ```r
+# Define one reusable custom style (study-specific)
 spec <- add_style(spec, id = "header_style",
   s_font(font_name = "Arial", font_size = "12pt", bold = TRUE, color = "#333333"),
   s_paragraph(alignment = "center", spacing = s_spacing(after = "6pt")),
@@ -266,31 +287,132 @@ spec <- add_style(spec, id = "header_style",
   ))
 )
 
-spec <- define_cols(spec, mpg,
-  valueStyleRef = f_combine("font_verdana", "fs_10", "ar"))
+# Use the custom style directly
+spec <- add_title(spec, "Table 14.1 Demographics", styleRef = "header_style")
+
+# Combine the custom style with built-in atomic styles for a specific context:
+# - "tw_80": narrow text block width
+# - "fc_navy": override font color to navy
+spec <- add_footnote(
+  spec,
+  "Source: ADSL",
+  styleRef = f_combine("header_style", "tw_80", "fc_navy")
+)
+
+# Use only built-in atoms when no custom style is needed
+spec <- define_cols(spec, mpg, valueStyleRef = f_combine("font_verdana", "fs_10", "ar"))
 ```
 
 ### Document Configuration
 
 Configure document-level settings:
 
-| Function | Purpose | Key Parameters |
-|----------|---------|----------------|
-| `set_document(spec, ...)` | Set document metadata | `isContinues`, `contentWidth`, `topEmptyLine`, `bottomEmptyLine`, `footnotePlace`, `hasData`, `docTemplate`, `figureWidth`, `figureHeight`, `figureDevice`, `figureScaleMode` |
-| `set_page_style(spec, docTemplate, page)` | Configure page layout & template | Template name, page settings |
-| `p_page(size, orientation, margins)` | Page settings helper | A4/Letter/Legal, portrait/landscape |
-| `p_margins(top, bottom, left, right, header, footer)` | Margin settings helper | Dimensions with units (in, cm, pt, mm) |
+| Function | What it configures | Most useful parameters and behavior |
+|----------|---------------------|-------------------------------------|
+| `set_document(spec, ...)` | Spec-level document behavior and figure settings | `hasData`, `footnotePlace`, `contentWidth`, `isContinues`, `continuousSection`, `docTemplate`, `figureWidth`, `figureHeight`, `figureDevice`, `figureScaleMode`, `topEmptyLine`, `bottomEmptyLine` |
+| `set_page_style(spec, docTemplate, page)` | Template + page geometry for the spec | Use bundled template name or JSON path for `docTemplate`; use `page = p_page(...)` for size/orientation/margins |
+| `p_page(size, orientation, margins)` | Structured page descriptor used by `set_page_style()` | Typical values: `"A4"`, `"Letter"`, `"Legal"`; `"portrait"` or `"landscape"`; margins from `p_margins(...)` |
+| `p_margins(top, bottom, left, right, header, footer)` | Margin distances for page/body/header/footer zones | All inputs support dimension strings like `"1in"`, `"2.54cm"`, `"72pt"`, `"25mm"` |
+
+Practical guidance:
+
+- Use `set_document()` for per-spec behavior and content logic.
+- Use `set_page_style()` when you need layout/template changes.
+- Use `continuousSection = TRUE` only when a following spec should continue on
+  the same page as the previous one.
+- Use `isContinues = TRUE` when repeated titles/subtitles on each page are not desired.
+
+### Document Templates
+
+Templates are JSON style/layout presets used by the renderer as the visual
+baseline for each spec. A template typically defines:
+
+- Page defaults (size, orientation, margins)
+- Region text styles (titles, subtitles, footnotes, body text, doc header/footer)
+- Table defaults (header/body styling, structural borders/backgrounds)
+- Figure defaults (caption and placement-related style defaults)
+
+Why templates are needed:
+
+- They provide consistent branding and submission formatting across outputs.
+- They keep repeated visual rules out of analysis code.
+- They let one pipeline render different document families (for example,
+  CRO-internal vs sponsor-facing formats) by switching template only.
+
+How templates interact with user-defined styles:
+
+- Template styles are the baseline.
+- `add_style()` definitions and `styleRef` values are merged on top of template defaults.
+- `f_combine(...)` merges multiple refs in order (last wins for overlapping properties).
+- Inline markup in text (for example `<b>...</b>`) has highest run-level priority.
+
+Practical precedence (high level):
+
+1. Template defaults
+2. Template region/structural styles
+3. Column- and content-level `styleRef`
+4. Row-action style refs (`compute_cols` actions)
+5. Inline text markup
+
+Template-only controls (not overridable by `add_style()` / `styleRef`):
+
+- Table layout switches from template layout:
+  `table_alignment`, `allow_row_break_across_pages`, `repeat_header_on_each_page`
+- Structural table borders from template structural section:
+  `header_top_border`, `header_bottom_border`, `table_bottom_border`
+- Default table cell margins from template layout (`default_cell_margin_*`)
+- Figure layout behavior from template figure style:
+  caption position (`above`/`below`), figure alignment, and default caption spacing
+- Base document header/footer and TOC style regions (`docHeader`, `docFooter`,
+  `tocTitle`, `tocEntry`) in normal API usage
+
+Important distinction:
+
+- `styleRef` and `add_style()` are for text/cell style composition.
+- Template settings above are layout/structural controls and must be changed
+  in the template JSON (or by selecting a different template), not via `styleRef`.
+- Page geometry can still be overridden per spec via `set_page_style(page = p_page(...))`;
+  that is a page override, not a style override.
+
+How to choose the template source:
+
+- Per-spec template: set `docTemplate` on each spec (`set_page_style()` or options).
+- Global render override: pass `overrideTemplate` in `write_doc()`/
+  `replay_report()` to force one template for the full output.
+- Discover bundled templates with `tfl_list_templates()`.
+
+```r
+# Per-spec template selection
+spec <- create_table(adsl) |>
+  set_page_style(docTemplate = "Navy_Pro") |>
+  add_style(id = "study_title", s_font(bold = TRUE, color = "#1F3864")) |>
+  add_title("Table 14.1: Demographics", styleRef = f_combine("study_title", "tw_80"))
+
+report <- create_report(spec)
+
+# Optional global override: forces one template for all specs in this render
+write_doc(report, name = "t14_1", overrideTemplate = "CRO Example_default")
+```
 
 ### Report Assembly & Rendering
 
 Combine specifications into reports and render to DOCX:
 
-| Function | Purpose | Returns |
-|----------|---------|---------|
-| `create_report(...)` | Combine specs/reports into single report | `TFL_report` |
-| `save_report(report, docFileName, outDir, metaPath, prettify)` | Serialize and export report | List with `spec_file`, `datetime`, `metaPath` |
-| `write_doc(report, name, outDir, metaPath, overrideTemplate, font_dirs, fallback_font, verbose)` | Save and render DOCX in one call | Output file path (invisibly) |
-| `replay_report(spec_json, meta_dir, output_path, template_json, overrideTemplate, insertTOC, tocTitle, verbose)` | Re-render DOCX from stored JSON metadata | Output file path (invisibly) |
+| Function | Purpose | Why/when to use it |
+|----------|---------|--------------------|
+| `create_report(...)` | Assemble one or many specs into a report object | Use before output to consolidate styles, finalize deferred row actions, and assign document order/data references |
+| `save_report(report, docFileName, outDir, metaPath, prettify, insertTOC, tocTitle)` | Persist report metadata and payload files to disk | Use for audit trails, CI artifacts, reproducibility, or debugging JSON before rendering |
+| `write_doc(report, name, outDir, metaPath, prettify, toc, tocTitle, overrideTemplate, font_dirs, fallback_font, verbose)` | One-step save + render path | Best default for production pipelines when you want final DOCX output immediately |
+| `replay_report(spec_json, meta_dir, output_path, template_json, overrideTemplate, insertTOC, tocTitle, verbose)` | Render from saved JSON (single or merged multi-report inputs) | Use for exact re-rendering, delayed rendering on another machine, and combining previously saved outputs |
+
+How the output layers fit together:
+
+| Layer | Output | Why it matters |
+|-------|--------|----------------|
+| In-memory assembly (`create_report`) | A coherent in-memory report object with resolved style refs and evaluated row-action metadata | Ensures the document is fully prepared before persistence or rendering |
+| Persistent metadata (`save_report`) | Spec JSON + referenced data/figure payloads + metadata index | Enables reproducibility, handoff, and diff/debug of rendering inputs |
+| One-step production (`write_doc`) | Final DOCX plus persisted metadata bundle | Simplest path for routine report generation |
+| Replay (`replay_report`) | DOCX rendered from saved metadata without rebuilding specs in R | Supports deterministic regeneration, centralized rendering, and multi-document merge workflows |
 
 **create_report() Features**:
 
@@ -377,8 +499,8 @@ tfl_set_options(
                   margins = p_margins(top = "1in", bottom = "1in",
                                       left = "0.75in", right = "0.75in"))
   ),
-  add_header("Company Name", "", "Page {page} of {pages}"),
-  add_footer("Confidential", "", "{date}"),
+  add_header("Company Name", "", "Page {PAGE} of {NUMPAGES}"),
+  add_footer("Confidential", "", format(Sys.Date(), "%Y-%m-%d")),
   add_style(id = "alert", s_font(color = "#FF0000", bold = TRUE))
 )
 ```
@@ -386,7 +508,7 @@ tfl_set_options(
 ### Atomic Styles (Built-in Style Atoms)
 
 ksTFL ships with 100+ **atomic styles** — single-property building blocks that can be used directly as `styleRef` values or combined with `f_combine()`. Each atom sets exactly **one** visual property, making styles composable and predictable.
-Use `tfl_print_style_atoms()` to print all avaialbe atomic styles, or use addin to call this function.
+Use `tfl_print_style_atoms()` to print all available atomic styles, or use the add-in to call this function.
 
 **Usage**: pass atom IDs directly to any `styleRef` parameter, or combine multiple atoms:
 
@@ -590,6 +712,7 @@ Note: `<sup>` and `<sub>` are mutually exclusive — if nested, the innermost ta
 ### 1. Tidyselect Integration
 
 Use tidyselect expressions for intuitive column selection:
+
 ```r
 define_cols(spec, starts_with("lab_"), colWidth = "15%")
 define_cols(spec, c(id, age, sex), isID = TRUE)
@@ -608,6 +731,7 @@ define_cols(spec, where(is.numeric), colWidth = "auto")
 ### 3. Schema Validation
 
 All specifications validated against JSON schema:
+
 - Type checking for all fields
 - Enum validation for constrained values
 - Pattern matching for formatted strings (colors, dimensions)
@@ -615,7 +739,8 @@ All specifications validated against JSON schema:
 
 ### 4. Data Environment
 
-Original data preserved (shadow-copy) in `.metadata$data_env` for:
+Original data preserved (shadow-copy) in spec object for:
+
 - Conditional expressions in `compute_cols()`
 - Helper functions (`firstOf()`, `lastOf()`, etc.)
 - Deferred evaluation until `create_report()`
@@ -623,6 +748,7 @@ Original data preserved (shadow-copy) in `.metadata$data_env` for:
 ### 5. Vectorized Parameters
 
 Most functions support vectorized inputs:
+
 ```r
 # Single value recycled
 define_cols(spec, c(col1, col2, col3), colWidth = "33%")
@@ -640,7 +766,7 @@ The rendering engine provides a complete end-to-end pipeline:
 - **Vertical & horizontal pagination** with configurable page break rules
 - Support for all 3 document types (Table, Figure, Text)
 - **Per-spec template rendering** in multi-spec reports (mixed `docTemplate` values)
-- **Automatic TOC embedding** to the created documents
+- **Automatic TOC embedding** in generated documents
 - Configurable style templates (`CRO Example_default` bundled)
 
 ### 7. Font Management
@@ -787,7 +913,7 @@ GPL-3. See <https://www.gnu.org/licenses/gpl-3.0.html>.
 
 **Igor Aleschenkov**
 **Vladimir Larchenko**
-ksTFL Team(C)
+ksTFL Team (C)
 
 ---
 
@@ -799,6 +925,7 @@ ksTFL Team(C)
 - The **C++ rendering engine** (built-in, C++20, used by `write_doc()` / `replay_report()`) consumes these specifications and produces styled DOCX documents with deterministic pagination
 
 This architecture enables:
+
 - Metadata generation (R) and rendering (C++) are independently optimizable
 - Specifications are reusable, serializable, and version-controllable
 - The complete pipeline runs within a single R session — no external tools required

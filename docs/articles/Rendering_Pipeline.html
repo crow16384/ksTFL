@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Rendering Pipeline and Full C++ Architecture in ksTFL • ksTFL</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Rendering Pipeline and Full C++ Architecture in ksTFL">
@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,9 +56,9 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-06-09</h4>
+            <h4 data-toc-skip class="date">2026-06-17</h4>
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Rendering_Pipeline.Rmd" class="external-link"><code>vignettes/Rendering_Pipeline.Rmd</code></a></small>
       <div class="d-none name"><code>Rendering_Pipeline.Rmd</code></div>
     </div>
 
@@ -268,30 +269,24 @@ docx_toc.cpp</li>
 </h2>
 <p>Defined primarily in src/kstfl/types.h.</p>
 <ul>
-<li>Units and geometry
-<ul>
-<li>Length (EMU-based arithmetic)</li>
-<li>PageConfig, Margins</li>
-</ul>
+<li>
+<strong>Units and geometry</strong>: <code>Length</code>,
+<code>PageConfig</code>, <code>Margins</code>
 </li>
-<li>Style system
-<ul>
-<li>FontProps, ParagraphProps, TableCellProps</li>
-<li>StyleDef, StylesTemplate</li>
-</ul>
+<li>
+<strong>Style system</strong>: <code>FontProps</code>,
+<code>ParagraphProps</code>, <code>TableCellProps</code>,
+<code>StyleDef</code>, <code>StylesTemplate</code>
 </li>
-<li>Table model
-<ul>
-<li>ColumnSpec, StubColumn, TextGroup</li>
-<li>LogicalCell, LogicalRow, HeaderGrid</li>
-</ul>
+<li>
+<strong>Table model</strong>: <code>ColumnSpec</code>,
+<code>StubColumn</code>, <code>TextGroup</code>,
+<code>LogicalCell</code>, <code>LogicalRow</code>,
+<code>HeaderGrid</code>
 </li>
-<li>Pagination model
-<ul>
-<li>PageSlice</li>
-<li>HorizontalSegment (column_indices, pages, row_heights)</li>
-<li>PaginationResult</li>
-</ul>
+<li>
+<strong>Pagination model</strong>: <code>PageSlice</code>,
+<code>HorizontalSegment</code>, <code>PaginationResult</code>
 </li>
 </ul>
 </div>
@@ -299,72 +294,40 @@ docx_toc.cpp</li>
 <h2 id="text-and-font-subsystem">5. Text and Font Subsystem<a class="anchor" aria-label="anchor" href="#text-and-font-subsystem"></a>
 </h2>
 <ul>
-<li>FontCache reads font metrics from OS/2 tables (fallback to hhea when
-needed) to match Word line-height behavior.</li>
-<li>TextMeasurer uses HarfBuzz shaping for run width and deterministic
-wrapping.</li>
-<li>Cell height includes:
-<ul>
-<li>paragraph spacing before/after</li>
-<li>wrapped line heights</li>
-<li>cell top/bottom margins</li>
-</ul>
-</li>
-<li>Rotated text paths (btLr/tbRl) are handled explicitly.</li>
+<li>
+<code>FontCache</code> reads font metrics from OS/2 tables, with
+<code>hhea</code> as fallback, to match Word line-height behavior.</li>
+<li>
+<code>TextMeasurer</code> uses HarfBuzz shaping for deterministic
+run widths and wrapping.</li>
+<li>Cell height includes paragraph spacing, wrapped line heights, and
+top/bottom cell margins.</li>
+<li>Rotated text paths (<code>btLr</code>, <code>tbRl</code>) are
+handled explicitly.</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="pagination-internals">6. Pagination Internals<a class="anchor" aria-label="anchor" href="#pagination-internals"></a>
 </h2>
 <ul>
-<li>Vertical pagination budget is computed from usable page height
-minus:
-<ul>
-<li>safety margin</li>
-<li>header/footer overflow into body</li>
-<li>titles/subtitles</li>
-<li>table header</li>
-<li>reserved footnote space</li>
-</ul>
-</li>
-<li>Horizontal segmentation:
-<ul>
-<li>isColBreak starts a new segment</li>
-<li>isID columns are repeated in each segment</li>
-<li>non-ID columns are scaled to fill available segment width</li>
-<li>when isColBreak is active, the renderer enforces
-allow_row_break_across_pages=false and repeat_header_on_each_page=true
-(Phase 1b constraint enforcement, with R warning if values are
-overridden)</li>
-</ul>
-</li>
-<li>Last-page footnotes:
-<ul>
-<li>
-<code>footnotePlace="last_page"</code> has two paths</li>
-<li>deterministic mode (<code>allow_row_break_across_pages=false</code>)
-uses LastPage post-pass to keep footnotes on the true final page</li>
-<li>row-break mode (<code>allow_row_break_across_pages=true</code>)
-skips LastPage reshuffling and keeps natural Word row flow</li>
-<li>for <code>last_page</code>, footnote height is reserved only on the
-true final page; non-final pages keep zero footnote reserve</li>
-</ul>
-</li>
-<li>Row height model:
-<ul>
-<li>baseline full-table row height is retained on LogicalRow</li>
-<li>segment-specific row heights are computed and stored on each
-segment</li>
-<li>DOCX row emission uses segment.row_heights for exact per-segment
-trHeight</li>
-</ul>
-</li>
-<li>Warning behavior:
-<ul>
-<li>warning threshold compares against physical page body height</li>
-<li>pagination still uses a safety margin for conservative fitting</li>
-</ul>
-</li>
+<li>Vertical pagination starts from usable page height, then subtracts
+the safety margin, header/footer overflow, titles, table header, and
+reserved footnote space.</li>
+<li>Horizontal segmentation starts a new segment at
+<code>isColBreak</code>, repeats <code>isID</code> columns in each
+segment, and scales non-ID columns to the remaining width. When
+<code>isColBreak</code> is active, the renderer also enforces
+<code>allow_row_break_across_pages = FALSE</code> and
+<code>repeat_header_on_each_page = TRUE</code>.</li>
+<li>Last-page footnotes use two paths: deterministic mode keeps them on
+the true final page through a post-pass, while row-break mode keeps
+natural Word flow and skips that reshuffling.</li>
+<li>Row heights are tracked both at the full-table level and at the
+segment-specific level so emitted <code>trHeight</code> values remain
+exact.</li>
+<li>Warning thresholds compare against the physical page body height,
+while pagination still uses a safety margin for conservative
+fitting.</li>
 </ul>
 </div>
 <div class="section level2">

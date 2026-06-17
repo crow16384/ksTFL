@@ -18,6 +18,7 @@ PKG_LIBS = -L$(HARFBUZZ_DIR)/lib -lharfbuzz \
     -L$(MINIZIP_DIR)/lib -lminizip -lz \
     -lpng -lbrotlidec -lbrotlicommon \
     -lbz2 -llzma -lzstd \
+    -lstdc++ \
     -lbcrypt \
     $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 

@@ -36,32 +36,21 @@ chunks.
 
 ## Category and scope
 
-This is an applied workflow vignette.
+This is a workflow-first vignette for readers who already know the basic
+pipeline and want practical patterns they can adapt directly.
 
--   Audience: users who already know the basic pipeline and want
-    practical templates
--   Focus: end-to-end report assembly patterns you can adapt directly
--   Outcome: production-oriented examples for table, figure, text, and
-    multi-spec workflows
+Related reading:
 
-**Related vignettes:**
-
-\- [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline overview
-and all core concepts
-
-\- [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — complete style
-reference and built-in atoms
-
-\- [Advanced StyleRows](Advanced_StyleRows.Rmd) — deep dive into
-`compute_cols()`, `c_glue()`, `c_clear()`
-
-\- [Column Width Management](Column_Width_Management.Rmd) — width
-locking, auto-calculation, invisible columns
+- [Getting Started](Getting_Started_with_ksTFL.html) for the core pipeline.
+- [Styling Guide](Styling_Guide_with_ksTFL.html),
+  [Advanced StyleRows](Advanced_StyleRows.html), and
+  [Column Width Management](Column_Width_Management.html) for deeper feature
+  coverage.
 
 ## Workflow overview
 
-This vignette follows a consistent end-to-end pattern for each example
-so you can reproduce the full reporting pipeline locally:
+Each example follows the same end-to-end pattern so you can reproduce the full
+pipeline locally:
 
 -   Prepare small, self-contained sample data (run the setup chunk with
     `eval=TRUE`).
@@ -74,12 +63,13 @@ so you can reproduce the full reporting pipeline locally:
 -   Render to a DOCX with `write_doc()` (one-step: saves JSON metadata
     and produces the final document).
 
-Best practices:
+Keep in mind:
 
 -   Use named styles (`add_style()`) and reference them by id; avoid
     inspecting or mutating internal fields.
 -   Use `print(spec)` for concise, user-facing previews rather than
-    reading internals. Or use package provided Addins
+  reading internals, or use the package add-ins for interactive
+  inspection.
 -   Use `metaPath = tempdir()` during examples to avoid writing
     permanent files while you experiment.
 
@@ -112,6 +102,9 @@ labs_tbl <- data.frame(
 
 # Example plot file (created locally when running the vignette)
 # type = "cairo" avoids needing an X11 display (headless-safe for pkgdown/CI)
+out_dir <- file.path(tempdir(), "ksTFL-reporting-examples")
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
 plot_file <- file.path(tempdir(), "example_plot.png")
 png(plot_file, width = 600, height = 400, type = "cairo")
 plot(demog_tbl$age, vitals_tbl$sbp[1:24], xlab = "Age", ylab = "SBP", main = "Age vs SBP")
@@ -141,7 +134,7 @@ print(spec_min_table)
 ```
 
 print() on a TFL_spec provides a readable overview including titles and
-defined columns: ![](images/print-output-minimal-table.png)
+defined columns: ![print output minimal table](images/print-output-minimal-table.png)
 
 ```{r save_min_table, eval = FALSE}
 # End-to-end: wrap single spec into a report and render to DOCX
@@ -149,7 +142,9 @@ rpt_min_table <- create_report(spec_min_table)
 write_doc(rpt_min_table, name = "tbl_min")
 ```
 
-## ![](images/rendered-minimal-table.png)
+Rendered output:
+
+![rendered minimal table](images/rendered-minimal-table.png)
 
 > **A note on the `cols` parameter** — The `cols` argument in
 > `create_table()` specifies which columns are rendered in the document
@@ -179,7 +174,9 @@ rpt_min_fig <- create_report(spec_min_fig)
 write_doc(rpt_min_fig, name = "fig_min")
 ```
 
-## ![](images/rendered-minimal-figure.png)
+Rendered output:
+
+![rendered minimal figure](images/rendered-minimal-figure.png)
 
 ## 3 — Simple minimal text (narrative)
 
@@ -214,7 +211,9 @@ rpt_min_text <- create_report(spec_min_text)
 write_doc(rpt_min_text, name = "nar_min")
 ```
 
-## ![](images/rendered-narrative-text.png)
+Rendered output:
+
+![rendered narrative text](images/rendered-narrative-text.png)
 
 ## 4 — Define columns: single, batch, and parameter recycling
 
@@ -461,7 +460,7 @@ print(spec_auto)
 
 ```
 
-![](images/colwidth-auto-calculated.png)
+![colwidth auto calculated](images/colwidth-auto-calculated.png)
 
 ### Example 2: Lock one column, auto-adjust others
 
@@ -482,7 +481,7 @@ print(spec_lock1)
 
 ```
 
-![](images/colwidth-single-locked.png)
+![colwidth single locked](images/colwidth-single-locked.png)
 
 ### Example 3: Lock multiple columns with relative widths
 
@@ -504,7 +503,7 @@ print(spec_lock_multi)
 
 ```
 
-![](images/colwidth-multiple-locked.png)
+![colwidth multiple locked](images/colwidth-multiple-locked.png)
 
 ### Example 4: Mixed units (percentages and absolute)
 
@@ -524,7 +523,7 @@ print(spec_mixed)
 
 ```
 
-![](images/colwidth-mixed-units.png)
+![colwidth mixed units](images/colwidth-mixed-units.png)
 
 **Important**: When mixing units (cm, in, pt) with percentages, **the
 absolute widths are reserved first**, then percentages are calculated
@@ -613,7 +612,9 @@ rpt_multi <- create_report(spec_multi)
 write_doc(rpt_multi, name = "tbl_multi")
 ```
 
-## ![](images/table-titles-subtitles-footnotes.png)
+Rendered output:
+
+![table titles subtitles footnotes](images/table-titles-subtitles-footnotes.png)
 
 ## 9 — span columns (spanning headers)
 
@@ -650,7 +651,7 @@ print(spec_span_simple)
 
 **Result**: A table with column labels on one row and a "Demographics"
 header spanning age+sex columns above it:\
-![](images/span-header-single.png)
+![span header single](images/span-header-single.png)
 
 ### Example 1b: Using tidyselect helpers with spanning headers
 
@@ -686,7 +687,7 @@ add_span_header(cols = -id,
 print(spec_tidysel)
 ```
 
-![](images/span-header-tidyselect.png)
+![span header tidyselect](images/span-header-tidyselect.png)
 
 **Tidyselect expressions supported**:
 
@@ -728,7 +729,7 @@ spec_spans_style <- add_span_header(spec_spans_style,
 
 ```
 
-![](images/span-header-styled.png)
+![span header styled](images/span-header-styled.png)
 
 Notes:
 
@@ -857,7 +858,7 @@ define_cols(age, label = "Age",
             valueStyleRef = 'ac')
 ```
 
-![](images/styles-fcombine-columns.png)
+![styles fcombine columns](images/styles-fcombine-columns.png)
 
 **How `f_combine()` works**:
 
@@ -912,7 +913,7 @@ spec <- spec |>
 
 ```
 
-![](images/compute-conditional-styling.png)
+![compute conditional styling](images/compute-conditional-styling.png)
 
 ### Example 2: Combining styles in conditional rows
 
@@ -931,7 +932,7 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-combined-styles.png)
+![compute combined styles](images/compute-combined-styles.png)
 
 ### Example 3: Column merging in conditional rows
 
@@ -948,7 +949,7 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-column-merging.png)
+![compute column merging](images/compute-column-merging.png)
 
 ### Example 4: Inserting separator rows
 
@@ -971,7 +972,7 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-row-insertion.png)
+![compute row insertion](images/compute-row-insertion.png)
 
 ### Example 4b: Page break insertion
 
@@ -1003,7 +1004,7 @@ spec <- spec |>
   )
 ```
 
-![](images/compute-multiple-actions.png)
+![compute multiple actions](images/compute-multiple-actions.png)
 
 **Key concepts**:
 
@@ -1085,11 +1086,13 @@ In this workflow:
 -   `write_doc(..., overrideTemplate = <name_or_path>)` applies a single
     global template to all specs.
 
-**Key parameters**: - `report`: A `TFL_report` object (created via
-`create_report()`) - `name`: Base name for the output DOCX (e.g.
-`"example_report"` → `example_report.docx`) - `outDir`: Directory where
-the output DOCX is written - `metaPath`: Directory where intermediate
-JSON and data files are written
+**Key parameters**:
+
+-   `report`: A `TFL_report` object created via `create_report()`.
+-   `name`: Base name for the output DOCX (`"example_report"` becomes
+  `example_report.docx`).
+-   `outDir`: Directory where the output DOCX is written.
+-   `metaPath`: Directory where intermediate JSON and data files are written.
 
 **Advanced**: If you need to inspect the JSON before rendering (e.g. for
 debugging or CI pipelines), you can split the call into
@@ -1182,27 +1185,9 @@ print(spec_reset)
 
 ## Final notes
 
-This comprehensive vignette demonstrates the complete ksTFL reporting
-pipeline using only exported helpers.
-
-**Examples covered**: 1. Minimal table/figure/text creation (single-spec
-workflows) 2. **Define columns**: Single column, batch updates,
-parameter recycling (NEW) 3. Column widths: Auto-calculation, locking,
-mixed units (NEW) 4. Multi-level tables with titles, subtitles, and
-footnotes 5. Combining multiple specs into a report 6. Spanning headers
-(stub columns) with styling 7. Named styles and combining with
-`f_combine()` (expanded) 8. End-to-end render with `write_doc()` 9.
-Session defaults with `tfl_set_options()`
-
-**Key patterns to remember**: - **Batch operations**: Use `c()` to
-select multiple columns, provide single values (recycled) or N values
-(one-to-one mapping) - **Multiple calls**: Chain `define_cols()`,
-`add_style()`, etc. — each call merges with previous settings -
-**Flexible column widths**: Auto-calculated by default; lock specific
-columns with `colWidth` to trigger recalculation of others - **Combining
-styles**: Use `f_combine()` for on-the-fly combinations; define named
-styles for reuse - **Session defaults**: Use `tfl_set_options()` once;
-all new specs inherit settings (override per-spec if needed)
+This vignette stays deliberately example-heavy. Reuse it when you want a compact
+pattern for a minimal spec, a multi-spec report, span headers, width tuning,
+or session-level defaults.
 
 **Running examples locally**: Set the top chunk `eval=TRUE` to generate
 sample data, then execute examples in order. All code uses exported

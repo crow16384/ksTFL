@@ -6,7 +6,15 @@ output:
     dev: pdf
     css: ksTFL-vignette.css
 resource_files:
-  - pdf/
+  - example_01.pdf
+  - example_01_navy.pdf
+  - example_02_demog.pdf
+  - example_03_ae.pdf
+  - example_04_list.pdf
+  - example_04_list_colbr.pdf
+  - example_05_figures_single_doc_toc.pdf
+  - example_03.1_table_under_figure.pdf
+  - spanning_headers_gap.pdf
 vignette: >
   %\VignetteIndexEntry{Real Examples of Clinical Outputs using ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -40,8 +48,8 @@ headers), then move on to multi-language support, complex spanning headers, data
 listings with grouping, and finally figure output.
 
 All code chunks use `eval = FALSE`; the rendered PDFs were pre-generated and are
-embedded below. To reproduce any example locally, copy the code into an R
-session with ksTFL loaded and run it.
+embedded below. To reproduce an example locally, run the shown code in an R
+session with ksTFL loaded.
 
 ## How examples are organised
 
@@ -54,29 +62,25 @@ Every example follows the same structure:
 3.  **Rendered output** — the resulting document embedded as PDF
 
 A shared **session setup** block at the top configures page headers, footers,
-and output defaults so individual examples stay focused on their unique logic.
+and output defaults so the examples can stay focused on their unique logic.
 
-**Related vignettes:**
+Related reading:
 
--   [Getting Started](Getting_Started_with_ksTFL.Rmd) — pipeline overview and
-    core concepts
--   [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — simpler worked
-    examples covering each feature in isolation
--   [Styling Guide](Styling_Guide_with_ksTFL.Rmd) — style primitives and
-    templates
--   [Advanced StyleRows](Advanced_StyleRows.Rmd) — deep dive into
-    `compute_cols()`, `c_glue()`, `c_clear()`
+-   [Getting Started](Getting_Started_with_ksTFL.html) for the pipeline and
+  core concepts.
+-   [Reporting Examples](Reporting_Examples_with_ksTFL.html) for smaller,
+  feature-by-feature patterns.
+-   [Styling Guide](Styling_Guide_with_ksTFL.html) and
+  [Advanced StyleRows](Advanced_StyleRows.html) when you need styling or row
+  action details.
 
 --------------------------------------------------------------------------------
 
 ## Session setup (shared across examples)
 
 Every example in this vignette assumes the following session-wide settings are
-in place. The `tfl_set_options()` call registers default page headers (company
-name, confidentiality notice, page numbering), a study-level sub-header, and
-page footers. It also sets the output directory and footnote placement strategy.
-Because these options are set once at the session level, individual specs don't
-need to repeat them — they inherit the defaults automatically:
+in place. They register default headers, footers, output paths, and footnote
+behavior once so the individual examples do not need to repeat them:
 
 ```{r session_setup, eval = FALSE}
 library(ksTFL)
@@ -270,9 +274,9 @@ create_report(spec) %>% write_doc("example_01")
 
 ### Rendered output
 
-<p><a href="example_01.pdf" target="_blank" rel="noopener">Open example_01.pdf</a></p>
+[Open example_01.pdf](example_01.pdf)
 
-<iframe src="example_01.pdf#navpanes=0" title="example_01.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_01.pdf" title="example_01.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ### Switching style templates
 
@@ -289,9 +293,9 @@ create_report(spec) %>% write_doc("example_01_navy")
 The same table is now rendered with the "Navy_Pro" template — different fonts,
 colours, and border styles, but identical content and structure:
 
-<p><a href="example_01_navy.pdf" target="_blank" rel="noopener">Open example_01_navy.pdf</a></p>
+[Open example_01_navy.pdf](example_01_navy.pdf)
 
-<iframe src="example_01_navy.pdf#navpanes=0" title="example_01_navy.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_01_navy.pdf" title="example_01_navy.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 **Key take-aways from this example:**
 
@@ -434,9 +438,9 @@ spec_dm_01 <- create_table(data) %>%
 
 ### Rendered output
 
-<p><a href="example_02_demog.pdf" target="_blank" rel="noopener">Open example_02_demog.pdf</a></p>
+[Open example_02_demog.pdf](example_02_demog.pdf)
 
-<iframe src="example_02_demog.pdf#navpanes=0" title="example_02_demog.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_02_demog.pdf" title="example_02_demog.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ## Example 3 — Adverse Events table with complex spanning headers
 
@@ -656,9 +660,9 @@ create_report(spec) %>% write_doc("example_03_ae")
 
 ### Rendered output
 
-<p><a href="example_03_ae.pdf" target="_blank" rel="noopener">Open example_03_ae.pdf</a></p>
+[Open example_03_ae.pdf](example_03_ae.pdf)
 
-<iframe src="example_03_ae.pdf#navpanes=0" title="example_03_ae.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_03_ae.pdf" title="example_03_ae.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ## Example 4 — Data listing with automatic two-level TOC
 
@@ -780,9 +784,9 @@ create_report(spec_lbl_01) %>% write_doc("example_04_list", toc = TRUE)
 
 ### Rendered output
 
-<p><a href="example_04_list.pdf" target="_blank" rel="noopener">Open example_04_list.pdf</a></p>
+[Open example_04_list.pdf](example_04_list.pdf)
 
-<iframe src="example_04_list.pdf#navpanes=0" title="example_04_list.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_04_list.pdf" title="example_04_list.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ### Splitting long tables across pages
 
@@ -807,9 +811,9 @@ create_report(spec_lbl_02) %>% write_doc("example_04_list_colbr", toc = TRUE)
 
 ### Split rendered output
 
-<p><a href="example_04_list_colbr.pdf" target="_blank" rel="noopener">Open example_04_list_colbr.pdf</a></p>
+[Open example_04_list_colbr.pdf](example_04_list_colbr.pdf)
 
-<iframe src="example_04_list_colbr.pdf#navpanes=0" title="example_04_list_colbr.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_04_list_colbr.pdf" title="example_04_list_colbr.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ## Example 5 — Figures and combined multi-spec reports with TOC
 
@@ -927,7 +931,7 @@ t.fig.spec3 <- t.fig3 %>% create_figure() %>%
 # the toclevel values set in each spec's title.
 t.fig.report <- create_report(t.fig.spec, t.fig.spec2, t.fig.spec3)
 
-write_doc(t.fig.report, "figures_single_doc_toc", toc = TRUE)
+write_doc(t.fig.report, "example_05_figures_single_doc_toc", toc = TRUE)
 ```
 
 ### Rendered output
@@ -936,9 +940,9 @@ The resulting document contains a TOC page listing all three figures, followed
 by one page per figure. Each figure fills the landscape page thanks to
 `figureScaleMode = "fitPage"`.
 
-<p><a href="figures_single_doc_toc.pdf" target="_blank" rel="noopener">Open figures_single_doc_toc.pdf</a></p>
+[Open example_05_figures_single_doc_toc.pdf](example_05_figures_single_doc_toc.pdf)
 
-<iframe src="figures_single_doc_toc.pdf#navpanes=0" title="figures_single_doc_toc.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_05_figures_single_doc_toc.pdf" title="example_05_figures_single_doc_toc.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ## Example 6 - Table under the figure
 
@@ -1007,9 +1011,9 @@ create_report(spec_fig, spec_tbl) %>%
 
 ### Rendered output
 
-<p><a href="example_03.1_table_under_figure.pdf" target="_blank" rel="noopener">Open table_under_figure.pdf</a></p>
+[Open table_under_figure.pdf](example_03.1_table_under_figure.pdf)
 
-<iframe src="example_03.1_table_under_figure.pdf#navpanes=0" title="table_under_figure.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_03.1_table_under_figure.pdf" title="table_under_figure.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 ### Variation: adding an explicit table title
 
@@ -1124,8 +1128,8 @@ spec <- create_table(demo_data) |>
 
 With this approach the groups are visually separated from each other:
 
-<p><a href="spanning_headers_gap.pdf" target="_blank" rel="noopener">Open spanning_headers_gap.pdf</a></p>
+[Open spanning_headers_gap.pdf](spanning_headers_gap.pdf)
 
-<iframe src="spanning_headers_gap.pdf#navpanes=0" title="spanning_headers_gap.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="spanning_headers_gap.pdf" title="spanning_headers_gap.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
 

@@ -28,28 +28,26 @@ the package **automatically discovers fonts installed on the operating system**
 at load time. If a required font is not available on the system, a metrically
 compatible open-source fallback is used.
 
-This article explains how font discovery works, which fallback fonts are
+This guide explains how font discovery works, which fallback fonts are
 bundled, and how to configure custom font directories.
 
 ## How Font Discovery Works
 
-When ksTFL is loaded (via `library(ksTFL)` or `devtools::load_all()`), the
-following happens:
+When ksTFL is loaded, it performs four steps:
 
-1. **System directories are scanned.** The C++ font scanner inspects
-   platform-specific directories using FreeType to read font family names and
-   style flags from each `.ttf`, `.otf`, and `.ttc` file.
+1. **Scan system directories.** The C++ font scanner inspects
+  platform-specific directories and reads family names and style flags from
+  `.ttf`, `.otf`, and `.ttc` files.
 
-2. **User directories are scanned.** If the R option `ksTFL.font_dirs` is set,
-   those directories are scanned as well.
+2. **Scan user directories.** If the R option `ksTFL.font_dirs` is set, those
+  directories are scanned as well.
 
-3. **Bundled fallback fonts are scanned.** The package's own `inst/fonts/`
-   directory (containing license-free alternatives) is scanned last.
+3. **Scan bundled fallbacks.** The package's own `inst/fonts/` directory is
+  scanned last.
 
-4. **Target fonts are resolved.** For each target font family (Arial, Times New
-   Roman, Courier New, Georgia, Verdana, Trebuchet MS), the scanner checks
-   whether the font was found in any scanned directory. If not, a designated
-   fallback is assigned.
+4. **Resolve target fonts.** For each target family (Arial, Times New Roman,
+  Courier New, Georgia, Verdana, Trebuchet MS), ksTFL keeps the discovered
+  font when available or assigns a designated fallback.
 
 **Key rule:** system-installed fonts always take priority. The bundled fallbacks
 are only used when a target font is not found anywhere on the system.
@@ -58,11 +56,11 @@ are only used when a target font is not found anywhere on the system.
 
 The scanner inspects the following directories by default:
 
-| Platform | Directories |
-|----------|-------------|
-| **Linux** | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.local/share/fonts`, `~/.fonts`, plus any XDG data dirs |
-| **macOS** | `/System/Library/Fonts`, `/Library/Fonts`, `~/Library/Fonts` |
-| **Windows** | System fonts directory (from registry), plus user fonts in `%LOCALAPPDATA%\Microsoft\Windows\Fonts` |
+| Platform    | Directories                                                                                              |
+| ----------- | -------------------------------------------------------------------------------------------------------- |
+| **Linux**   | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.local/share/fonts`, `~/.fonts`, plus any XDG data dirs |
+| **macOS**   | `/System/Library/Fonts`, `/Library/Fonts`, `~/Library/Fonts`                                             |
+| **Windows** | System fonts directory (from registry), plus user fonts in `%LOCALAPPDATA%\Microsoft\Windows\Fonts`      |
 
 ## Target Fonts and Fallbacks
 
@@ -70,14 +68,14 @@ The rendering engine targets six font families commonly used in clinical
 documents. Each has a metrically compatible open-source fallback bundled with
 the package:
 
-| Target Font | Fallback Font | Notes |
-|-------------|---------------|-------|
-| **Arial** | Liberation Sans | Metrically identical to Arial |
+| Target Font         | Fallback Font    | Notes                                   |
+| ------------------- | ---------------- | --------------------------------------- |
+| **Arial**           | Liberation Sans  | Metrically identical to Arial           |
 | **Times New Roman** | Liberation Serif | Metrically identical to Times New Roman |
-| **Courier New** | Liberation Mono | Metrically identical to Courier New |
-| **Georgia** | Liberation Serif | Serif fallback for Georgia |
-| **Verdana** | Liberation Sans | Sans-serif fallback for Verdana |
-| **Trebuchet MS** | Liberation Sans | Sans-serif fallback for Trebuchet MS |
+| **Courier New**     | Liberation Mono  | Metrically identical to Courier New     |
+| **Georgia**         | Liberation Serif | Serif fallback for Georgia              |
+| **Verdana**         | Liberation Sans  | Sans-serif fallback for Verdana         |
+| **Trebuchet MS**    | Liberation Sans  | Sans-serif fallback for Trebuchet MS    |
 
 All bundled fonts are licensed under the SIL Open Font License 1.1.
 

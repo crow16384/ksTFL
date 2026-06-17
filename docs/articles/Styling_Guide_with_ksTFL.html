@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Styling Guide (ksTFL) • ksTFL</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Styling Guide (ksTFL)">
@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,7 +56,7 @@
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Styling_Guide_with_ksTFL.Rmd" class="external-link"><code>vignettes/Styling_Guide_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Styling_Guide_with_ksTFL.Rmd</code></div>
     </div>
 
@@ -76,21 +77,16 @@ references and <code><a href="../reference/f_combine.html">f_combine()</a></code
 content</p>
 <p>- <strong>Best practices</strong> for maintainable, reusable style
 systems</p>
-<p>For runnable reporting examples integrating styles see <a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a>. For a
-quick start see <a href="Getting_Started_with_ksTFL.Rmd">Getting
+<p>For runnable reporting examples integrating styles see <a href="Reporting_Examples_with_ksTFL.html">Reporting Examples</a>. For a
+quick start see <a href="Getting_Started_with_ksTFL.html">Getting
 Started</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="category-and-scope">Category and scope<a class="anchor" aria-label="anchor" href="#category-and-scope"></a>
 </h2>
-<p>This is a styling-system vignette.</p>
-<ul>
-<li>Audience: users defining reusable style systems for teams or
-studies</li>
-<li>Focus: style primitives, composition, references, and maintainable
-conventions</li>
-<li>Outcome: consistent style architecture across many reports</li>
-</ul>
+<p>This is the reference vignette for readers building reusable style
+systems for teams or studies. The focus is style primitives,
+composition, references, and maintainable conventions.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -100,10 +96,12 @@ conventions</li>
 <h3 id="why-declarative-styles">Why declarative styles?<a class="anchor" aria-label="anchor" href="#why-declarative-styles"></a>
 </h3>
 <p>Professional clinical documents require:</p>
-<p>- <strong>Consistency</strong>: All headers look the same, all
-numeric columns align right, all subtitles use the same font</p>
-<p>- <strong>Maintainability</strong>: Change one style definition, all
-references update automatically</p>
+<ul>
+<li><p><strong>Consistency</strong>: common elements should render the
+same way everywhere.</p></li>
+<li><p><strong>Maintainability</strong>: one style change should update
+every reference.</p></li>
+</ul>
 <p>- <strong>Composability</strong>: Build complex styles from simple
 building blocks (font + paragraph alignment + table background)</p>
 <p>- <strong>Separation of concerns</strong>: Define styles once, apply
@@ -1382,11 +1380,11 @@ inside <code><a href="../reference/add_style.html">add_style()</a></code>.</p>
 <code><a href="../reference/f_combine.html">?f_combine</a></code>
 </li>
 <li>
-<a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a> —
-working examples with styles</li>
+<a href="Reporting_Examples_with_ksTFL.html">Reporting Examples</a>
+— working examples with styles</li>
 <li>
-<a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> — quick
-overview</li>
+<a href="Getting_Started_with_ksTFL.html">Getting Started</a> —
+quick overview</li>
 </ul>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

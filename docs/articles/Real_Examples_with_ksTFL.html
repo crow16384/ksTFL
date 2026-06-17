@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Real Examples of Clinical Outputs using ksTFL • ksTFL</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Real Examples of Clinical Outputs using ksTFL">
@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,7 +56,7 @@
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Real_Examples_with_ksTFL.Rmd" class="external-link"><code>vignettes/Real_Examples_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Real_Examples_with_ksTFL.Rmd</code></div>
     </div>
 
@@ -76,8 +77,8 @@ formatting, section headers), then move on to multi-language support,
 complex spanning headers, data listings with grouping, and finally
 figure output.</p>
 <p>All code chunks use <code>eval = FALSE</code>; the rendered PDFs were
-pre-generated and are embedded below. To reproduce any example locally,
-copy the code into an R session with ksTFL loaded and run it.</p>
+pre-generated and are embedded below. To reproduce an example locally,
+run the shown code in an R session with ksTFL loaded.</p>
 </div>
 <div class="section level2">
 <h2 id="how-examples-are-organised">How examples are organised<a class="anchor" aria-label="anchor" href="#how-examples-are-organised"></a>
@@ -96,24 +97,19 @@ define the document (with inline comments explaining each step)</li>
 as PDF</li>
 </ol>
 <p>A shared <strong>session setup</strong> block at the top configures
-page headers, footers, and output defaults so individual examples stay
+page headers, footers, and output defaults so the examples can stay
 focused on their unique logic.</p>
-<p><strong>Related vignettes:</strong></p>
+<p>Related reading:</p>
 <ul>
 <li>
-<a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> —
-pipeline overview and core concepts</li>
+<a href="Getting_Started_with_ksTFL.html">Getting Started</a> for
+the pipeline and core concepts.</li>
 <li>
-<a href="Reporting_Examples_with_ksTFL.Rmd">Reporting Examples</a> —
-simpler worked examples covering each feature in isolation</li>
+<a href="Reporting_Examples_with_ksTFL.html">Reporting Examples</a>
+for smaller, feature-by-feature patterns.</li>
 <li>
-<a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> — style
-primitives and templates</li>
-<li>
-<a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a> — deep dive
-into <code><a href="../reference/compute_cols.html">compute_cols()</a></code>, <code><a href="../reference/c_glue.html">c_glue()</a></code>,
-<code><a href="../reference/c_clear.html">c_clear()</a></code>
-</li>
+<a href="Styling_Guide_with_ksTFL.html">Styling Guide</a> and <a href="Advanced_StyleRows.html">Advanced StyleRows</a> when you need
+styling or row action details.</li>
 </ul>
 <hr>
 </div>
@@ -121,14 +117,11 @@ into <code><a href="../reference/compute_cols.html">compute_cols()</a></code>, <
 <h2 id="session-setup-shared-across-examples">Session setup (shared across examples)<a class="anchor" aria-label="anchor" href="#session-setup-shared-across-examples"></a>
 </h2>
 <p>Every example in this vignette assumes the following session-wide
-settings are in place. The <code><a href="../reference/tfl_set_options.html">tfl_set_options()</a></code> call registers
-default page headers (company name, confidentiality notice, page
-numbering), a study-level sub-header, and page footers. It also sets the
-output directory and footnote placement strategy. Because these options
-are set once at the session level, individual specs don’t need to repeat
-them — they inherit the defaults automatically:</p>
+settings are in place. They register default headers, footers, output
+paths, and footnote behavior once so the individual examples do not need
+to repeat them:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/" class="external-link">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/tfl_reset_options.html">tfl_reset_options</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -321,11 +314,8 @@ spacing and page-break logic:</p>
 <div class="section level3">
 <h3 id="rendered-output">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output"></a>
 </h3>
-<p>
-<a href="example_01.pdf" target="_blank" rel="noopener">Open
-example_01.pdf</a>
-</p>
-<iframe src="example_01.pdf#navpanes=0" title="example_01.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_01.pdf">Open example_01.pdf</a></p>
+<iframe src="example_01.pdf" title="example_01.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 <div class="section level3">
@@ -342,11 +332,8 @@ touching any of the data or conditional logic:</p>
 <p>The same table is now rendered with the “Navy_Pro” template —
 different fonts, colours, and border styles, but identical content and
 structure:</p>
-<p>
-<a href="example_01_navy.pdf" target="_blank" rel="noopener">Open
-example_01_navy.pdf</a>
-</p>
-<iframe src="example_01_navy.pdf#navpanes=0" title="example_01_navy.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_01_navy.pdf">Open example_01_navy.pdf</a></p>
+<iframe src="example_01_navy.pdf" title="example_01_navy.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 <p><strong>Key take-aways from this example:</strong></p>
 <ul>
@@ -501,11 +488,8 @@ correspondence:</p>
 <div class="section level3">
 <h3 id="rendered-output-1">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-1"></a>
 </h3>
-<p>
-<a href="example_02_demog.pdf" target="_blank" rel="noopener">Open
-example_02_demog.pdf</a>
-</p>
-<iframe src="example_02_demog.pdf#navpanes=0" title="example_02_demog.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_02_demog.pdf">Open example_02_demog.pdf</a></p>
+<iframe src="example_02_demog.pdf" title="example_02_demog.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 </div>
@@ -733,11 +717,8 @@ between the “Any AE” summary and per-SOC detail.</li>
 <div class="section level3">
 <h3 id="rendered-output-2">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-2"></a>
 </h3>
-<p>
-<a href="example_03_ae.pdf" target="_blank" rel="noopener">Open
-example_03_ae.pdf</a>
-</p>
-<iframe src="example_03_ae.pdf#navpanes=0" title="example_03_ae.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_03_ae.pdf">Open example_03_ae.pdf</a></p>
+<iframe src="example_03_ae.pdf" title="example_03_ae.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 </div>
@@ -871,11 +852,8 @@ columns.</li>
 <div class="section level3">
 <h3 id="rendered-output-3">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-3"></a>
 </h3>
-<p>
-<a href="example_04_list.pdf" target="_blank" rel="noopener">Open
-example_04_list.pdf</a>
-</p>
-<iframe src="example_04_list.pdf#navpanes=0" title="example_04_list.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_04_list.pdf">Open example_04_list.pdf</a></p>
+<iframe src="example_04_list.pdf" title="example_04_list.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 <div class="section level3">
@@ -901,11 +879,9 @@ page, and pH through White Blood Cells on the second:</p>
 <div class="section level3">
 <h3 id="split-rendered-output">Split rendered output<a class="anchor" aria-label="anchor" href="#split-rendered-output"></a>
 </h3>
-<p>
-<a href="example_04_list_colbr.pdf" target="_blank" rel="noopener">Open
-example_04_list_colbr.pdf</a>
-</p>
-<iframe src="example_04_list_colbr.pdf#navpanes=0" title="example_04_list_colbr.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_04_list_colbr.pdf">Open
+example_04_list_colbr.pdf</a></p>
+<iframe src="example_04_list_colbr.pdf" title="example_04_list_colbr.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 </div>
@@ -1026,7 +1002,7 @@ single landscape document with a TOC page.</p>
 <span><span class="co"># the toclevel values set in each spec's title.</span></span>
 <span><span class="va">t.fig.report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">t.fig.spec</span>, <span class="va">t.fig.spec2</span>, <span class="va">t.fig.spec3</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">t.fig.report</span>, <span class="st">"figures_single_doc_toc"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">t.fig.report</span>, <span class="st">"example_05_figures_single_doc_toc"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="rendered-output-4">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-4"></a>
@@ -1034,11 +1010,9 @@ single landscape document with a TOC page.</p>
 <p>The resulting document contains a TOC page listing all three figures,
 followed by one page per figure. Each figure fills the landscape page
 thanks to <code>figureScaleMode = "fitPage"</code>.</p>
-<p>
-<a href="figures_single_doc_toc.pdf" target="_blank" rel="noopener">Open
-figures_single_doc_toc.pdf</a>
-</p>
-<iframe src="figures_single_doc_toc.pdf#navpanes=0" title="figures_single_doc_toc.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_05_figures_single_doc_toc.pdf">Open
+example_05_figures_single_doc_toc.pdf</a></p>
+<iframe src="example_05_figures_single_doc_toc.pdf" title="example_05_figures_single_doc_toc.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 </div>
@@ -1128,11 +1102,9 @@ the table spec for clarity.</li>
 <div class="section level3">
 <h3 id="rendered-output-5">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-5"></a>
 </h3>
-<p>
-<a href="example_03.1_table_under_figure.pdf" target="_blank" rel="noopener">Open
-table_under_figure.pdf</a>
-</p>
-<iframe src="example_03.1_table_under_figure.pdf#navpanes=0" title="table_under_figure.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_03.1_table_under_figure.pdf">Open
+table_under_figure.pdf</a></p>
+<iframe src="example_03.1_table_under_figure.pdf" title="table_under_figure.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 <div class="section level3">
@@ -1247,11 +1219,9 @@ two groups:</p>
 <span>                  <span class="op">)</span></span></code></pre></div>
 <p>With this approach the groups are visually separated from each
 other:</p>
-<p>
-<a href="spanning_headers_gap.pdf" target="_blank" rel="noopener">Open
-spanning_headers_gap.pdf</a>
-</p>
-<iframe src="spanning_headers_gap.pdf#navpanes=0" title="spanning_headers_gap.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="spanning_headers_gap.pdf">Open
+spanning_headers_gap.pdf</a></p>
+<iframe src="spanning_headers_gap.pdf" title="spanning_headers_gap.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

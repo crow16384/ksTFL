@@ -1,3 +1,19 @@
+#ifndef HB_NO_BUFFER_MESSAGE
+#define HB_NO_BUFFER_MESSAGE
+#endif
+
+#ifndef HB_NO_BUFFER_SERIALIZE
+#define HB_NO_BUFFER_SERIALIZE
+#endif
+
+#ifndef HB_NO_BUFFER_VERIFY
+#define HB_NO_BUFFER_VERIFY
+#endif
+
+#ifndef HB_NO_DEBUG_OUTPUT
+#define HB_NO_DEBUG_OUTPUT
+#endif
+
 #include "OT/Var/VARC/VARC.cc"
 #include "hb-aat-layout.cc"
 #include "hb-aat-map.cc"

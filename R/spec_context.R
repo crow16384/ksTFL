@@ -2427,7 +2427,7 @@ add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL,
 #' # Add to a spec object
 #' spec <- create_text() |>
 #'   add_header("Study ABC-123", "CONFIDENTIAL", "Page {PAGE}") |>
-#'   add_header("Protocol v2.0", "", "Date: {DATE}")
+#'   add_header("Protocol v2.0", "", paste("Date:", format(Sys.Date(), "%Y-%m-%d")))
 #' 
 #' # Add to global options
 #' options <- tfl_get_options()

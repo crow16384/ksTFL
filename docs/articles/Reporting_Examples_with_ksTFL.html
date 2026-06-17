@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Reporting Examples using ksTFL • ksTFL</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Reporting Examples using ksTFL">
@@ -38,6 +38,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -55,7 +56,7 @@
                         <h4 data-toc-skip class="author">ksTFL Team</h4>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Reporting_Examples_with_ksTFL.Rmd" class="external-link"><code>vignettes/Reporting_Examples_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Reporting_Examples_with_ksTFL.Rmd</code></div>
     </div>
 
@@ -71,31 +72,23 @@ run the R chunks.</p>
 <div class="section level2">
 <h2 id="category-and-scope">Category and scope<a class="anchor" aria-label="anchor" href="#category-and-scope"></a>
 </h2>
-<p>This is an applied workflow vignette.</p>
+<p>This is a workflow-first vignette for readers who already know the
+basic pipeline and want practical patterns they can adapt directly.</p>
+<p>Related reading:</p>
 <ul>
-<li>Audience: users who already know the basic pipeline and want
-practical templates</li>
-<li>Focus: end-to-end report assembly patterns you can adapt
-directly</li>
-<li>Outcome: production-oriented examples for table, figure, text, and
-multi-spec workflows</li>
+<li>
+<a href="Getting_Started_with_ksTFL.html">Getting Started</a> for
+the core pipeline.</li>
+<li>
+<a href="Styling_Guide_with_ksTFL.html">Styling Guide</a>, <a href="Advanced_StyleRows.html">Advanced StyleRows</a>, and <a href="Column_Width_Management.html">Column Width Management</a> for
+deeper feature coverage.</li>
 </ul>
-<p><strong>Related vignettes:</strong></p>
-<p>- <a href="Getting_Started_with_ksTFL.Rmd">Getting Started</a> —
-pipeline overview and all core concepts</p>
-<p>- <a href="Styling_Guide_with_ksTFL.Rmd">Styling Guide</a> — complete
-style reference and built-in atoms</p>
-<p>- <a href="Advanced_StyleRows.Rmd">Advanced StyleRows</a> — deep dive
-into <code><a href="../reference/compute_cols.html">compute_cols()</a></code>, <code><a href="../reference/c_glue.html">c_glue()</a></code>,
-<code><a href="../reference/c_clear.html">c_clear()</a></code></p>
-<p>- <a href="Column_Width_Management.Rmd">Column Width Management</a> —
-width locking, auto-calculation, invisible columns</p>
 </div>
 <div class="section level2">
 <h2 id="workflow-overview">Workflow overview<a class="anchor" aria-label="anchor" href="#workflow-overview"></a>
 </h2>
-<p>This vignette follows a consistent end-to-end pattern for each
-example so you can reproduce the full reporting pipeline locally:</p>
+<p>Each example follows the same end-to-end pattern so you can reproduce
+the full pipeline locally:</p>
 <ul>
 <li>Prepare small, self-contained sample data (run the setup chunk with
 <code>eval=TRUE</code>).</li>
@@ -111,12 +104,13 @@ assigns <code>dataRef</code>).</li>
 <li>Render to a DOCX with <code><a href="../reference/write_doc.html">write_doc()</a></code> (one-step: saves JSON
 metadata and produces the final document).</li>
 </ul>
-<p>Best practices:</p>
+<p>Keep in mind:</p>
 <ul>
 <li>Use named styles (<code><a href="../reference/add_style.html">add_style()</a></code>) and reference them by
 id; avoid inspecting or mutating internal fields.</li>
 <li>Use <code>print(spec)</code> for concise, user-facing previews
-rather than reading internals. Or use package provided Addins</li>
+rather than reading internals, or use the package add-ins for
+interactive inspection.</li>
 <li>Use <code>metaPath = tempdir()</code> during examples to avoid
 writing permanent files while you experiment.</li>
 </ul>
@@ -149,6 +143,9 @@ writing permanent files while you experiment.</li>
 <span></span>
 <span><span class="co"># Example plot file (created locally when running the vignette)</span></span>
 <span><span class="co"># type = "cairo" avoids needing an X11 display (headless-safe for pkgdown/CI)</span></span>
+<span><span class="va">out_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"ksTFL-reporting-examples"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">out_dir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">plot_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"example_plot.png"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png</a></span><span class="op">(</span><span class="va">plot_file</span>, width <span class="op">=</span> <span class="fl">600</span>, height <span class="op">=</span> <span class="fl">400</span>, type <span class="op">=</span> <span class="st">"cairo"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">demog_tbl</span><span class="op">$</span><span class="va">age</span>, <span class="va">vitals_tbl</span><span class="op">$</span><span class="va">sbp</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span><span class="op">]</span>, xlab <span class="op">=</span> <span class="st">"Age"</span>, ylab <span class="op">=</span> <span class="st">"SBP"</span>, main <span class="op">=</span> <span class="st">"Age vs SBP"</span><span class="op">)</span></span>
@@ -176,16 +173,15 @@ writing permanent files while you experiment.</li>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec_min_table</span><span class="op">)</span></span>
 <span><span class="co"># close the example chunk</span></span></code></pre></div>
 <p>print() on a TFL_spec provides a readable overview including titles
-and defined columns: <img src="images/print-output-minimal-table.png"></p>
+and defined columns: <img src="images/print-output-minimal-table.png" alt="print output minimal table"></p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># End-to-end: wrap single spec into a report and render to DOCX</span></span>
 <span><span class="va">rpt_min_table</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_min_table</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">rpt_min_table</span>, name <span class="op">=</span> <span class="st">"tbl_min"</span><span class="op">)</span></span></code></pre></div>
+<p>Rendered output:</p>
+<div class="float">
+<img src="images/rendered-minimal-table.png" alt="rendered minimal table"><div class="figcaption">rendered minimal table</div>
 </div>
-<div class="section level2">
-<h2 id="section">
-<img src="images/rendered-minimal-table.png"><a class="anchor" aria-label="anchor" href="#section"></a>
-</h2>
 <blockquote>
 <p><strong>A note on the <code>cols</code> parameter</strong> — The
 <code>cols</code> argument in <code><a href="../reference/create_table.html">create_table()</a></code> specifies
@@ -215,11 +211,10 @@ one place.</p>
 <code class="sourceCode R"><span><span class="co"># End-to-end: render the single-figure report to DOCX</span></span>
 <span><span class="va">rpt_min_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_min_fig</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">rpt_min_fig</span>, name <span class="op">=</span> <span class="st">"fig_min"</span><span class="op">)</span></span></code></pre></div>
+<p>Rendered output:</p>
+<div class="float">
+<img src="images/rendered-minimal-figure.png" alt="rendered minimal figure"><div class="figcaption">rendered minimal figure</div>
 </div>
-<div class="section level2">
-<h2 id="section-1">
-<img src="images/rendered-minimal-figure.png"><a class="anchor" aria-label="anchor" href="#section-1"></a>
-</h2>
 </div>
 <div class="section level2">
 <h2 id="simple-minimal-text-narrative">3 — Simple minimal text (narrative)<a class="anchor" aria-label="anchor" href="#simple-minimal-text-narrative"></a>
@@ -250,11 +245,10 @@ one place.</p>
 <span><span class="va">spec_min_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec_min_text</span>, <span class="va">text</span><span class="op">)</span></span>
 <span><span class="va">rpt_min_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_min_text</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">rpt_min_text</span>, name <span class="op">=</span> <span class="st">"nar_min"</span><span class="op">)</span></span></code></pre></div>
+<p>Rendered output:</p>
+<div class="float">
+<img src="images/rendered-narrative-text.png" alt="rendered narrative text"><div class="figcaption">rendered narrative text</div>
 </div>
-<div class="section level2">
-<h2 id="section-2">
-<img src="images/rendered-narrative-text.png"><a class="anchor" aria-label="anchor" href="#section-2"></a>
-</h2>
 </div>
 <div class="section level2">
 <h2 id="define-columns-single-batch-and-parameter-recycling">4 — Define columns: single, batch, and parameter recycling<a class="anchor" aria-label="anchor" href="#define-columns-single-batch-and-parameter-recycling"></a>
@@ -487,7 +481,9 @@ distribution:</p>
 <span></span>
 <span><span class="co"># Print to see auto-calculated widths</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec_auto</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/colwidth-auto-calculated.png"></p>
+<div class="float">
+<img src="images/colwidth-auto-calculated.png" alt="colwidth auto calculated"><div class="figcaption">colwidth auto calculated</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="example-2-lock-one-column-auto-adjust-others">Example 2: Lock one column, auto-adjust others<a class="anchor" aria-label="anchor" href="#example-2-lock-one-column-auto-adjust-others"></a>
@@ -505,7 +501,9 @@ remaining space:</p>
 <span><span class="co"># to maintain their initial proportion while filling the remaining 85%</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec_lock1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/colwidth-single-locked.png"></p>
+<div class="float">
+<img src="images/colwidth-single-locked.png" alt="colwidth single locked"><div class="figcaption">colwidth single locked</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="example-3-lock-multiple-columns-with-relative-widths">Example 3: Lock multiple columns with relative widths<a class="anchor" aria-label="anchor" href="#example-3-lock-multiple-columns-with-relative-widths"></a>
@@ -524,7 +522,9 @@ remaining space:</p>
 <span><span class="co"># AST automatically fills remaining 48% (100% - 12% - 40%)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec_lock_multi</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/colwidth-multiple-locked.png"></p>
+<div class="float">
+<img src="images/colwidth-multiple-locked.png" alt="colwidth multiple locked"><div class="figcaption">colwidth multiple locked</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="example-4-mixed-units-percentages-and-absolute">Example 4: Mixed units (percentages and absolute)<a class="anchor" aria-label="anchor" href="#example-4-mixed-units-percentages-and-absolute"></a>
@@ -541,7 +541,9 @@ remaining space:</p>
 <span>                          colWidth <span class="op">=</span> <span class="st">"35%"</span><span class="op">)</span>   <span class="co"># Percentage of remaining</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec_mixed</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/colwidth-mixed-units.png"></p>
+<div class="float">
+<img src="images/colwidth-mixed-units.png" alt="colwidth mixed units"><div class="figcaption">colwidth mixed units</div>
+</div>
 <p><strong>Important</strong>: When mixing units (cm, in, pt) with
 percentages, <strong>the absolute widths are reserved first</strong>,
 then percentages are calculated from remaining space.</p>
@@ -618,11 +620,10 @@ allowed width when you exceed limits:</p>
 <code class="sourceCode R"><span><span class="co"># Render the multilevel table to DOCX</span></span>
 <span><span class="va">rpt_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_multi</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">rpt_multi</span>, name <span class="op">=</span> <span class="st">"tbl_multi"</span><span class="op">)</span></span></code></pre></div>
+<p>Rendered output:</p>
+<div class="float">
+<img src="images/table-titles-subtitles-footnotes.png" alt="table titles subtitles footnotes"><div class="figcaption">table titles subtitles footnotes</div>
 </div>
-<div class="section level2">
-<h2 id="section-3">
-<img src="images/table-titles-subtitles-footnotes.png"><a class="anchor" aria-label="anchor" href="#section-3"></a>
-</h2>
 </div>
 <div class="section level2">
 <h2 id="span-columns-spanning-headers">9 — span columns (spanning headers)<a class="anchor" aria-label="anchor" href="#span-columns-spanning-headers"></a>
@@ -658,7 +659,7 @@ Multiple spans can be stacked at different vertical levels.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec_span_simple</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Result</strong>: A table with column labels on one row and a
-“Demographics” header spanning age+sex columns above it:<br><img src="images/span-header-single.png"></p>
+“Demographics” header spanning age+sex columns above it:<br><img src="images/span-header-single.png" alt="span header single"></p>
 </div>
 <div class="section level3">
 <h3 id="example-1b-using-tidyselect-helpers-with-spanning-headers">Example 1b: Using tidyselect helpers with spanning headers<a class="anchor" aria-label="anchor" href="#example-1b-using-tidyselect-helpers-with-spanning-headers"></a>
@@ -692,7 +693,9 @@ use helpers for flexible column selection:</p>
 <span>                stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">spec_tidysel</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/span-header-tidyselect.png"></p>
+<div class="float">
+<img src="images/span-header-tidyselect.png" alt="span header tidyselect"><div class="figcaption">span header tidyselect</div>
+</div>
 <p><strong>Tidyselect expressions supported</strong>:</p>
 <p>- <strong>Ranges</strong>: <code>cols = age:weight</code> (all
 columns between age and weight)</p>
@@ -728,7 +731,9 @@ except id)</p>
 <span>                                    cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span><span class="op">)</span>,</span>
 <span>                                    label <span class="op">=</span> <span class="st">"Demographics"</span>,</span>
 <span>                                    labelStyleRef <span class="op">=</span> <span class="st">"span_header"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/span-header-styled.png"></p>
+<div class="float">
+<img src="images/span-header-styled.png" alt="span header styled"><div class="figcaption">span header styled</div>
+</div>
 <p>Notes:</p>
 <p>- <code>labelStyleRef</code> can be a single style name or multiple
 styles combined with <code><a href="../reference/f_combine.html">f_combine()</a></code></p>
@@ -851,7 +856,9 @@ color):</p>
 <span><span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">age</span>, label <span class="op">=</span> <span class="st">"Age"</span>,</span>
 <span>            labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bold_text"</span>, <span class="st">"centered"</span><span class="op">)</span>,</span>
 <span>            valueStyleRef <span class="op">=</span> <span class="st">'ac'</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/styles-fcombine-columns.png"></p>
+<div class="float">
+<img src="images/styles-fcombine-columns.png" alt="styles fcombine columns"><div class="figcaption">styles fcombine columns</div>
+</div>
 <p><strong>How <code><a href="../reference/f_combine.html">f_combine()</a></code> works</strong>:</p>
 <p>- Takes multiple style names as arguments</p>
 <p>- Returns a reference object that tells the package to merge those
@@ -896,7 +903,9 @@ occurrence, threshold-based)</p>
 <span><span class="co"># Apply conditional styling: highlight rows with high count</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">count</span> <span class="op">&gt;</span> <span class="fl">20</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">count</span>, styleRef <span class="op">=</span> <span class="st">"emphasize"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images/compute-conditional-styling.png"></p>
+<div class="float">
+<img src="images/compute-conditional-styling.png" alt="compute conditional styling"><div class="figcaption">compute conditional styling</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="example-2-combining-styles-in-conditional-rows">Example 2: Combining styles in conditional rows<a class="anchor" aria-label="anchor" href="#example-2-combining-styles-in-conditional-rows"></a>
@@ -914,7 +923,9 @@ occurrence, threshold-based)</p>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, </span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">metric</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"bold"</span>, <span class="st">"large"</span>, <span class="st">"highlight"</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/compute-combined-styles.png"></p>
+<div class="float">
+<img src="images/compute-combined-styles.png" alt="compute combined styles"><div class="figcaption">compute combined styles</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="example-3-column-merging-in-conditional-rows">Example 3: Column merging in conditional rows<a class="anchor" aria-label="anchor" href="#example-3-column-merging-in-conditional-rows"></a>
@@ -929,7 +940,9 @@ occurrence, threshold-based)</p>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, </span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">metric</span>, <span class="va">count</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"group_label"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/compute-column-merging.png"></p>
+<div class="float">
+<img src="images/compute-column-merging.png" alt="compute column merging"><div class="figcaption">compute column merging</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="example-4-inserting-separator-rows">Example 4: Inserting separator rows<a class="anchor" aria-label="anchor" href="#example-4-inserting-separator-rows"></a>
@@ -951,7 +964,9 @@ column:</p>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">lastOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, </span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span>, value_from <span class="op">=</span> <span class="st">"group"</span>, styleRef <span class="op">=</span> <span class="st">"separator"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/compute-row-insertion.png"></p>
+<div class="float">
+<img src="images/compute-row-insertion.png" alt="compute row insertion"><div class="figcaption">compute row insertion</div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="example-4b-page-break-insertion">Example 4b: Page break insertion<a class="anchor" aria-label="anchor" href="#example-4b-page-break-insertion"></a>
@@ -980,7 +995,9 @@ column:</p>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">metric</span>, styleRef <span class="op">=</span> <span class="st">"header"</span><span class="op">)</span>,  <span class="co"># Style metric column</span></span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">metric</span>, <span class="va">count</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Merge adjacent columns</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="images/compute-multiple-actions.png"></p>
+<div class="float">
+<img src="images/compute-multiple-actions.png" alt="compute multiple actions"><div class="figcaption">compute multiple actions</div>
+</div>
 <p><strong>Key concepts</strong>:</p>
 <p>- <strong>Conditions</strong> are unevaluated expressions evaluated
 at report generation time (during <code><a href="../reference/create_report.html">create_report()</a></code>)</p>
@@ -1067,13 +1084,22 @@ interactively preview and customize templates.</p>
 <code>write_doc(..., overrideTemplate = &lt;name_or_path&gt;)</code>
 applies a single global template to all specs.</li>
 </ul>
-<p><strong>Key parameters</strong>: - <code>report</code>: A
-<code>TFL_report</code> object (created via
-<code><a href="../reference/create_report.html">create_report()</a></code>) - <code>name</code>: Base name for the
-output DOCX (e.g. <code>"example_report"</code> →
-<code>example_report.docx</code>) - <code>outDir</code>: Directory where
-the output DOCX is written - <code>metaPath</code>: Directory where
-intermediate JSON and data files are written</p>
+<p><strong>Key parameters</strong>:</p>
+<ul>
+<li>
+<code>report</code>: A <code>TFL_report</code> object created via
+<code><a href="../reference/create_report.html">create_report()</a></code>.</li>
+<li>
+<code>name</code>: Base name for the output DOCX
+(<code>"example_report"</code> becomes
+<code>example_report.docx</code>).</li>
+<li>
+<code>outDir</code>: Directory where the output DOCX is
+written.</li>
+<li>
+<code>metaPath</code>: Directory where intermediate JSON and data
+files are written.</li>
+</ul>
 <p><strong>Advanced</strong>: If you need to inspect the JSON before
 rendering (e.g. for debugging or CI pipelines), you can split the call
 into <code><a href="../reference/save_report.html">save_report()</a></code> + <code><a href="../reference/replay_report.html">replay_report()</a></code>. See
@@ -1164,29 +1190,9 @@ over session defaults (last-win strategy).</p>
 <div class="section level2">
 <h2 id="final-notes">Final notes<a class="anchor" aria-label="anchor" href="#final-notes"></a>
 </h2>
-<p>This comprehensive vignette demonstrates the complete ksTFL reporting
-pipeline using only exported helpers.</p>
-<p><strong>Examples covered</strong>: 1. Minimal table/figure/text
-creation (single-spec workflows) 2. <strong>Define columns</strong>:
-Single column, batch updates, parameter recycling (NEW) 3. Column
-widths: Auto-calculation, locking, mixed units (NEW) 4. Multi-level
-tables with titles, subtitles, and footnotes 5. Combining multiple specs
-into a report 6. Spanning headers (stub columns) with styling 7. Named
-styles and combining with <code><a href="../reference/f_combine.html">f_combine()</a></code> (expanded) 8.
-End-to-end render with <code><a href="../reference/write_doc.html">write_doc()</a></code> 9. Session defaults with
-<code><a href="../reference/tfl_set_options.html">tfl_set_options()</a></code></p>
-<p><strong>Key patterns to remember</strong>: - <strong>Batch
-operations</strong>: Use <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code> to select multiple columns,
-provide single values (recycled) or N values (one-to-one mapping) -
-<strong>Multiple calls</strong>: Chain <code><a href="../reference/define_cols.html">define_cols()</a></code>,
-<code><a href="../reference/add_style.html">add_style()</a></code>, etc. — each call merges with previous settings
-- <strong>Flexible column widths</strong>: Auto-calculated by default;
-lock specific columns with <code>colWidth</code> to trigger
-recalculation of others - <strong>Combining styles</strong>: Use
-<code><a href="../reference/f_combine.html">f_combine()</a></code> for on-the-fly combinations; define named
-styles for reuse - <strong>Session defaults</strong>: Use
-<code><a href="../reference/tfl_set_options.html">tfl_set_options()</a></code> once; all new specs inherit settings
-(override per-spec if needed)</p>
+<p>This vignette stays deliberately example-heavy. Reuse it when you
+want a compact pattern for a minimal spec, a multi-spec report, span
+headers, width tuning, or session-level defaults.</p>
 <p><strong>Running examples locally</strong>: Set the top chunk
 <code>eval=TRUE</code> to generate sample data, then execute examples in
 order. All code uses exported functions only — no internal API

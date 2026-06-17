@@ -43,17 +43,14 @@ indentation, tables, and borders
 \- **Best practices** for maintainable, reusable style systems
 
 For runnable reporting examples integrating styles see [Reporting
-Examples](Reporting_Examples_with_ksTFL.Rmd). For a quick start see
-[Getting Started](Getting_Started_with_ksTFL.Rmd).
+Examples](Reporting_Examples_with_ksTFL.html). For a quick start see
+[Getting Started](Getting_Started_with_ksTFL.html).
 
 ## Category and scope
 
-This is a styling-system vignette.
-
--   Audience: users defining reusable style systems for teams or studies
--   Focus: style primitives, composition, references, and maintainable
-    conventions
--   Outcome: consistent style architecture across many reports
+This is the reference vignette for readers building reusable style systems for
+teams or studies. The focus is style primitives, composition, references, and
+maintainable conventions.
 
 ------------------------------------------------------------------------
 
@@ -63,11 +60,9 @@ This is a styling-system vignette.
 
 Professional clinical documents require:
 
-\- **Consistency**: All headers look the same, all numeric columns align
-right, all subtitles use the same font
+- **Consistency**: common elements should render the same way everywhere.
 
-\- **Maintainability**: Change one style definition, all references
-update automatically
+- **Maintainability**: one style change should update every reference.
 
 \- **Composability**: Build complex styles from simple building blocks
 (font + paragraph alignment + table background)
@@ -962,6 +957,6 @@ spec2 <- add_footnote_80(spec2, "b. LOCF imputation")
 
 -   Function documentation: `?add_style`, `?s_font`, `?s_paragraph`,
     `?f_combine`
--   [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) — working
+-   [Reporting Examples](Reporting_Examples_with_ksTFL.html) — working
     examples with styles
--   [Getting Started](Getting_Started_with_ksTFL.Rmd) — quick overview
+-   [Getting Started](Getting_Started_with_ksTFL.html) — quick overview

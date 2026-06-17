@@ -118,16 +118,9 @@ struct hb_uniscribe_shaper_funcs_t {
 
     hinstLib = GetModuleHandle(TEXT("usp10.dll"));
     if (hinstLib) {
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
       this->ScriptItemizeOpenType = (SIOT)GetProcAddress(hinstLib, "ScriptItemizeOpenType");
       this->ScriptShapeOpenType = (SSOT)GetProcAddress(hinstLib, "ScriptShapeOpenType");
       this->ScriptPlaceOpenType = (SPOT)GetProcAddress(hinstLib, "ScriptPlaceOpenType");
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
     }
     if (!this->ScriptItemizeOpenType || !this->ScriptShapeOpenType || !this->ScriptPlaceOpenType) {
       DEBUG_MSG(UNISCRIBE, nullptr, "OpenType versions of functions not found; falling back.");

@@ -112,13 +112,9 @@
 #' @param output_path Character string. Path for the output .docx file. If the
 #'   directory does not exist, it will be created.
 #' @param font_dirs Character vector (optional). Additional directories to search
-#'   for fonts. The package's bundled fonts (inst/fonts/) are always included
-#'   automatically. Only fonts from these directories are used — no system
-#'   fonts are searched.
-#' @param font_dirs Character vector (optional). Additional directories to search
-#'   for fonts. The package's bundled fonts (inst/fonts/) are always included
-#'   automatically. Only fonts from these directories are used — no system
-#'   fonts are searched.
+#'   for fonts for this render only. These directories are appended to the
+#'   cached directories discovered at package load and do not modify the global
+#'   font registry.
 #' @param fallback_font Character string (optional). Path to a fallback font file
 #'   (e.g., Liberation Sans). If not specified, the embedded fallback font is used.
 #' @param data_dir Character string (optional). Directory for resolving
@@ -142,12 +138,13 @@
 #'   \item \strong{Emit}: Stream OOXML into a valid .docx (ZIP) package
 #' }
 #'
-#' \strong{Font handling}: The renderer uses only fonts bundled in the package's
-#' \code{inst/fonts/} directory, plus any additional directories specified in
-#' \code{font_dirs}. No system fonts are searched. If a requested font is not
-#' found, LiberationSans (bundled) is used as fallback. Font metrics are
-#' computed from the OS/2 table (usWinAscent/usWinDescent) to match
-#' Microsoft Word's line height calculation.
+#' \strong{Font handling}: The renderer uses the directories discovered by the
+#' package font scanner at load time (system font locations plus any
+#' \code{ksTFL.font_dirs} option entries), along with any additional per-call
+#' directories supplied in \code{font_dirs}. If a requested font is not found,
+#' LiberationSans (bundled) is used as fallback. Font metrics are computed from
+#' the OS/2 table (usWinAscent/usWinDescent) to match Microsoft Word's line
+#' height calculation.
 #'
 #' \strong{Template}: The template controls default styles (fonts, spacing, borders),
 #' page layout, and table formatting. By default (\code{template_json = NULL}),

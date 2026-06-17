@@ -69,32 +69,24 @@ processing
 
 ## How to use this guide
 
-This is the foundation vignette and best starting point for new users.
-
--   Audience: users building first end-to-end TFL workflows
--   Focus: core objects (`TFL_spec`, `TFL_report`), function flow, and
-    minimal working examples
--   Outcome: ability to create, assemble, and render reports confidently
+This is the foundation vignette and best starting point for new users. It
+introduces the core objects, the main function flow, and the smallest complete
+pipeline needed to create, assemble, and render reports confidently.
 
 Recommended reading order after this vignette:
 
-1\. [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for
-realistic workflow patterns.
+1\. [Reporting Examples](Reporting_Examples_with_ksTFL.html) and
+[FAQ](FAQ_with_ksTFL.html) for the quickest practical follow-up.
 
-2\. [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for style primitives
-and reusable style systems.
+2\. [Styling Guide](Styling_Guide_with_ksTFL.html),
+[Column Width Management](Column_Width_Management.html), and
+[Advanced StyleRows](Advanced_StyleRows.html) for focused feature
+depth.
 
-3\. [Column Width Management](Column_Width_Management.Rmd) for layout
-tuning.
-
-4\. [Advanced StyleRows](Advanced_StyleRows.Rmd) for conditional row
-actions.
-
-5\. [Font Management](Font_Management.Rmd) for system font discovery,
-custom font directories, and fallback behavior.
-
-6\. [Rendering Pipeline](Rendering_Pipeline.Rmd) for detailed C++
-architecture and DOCX emission internals.
+3\. [Real Examples](Real_Examples_with_ksTFL.html) for fuller
+clinical-style outputs, then [Font Management](Font_Management.html)
+and [Rendering Pipeline](Rendering_Pipeline.html) when you need
+environment or renderer internals.
 
 ------------------------------------------------------------------------
 
@@ -344,7 +336,7 @@ spec <- create_table(data) |>
   # Result: group_id is hidden, other columns recalculated to fill 100%
 ```
 
-See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed
+See [Reporting Examples](Reporting_Examples_with_ksTFL.html) for detailed
 column customization patterns.
 
 ------------------------------------------------------------------------
@@ -377,7 +369,7 @@ your spec. If style needs to be used across many tables define it thru
 `tfl_set_options()` to make it available session-wide.
 
 For comprehensive styling details see [Styling
-Guide](Styling_Guide_with_ksTFL.Rmd).
+Guide](Styling_Guide_with_ksTFL.html).
 
 ------------------------------------------------------------------------
 
@@ -450,7 +442,7 @@ sets don't overlap
 
 \- Use `add_style()` to style stub labels or use embedded atomic styles
 
-See [Styling Guide](Styling_Guide_with_ksTFL.Rmd) for styling stubs.
+See [Styling Guide](Styling_Guide_with_ksTFL.html) for styling stubs.
 
 ------------------------------------------------------------------------
 
@@ -559,6 +551,11 @@ spec <- create_table(mtcars) |>
 spec <- create_table(mtcars) |>
   set_page_style(docTemplate = "path/to/my_custom_template.json")
 ```
+
+Use `docTemplate` on the spec when different sections of one report should keep
+different looks. Use `write_doc(..., overrideTemplate = ...)` or
+`replay_report(..., overrideTemplate = ...)` when you want one global template
+to override every spec in the rendered document.
 
 Use `run_styles_editor()` to interactively create and edit template JSON
 files.
@@ -705,7 +702,7 @@ combined
 \- `value_from = NULL` in `c_addrow()` creates an empty separator row
 
 For detailed examples see [Reporting Examples: Conditional Row
-Actions](Reporting_Examples_with_ksTFL.Rmd#conditional-row-actions).
+Actions](Reporting_Examples_with_ksTFL.html#conditional-row-actions).
 
 ------------------------------------------------------------------------
 
@@ -886,7 +883,7 @@ spec <- create_table(my_data)
 spec <- define_cols(spec, id, colWidth = "15%")
 ```
 
-See [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd) for detailed
+See [Reporting Examples](Reporting_Examples_with_ksTFL.html) for detailed
 width customization.
 
 ### Data references (dataRef)
@@ -970,7 +967,7 @@ report <- create_report(spec) |>  write_doc('demographics')
 # Done!
 ```
 
-![](images/example-complete-demographics.png)
+![example complete demographics](images/example-complete-demographics.png)
 
 ## Key gotchas and tips
 
@@ -1068,11 +1065,11 @@ tfl_print_style_atoms()
 You now understand ksTFL's core workflow. Next steps:
 
 1.  **Run the quick example** above with your own data
-2.  **Explore [Reporting Examples](Reporting_Examples_with_ksTFL.Rmd)**
+2.  **Explore [Reporting Examples](Reporting_Examples_with_ksTFL.html)**
     for detailed patterns
-3.  **Read [Styling Guide](Styling_Guide_with_ksTFL.Rmd)** for advanced
+3.  **Read [Styling Guide](Styling_Guide_with_ksTFL.html)** for advanced
     styling
-4.  **Read [Advanced StyleRows](Advanced_StyleRows.Rmd)** for
+4.  **Read [Advanced StyleRows](Advanced_StyleRows.html)** for
     conditional formatting
 5.  **Check function docs**: `?create_table`, `?define_cols`,
     `?add_style`, `?write_doc`, `?list_reports`
@@ -1084,10 +1081,10 @@ You now understand ksTFL's core workflow. Next steps:
 -   **Function reference**: `?ksTFL` (package overview) or
     `?create_table`, `?define_cols`, etc.
 -   **Reporting Examples**: [Detailed working examples with
-    explanations](Reporting_Examples_with_ksTFL.Rmd)
+    explanations](Reporting_Examples_with_ksTFL.html)
 -   **Styling Guide**: [Comprehensive style
-    reference](Styling_Guide_with_ksTFL.Rmd)
--   **GitHub**: [ksTFL repository](https://example.com)
+    reference](Styling_Guide_with_ksTFL.html)
+-   **GitHub**: [ksTFL repository](https://github.com/crow16384/ksTFL)
 
 ------------------------------------------------------------------------
 

@@ -20,6 +20,7 @@
 ^\.env$
 ^docs$
 ^README\.md$
+^vignettes/.*\.html$
 ^src/.*\.o$
 ^src/.*\.so$
 ^src/.*\.dll$
@@ -32,6 +33,7 @@ cclsp.json$
 ^\.Rhistory$
 ^doc$
 ^Meta$
-^CLAUDE\.md$
+^\.claude$
 ^src/vendor/\.clang-format$
 ^cran-comments\.md$
+^tools/sync_local_vignette_help\.R$

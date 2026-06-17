@@ -9,11 +9,11 @@ body {
     max-width: 900px;
     margin: 0 auto;
     padding: 1.5em 2em;
-    color: #1a1a2e;
+    color: CanvasText;
     line-height: 1.7;
     font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
     font-size: 15px;
-    background: #ffffff;
+    background: Canvas;
 }
 
 /* ── Headings ───────────────────────────────────────────── */
@@ -25,7 +25,7 @@ h5,
 h6 {
     font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
     font-weight: 700;
-    color: #111111;
+    color: CanvasText;
 }
 
 h1 {
@@ -44,34 +44,34 @@ h2 {
 
 h3 {
     font-size: 1.15em;
-    color: #2166AC;
+    color: LinkText;
     margin-top: 1.5em;
 }
 
 h4 {
     font-size: 1.0em;
-    color: #555;
+    color: GrayText;
     font-weight: 600;
 }
 
 /* ── Links ──────────────────────────────────────────────── */
 a {
-    color: #2166AC;
+    color: LinkText;
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color 0.2s;
 }
 
 a:hover {
-    border-bottom-color: #2166AC;
+    border-bottom-color: LinkText;
 }
 
 /* ── Code blocks ────────────────────────────────────────── */
 pre,
 pre:not([class]) {
-    background: #f6f8fa;
-    border: 1px solid #e1e4e8;
-    border-left: 4px solid #2166AC;
+    background: rgba(127, 127, 127, 0.10);
+    border: 1px solid rgba(127, 127, 127, 0.30);
+    border-left: 4px solid LinkText;
     border-radius: 6px;
     padding: 1em 1.2em;
     overflow-x: auto;
@@ -84,8 +84,8 @@ pre:not([class]) {
 
 /* Data preview blocks (``` without language) — subtler accent */
 pre:not(.sourceCode) {
-    border-left-color: #d0d0d0;
-    background: #fafbfc;
+    border-left-color: rgba(127, 127, 127, 0.45);
+    background: rgba(127, 127, 127, 0.08);
     font-size: 0.82em;
 }
 
@@ -95,16 +95,76 @@ code {
     font-variant-ligatures: none;
 }
 
+pre.sourceCode,
+div.sourceCode,
+pre>code.sourceCode,
+code.sourceCode {
+    color: inherit;
+}
+
+pre.numberSource {
+    border-left-color: rgba(127, 127, 127, 0.45);
+}
+
+pre>code.sourceCode>span>a:first-child::before {
+    color: GrayText;
+}
+
+/* Keep token styling readable even when the host applies a dark help theme
+ * without activating our dark media query. */
+code span.al,
+code span.er {
+    color: #cf222e;
+    font-weight: 600;
+}
+
+code span.an,
+code span.co,
+code span.cv,
+code span.do,
+code span.in,
+code span.wa {
+    color: GrayText;
+}
+
+code span.kw,
+code span.cf,
+code span.im,
+code span.bu,
+code span.fu {
+    color: LinkText;
+    font-weight: 600;
+}
+
+code span.at,
+code span.bn,
+code span.ch,
+code span.cn,
+code span.dt,
+code span.dv,
+code span.ex,
+code span.fl,
+code span.op,
+code span.ot,
+code span.pp,
+code span.sc,
+code span.ss,
+code span.st,
+code span.va,
+code span.vs {
+    color: inherit;
+}
+
 /* Inline code */
 p>code,
 li>code,
 td>code,
 h3>code,
 h4>code {
-    background: #f0f3f6;
+    background: rgba(127, 127, 127, 0.14);
     padding: 0.15em 0.4em;
     border-radius: 4px;
-    color: #1a1a2e;
+    color: inherit;
     font-size: 0.88em;
 }
 
@@ -115,35 +175,35 @@ table {
     width: 100%;
     margin: 1.2em 0;
     font-size: 0.9em;
-    border: 1px solid #d8dee4;
+    border: 1px solid rgba(127, 127, 127, 0.35);
     border-radius: 8px;
     overflow: hidden;
 }
 
 th {
-    background: #f0f6fc;
-    color: #1a3a5c;
+    background: rgba(33, 102, 172, 0.14);
+    color: inherit;
     font-weight: 700;
     font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     padding: 0.7em 1em;
     text-align: left;
-    border-bottom: 2px solid #2166AC;
+    border-bottom: 2px solid LinkText;
 }
 
 td {
     padding: 0.55em 1em;
-    border-bottom: 1px solid #eaecef;
-    color: #24292f;
+    border-bottom: 1px solid rgba(127, 127, 127, 0.22);
+    color: inherit;
 }
 
 tbody tr:nth-child(even) {
-    background: #f8fafb;
+    background: rgba(127, 127, 127, 0.06);
 }
 
 tbody tr:hover {
-    background: #e8f0fe;
+    background: rgba(33, 102, 172, 0.10);
 }
 
 /* First column emphasis (function names, labels) */
@@ -154,18 +214,18 @@ td:first-child {
 /* Code inside table cells */
 td code {
     font-size: 0.85em;
-    background: #e8eef4;
+    background: rgba(127, 127, 127, 0.14);
     padding: 0.1em 0.35em;
     border-radius: 3px;
 }
 
 /* ── Blockquotes (tips / notes) ─────────────────────────── */
 blockquote {
-    border-left: 4px solid #2166AC;
-    background: #f0f6fc;
+    border-left: 4px solid LinkText;
+    background: rgba(33, 102, 172, 0.10);
     margin: 1.2em 0;
     padding: 0.6em 1em;
-    color: #1a1a2e;
+    color: inherit;
     border-radius: 0 6px 6px 0;
 }
 
@@ -184,14 +244,14 @@ li {
 }
 
 li>strong:first-child {
-    color: #111111;
+    color: inherit;
 }
 
 /* ── Horizontal rules ───────────────────────────────────── */
 hr {
     border: none;
     height: 2px;
-    background: linear-gradient(to right, #111111 0%, #d0d0d0 50%, transparent 100%);
+    background: linear-gradient(to right, currentColor 0%, rgba(127, 127, 127, 0.5) 50%, transparent 100%);
     margin: 2.5em 0;
 }
 
@@ -239,15 +299,15 @@ h1.title {
 h4.author,
 h4.date {
     font-weight: 400;
-    color: #666;
+    color: GrayText;
     margin-top: 0.2em;
     margin-bottom: 0.2em;
 }
 
 /* ── TOC styling (when toc: true) ───────────────────────── */
 #TOC {
-    background: #f6f8fa;
-    border: 1px solid #e1e4e8;
+    background: rgba(127, 127, 127, 0.10);
+    border: 1px solid rgba(127, 127, 127, 0.30);
     border-radius: 6px;
     padding: 0.8em 1.2em;
     margin-bottom: 2em;
@@ -267,12 +327,13 @@ h4.date {
 }
 
 #TOC a {
+    color: inherit;
     border-bottom: none;
     transition: color 0.2s;
 }
 
 #TOC a:hover {
-    color: #2166AC;
+    color: LinkText;
 }
 
 /* ── Selection highlight (brand-colored) ────────────────── */
@@ -352,6 +413,76 @@ pre::-webkit-scrollbar-thumb:hover {
         border-left-color: #4a4f5b;
     }
 
+    pre.sourceCode,
+    div.sourceCode,
+    pre>code.sourceCode,
+    code.sourceCode {
+        color: #e6edf3;
+    }
+
+    pre.numberSource {
+        border-left-color: #4a4f5b;
+    }
+
+    pre>code.sourceCode>span>a:first-child::before {
+        color: #8b949e;
+    }
+
+    /* Pandoc syntax highlighting defaults are tuned for light backgrounds.
+     * Override them explicitly so code remains readable in RStudio dark mode. */
+    code span.al,
+    code span.er {
+        color: #ffa198;
+    }
+
+    code span.an,
+    code span.co,
+    code span.cv,
+    code span.do,
+    code span.in,
+    code span.wa {
+        color: #8b949e;
+    }
+
+    code span.at,
+    code span.cn,
+    code span.dt,
+    code span.pp {
+        color: #ffa657;
+    }
+
+    code span.bn,
+    code span.dv,
+    code span.fl {
+        color: #79c0ff;
+    }
+
+    code span.bu,
+    code span.cf,
+    code span.im,
+    code span.kw,
+    code span.ot {
+        color: #ff7b72;
+    }
+
+    code span.ch,
+    code span.sc,
+    code span.ss,
+    code span.st,
+    code span.vs {
+        color: #a5d6ff;
+    }
+
+    code span.fu,
+    code span.va {
+        color: #d2a8ff;
+    }
+
+    code span.op,
+    code span.ex {
+        color: #c9d1d9;
+    }
+
     /* Inline code */
     p>code,
     li>code,
@@ -391,6 +522,13 @@ pre::-webkit-scrollbar-thumb:hover {
         color: #e3e6eb;
     }
 
+    caption,
+    p,
+    li,
+    dd {
+        color: #d6d9e0;
+    }
+
     /* Blockquotes */
     blockquote {
         border-left-color: #4A9EDE;
@@ -423,6 +561,10 @@ pre::-webkit-scrollbar-thumb:hover {
     #TOC {
         background: #23262e;
         border-color: #3a3f4b;
+    }
+
+    #TOC a {
+        color: #d6d9e0;
     }
 
     #TOC a:hover {
