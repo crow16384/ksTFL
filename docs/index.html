@@ -1495,12 +1495,25 @@
 <div class="section level3">
 <h3 id="id_3-schema-validation">3. Schema Validation<a class="anchor" aria-label="anchor" href="#id_3-schema-validation"></a>
 </h3>
-<p>All specifications validated against JSON schema: - Type checking for all fields - Enum validation for constrained values - Pattern matching for formatted strings (colors, dimensions) - Ensures compatibility with C++ renderer</p>
+<p>All specifications validated against JSON schema:</p>
+<ul>
+<li>Type checking for all fields</li>
+<li>Enum validation for constrained values</li>
+<li>Pattern matching for formatted strings (colors, dimensions)</li>
+<li>Ensures compatibility with C++ renderer</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_4-data-environment">4. Data Environment<a class="anchor" aria-label="anchor" href="#id_4-data-environment"></a>
 </h3>
-<p>Original data preserved (shadow-copy) in <code>.metadata$data_env</code> for: - Conditional expressions in <code><a href="reference/compute_cols.html">compute_cols()</a></code> - Helper functions (<code>firstOf()</code>, <code>lastOf()</code>, etc.) - Deferred evaluation until <code><a href="reference/create_report.html">create_report()</a></code></p>
+<p>Original data preserved (shadow-copy) in spec object for:</p>
+<ul>
+<li>Conditional expressions in <code><a href="reference/compute_cols.html">compute_cols()</a></code>
+</li>
+<li>Helper functions (<code>firstOf()</code>, <code>lastOf()</code>, etc.)</li>
+<li>Deferred evaluation until <code><a href="reference/create_report.html">create_report()</a></code>
+</li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="id_5-vectorized-parameters">5. Vectorized Parameters<a class="anchor" aria-label="anchor" href="#id_5-vectorized-parameters"></a>
@@ -1750,7 +1763,13 @@
 <li>The <strong>R layer</strong> generates validated JSON specifications describing document structure, content, column formats, and styles</li>
 <li>The <strong>C++ rendering engine</strong> (built-in, C++20, used by <code><a href="reference/write_doc.html">write_doc()</a></code> / <code><a href="reference/replay_report.html">replay_report()</a></code>) consumes these specifications and produces styled DOCX documents with deterministic pagination</li>
 </ul>
-<p>This architecture enables: - Metadata generation (R) and rendering (C++) are independently optimizable - Specifications are reusable, serializable, and version-controllable - The complete pipeline runs within a single R session — no external tools required - End-to-end auditability from data to final document</p>
+<p>This architecture enables:</p>
+<ul>
+<li>Metadata generation (R) and rendering (C++) are independently optimizable</li>
+<li>Specifications are reusable, serializable, and version-controllable</li>
+<li>The complete pipeline runs within a single R session — no external tools required</li>
+<li>End-to-end auditability from data to final document</li>
+</ul>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

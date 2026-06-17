@@ -357,7 +357,7 @@ same labels, widths, or base value styles.</p>
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">AGE</span>, <span class="va">WEIGHT</span>, <span class="va">HEIGHT</span><span class="op">)</span>,</span>
-<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age"</span>, <span class="st">"Weight\n(kg)"</span>, <span class="st">"Height\n(cm)"</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age"</span>, <span class="st">"Weight&lt;br&gt;(kg)"</span>, <span class="st">"Height&lt;br&gt;(cm)"</span><span class="op">)</span>,</span>
 <span>    colWidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"12%"</span>, <span class="st">"14%"</span>, <span class="st">"14%"</span><span class="op">)</span>,</span>
 <span>    valueStyleRef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ar"</span>, <span class="st">"ar"</span>, <span class="st">"ar"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
@@ -541,10 +541,9 @@ without<a class="anchor" aria-label="anchor" href="#how-do-i-apply-more-than-one
 <p>Row actions are siblings, not nested verbs.</p>
 </div>
 <div class="section level3">
-<h3 id="how-do-i-build-a-two-level-stub-with-one-hidden-column-and-two-style">31. How do I build a two-level stub with one hidden column and two
-style<a class="anchor" aria-label="anchor" href="#how-do-i-build-a-two-level-stub-with-one-hidden-column-and-two-style"></a>
+<h3 id="how-do-i-build-a-two-level-stub-with-one-hidden-column-and-two-style-rules">31. How do I build a two-level stub with one hidden column and two
+style rules?<a class="anchor" aria-label="anchor" href="#how-do-i-build-a-two-level-stub-with-one-hidden-column-and-two-style-rules"></a>
 </h3>
-<p>rules?</p>
 <p>Insert the group header from the hidden column, then use separate
 style rules for summary rows and detail rows.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
@@ -566,6 +565,179 @@ style rules for summary rows and detail rows.</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p>That pattern is handy when the output stub needs visible hierarchy
 even though the source data is still flat.</p>
+</div>
+<div class="section level3">
+<h3 id="can-i-combine-multiple-actions-of-the-same-or-different-types-and-how-do-they-work-together">32. Can I combine multiple actions of the same or different types,
+and how do they work together?<a class="anchor" aria-label="anchor" href="#can-i-combine-multiple-actions-of-the-same-or-different-types-and-how-do-they-work-together"></a>
+</h3>
+<p>Yes, but as sibling actions, not nested calls. You can pass any mix
+of <code><a href="../reference/c_style.html">c_style()</a></code>, <code><a href="../reference/c_addrow.html">c_addrow()</a></code>,
+<code><a href="../reference/c_merge.html">c_merge()</a></code>, <code><a href="../reference/c_clear.html">c_clear()</a></code>, <code><a href="../reference/c_glue.html">c_glue()</a></code>,
+and <code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code> in one <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
+call.</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">GROUP</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">GROUP</span>, styleRef <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"fc_navy"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="va">PARAM</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"ar"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_clear.html">c_clear</a></span><span class="op">(</span><span class="va">PARAM</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="st">"after"</span>, text <span class="op">=</span> <span class="st">"Total: "</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="st">"after"</span>, <span class="va">VALUE</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p>Practical rule: when one action depends on the visual result of
+another, prefer separate <code><a href="../reference/compute_cols.html">compute_cols()</a></code> calls (as above) to
+keep intent explicit.</p>
+</div>
+<div class="section level3">
+<h3 id="how-can-i-create-three--or-four-level-nested-text-in-one-column-for-example-parametervisitstatistic-indentation">33. How can I create three- or four-level nested text in one column
+(for example Parameter/Visit/Statistic indentation)?<a class="anchor" aria-label="anchor" href="#how-can-i-create-three--or-four-level-nested-text-in-one-column-for-example-parametervisitstatistic-indentation"></a>
+</h3>
+<p>It depends on the input data shape. Two common patterns are shown
+below.</p>
+<div class="section level4">
+<h4 id="pattern-a-detail-rows-only-hierarchy-injected-with-c_addrow">Pattern A: detail rows only, hierarchy injected with
+<code>c_addrow()</code><a class="anchor" aria-label="anchor" href="#pattern-a-detail-rows-only-hierarchy-injected-with-c_addrow"></a>
+</h4>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dt</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tribble.html" class="external-link">tribble</a></span><span class="op">(</span></span>
+<span>  <span class="op">~</span><span class="va">PARAM</span>, <span class="op">~</span><span class="va">VISIT</span>, <span class="op">~</span><span class="va">STATISTICS</span>, <span class="op">~</span><span class="va">VALUE</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">dt</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VISIT</span><span class="op">)</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">STATISTICS</span>, <span class="va">VALUE</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Parameter&lt;br&gt;  Visit&lt;br&gt;    Statistics"</span>, <span class="st">"Value"</span><span class="op">)</span>,</span>
+<span>    valueStyleRef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"indent_2"</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>    labelStyleRef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"al"</span>, <span class="cn">NA</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">PARAM</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">PARAM</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">VISIT</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">VISIT</span>, styleRef <span class="op">=</span> <span class="st">"indent_1"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p>What this does and why:</p>
+<ul>
+<li>Input contains only detail rows (<code>STATISTICS</code> +
+<code>VALUE</code>).</li>
+<li>
+<code>PARAM</code> and <code>VISIT</code> are hidden helper columns
+that drive layout.</li>
+<li>
+<code><a href="../reference/c_addrow.html">c_addrow()</a></code> inserts visible hierarchy rows above first
+parameter/visit boundaries.</li>
+<li>This keeps source data tidy while producing a nested visual
+stub.</li>
+</ul>
+</div>
+<div class="section level4">
+<h4 id="pattern-b-placeholder-hierarchy-rows-in-data-collapsed-with-c_merge">Pattern B: placeholder hierarchy rows in data, collapsed with
+<code>c_merge()</code><a class="anchor" aria-label="anchor" href="#pattern-b-placeholder-hierarchy-rows-in-data-collapsed-with-c_merge"></a>
+</h4>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dt</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tribble.html" class="external-link">tribble</a></span><span class="op">(</span></span>
+<span>  <span class="op">~</span><span class="va">PARAM</span>, <span class="op">~</span><span class="va">VISIT</span>, <span class="op">~</span><span class="va">STATISTICS</span>, <span class="op">~</span><span class="va">VALUE</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 1"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 1"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 2"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 2"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"ALT"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 1"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 1"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 1"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 2"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 2"</span>, <span class="cn">NA</span>, <span class="cn">NA</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Mean"</span>, <span class="fl">1L</span>,</span>
+<span>  <span class="st">"AST"</span>, <span class="st">"Visit 2"</span>, <span class="st">"Median"</span>, <span class="fl">2L</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">dt</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VISIT</span><span class="op">)</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">STATISTICS</span>, <span class="va">VALUE</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Parameter&lt;br&gt;  Visit&lt;br&gt;    Statistics"</span>, <span class="st">"Value"</span><span class="op">)</span>,</span>
+<span>    valueStyleRef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"indent_2"</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>    labelStyleRef <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"al"</span>, <span class="cn">NA</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VISIT</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VISIT</span>, <span class="va">STATISTICS</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"indent_0"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
+<span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VISIT</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">STATISTICS</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">VISIT</span>, <span class="va">STATISTICS</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"indent_1"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p>What this does and why:</p>
+<ul>
+<li>Input already contains placeholder hierarchy rows
+(<code>STATISTICS = NA</code>).</li>
+<li>
+<code><a href="../reference/c_merge.html">c_merge()</a></code> turns those rows into spanning hierarchy
+lines.</li>
+<li>First merge call builds the top level (<code>PARAM</code> +
+<code>VISIT</code> context).</li>
+<li>Second merge call handles lower placeholder rows (visit-level
+line).</li>
+<li>This pattern is useful when source extracts already contain
+structural rows and you want to preserve that model.</li>
+</ul>
+<p>Both patterns are valid. Choose by source shape:</p>
+<ul>
+<li>Use Pattern A when hierarchy should be derived from boundaries.</li>
+<li>Use Pattern B when hierarchy rows already exist in incoming
+data.</li>
+</ul>
+</div>
+</div>
+<div class="section level3">
+<h3 id="how-do-i-switch-between-continuous-sections-repeatingnot-repeating-headers-and-row-break-behavior-across-pages">34. How do I switch between continuous sections, repeating/not
+repeating headers, and row-break behavior across pages?<a class="anchor" aria-label="anchor" href="#how-do-i-switch-between-continuous-sections-repeatingnot-repeating-headers-and-row-break-behavior-across-pages"></a>
+</h3>
+<p>These controls come from different layers:</p>
+<ul>
+<li>Continuous sections between specs: use
+<code>set_document(continuousSection = TRUE)</code> on the following
+spec.</li>
+<li>Repeating title/subtitle groups across pages: controlled by
+<code>isContinues</code> (<code>FALSE</code> repeats, <code>TRUE</code>
+suppresses repeated title/subtitle output).</li>
+<li>Table header repetition and row splitting across pages are template
+layout settings (<code>repeat_header_on_each_page</code>,
+<code>allow_row_break_across_pages</code>).</li>
+</ul>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">tbl_a</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>isContinues <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">tbl_b</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span>, isContinues <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"layout_switch"</span><span class="op">)</span></span></code></pre></div>
+<p>Important caveat: when <code>isColBreak</code> is active, ksTFL
+enforces <code>repeat_header_on_each_page = TRUE</code> and
+<code>allow_row_break_across_pages = FALSE</code> for correct horizontal
+pagination.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
