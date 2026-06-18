@@ -287,7 +287,7 @@ NULL
 
 #' default missing value representation
 #' @noRd
-.const_default_missing_value <- "NA"
+.const_default_missing_value <- ""
 
 #' Default line spacing minimum
 #' @noRd

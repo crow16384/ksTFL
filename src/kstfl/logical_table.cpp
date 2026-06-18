@@ -812,9 +812,13 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
     // --- Process actions sequentially ---
     // We need to handle AddRowAbove specially: they must be emitted before the main row.
     // All other actions modify the main row in place.
-    // AddRowBelow actions are collected and emitted after the main row.
+    // AddRowBelow actions are collected with row snapshots and emitted after the main row.
 
-    std::vector<size_t> below_indices; // indices of AddRowBelow actions to process later
+    struct BelowAddRow {
+      size_t action_index;
+      LogicalRow row_snapshot;  // State of row when this addrow was encountered
+    };
+    std::vector<BelowAddRow> below_addrows;
 
     for (const auto &oa : ordered_actions) {
       switch (oa.type) {
@@ -953,8 +957,9 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
       }
 
       case ActionType::AddRowBelow: {
-        // Collect indices for processing after the main row is added
-        below_indices.push_back(oa.index);
+        // Snapshot current row state for this below addrow
+        // This preserves values as they are at this point in the action sequence
+        below_addrows.push_back({oa.index, row});
         break;
       }
 
@@ -980,9 +985,10 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
     result.push_back(std::move(row));
 
     // --- add_row "below" insertions ---
-    for (size_t idx : below_indices) {
-      const auto &ar = actions->add_rows[idx];
-      result.push_back(build_addrow_synthetic(src_idx, ar, &result.back()));
+    // Use snapshots to preserve row state at the time each below addrow was encountered
+    for (const auto &below : below_addrows) {
+      const auto &ar = actions->add_rows[below.action_index];
+      result.push_back(build_addrow_synthetic(src_idx, ar, &below.row_snapshot));
     }
   }
 

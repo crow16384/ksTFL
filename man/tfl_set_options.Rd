@@ -46,7 +46,8 @@ Default \code{"repeated"}.}
 
 \item{contentWidth}{Character; width for content area (e.g. "100\%", "95\%").}
 
-\item{missings}{Character; default representation for missing values (e.g. "NA", ".", "---").}
+\item{missings}{Character; default representation for missing values (e.g. "", ".", "NA", "---").
+Default is an empty string ("").}
 
 \item{figureWidth}{Character; default width for figure output (e.g. \code{"6in"}, \code{"16cm"}).
 Applied when \code{create_figure()} specs do not specify their own width.}
