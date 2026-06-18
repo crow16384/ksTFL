@@ -310,10 +310,23 @@ c_merge <- function(cols, styleRef = NULL) {
 #' - If `value_from` is provided, must exist in spec columns (data_env reference)
 #' - If `value_from` is NULL or missing, creates an empty separator row
 #'
+#' **Stackable Actions:**
+#' Actions within a single `compute_cols()` call execute **sequentially in the order
+#' specified**. This means `c_addrow()` can see values modified by earlier `c_glue()`
+#' actions, allowing you to build compound cell values (e.g., "PARAM: VISIT") before
+#' using them in inserted rows. Multiple `c_glue()` and `c_addrow()` calls can be
+#' interleaved as needed.
+#'
 #' @examples
 #' \dontrun{
 #'   compute_cols(spec, lastOf(treatment), c_addrow(pos = "below", value_from = "treatment"))
 #'   compute_cols(spec, firstOf(visit), c_addrow(pos = "above"))
+#'   
+#'   # Stackable: addrow sees glued value
+#'   compute_cols(spec, PARAM == "ALT",
+#'     c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
+#'     c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
+#'   )
 #' }
 #'
 #' @export
@@ -434,9 +447,16 @@ c_pageBreak <- function() {
 #'   \item `c_merge()`: Compatible. Glue is processed after merge in the renderer.
 #'     Non-leader (suppressed) merge cells are skipped; the merge-leader cell is
 #'     glued normally.
-#'   \item `c_addrow()`: Fully compatible (affects different rows/cells).
+#'   \item `c_addrow()`: **Stackable** — when used together in the same `compute_cols()`,
+#'     `c_addrow()` sees glued values. This allows building compound cell values
+#'     (e.g., "PARAM: VISIT") before using them in inserted rows.
 #'   \item `c_pageBreak()`: Fully compatible.
 #' }
+#'
+#' **Stackable Actions:**
+#' Actions within a single `compute_cols()` call execute **sequentially in the order
+#' specified**. This means `c_glue()` modifications are visible to subsequent `c_addrow()`
+#' actions in the same call, enabling complex multi-step transformations.
 #'
 #' @seealso [compute_cols()], [c_style()], [c_merge()], [c_addrow()]
 #'
@@ -454,6 +474,12 @@ c_pageBreak <- function() {
 #'   spec <- compute_cols(spec, firstOf(group),
 #'     c_glue(label, "before", text = "> "),
 #'     c_style(label, styleRef = "bold"))
+#'   
+#'   # Stackable with c_addrow() — addrow sees glued values
+#'   spec <- compute_cols(spec, PARAM == "ALT",
+#'     c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
+#'     c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
+#'   )
 #' }
 #'
 #' @export
@@ -633,7 +659,10 @@ c_clear <- function(cols) {
     # Apply actions to matching rows
     matching_rows <- which(cond_vec)
 
+    action_seq <- -1L  # Track action sequence for ordered execution (increments to 0 on first use)
     for (action_quo in block$actions) {
+      action_seq <- action_seq + 1L
+      
       # Extract the actual action object and its environment
       action_obj <- quo_get_expr(action_quo)
       action_env <- quo_get_env(action_quo)
@@ -648,6 +677,7 @@ c_clear <- function(cols) {
           data,
           report_cols
         )
+        parsed_action$seq <- action_seq
 
         # Apply to matching rows
         for (i in matching_rows) {
@@ -666,6 +696,7 @@ c_clear <- function(cols) {
           data,
           report_cols
         )
+        parsed_action$seq <- action_seq
 
         # Apply to matching rows
         for (i in matching_rows) {
@@ -683,6 +714,7 @@ c_clear <- function(cols) {
           data,
           report_cols
         )
+        parsed_action$seq <- action_seq
 
         # Apply to matching rows
         for (i in matching_rows) {
@@ -698,6 +730,7 @@ c_clear <- function(cols) {
           data,
           report_cols
         )
+        parsed_action$seq <- action_seq
 
         # Apply to matching rows
         for (i in matching_rows) {
@@ -715,6 +748,7 @@ c_clear <- function(cols) {
           data,
           report_cols
         )
+        parsed_action$seq <- action_seq
 
         # Apply to matching rows
         for (i in matching_rows) {
@@ -725,7 +759,7 @@ c_clear <- function(cols) {
         }
       } else if (is.call(action_obj) && as.character(action_obj[[1]]) == "c_pageBreak") {
         # Page break has no arguments
-        parsed_action <- list()
+        parsed_action <- list(seq = action_seq)
 
         for (i in matching_rows) {
           row_actions[[i]]$page_break <- .append_pagebreak_action(
@@ -1055,7 +1089,10 @@ c_clear <- function(cols) {
 #' @keywords internal
 #' @noRd
 .append_clear_action <- function(clear_list, parsed_action) {
-  clear_list[[length(clear_list) + 1L]] <- list(cols = parsed_action$cols)
+  clear_list[[length(clear_list) + 1L]] <- list(
+    cols = parsed_action$cols,
+    seq = parsed_action$seq
+  )
   clear_list
 }
 
@@ -1107,7 +1144,8 @@ c_clear <- function(cols) {
   style_list[[length(style_list) + 1L]] <- list(
     cols = parsed_action$cols,
     styleRef = parsed_action$styleRef,
-    block_idx = block_idx
+    block_idx = block_idx,
+    seq = parsed_action$seq
   )
 
   style_list
@@ -1127,7 +1165,8 @@ c_clear <- function(cols) {
 .append_merge_action <- function(merge_list, parsed_action) {
   merge_list[[length(merge_list) + 1L]] <- list(
     cols = parsed_action$cols,
-    styleRef = parsed_action$styleRef
+    styleRef = parsed_action$styleRef,
+    seq = parsed_action$seq
   )
 
   merge_list
@@ -1148,7 +1187,8 @@ c_clear <- function(cols) {
   addrow_list[[length(addrow_list) + 1L]] <- list(
     pos = parsed_action$pos,
     value_from = parsed_action$value_from,
-    styleRef = parsed_action$styleRef
+    styleRef = parsed_action$styleRef,
+    seq = parsed_action$seq
   )
 
   addrow_list
@@ -1166,7 +1206,7 @@ c_clear <- function(cols) {
 #' @keywords internal
 #' @noRd
 .append_pagebreak_action <- function(pb_list, parsed_action) {
-  pb_list[[length(pb_list) + 1L]] <- list()
+  pb_list[[length(pb_list) + 1L]] <- list(seq = parsed_action$seq)
   pb_list
 }
 
@@ -1188,7 +1228,8 @@ c_clear <- function(cols) {
     position  = parsed_action$position,
     glue_col  = parsed_action$glue_col,
     text      = parsed_action$text,
-    separator = parsed_action$separator
+    separator = parsed_action$separator,
+    seq       = parsed_action$seq
   )
   glue_list
 }

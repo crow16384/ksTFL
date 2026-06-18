@@ -13,7 +13,8 @@
             "items": { "type": "string" },
             "minItems": 1
           },
-          "styleRef": { "type": "string" }
+          "styleRef": { "type": "string" },
+          "seq": { "type": "integer", "minimum": 0 }
         },
         "additionalProperties": false
       }
@@ -29,7 +30,8 @@
             "items": { "type": "string" },
             "minItems": 2
           },
-          "styleRef": { "type": "string" }
+          "styleRef": { "type": "string" },
+          "seq": { "type": "integer", "minimum": 0 }
         },
         "additionalProperties": false
       }
@@ -49,7 +51,8 @@
           },
           "styleRef": {
             "type": "string"
-          }
+          },
+          "seq": { "type": "integer", "minimum": 0 }
         },
         "additionalProperties": false
       }
@@ -65,7 +68,8 @@
             "type": "array",
             "items": { "type": "string" },
             "minItems": 1
-          }
+          },
+          "seq": { "type": "integer", "minimum": 0 }
         },
         "additionalProperties": false
       }
@@ -88,7 +92,8 @@
           },
           "glue_col":  { "type": "string" },
           "text":      { "type": "string" },
-          "separator": { "type": "string" }
+          "separator": { "type": "string" },
+          "seq": { "type": "integer", "minimum": 0 }
         },
         "additionalProperties": false
       }
@@ -98,6 +103,9 @@
       "type": "array",
       "items": {
         "type": "object",
+        "properties": {
+          "seq": { "type": "integer", "minimum": 0 }
+        },
         "additionalProperties": false
       }
     }
