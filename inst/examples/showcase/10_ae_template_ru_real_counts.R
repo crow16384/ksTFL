@@ -87,8 +87,8 @@ mk_block <- function(group_label, first_pt_label = NULL) {
 
 tbl <- dplyr::bind_rows(
   mk_block("Любое НЯЛ", first_pt_label = "Любое НЯЛ"),
-  mk_block("SOC1"),
-  mk_block("SOC2")
+  mk_block("SOC1", first_pt_label = "PT 1"),
+  mk_block("SOC2", first_pt_label = "PT 2")
 )
 
 spec <- create_table(tbl) %>%
@@ -116,7 +116,7 @@ spec <- create_table(tbl) %>%
   ) %>%
   define_cols(SOC_GROUP, isVisible = FALSE) %>%
   define_cols(SOC_PT,
-    label = "MedDRA SOC",
+    label = "MedDRA SOC<br>  PT",
     isID = TRUE,
     labelStyleRef = "text_left",
     valueStyleRef = f_combine("text_left", "font_small"),
@@ -201,7 +201,8 @@ spec <- create_table(tbl) %>%
   ) %>%
   compute_cols(
     SEVERITY == "",
-    c_style(c(SOC_PT, SEVERITY), styleRef = "font_bold")
+    c_merge(c(SOC_PT, SEVERITY), styleRef = f_combine('b', 'indent_1')),
+    #c_style(c(SOC_PT, SEVERITY), styleRef = "font_bold")
   )
 
 create_report(spec) %>%

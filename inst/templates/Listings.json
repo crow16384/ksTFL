@@ -2,7 +2,7 @@
   "document": {
     "page": {
       "size": "A4",
-      "orientation": "portrait",
+      "orientation": "landscape",
       "margins": {
         "top": "0.75in",
         "bottom": "0.75in",

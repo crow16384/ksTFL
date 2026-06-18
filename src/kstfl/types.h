@@ -494,7 +494,7 @@ struct StyleAction {
 struct MergeAction {
   std::vector<std::string> cols;        // columns to merge (min 2)
   std::optional<std::string> style_ref; // optional override style
-  size_t seq = 0; // execution sequence within the row
+  size_t seq = 0;                       // execution sequence within the row
 };
 
 /// Add-row action: insert synthetic row above or below.
@@ -514,7 +514,7 @@ struct PageBreakAction {
 /// Clear action: blank the display text of specified visible cells.
 struct ClearAction {
   std::vector<std::string> cols; // target visible column ids
-  size_t seq = 0; // execution sequence within the row
+  size_t seq = 0;                // execution sequence within the row
 };
 
 /// Glue action: concatenate a value to the text of specified visible cells.
@@ -525,7 +525,7 @@ struct GlueAction {
   std::optional<std::string> text;     // literal text (mutually exclusive with glue_col)
   std::string separator;               // inserted between existing text and glued value
                                        // when both sides are non-empty; "" = direct concat
-  size_t seq = 0; // execution sequence within the row
+  size_t seq = 0;                      // execution sequence within the row
 };
 
 /// Complete set of actions for a single data row.

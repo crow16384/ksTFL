@@ -816,7 +816,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
 
     struct BelowAddRow {
       size_t action_index;
-      LogicalRow row_snapshot;  // State of row when this addrow was encountered
+      LogicalRow row_snapshot; // State of row when this addrow was encountered
     };
     std::vector<BelowAddRow> below_addrows;
 
