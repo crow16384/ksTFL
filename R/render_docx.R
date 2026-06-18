@@ -37,13 +37,13 @@
       available_templates <- .list_bundled_templates()
       cli::cli_warn(c(
         paste0(key_hint, "Template {.val ", doc_template, "} not found in package templates."),
-        i = "Falling back to {.val CRO Example_default}.",
+        i = "Falling back to {.val Default}.",
         i = "Available templates: {.val {available_templates}}"
       ))
     }
   }
 
-  system.file("templates", "CRO_Example_default.json",
+  system.file("templates", "Default.json",
               package = "ksTFL", mustWork = TRUE)
 }
 

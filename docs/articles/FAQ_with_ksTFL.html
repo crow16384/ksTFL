@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,7 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="nav-item"><a class="nav-link" href="../ksTFL_cheatsheet.pdf"><span class="fa fa-file-pdf"></span> Cheatsheet</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -738,6 +739,246 @@ layout settings (<code>repeat_header_on_each_page</code>,
 enforces <code>repeat_header_on_each_page = TRUE</code> and
 <code>allow_row_break_across_pages = FALSE</code> for correct horizontal
 pagination.</p>
+<hr>
+</div>
+</div>
+<div class="section level2">
+<h2 id="metadata-workflows-replay-combine-and-validation">Metadata workflows: replay, combine, and validation<a class="anchor" aria-label="anchor" href="#metadata-workflows-replay-combine-and-validation"></a>
+</h2>
+<div class="section level3">
+<h3 id="how-do-i-replay-a-document-from-stored-metadata-without-re-running-r-code">35. How do I replay a document from stored metadata without
+re-running R code?<a class="anchor" aria-label="anchor" href="#how-do-i-replay-a-document-from-stored-metadata-without-re-running-r-code"></a>
+</h3>
+<p>Use <code><a href="../reference/replay_report.html">replay_report()</a></code> with either the DOCX filename (uses
+the latest saved spec) or the exact spec JSON hash for a specific
+historical version. This replays from the saved JSON and data files, not
+from R objects, so the original data frames or ggplot objects are not
+needed.</p>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Replay the latest version by DOCX name</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"tables_01.docx"</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Replay an exact historical version by spec hash</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"abc123def456.json"</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Override output location</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span></span>
+<span>  <span class="st">"tables_01.docx"</span>,</span>
+<span>  meta_dir <span class="op">=</span> <span class="st">"meta"</span>,</span>
+<span>  output_path <span class="op">=</span> <span class="st">"qc/tables_01_replay.docx"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Practical workflow: run production specs with
+<code><a href="../reference/save_report.html">save_report()</a></code> instead of <code><a href="../reference/write_doc.html">write_doc()</a></code> to
+preserve the metadata, then use <code><a href="../reference/replay_report.html">replay_report()</a></code> for QC
+re-runs, template switches, or regulatory re-submissions without
+touching the original R scripts.</p>
+</div>
+<div class="section level3">
+<h3 id="how-do-i-combine-multiple-documents-into-a-single-docx-with-a-table-of-contents">36. How do I combine multiple documents into a single DOCX with a
+Table of Contents?<a class="anchor" aria-label="anchor" href="#how-do-i-combine-multiple-documents-into-a-single-docx-with-a-table-of-contents"></a>
+</h3>
+<p>Pass a vector of spec references (DOCX names or JSON hashes) to
+<code><a href="../reference/replay_report.html">replay_report()</a></code> along with a combined
+<code>output_path</code>. The function merges all specs into one
+document and optionally inserts a TOC page at the front.</p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Combine two documents from the same meta folder</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span></span>
+<span>  spec_json   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tables_01.docx"</span>, <span class="st">"listings_01.docx"</span><span class="op">)</span>,</span>
+<span>  meta_dir    <span class="op">=</span> <span class="st">"meta"</span>,</span>
+<span>  output_path <span class="op">=</span> <span class="st">"output/combined_tables_listings.docx"</span>,</span>
+<span>  insertTOC   <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  tocTitle    <span class="op">=</span> <span class="st">"Table of Contents"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Combine documents from different meta folders</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span></span>
+<span>  spec_json   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"meta_tables/abc123.json"</span>,</span>
+<span>    <span class="st">"meta_figures/def456.json"</span>,</span>
+<span>    <span class="st">"meta_listings/ghi789.json"</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  output_path <span class="op">=</span> <span class="st">"output/full_clinical_report.docx"</span>,</span>
+<span>  insertTOC   <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  tocTitle    <span class="op">=</span> <span class="st">"Clinical Study Report - Contents"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>This is the standard pattern for assembling final submission packages
+from individually validated outputs.</p>
+</div>
+<div class="section level3">
+<h3 id="how-do-i-filter-and-combine-only-the-latest-versions-of-documents">37. How do I filter and combine only the latest versions of
+documents?<a class="anchor" aria-label="anchor" href="#how-do-i-filter-and-combine-only-the-latest-versions-of-documents"></a>
+</h3>
+<p>Use <code><a href="../reference/list_reports.html">list_reports()</a></code> to scan the meta folder, filter for
+<code>is_latest == TRUE</code>, then pass the matched
+<code>spec_file</code> entries to <code><a href="../reference/replay_report.html">replay_report()</a></code>. This is
+useful when you have many historical versions but only want to combine
+the current set.</p>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">meta_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/list_reports.html">list_reports</a></span><span class="op">(</span><span class="st">"meta"</span>, sort_by <span class="op">=</span> <span class="st">"doc_file"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Keep only latest entries</span></span>
+<span><span class="va">latest</span> <span class="op">&lt;-</span> <span class="va">meta_index</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_latest</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Optional: filter by document name patterns</span></span>
+<span><span class="va">tables_and_figures</span> <span class="op">&lt;-</span> <span class="va">latest</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"table|figure"</span>, <span class="va">doc_file</span>, ignore.case <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Combine into one document</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span></span>
+<span>  spec_json   <span class="op">=</span> <span class="va">tables_and_figures</span><span class="op">$</span><span class="va">spec_file</span>,</span>
+<span>  meta_dir    <span class="op">=</span> <span class="st">"meta"</span>,</span>
+<span>  output_path <span class="op">=</span> <span class="st">"output/final_report.docx"</span>,</span>
+<span>  insertTOC   <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>This pattern is particularly useful for batch production workflows
+where hundreds of outputs are generated separately and then assembled
+into themed bundles (tables-only, figures-only, or full report).</p>
+</div>
+<div class="section level3">
+<h3 id="how-do-i-match-saved-metadata-with-actual-docx-files-for-qc-validation">38. How do I match saved metadata with actual DOCX files for QC
+validation?<a class="anchor" aria-label="anchor" href="#how-do-i-match-saved-metadata-with-actual-docx-files-for-qc-validation"></a>
+</h3>
+<p>Use <code><a href="../reference/list_reports.html">list_reports()</a></code> to get the metadata index, then
+cross-check with the actual files on disk using an inner join. This
+ensures both the metadata and the rendered output exist before
+attempting validation or replay.</p>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tibble.tidyverse.org/" class="external-link">tibble</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Read metadata index</span></span>
+<span><span class="va">meta_index</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/list_reports.html">list_reports</a></span><span class="op">(</span><span class="st">"meta"</span>, sort_by <span class="op">=</span> <span class="st">"doc_file"</span><span class="op">)</span></span>
+<span><span class="va">latest</span> <span class="op">&lt;-</span> <span class="va">meta_index</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_latest</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Scan output folder for actual DOCX files</span></span>
+<span><span class="va">docx_on_disk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span></span>
+<span>  <span class="st">"output"</span>,</span>
+<span>  pattern <span class="op">=</span> <span class="st">"\\.docx$"</span>,</span>
+<span>  full.names <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">docx_on_disk</span> <span class="op">&lt;-</span> <span class="va">docx_on_disk</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/startsWith.html" class="external-link">startsWith</a></span><span class="op">(</span><span class="va">docx_on_disk</span>, <span class="st">"~$"</span><span class="op">)</span><span class="op">]</span> <span class="co"># Skip temp files</span></span>
+<span></span>
+<span><span class="co"># Inner join - keep only entries with both metadata and file</span></span>
+<span><span class="va">matched</span> <span class="op">&lt;-</span> <span class="va">latest</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">inner_join</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>doc_file <span class="op">=</span> <span class="va">docx_on_disk</span><span class="op">)</span>,</span>
+<span>    by <span class="op">=</span> <span class="st">"doc_file"</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">doc_file</span>, <span class="va">datetime</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"Matched: %d of %d latest entries have corresponding DOCX files\n"</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">matched</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">latest</span><span class="op">)</span></span>
+<span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Use matched entries for validation workflow</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">matched</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>    <span class="st">"%2d. %s [%s] -&gt; %s\n"</span>,</span>
+<span>    <span class="va">i</span>,</span>
+<span>    <span class="va">matched</span><span class="op">$</span><span class="va">doc_file</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,</span>
+<span>    <span class="va">matched</span><span class="op">$</span><span class="va">datetime</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,</span>
+<span>    <span class="va">matched</span><span class="op">$</span><span class="va">spec_file</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>This cross-reference pattern is the foundation of validation
+workflows: programmers save metadata during production runs, QC
+reviewers scan the output folder and metadata folder, then match and
+replay only the entries that exist in both places.</p>
+</div>
+<div class="section level3">
+<h3 id="how-do-i-store-metadata-persistently-for-regulatory-validation">39. How do I store metadata persistently for regulatory
+validation?<a class="anchor" aria-label="anchor" href="#how-do-i-store-metadata-persistently-for-regulatory-validation"></a>
+</h3>
+<p>Use <code><a href="../reference/save_report.html">save_report()</a></code> with a persistent
+<code>metaPath</code> (not <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>) to create a durable
+metadata archive. This archive contains:</p>
+<ul>
+<li>Spec JSON files (hash-named, one per save)</li>
+<li>Data JSON files (referenced by <code>dataRef</code> in specs)</li>
+<li>Figure image files (copied with original extensions preserved)</li>
+<li>
+<code>_index.json</code> (automatically maintained index of all
+specs)</li>
+</ul>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set persistent directories in options</span></span>
+<span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
+<span>  output_directory <span class="op">=</span> <span class="st">"output"</span>,</span>
+<span>  meta_directory   <span class="op">=</span> <span class="st">"meta"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Save report with metadata</span></span>
+<span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 1: Demographics"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>hasData <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">advs</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 2: Vital Signs"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>hasData <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec1</span>, <span class="va">spec2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/save_report.html">save_report</a></span><span class="op">(</span></span>
+<span>  <span class="va">report</span>,</span>
+<span>  docFileName <span class="op">=</span> <span class="st">"tables_demographics_vitals.docx"</span>,</span>
+<span>  outDir      <span class="op">=</span> <span class="st">"output"</span>,</span>
+<span>  metaPath    <span class="op">=</span> <span class="st">"meta"</span>,</span>
+<span>  insertTOC   <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Metadata now available for:</span></span>
+<span><span class="co"># - QC replay: replay_report(result$spec_file, meta_dir = "meta")</span></span>
+<span><span class="co"># - Template switch: replay_report(..., overrideTemplate = "Navy_Pro")</span></span>
+<span><span class="co"># - Historical audit: list_reports("meta") shows all versions with timestamps</span></span></code></pre></div>
+<p>Validation workflow benefits:</p>
+<ul>
+<li>
+<strong>Reproducibility</strong>: Exact replay without re-running
+upstream data processing</li>
+<li>
+<strong>Auditability</strong>: Every save creates a timestamped
+entry in <code>_index.json</code>
+</li>
+<li>
+<strong>Template flexibility</strong>: Re-render with different
+templates without changing specs</li>
+<li>
+<strong>QC independence</strong>: Reviewers replay from metadata,
+not from live R sessions</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="how-do-i-clean-up-obsolete-metadata-files-while-keeping-the-latest-versions">40. How do I clean up obsolete metadata files while keeping the
+latest versions?<a class="anchor" aria-label="anchor" href="#how-do-i-clean-up-obsolete-metadata-files-while-keeping-the-latest-versions"></a>
+</h3>
+<p>Use <code><a href="../reference/clean_reports.html">clean_reports()</a></code> to remove old spec JSONs and
+orphaned data files while preserving the most recent N versions per
+document. This keeps the metadata folder manageable in long-running
+projects.</p>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Keep only the 2 most recent versions of each document</span></span>
+<span><span class="fu"><a href="../reference/clean_reports.html">clean_reports</a></span><span class="op">(</span>meta_dir <span class="op">=</span> <span class="st">"meta"</span>, keep_versions <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Keep only the latest version (most aggressive cleanup)</span></span>
+<span><span class="fu"><a href="../reference/clean_reports.html">clean_reports</a></span><span class="op">(</span>meta_dir <span class="op">=</span> <span class="st">"meta"</span>, keep_versions <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p>The function:</p>
+<ul>
+<li>Identifies obsolete spec JSONs (older than
+<code>keep_versions</code>)</li>
+<li>Deletes obsolete specs</li>
+<li>Scans surviving specs for referenced data/figure files</li>
+<li>Deletes orphaned data JSONs and images not referenced by any
+surviving spec</li>
+<li>Updates <code>_index.json</code> to reflect the cleaned state</li>
+</ul>
+<p>Run this periodically in development to avoid accumulating hundreds
+of obsolete metadata files, or use it before archiving a project to keep
+only the final validated versions.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

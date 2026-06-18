@@ -75,14 +75,14 @@ test_that("styles editor persists table empty-line layout edits", {
   })
 })
 
-test_that("no-op CRO_Example_default download preserves null and absent fields in JSON", {
+test_that("no-op Default download preserves null and absent fields in JSON", {
   skip_if_not_installed("shiny")
   skip_if_not_installed("colourpicker")
 
   editor_env <- load_styles_editor_env()
 
   shiny::testServer(editor_env$server, {
-    session$setInputs(bundled_template = "CRO_Example_default")
+    session$setInputs(bundled_template = "Default")
     session$setInputs(load_bundled = 1)
     session$flushReact()
 
@@ -106,14 +106,14 @@ test_that("no-op CRO_Example_default download preserves null and absent fields i
   })
 })
 
-test_that("edited CRO_Example_default does not inject defaults for unedited protected fields", {
+test_that("edited Default does not inject defaults for unedited protected fields", {
   skip_if_not_installed("shiny")
   skip_if_not_installed("colourpicker")
 
   editor_env <- load_styles_editor_env()
 
   shiny::testServer(editor_env$server, {
-    session$setInputs(bundled_template = "CRO_Example_default")
+    session$setInputs(bundled_template = "Default")
     session$setInputs(load_bundled = 1)
     session$flushReact()
 

@@ -526,7 +526,7 @@ create_text <- function() {
 #' Example workflow:
 #' \itemize{
 #'   \item Create table: widths auto-distributed 
-#'   \item `define_cols(id, colWidth="20%")`: locks id at 20%, others recalculated to fill 80% keeping intially detected proportions
+#'   \item `define_cols(id, colWidth="20%")`: locks id at 20%, others recalculated to fill 80% keeping initially detected proportions
 #'   \item `define_cols(age, colWidth="2cm")`: locks age at fixed 2cm width, other relative columns recalculated to fill remaining space
 #' }
 #'

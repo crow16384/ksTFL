@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,7 @@
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="nav-item"><a class="nav-link" href="../ksTFL_cheatsheet.pdf"><span class="fa fa-file-pdf"></span> Cheatsheet</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -121,7 +122,7 @@ settings are in place. They register default headers, footers, output
 paths, and footnote behavior once so the individual examples do not need
 to repeat them:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL-release/">ksTFL</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL/">ksTFL</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/tfl_reset_options.html">tfl_reset_options</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -968,7 +969,7 @@ single landscape document with a TOC page.</p>
 <span><span class="co"># figureScaleMode = "fitPage" scales the image to fill the available area.</span></span>
 <span><span class="va">t.fig.spec</span> <span class="op">&lt;-</span> <span class="va">t.fig.spec</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>figureScaleMode <span class="op">=</span> <span class="st">"fitPage"</span>,</span>
-<span>               docTemplate <span class="op">=</span> <span class="st">"Classic_landscape"</span><span class="op">)</span></span>
+<span>               docTemplate <span class="op">=</span> <span class="st">"Classic_landscape_times"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- Figure 2: Iris petal dimensions by species (violin + jitter) ---</span></span>
 <span><span class="co"># Violin plots show the distribution shape; jittered points show</span></span>
@@ -996,7 +997,7 @@ single landscape document with a TOC page.</p>
 <span>    <span class="st">"Each point represents one flower. Violin width shows density."</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>figureScaleMode <span class="op">=</span> <span class="st">"fitPage"</span>,</span>
-<span>               docTemplate <span class="op">=</span> <span class="st">"Classic_landscape"</span><span class="op">)</span></span>
+<span>               docTemplate <span class="op">=</span> <span class="st">"Classic_landscape_times"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- Figure 3: Displacement vs horsepower (bubble + LOESS smooth) ---</span></span>
 <span><span class="co"># Bubble size encodes quarter-mile time; fill colour encodes transmission</span></span>
@@ -1027,7 +1028,7 @@ single landscape document with a TOC page.</p>
 <span>          <span class="st">"Source: 1974 Motor Trend US magazine."</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>figureScaleMode <span class="op">=</span> <span class="st">"fitPage"</span>,</span>
-<span>               docTemplate <span class="op">=</span> <span class="st">"Classic_landscape"</span><span class="op">)</span></span>
+<span>               docTemplate <span class="op">=</span> <span class="st">"Classic_landscape_times"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- Combine all three figures into a single document ---</span></span>
 <span><span class="co"># create_report() accepts any number of TFL_spec objects.</span></span>

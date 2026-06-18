@@ -32,7 +32,7 @@ create_last_page_regression_df <- function(n_params = 8L, n_visits = 18L) {
 }
 
 create_custom_template_with_row_break <- function(allow_row_break) {
-  template_src <- system.file("templates", "Classic_landscape.json", package = "ksTFL", mustWork = TRUE)
+  template_src <- system.file("templates", "Classic_landscape_times.json", package = "ksTFL", mustWork = TRUE)
   template_dst <- tempfile(pattern = "ksTFL_template_", fileext = ".json")
 
   template_lines <- readLines(template_src, warn = FALSE)

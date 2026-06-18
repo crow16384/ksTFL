@@ -11,7 +11,7 @@ the parent compute_cols() condition."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,6 +22,7 @@ the parent compute_cols() condition."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="nav-item"><a class="nav-link" href="../ksTFL_cheatsheet.pdf"><span class="fa fa-file-pdf"></span> Cheatsheet</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -106,9 +107,15 @@ column involved in <code><a href="c_merge.html">c_merge()</a></code> as the firs
 <li><p><code><a href="c_merge.html">c_merge()</a></code>: Compatible. Glue is processed after merge in the renderer.
 Non-leader (suppressed) merge cells are skipped; the merge-leader cell is
 glued normally.</p></li>
-<li><p><code><a href="c_addrow.html">c_addrow()</a></code>: Fully compatible (affects different rows/cells).</p></li>
+<li><p><code><a href="c_addrow.html">c_addrow()</a></code>: <strong>Stackable</strong> — when used together in the same <code><a href="compute_cols.html">compute_cols()</a></code>,
+<code><a href="c_addrow.html">c_addrow()</a></code> sees glued values. This allows building compound cell values
+(e.g., "PARAM: VISIT") before using them in inserted rows.</p></li>
 <li><p><code><a href="c_pageBreak.html">c_pageBreak()</a></code>: Fully compatible.</p></li>
-</ul></div>
+</ul><p><strong>Stackable Actions:</strong>
+Actions within a single <code><a href="compute_cols.html">compute_cols()</a></code> call execute <strong>sequentially in the order
+specified</strong>. This means <code>c_glue()</code> modifications are visible to subsequent <code><a href="c_addrow.html">c_addrow()</a></code>
+actions in the same call, enabling complex multi-step transformations.</p>
+    </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="compute_cols.html">compute_cols()</a></code>, <code><a href="c_style.html">c_style()</a></code>, <code><a href="c_merge.html">c_merge()</a></code>, <code><a href="c_addrow.html">c_addrow()</a></code></p></div>
@@ -129,6 +136,12 @@ glued normally.</p></li>
 <span class="r-in"><span>  <span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    <span class="fu">c_glue</span><span class="op">(</span><span class="va">label</span>, <span class="st">"before"</span>, text <span class="op">=</span> <span class="st">"&gt; "</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    <span class="fu"><a href="c_style.html">c_style</a></span><span class="op">(</span><span class="va">label</span>, styleRef <span class="op">=</span> <span class="st">"bold"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  </span></span>
+<span class="r-in"><span>  <span class="co"># Stackable with c_addrow() — addrow sees glued values</span></span></span>
+<span class="r-in"><span>  <span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">PARAM</span> <span class="op">==</span> <span class="st">"ALT"</span>,</span></span>
+<span class="r-in"><span>    <span class="fu">c_glue</span><span class="op">(</span><span class="va">PARAM</span>, <span class="st">"after"</span>, glue_col <span class="op">=</span> <span class="va">VISIT</span>, separator <span class="op">=</span> <span class="st">": "</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    <span class="fu"><a href="c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">PARAM</span><span class="op">)</span>  <span class="co"># Uses "ALT: Week 2"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

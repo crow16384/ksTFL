@@ -64,9 +64,16 @@ column involved in \code{c_merge()} as the first column.
 \item \code{c_merge()}: Compatible. Glue is processed after merge in the renderer.
 Non-leader (suppressed) merge cells are skipped; the merge-leader cell is
 glued normally.
-\item \code{c_addrow()}: Fully compatible (affects different rows/cells).
+\item \code{c_addrow()}: \strong{Stackable} — when used together in the same \code{compute_cols()},
+\code{c_addrow()} sees glued values. This allows building compound cell values
+(e.g., "PARAM: VISIT") before using them in inserted rows.
 \item \code{c_pageBreak()}: Fully compatible.
 }
+
+\strong{Stackable Actions:}
+Actions within a single \code{compute_cols()} call execute \strong{sequentially in the order
+specified}. This means \code{c_glue()} modifications are visible to subsequent \code{c_addrow()}
+actions in the same call, enabling complex multi-step transformations.
 }
 \examples{
 \dontrun{
@@ -82,6 +89,12 @@ glued normally.
   spec <- compute_cols(spec, firstOf(group),
     c_glue(label, "before", text = "> "),
     c_style(label, styleRef = "bold"))
+  
+  # Stackable with c_addrow() — addrow sees glued values
+  spec <- compute_cols(spec, PARAM == "ALT",
+    c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
+    c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
+  )
 }
 
 }

@@ -654,3 +654,226 @@ write_doc(report, name = "layout_switch")
 Important caveat: when `isColBreak` is active, ksTFL enforces
 `repeat_header_on_each_page = TRUE` and
 `allow_row_break_across_pages = FALSE` for correct horizontal pagination.
+
+------------------------------------------------------------------------
+
+## Metadata workflows: replay, combine, and validation
+
+### 35. How do I replay a document from stored metadata without re-running R code?
+
+Use `replay_report()` with either the DOCX filename (uses the latest saved
+spec) or the exact spec JSON hash for a specific historical version. This
+replays from the saved JSON and data files, not from R objects, so the original
+data frames or ggplot objects are not needed.
+
+```r
+# Replay the latest version by DOCX name
+replay_report("tables_01.docx", meta_dir = "meta")
+
+# Replay an exact historical version by spec hash
+replay_report("abc123def456.json", meta_dir = "meta")
+
+# Override output location
+replay_report(
+  "tables_01.docx",
+  meta_dir = "meta",
+  output_path = "qc/tables_01_replay.docx"
+)
+```
+
+Practical workflow: run production specs with `save_report()` instead of
+`write_doc()` to preserve the metadata, then use `replay_report()` for QC
+re-runs, template switches, or regulatory re-submissions without touching the
+original R scripts.
+
+### 36. How do I combine multiple documents into a single DOCX with a Table of Contents?
+
+Pass a vector of spec references (DOCX names or JSON hashes) to
+`replay_report()` along with a combined `output_path`. The function merges all
+specs into one document and optionally inserts a TOC page at the front.
+
+```r
+# Combine two documents from the same meta folder
+replay_report(
+  spec_json   = c("tables_01.docx", "listings_01.docx"),
+  meta_dir    = "meta",
+  output_path = "output/combined_tables_listings.docx",
+  insertTOC   = TRUE,
+  tocTitle    = "Table of Contents"
+)
+
+# Combine documents from different meta folders
+replay_report(
+  spec_json   = c(
+    "meta_tables/abc123.json",
+    "meta_figures/def456.json",
+    "meta_listings/ghi789.json"
+  ),
+  output_path = "output/full_clinical_report.docx",
+  insertTOC   = TRUE,
+  tocTitle    = "Clinical Study Report - Contents"
+)
+```
+
+This is the standard pattern for assembling final submission packages from
+individually validated outputs.
+
+### 37. How do I filter and combine only the latest versions of documents?
+
+Use `list_reports()` to scan the meta folder, filter for `is_latest == TRUE`,
+then pass the matched `spec_file` entries to `replay_report()`. This is useful
+when you have many historical versions but only want to combine the current set.
+
+```r
+library(dplyr)
+
+meta_index <- list_reports("meta", sort_by = "doc_file")
+
+# Keep only latest entries
+latest <- meta_index %>% filter(is_latest)
+
+# Optional: filter by document name patterns
+tables_and_figures <- latest %>%
+  filter(grepl("table|figure", doc_file, ignore.case = TRUE))
+
+# Combine into one document
+replay_report(
+  spec_json   = tables_and_figures$spec_file,
+  meta_dir    = "meta",
+  output_path = "output/final_report.docx",
+  insertTOC   = TRUE
+)
+```
+
+This pattern is particularly useful for batch production workflows where
+hundreds of outputs are generated separately and then assembled into themed
+bundles (tables-only, figures-only, or full report).
+
+### 38. How do I match saved metadata with actual DOCX files for QC validation?
+
+Use `list_reports()` to get the metadata index, then cross-check with the actual
+files on disk using an inner join. This ensures both the metadata and the
+rendered output exist before attempting validation or replay.
+
+```r
+library(dplyr)
+library(tibble)
+
+# Read metadata index
+meta_index <- list_reports("meta", sort_by = "doc_file")
+latest <- meta_index %>% filter(is_latest)
+
+# Scan output folder for actual DOCX files
+docx_on_disk <- list.files(
+  "output",
+  pattern = "\\.docx$",
+  full.names = FALSE
+)
+docx_on_disk <- docx_on_disk[!startsWith(docx_on_disk, "~$")] # Skip temp files
+
+# Inner join - keep only entries with both metadata and file
+matched <- latest %>%
+  inner_join(
+    tibble(doc_file = docx_on_disk),
+    by = "doc_file"
+  ) %>%
+  arrange(doc_file, datetime)
+
+cat(sprintf(
+  "Matched: %d of %d latest entries have corresponding DOCX files\n",
+  nrow(matched),
+  nrow(latest)
+))
+
+# Use matched entries for validation workflow
+for (i in seq_len(nrow(matched))) {
+  cat(sprintf(
+    "%2d. %s [%s] -> %s\n",
+    i,
+    matched$doc_file[i],
+    matched$datetime[i],
+    matched$spec_file[i]
+  ))
+}
+```
+
+This cross-reference pattern is the foundation of validation workflows:
+programmers save metadata during production runs, QC reviewers scan the output
+folder and metadata folder, then match and replay only the entries that exist in
+both places.
+
+### 39. How do I store metadata persistently for regulatory validation?
+
+Use `save_report()` with a persistent `metaPath` (not `tempdir()`) to create a
+durable metadata archive. This archive contains:
+
+- Spec JSON files (hash-named, one per save)
+- Data JSON files (referenced by `dataRef` in specs)
+- Figure image files (copied with original extensions preserved)
+- `_index.json` (automatically maintained index of all specs)
+
+```r
+# Set persistent directories in options
+tfl_set_options(
+  output_directory = "output",
+  meta_directory   = "meta"
+)
+
+# Save report with metadata
+spec1 <- create_table(adsl) %>%
+  add_title("Table 1: Demographics", toclevel = 1) %>%
+  set_document(hasData = TRUE)
+
+spec2 <- create_table(advs) %>%
+  add_title("Table 2: Vital Signs", toclevel = 1) %>%
+  set_document(hasData = TRUE)
+
+report <- create_report(spec1, spec2)
+
+result <- save_report(
+  report,
+  docFileName = "tables_demographics_vitals.docx",
+  outDir      = "output",
+  metaPath    = "meta",
+  insertTOC   = TRUE
+)
+
+# Metadata now available for:
+# - QC replay: replay_report(result$spec_file, meta_dir = "meta")
+# - Template switch: replay_report(..., overrideTemplate = "Navy_Pro")
+# - Historical audit: list_reports("meta") shows all versions with timestamps
+```
+
+Validation workflow benefits:
+
+- **Reproducibility**: Exact replay without re-running upstream data processing
+- **Auditability**: Every save creates a timestamped entry in `_index.json`
+- **Template flexibility**: Re-render with different templates without changing
+  specs
+- **QC independence**: Reviewers replay from metadata, not from live R sessions
+
+### 40. How do I clean up obsolete metadata files while keeping the latest versions?
+
+Use `clean_reports()` to remove old spec JSONs and orphaned data files while
+preserving the most recent N versions per document. This keeps the metadata
+folder manageable in long-running projects.
+
+```r
+# Keep only the 2 most recent versions of each document
+clean_reports(meta_dir = "meta", keep_versions = 2)
+
+# Keep only the latest version (most aggressive cleanup)
+clean_reports(meta_dir = "meta", keep_versions = 1)
+```
+
+The function:
+
+- Identifies obsolete spec JSONs (older than `keep_versions`)
+- Deletes obsolete specs
+- Scans surviving specs for referenced data/figure files
+- Deletes orphaned data JSONs and images not referenced by any surviving spec
+- Updates `_index.json` to reflect the cleaned state
+
+Run this periodically in development to avoid accumulating hundreds of obsolete
+metadata files, or use it before archiving a project to keep only the final
+validated versions.

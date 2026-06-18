@@ -34,11 +34,24 @@ Must be called inside \code{compute_cols()}.
 \item If \code{value_from} is provided, must exist in spec columns (data_env reference)
 \item If \code{value_from} is NULL or missing, creates an empty separator row
 }
+
+\strong{Stackable Actions:}
+Actions within a single \code{compute_cols()} call execute \strong{sequentially in the order
+specified}. This means \code{c_addrow()} can see values modified by earlier \code{c_glue()}
+actions, allowing you to build compound cell values (e.g., "PARAM: VISIT") before
+using them in inserted rows. Multiple \code{c_glue()} and \code{c_addrow()} calls can be
+interleaved as needed.
 }
 \examples{
 \dontrun{
   compute_cols(spec, lastOf(treatment), c_addrow(pos = "below", value_from = "treatment"))
   compute_cols(spec, firstOf(visit), c_addrow(pos = "above"))
+  
+  # Stackable: addrow sees glued value
+  compute_cols(spec, PARAM == "ALT",
+    c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
+    c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
+  )
 }
 
 }

@@ -1,8 +1,8 @@
 # ksTFL 0.11.6
 
-## Sequential action execution (BREAKING CHANGE)
+## Sequential action execution 
 
-* **BREAKING:** Actions in `compute_cols()` now execute sequentially with
+* Actions in `compute_cols()` now execute sequentially with
   `c_glue()` modifications visible to subsequent `c_addrow()` calls.
 * Added `seq` field to all row actions for ordered execution tracking.
 * R: `.finalize_compute_cols()` assigns sequence numbers to actions.
@@ -13,9 +13,9 @@
   using final row state.
 * Added 6 integration tests verifying stackable behavior.
 
-## Default missings change (BREAKING CHANGE)
+## Default missings change 
 
-* **BREAKING:** Default `missings` value changed from `"NA"` to `""` (empty string).
+* Default `missings` value changed from `"NA"` to `""` (empty string).
 * Missing values now render as empty cells by default instead of showing "NA".
 * Updated documentation in `tfl_set_options()` and related functions.
 

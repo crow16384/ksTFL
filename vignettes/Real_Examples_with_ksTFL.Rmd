@@ -898,7 +898,7 @@ t.fig.spec <- t.fig %>% create_figure() %>%
 # figureScaleMode = "fitPage" scales the image to fill the available area.
 t.fig.spec <- t.fig.spec %>%
   set_document(figureScaleMode = "fitPage",
-               docTemplate = "Classic_landscape")
+               docTemplate = "Classic_landscape_times")
 
 # --- Figure 2: Iris petal dimensions by species (violin + jitter) ---
 # Violin plots show the distribution shape; jittered points show
@@ -926,7 +926,7 @@ t.fig.spec2 <- t.fig2 %>% create_figure() %>%
     "Each point represents one flower. Violin width shows density."
   ) %>%
   set_document(figureScaleMode = "fitPage",
-               docTemplate = "Classic_landscape")
+               docTemplate = "Classic_landscape_times")
 
 # --- Figure 3: Displacement vs horsepower (bubble + LOESS smooth) ---
 # Bubble size encodes quarter-mile time; fill colour encodes transmission
@@ -957,7 +957,7 @@ t.fig.spec3 <- t.fig3 %>% create_figure() %>%
           "Source: 1974 Motor Trend US magazine.")
   ) %>%
   set_document(figureScaleMode = "fitPage",
-               docTemplate = "Classic_landscape")
+               docTemplate = "Classic_landscape_times")
 
 # --- Combine all three figures into a single document ---
 # create_report() accepts any number of TFL_spec objects.

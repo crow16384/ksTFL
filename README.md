@@ -31,74 +31,9 @@ Install the CRAN release with:
 install.packages("ksTFL")
 ```
 
-If you need a GitHub-hosted binary outside CRAN, use one of the secondary options below.
+Documentation: <https://crow16384.github.io/ksTFL/>
 
-### Pre-compiled binaries
-
-ksTFL is also distributed as **pre-compiled binaries** for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
-
-### Windows
-
-```r
-install.packages("ksTFL",
-                 repos = "https://crow16384.github.io/ksTFL-release",
-                 type  = "binary")
-```
-
-### Linux — Ubuntu / Debian
-
-```r
-install.packages("ksTFL",
-                 repos = "https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble")
-```
-
-No extra HarfBuzz, FreeType, or minizip runtime packages are required.
-Linux builds are shipped with those libraries compiled from vendored source.
-
-### Linux — Fedora / RHEL
-
-```r
-install.packages("ksTFL",
-                 repos = "https://crow16384.github.io/ksTFL-release/bin/linux/fedora")
-```
-
-No extra HarfBuzz, FreeType, or minizip runtime packages are required.
-Linux builds are shipped with those libraries compiled from vendored source.
-
-### macOS
-
-macOS binaries are published as GitHub Release assets and can be installed from a downloaded `.tgz` file:
-
-```r
-install.packages("ksTFL_<version>.tgz", repos = NULL)
-```
-
-When a macOS binary is available in the CRAN-like repo, you can also use:
-
-```r
-install.packages("ksTFL",
-                 repos = "https://crow16384.github.io/ksTFL-release",
-                 type  = "binary")
-```
-
-### From a downloaded file
-
-Pre-built packages can be downloaded from the
-[Releases](https://github.com/crow16384/ksTFL-release/releases) page and
-installed directly:
-
-```r
-# Linux (.tar.gz binary)
-install.packages("ksTFL_<version>_R_x86_64-pc-linux-gnu.tar.gz", repos = NULL)
-
-# Windows (.zip)
-install.packages("ksTFL_<version>.zip", repos = NULL)
-
-# macOS (.tgz)
-install.packages("ksTFL_<version>.tgz", repos = NULL)
-```
-
-Release repository: <https://github.com/crow16384/ksTFL-release>
+📄 **[Download Cheatsheet (PDF)](https://github.com/crow16384/ksTFL/raw/CRAN/inst/extdata/ksTFL_cheatsheet_0_11_x.pdf)**
 
 ### Fonts note
 
@@ -458,7 +393,7 @@ Configure global defaults that apply to all specs in a session:
 
 | Parameter | Default | Type | Description |
 |-----------|---------|------|-------------|
-| `docTemplate` | `"CRO Example_default"` | Character | Document style template (bundled name or path to JSON). Use `tfl_list_templates()` to list available embedded templates, or use template editor shiny addin to create your own |
+| `docTemplate` | `"Default"` | Character | Document style template (bundled name or path to JSON). Use `tfl_list_templates()` to list available embedded templates, or use template editor shiny addin to create your own |
 | `contentWidth` | `"100%"` | Character | Main content area width (e.g., `"95%"`, `"16.51cm"`, `"6.5in"`) |
 | `footnotePlace` | `"repeated"` | Character | Footnote placement: `"repeated"` (every page), `"last_page"`, or `"doc_footer"` |
 | `isContinues` | `FALSE` | Logical | Suppress repeating headers on every page of the document |

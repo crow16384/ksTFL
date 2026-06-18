@@ -36,7 +36,7 @@ To get started, see the vignettes:
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://crow16384.github.io/ksTFL-release/}
+  \item \url{https://crow16384.github.io/ksTFL/}
   \item Report bugs at \url{https://github.com/crow16384/ksTFL/issues}
 }
 
