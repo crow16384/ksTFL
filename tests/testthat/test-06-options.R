@@ -36,7 +36,7 @@ test_that("tfl_get_option() retrieves single option", {
   missings <- tfl_get_option("missings")
   
   expect_is(missings, "character")
-  expect_true(nchar(missings) > 0)
+  expect_equal(missings, "")  # Default is empty string
 })
 
 test_that("tfl_get_option() with invalid option name", {

@@ -207,7 +207,7 @@ utils::globalVariables(
 #' Returns both format specs and width metadata for recalculation support.
 #' 
 #' @param df Data frame to analyze
-#' @param missings Character string for missing value representation (default: "NA")
+#' @param missings Character string for missing value representation (default: "")
 #'
 #' @return List with two elements:
 #'   - `$formats`: Named list of format specs (keyed by column name) with type, format, colWidth
@@ -215,7 +215,7 @@ utils::globalVariables(
 #'
 #' @keywords internal
 #' @noRd
-.guess_table_layout <- function(df, missings = "NA") {
+.guess_table_layout <- function(df, missings = "") {
 
   # ---- assertions ----
   checkmate::assert_data_frame(df, any.missing = TRUE)

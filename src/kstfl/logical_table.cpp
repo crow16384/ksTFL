@@ -680,7 +680,22 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
 
   // Helper: get a value from the DataTable for a given column and row index.
   // This works for both visible and invisible columns.
-  auto get_data_value = [&](const std::string &col_id, size_t row_index) -> std::string {
+  // If current_row is provided and the requested row_index matches the current
+  // row's source, return the potentially glued cell text instead of the
+  // original DataTable value.
+  auto get_data_value = [&](const std::string &col_id, size_t row_index,
+                            const LogicalRow *current_row = nullptr) -> std::string {
+    // If we're getting a value from the current row being processed,
+    // check if that cell has been modified (glued) first
+    if (current_row && current_row->source_index == row_index) {
+      auto it = col_to_idx.find(col_id);
+      if (it != col_to_idx.end() && it->second < current_row->cells.size()) {
+        // Use the potentially glued cell text
+        return current_row->cells[it->second].text;
+      }
+    }
+
+    // Fall back to original DataTable
     auto it = data.columns.find(col_id);
     if (it != data.columns.end() && row_index < it->second.size()) { return it->second[row_index]; }
     return "";
@@ -689,13 +704,14 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
   // Helper: build a full-width merged synthetic row.
   // The first visible column becomes the merge leader spanning all visible
   // columns.
-  auto build_addrow_synthetic = [&](size_t src_idx, const AddRowAction &ar) -> LogicalRow {
+  auto build_addrow_synthetic = [&](size_t src_idx, const AddRowAction &ar,
+                                    const LogicalRow *current_row = nullptr) -> LogicalRow {
     LogicalRow synthetic;
     synthetic.type = LogicalRowType::SyntheticRow;
     synthetic.source_index = src_idx;
     synthetic.row_style_ref = ar.style_ref;
 
-    std::string value_text = get_data_value(ar.value_from, src_idx);
+    std::string value_text = get_data_value(ar.value_from, src_idx, current_row);
 
     // Sum width and count of visible columns only
     Length total_width{0};
@@ -756,14 +772,177 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
     bool has_page_break = !actions->page_breaks.empty() || row.force_page_break;
     bool has_group_boundary = row.is_group_boundary;
 
-    // --- add_row "above" insertions ---
-    // When an "above" synthetic row is inserted, it becomes the first row
-    // of the group.  Transfer force_page_break, is_group_boundary, and
-    // group_values to the synthetic row so the paginator sees them at the
-    // correct position for page-break decisions and #ByGroup resolution.
-    for (const auto &ar : actions->add_rows) {
-      if (ar.pos == AddRowAction::Position::Above) {
-        LogicalRow synthetic = build_addrow_synthetic(src_idx, ar);
+    // --- Build ordered action list ---
+    // Create a list of all actions with their sequence numbers and types.
+    enum class ActionType { Clear, Style, Merge, Glue, AddRowAbove, AddRowBelow, PageBreak };
+    struct OrderedAction {
+      size_t seq;
+      ActionType type;
+      size_t index; // index into the original action vector
+    };
+
+    std::vector<OrderedAction> ordered_actions;
+
+    for (size_t i = 0; i < actions->clears.size(); ++i) {
+      ordered_actions.push_back({actions->clears[i].seq, ActionType::Clear, i});
+    }
+    for (size_t i = 0; i < actions->styles.size(); ++i) {
+      ordered_actions.push_back({actions->styles[i].seq, ActionType::Style, i});
+    }
+    for (size_t i = 0; i < actions->merges.size(); ++i) {
+      ordered_actions.push_back({actions->merges[i].seq, ActionType::Merge, i});
+    }
+    for (size_t i = 0; i < actions->glues.size(); ++i) {
+      ordered_actions.push_back({actions->glues[i].seq, ActionType::Glue, i});
+    }
+    for (size_t i = 0; i < actions->add_rows.size(); ++i) {
+      if (actions->add_rows[i].pos == AddRowAction::Position::Above) {
+        ordered_actions.push_back({actions->add_rows[i].seq, ActionType::AddRowAbove, i});
+      } else {
+        ordered_actions.push_back({actions->add_rows[i].seq, ActionType::AddRowBelow, i});
+      }
+    }
+    for (size_t i = 0; i < actions->page_breaks.size(); ++i) {
+      ordered_actions.push_back({actions->page_breaks[i].seq, ActionType::PageBreak, i});
+    }
+
+    // Sort by sequence number
+    std::ranges::sort(ordered_actions, [](const auto &a, const auto &b) { return a.seq < b.seq; });
+
+    // --- Process actions sequentially ---
+    // We need to handle AddRowAbove specially: they must be emitted before the main row.
+    // All other actions modify the main row in place.
+    // AddRowBelow actions are collected with row snapshots and emitted after the main row.
+
+    struct BelowAddRow {
+      size_t action_index;
+      LogicalRow row_snapshot; // State of row when this addrow was encountered
+    };
+    std::vector<BelowAddRow> below_addrows;
+
+    for (const auto &oa : ordered_actions) {
+      switch (oa.type) {
+      case ActionType::Clear: {
+        const auto &ca = actions->clears[oa.index];
+        for (const auto &col_id : ca.cols) {
+          auto it = col_to_idx.find(col_id);
+          if (it != col_to_idx.end() && it->second < row.cells.size()) { row.cells[it->second].text = ""; }
+        }
+        break;
+      }
+
+      case ActionType::Style: {
+        const auto &sa = actions->styles[oa.index];
+        for (const auto &col_id : sa.cols) {
+          auto it = col_to_idx.find(col_id);
+          if (it != col_to_idx.end() && it->second < row.cells.size()) {
+            row.cells[it->second].style_refs.push_back(sa.style_ref);
+          }
+        }
+        break;
+      }
+
+      case ActionType::Merge: {
+        const auto &ma = actions->merges[oa.index];
+        if (ma.cols.empty()) break;
+
+        // Find the visible column indices for this merge.
+        std::vector<size_t> merge_indices;
+        for (const auto &col_id : ma.cols) {
+          auto it = col_to_idx.find(col_id);
+          if (it != col_to_idx.end() && columns[it->second].is_visible) { merge_indices.push_back(it->second); }
+        }
+
+        if (merge_indices.empty()) break;
+
+        // Sort indices
+        std::ranges::sort(merge_indices);
+
+        // Check if the first column in the merge list is invisible
+        const std::string &first_merge_col = ma.cols[0];
+        bool first_is_invisible = false;
+        {
+          auto it = col_to_idx.find(first_merge_col);
+          if (it == col_to_idx.end() || !columns[it->second].is_visible) { first_is_invisible = true; }
+        }
+        if (first_is_invisible) {
+          // Get value from the invisible column via DataTable
+          std::string invisible_val = get_data_value(first_merge_col, src_idx);
+          size_t leader_idx = merge_indices[0];
+          if (leader_idx < row.cells.size() && !invisible_val.empty()) { row.cells[leader_idx].text = invisible_val; }
+        }
+
+        // Apply merge if 2+ visible columns
+        if (merge_indices.size() >= 2) {
+          size_t leader_idx = merge_indices[0];
+          if (leader_idx < row.cells.size()) {
+            row.cells[leader_idx].is_merge_leader = true;
+            row.cells[leader_idx].merge_span = static_cast<int>(merge_indices.size());
+
+            // Compute combined width
+            Length combined{0};
+            for (size_t idx : merge_indices) {
+              if (idx < columns.size()) { combined = combined + columns[idx].resolved_width; }
+            }
+            row.cells[leader_idx].merged_width = combined;
+
+            if (ma.style_ref.has_value()) { row.cells[leader_idx].style_refs.push_back(*ma.style_ref); }
+          }
+
+          // Mark remaining cells as merged (suppressed)
+          for (size_t k = 1; k < merge_indices.size(); ++k) {
+            size_t idx = merge_indices[k];
+            if (idx < row.cells.size()) { row.cells[idx].is_merged = true; }
+          }
+        } else if (merge_indices.size() == 1) {
+          // Only 1 visible column in merge — just apply style if provided
+          size_t leader_idx = merge_indices[0];
+          if (leader_idx < row.cells.size() && ma.style_ref.has_value()) {
+            row.cells[leader_idx].style_refs.push_back(*ma.style_ref);
+          }
+        }
+        break;
+      }
+
+      case ActionType::Glue: {
+        const auto &ga = actions->glues[oa.index];
+
+        // Determine the text to concatenate
+        std::string glue_text;
+        if (ga.glue_col.has_value()) {
+          glue_text = get_data_value(*ga.glue_col, src_idx, &row);
+        } else if (ga.text.has_value()) {
+          glue_text = *ga.text;
+        }
+
+        // Nothing to glue (empty source value)
+        if (glue_text.empty()) break;
+
+        for (const auto &col_id : ga.cols) {
+          auto it = col_to_idx.find(col_id);
+          if (it == col_to_idx.end()) continue;
+
+          size_t cell_idx = it->second;
+          if (cell_idx >= row.cells.size()) continue;
+
+          auto &cell = row.cells[cell_idx];
+
+          // Skip cells suppressed by merge or by dedupe (preserve blank)
+          if (cell.is_merged || cell.is_deduped) continue;
+
+          // Concatenate — separator only inserted when both sides are non-empty
+          if (ga.position == "before") {
+            cell.text = cell.text.empty() ? glue_text : (glue_text + ga.separator + cell.text);
+          } else { // "after"
+            cell.text = cell.text.empty() ? glue_text : (cell.text + ga.separator + glue_text);
+          }
+        }
+        break;
+      }
+
+      case ActionType::AddRowAbove: {
+        const auto &ar = actions->add_rows[oa.index];
+        LogicalRow synthetic = build_addrow_synthetic(src_idx, ar, &row);
         if (has_page_break) {
           synthetic.force_page_break = true;
           has_page_break = false;
@@ -774,9 +953,24 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
           has_group_boundary = false;
         }
         result.push_back(std::move(synthetic));
+        break;
+      }
+
+      case ActionType::AddRowBelow: {
+        // Snapshot current row state for this below addrow
+        // This preserves values as they are at this point in the action sequence
+        below_addrows.push_back({oa.index, row});
+        break;
+      }
+
+      case ActionType::PageBreak: {
+        // Handled by has_page_break flag
+        break;
+      }
       }
     }
 
+    // Apply remaining page_break and group_boundary flags to the main row
     if (has_page_break) {
       row.force_page_break = true;
     } else {
@@ -788,134 +982,13 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
       row.is_group_boundary = false;
     }
 
-    // --- clear actions (before merge so cleared leader still participates) ---
-    for (const auto &ca : actions->clears) {
-      for (const auto &col_id : ca.cols) {
-        auto it = col_to_idx.find(col_id);
-        if (it != col_to_idx.end() && it->second < row.cells.size()) { row.cells[it->second].text = ""; }
-      }
-    }
-
-    // --- style actions ---
-    for (const auto &sa : actions->styles) {
-      for (const auto &col_id : sa.cols) {
-        auto it = col_to_idx.find(col_id);
-        if (it != col_to_idx.end() && it->second < row.cells.size()) {
-          row.cells[it->second].style_refs.push_back(sa.style_ref);
-        }
-      }
-    }
-
-    // --- merge actions ---
-    for (const auto &ma : actions->merges) {
-      if (ma.cols.empty()) continue;
-
-      // Find the visible column indices for this merge.
-      // Hidden (is_visible=false) columns are excluded from the merge
-      // set — their values are transferred to the first visible column
-      // below, but they don't participate in gridSpan computation.
-      std::vector<size_t> merge_indices;
-      for (const auto &col_id : ma.cols) {
-        auto it = col_to_idx.find(col_id);
-        if (it != col_to_idx.end() && columns[it->second].is_visible) { merge_indices.push_back(it->second); }
-      }
-
-      // Even with 1 visible column, we may need to apply value_from logic:
-      // if the first column in the merge list is invisible, bring its value
-      // to the first visible column.
-      if (merge_indices.empty()) continue;
-
-      // Sort indices
-      std::ranges::sort(merge_indices);
-
-      // Check if the first column in the merge list is invisible
-      // (not visible). If so, bring its value to the first visible
-      // column in the merge.
-      const std::string &first_merge_col = ma.cols[0];
-      bool first_is_invisible = false;
-      {
-        auto it = col_to_idx.find(first_merge_col);
-        if (it == col_to_idx.end() || !columns[it->second].is_visible) { first_is_invisible = true; }
-      }
-      if (first_is_invisible) {
-        // Get value from the invisible column via DataTable
-        std::string invisible_val = get_data_value(first_merge_col, src_idx);
-        size_t leader_idx = merge_indices[0];
-        if (leader_idx < row.cells.size() && !invisible_val.empty()) { row.cells[leader_idx].text = invisible_val; }
-      }
-
-      // Apply merge if 2+ visible columns
-      if (merge_indices.size() >= 2) {
-        size_t leader_idx = merge_indices[0];
-        if (leader_idx < row.cells.size()) {
-          row.cells[leader_idx].is_merge_leader = true;
-          row.cells[leader_idx].merge_span = static_cast<int>(merge_indices.size());
-
-          // Compute combined width
-          Length combined{0};
-          for (size_t idx : merge_indices) {
-            if (idx < columns.size()) { combined = combined + columns[idx].resolved_width; }
-          }
-          row.cells[leader_idx].merged_width = combined;
-
-          if (ma.style_ref.has_value()) { row.cells[leader_idx].style_refs.push_back(*ma.style_ref); }
-        }
-
-        // Mark remaining cells as merged (suppressed)
-        for (size_t k = 1; k < merge_indices.size(); ++k) {
-          size_t idx = merge_indices[k];
-          if (idx < row.cells.size()) { row.cells[idx].is_merged = true; }
-        }
-      } else if (merge_indices.size() == 1) {
-        // Only 1 visible column in merge — just apply style if provided
-        size_t leader_idx = merge_indices[0];
-        if (leader_idx < row.cells.size() && ma.style_ref.has_value()) {
-          row.cells[leader_idx].style_refs.push_back(*ma.style_ref);
-        }
-      }
-    }
-
-    // --- glue actions (after merge so suppressed cells are already marked) ---
-    for (const auto &ga : actions->glues) {
-      // Determine the text to concatenate
-      std::string glue_text;
-      if (ga.glue_col.has_value()) {
-        glue_text = get_data_value(*ga.glue_col, src_idx);
-      } else if (ga.text.has_value()) {
-        glue_text = *ga.text;
-      }
-
-      // Nothing to glue (empty source value)
-      if (glue_text.empty()) continue;
-
-      for (const auto &col_id : ga.cols) {
-        auto it = col_to_idx.find(col_id);
-        if (it == col_to_idx.end()) continue;
-
-        size_t cell_idx = it->second;
-        if (cell_idx >= row.cells.size()) continue;
-
-        auto &cell = row.cells[cell_idx];
-
-        // Skip cells suppressed by merge or by dedupe (preserve blank)
-        if (cell.is_merged || cell.is_deduped) continue;
-
-        // Concatenate — separator only inserted when both sides are non-empty
-        if (ga.position == "before") {
-          cell.text = cell.text.empty() ? glue_text : (glue_text + ga.separator + cell.text);
-        } else { // "after"
-          cell.text = cell.text.empty() ? glue_text : (cell.text + ga.separator + glue_text);
-        }
-      }
-    }
-
     result.push_back(std::move(row));
 
     // --- add_row "below" insertions ---
-    if (actions) {
-      for (const auto &ar : actions->add_rows) {
-        if (ar.pos == AddRowAction::Position::Below) { result.push_back(build_addrow_synthetic(src_idx, ar)); }
-      }
+    // Use snapshots to preserve row state at the time each below addrow was encountered
+    for (const auto &below : below_addrows) {
+      const auto &ar = actions->add_rows[below.action_index];
+      result.push_back(build_addrow_synthetic(src_idx, ar, &below.row_snapshot));
     }
   }
 

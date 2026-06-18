@@ -6,14 +6,25 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["cols", "styleRef"],
+        "required": [
+          "cols",
+          "styleRef"
+        ],
         "properties": {
           "cols": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 1
           },
-          "styleRef": { "type": "string" }
+          "styleRef": {
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer",
+            "minimum": 0
+          }
         },
         "additionalProperties": false
       }
@@ -22,14 +33,24 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["cols"],
+        "required": [
+          "cols"
+        ],
         "properties": {
           "cols": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 2
           },
-          "styleRef": { "type": "string" }
+          "styleRef": {
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer",
+            "minimum": 0
+          }
         },
         "additionalProperties": false
       }
@@ -38,66 +59,105 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["pos", "value_from"],
+        "required": [
+          "pos",
+          "value_from"
+        ],
         "properties": {
           "pos": {
             "type": "string",
-            "enum": ["above", "below"]
+            "enum": [
+              "above",
+              "below"
+            ]
           },
           "value_from": {
             "type": "string"
           },
           "styleRef": {
             "type": "string"
+          },
+          "seq": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "additionalProperties": false
       }
-    }
-    ,
+    },
     "clear": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["cols"],
+        "required": [
+          "cols"
+        ],
         "properties": {
           "cols": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 1
+          },
+          "seq": {
+            "type": "integer",
+            "minimum": 0
           }
         },
         "additionalProperties": false
       }
-    }
-    ,
+    },
     "glue": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["cols", "position"],
+        "required": [
+          "cols",
+          "position"
+        ],
         "properties": {
           "cols": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 1
           },
           "position": {
             "type": "string",
-            "enum": ["before", "after"]
+            "enum": [
+              "before",
+              "after"
+            ]
           },
-          "glue_col":  { "type": "string" },
-          "text":      { "type": "string" },
-          "separator": { "type": "string" }
+          "glue_col": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "separator": {
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer",
+            "minimum": 0
+          }
         },
         "additionalProperties": false
       }
-    }
-    ,
+    },
     "page_break": {
       "type": "array",
       "items": {
         "type": "object",
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
         "additionalProperties": false
       }
     }

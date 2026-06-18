@@ -137,7 +137,8 @@ tfl_get_option <- function(name) {
 #'   Default `"repeated"`.
 #' @param isContinues Logical; override continuation behavior.
 #' @param contentWidth Character; width for content area (e.g. "100%", "95%").
-#' @param missings Character; default representation for missing values (e.g. "NA", ".", "---").
+#' @param missings Character; default representation for missing values (e.g. "", ".", "NA", "---").
+#'   Default is an empty string ("").
 #' @param autoColWidth Logical; enable automatic column width recalculation when user sets `colWidth` via `define_cols()`.
 #'   Default TRUE. When TRUE, locked columns maintain exact width while unlocked columns normalize to fill remaining space.
 #'   Set FALSE to disable auto-recalculation and manage widths manually.

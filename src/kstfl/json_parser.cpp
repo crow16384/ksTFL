@@ -32,6 +32,8 @@ template <typename T> bool is_type(const json &v) {
     return v.is_boolean();
   else if constexpr (std::is_same_v<T, int>)
     return v.is_number_integer();
+  else if constexpr (std::is_same_v<T, size_t>)
+    return v.is_number_unsigned();
   else if constexpr (std::is_same_v<T, double>)
     return v.is_number();
   else
@@ -534,6 +536,7 @@ static RowActionSet parse_row_action_set(const std::string &json_str) {
       StyleAction sa;
       sa.cols = jutil::get_array<std::string>(item, "cols");
       sa.style_ref = jutil::get<std::string>(item, "styleRef");
+      sa.seq = jutil::get<size_t>(item, "seq", 0);
       ras.styles.push_back(std::move(sa));
     }
   }
@@ -543,6 +546,7 @@ static RowActionSet parse_row_action_set(const std::string &json_str) {
     for (const auto &item : j["clear"]) {
       ClearAction ca;
       ca.cols = jutil::get_array<std::string>(item, "cols");
+      ca.seq = jutil::get<size_t>(item, "seq", 0);
       ras.clears.push_back(std::move(ca));
     }
   }
@@ -553,6 +557,7 @@ static RowActionSet parse_row_action_set(const std::string &json_str) {
       MergeAction ma;
       ma.cols = jutil::get_array<std::string>(item, "cols");
       ma.style_ref = jutil::opt<std::string>(item, "styleRef");
+      ma.seq = jutil::get<size_t>(item, "seq", 0);
       ras.merges.push_back(std::move(ma));
     }
   }
@@ -565,6 +570,7 @@ static RowActionSet parse_row_action_set(const std::string &json_str) {
       ara.pos = (pos == "above") ? AddRowAction::Position::Above : AddRowAction::Position::Below;
       ara.value_from = jutil::get<std::string>(item, "value_from");
       ara.style_ref = jutil::opt<std::string>(item, "styleRef");
+      ara.seq = jutil::get<size_t>(item, "seq", 0);
       ras.add_rows.push_back(std::move(ara));
     }
   }
@@ -578,14 +584,17 @@ static RowActionSet parse_row_action_set(const std::string &json_str) {
       ga.glue_col = jutil::opt<std::string>(item, "glue_col");
       ga.text = jutil::opt<std::string>(item, "text");
       ga.separator = jutil::get<std::string>(item, "separator");
+      ga.seq = jutil::get<size_t>(item, "seq", 0);
       ras.glues.push_back(std::move(ga));
     }
   }
 
   // page_break actions
   if (j.contains("page_break") && j["page_break"].is_array()) {
-    for (size_t i = 0; i < j["page_break"].size(); ++i) {
-      ras.page_breaks.push_back(PageBreakAction{});
+    for (const auto &item : j["page_break"]) {
+      PageBreakAction pb;
+      pb.seq = jutil::get<size_t>(item, "seq", 0);
+      ras.page_breaks.push_back(std::move(pb));
     }
   }
 
