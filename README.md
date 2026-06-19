@@ -35,6 +35,16 @@ ksTFL is available as **pre-compiled binaries** (recommended for most users) and
 
 Pre-compiled binaries are available for R 4.5 and R 4.6 on Windows, Ubuntu/Debian, macOS (ARM), and Fedora/RHEL.
 
+#### From R-universe (All platforms)
+
+The simplest method that works across all platforms:
+
+```r
+install.packages('ksTFL', repos = c('https://crow16384.r-universe.dev', 'https://cloud.r-project.org'))
+```
+
+R-universe automatically detects your platform and installs the appropriate pre-compiled binary.
+
 #### Windows
 
 ```r
