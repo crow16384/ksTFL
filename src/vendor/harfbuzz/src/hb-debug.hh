@@ -48,7 +48,7 @@ static inline bool _hb_debug(unsigned int level, unsigned int max_level) {
 
 static inline void _hb_print_func(const char *func) {
 #ifdef HB_NO_DEBUG_OUTPUT
-  HB_UNUSED(func);
+  (void)(func);
 #else
   if (func) {
     unsigned int func_len = strlen(func);
@@ -75,14 +75,14 @@ template <int max_level>
 static inline void _hb_debug_msg_va(const char *what, const void *obj, const char *func, bool indented,
                                     unsigned int level, int level_dir, const char *message, va_list ap) {
 #ifdef HB_NO_DEBUG_OUTPUT
-  HB_UNUSED(what);
-  HB_UNUSED(obj);
-  HB_UNUSED(func);
-  HB_UNUSED(indented);
-  HB_UNUSED(level);
-  HB_UNUSED(level_dir);
-  HB_UNUSED(message);
-  HB_UNUSED(ap);
+  (void)(what);
+  (void)(obj);
+  (void)(func);
+  (void)(indented);
+  (void)(level);
+  (void)(level_dir);
+  (void)(message);
+  (void)(ap);
   return;
 #else
   if (!_hb_debug(level, max_level)) return;
@@ -174,7 +174,7 @@ template <> struct hb_printer_t<hb_empty_t> {
 
 template <typename T> static inline void _hb_warn_no_return(bool returned) {
 #ifdef HB_NO_DEBUG_OUTPUT
-  HB_UNUSED(returned);
+  (void)(returned);
 #else
   if (unlikely(!returned)) {
     fprintf(stderr, "OUCH, returned with no call to return_trace().  This is a bug, please report.\n");
@@ -205,8 +205,8 @@ template <int max_level, typename ret_t> struct hb_auto_trace_t {
 
   template <typename T> T ret(T &&v, const char *func = "", unsigned int line = 0) {
 #ifdef HB_NO_DEBUG_OUTPUT
-    HB_UNUSED(func);
-    HB_UNUSED(line);
+    (void)(func);
+    (void)(line);
     if (plevel) --*plevel;
     plevel = nullptr;
     returned = true;
