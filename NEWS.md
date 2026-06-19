@@ -1,3 +1,24 @@
+# ksTFL 0.11.7
+
+## Parallel spec processing
+
+* Renderer Phase 3 (Resolve → Model → Measure → Paginate) now executes
+  per-spec tasks in parallel using C++ `std::future` and `std::counting_semaphore`.
+* Each worker thread creates its own `FontCache` and `TextMeasurer`; Phase 4
+  (DOCX assembly) remains single-threaded and sequential.
+* Verbose logging is suppressed on worker threads to avoid unsafe Rcpp I/O.
+
+## Vendor fix: nlohmann/json macOS warnings
+
+* Patched vendored `nlohmann/json.hpp` 3.12.0 to eliminate
+  `char_traits<unsigned char>` deprecation warnings on macOS (Apple Clang 21+).
+* The `output_adapter` ostream constructor is now a constrained member template
+  (`requires` clause on `C`) so `std::basic_ostream<uint8_t>` is never
+  instantiated as a dependent type during class template instantiation.
+* Binary-format overloads (`to_cbor`, `to_msgpack`, `to_ubjson`, `to_bjdata`,
+  `to_bson`) now explicitly pass `StringType = std::vector<std::uint8_t>`,
+  preventing `std::basic_string<uint8_t>` default-argument evaluation.
+
 # ksTFL 0.11.6
 
 ## Sequential action execution 

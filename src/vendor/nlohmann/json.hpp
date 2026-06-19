@@ -15729,8 +15729,12 @@ class output_adapter
         : oa(std::make_shared<output_vector_adapter<CharType, AllocatorType>>(vec)) {}
 
 #ifndef JSON_NO_IO
-    output_adapter(std::basic_ostream<CharType>& s)
-        : oa(std::make_shared<output_stream_adapter<CharType>>(s)) {}
+    template<typename C = CharType>
+        requires (std::is_same_v<C, char>    || std::is_same_v<C, wchar_t>  ||
+                  std::is_same_v<C, char8_t> || std::is_same_v<C, char16_t> ||
+                  std::is_same_v<C, char32_t>)
+    output_adapter(std::basic_ostream<C>& s)
+        : oa(std::make_shared<output_stream_adapter<C>>(s)) {}
 #endif  // JSON_NO_IO
 
     output_adapter(StringType& s)
@@ -24274,7 +24278,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief create a CBOR serialization of a given JSON value
     /// @sa https://json.nlohmann.me/api/basic_json/to_cbor/
-    static void to_cbor(const basic_json& j, detail::output_adapter<std::uint8_t> o)
+    static void to_cbor(const basic_json& j, detail::output_adapter<std::uint8_t, std::vector<std::uint8_t>> o)
     {
         binary_writer<std::uint8_t>(o).write_cbor(j);
     }
@@ -24297,7 +24301,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief create a MessagePack serialization of a given JSON value
     /// @sa https://json.nlohmann.me/api/basic_json/to_msgpack/
-    static void to_msgpack(const basic_json& j, detail::output_adapter<std::uint8_t> o)
+    static void to_msgpack(const basic_json& j, detail::output_adapter<std::uint8_t, std::vector<std::uint8_t>> o)
     {
         binary_writer<std::uint8_t>(o).write_msgpack(j);
     }
@@ -24322,7 +24326,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief create a UBJSON serialization of a given JSON value
     /// @sa https://json.nlohmann.me/api/basic_json/to_ubjson/
-    static void to_ubjson(const basic_json& j, detail::output_adapter<std::uint8_t> o,
+    static void to_ubjson(const basic_json& j, detail::output_adapter<std::uint8_t, std::vector<std::uint8_t>> o,
                           const bool use_size = false, const bool use_type = false)
     {
         binary_writer<std::uint8_t>(o).write_ubjson(j, use_size, use_type);
@@ -24350,7 +24354,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief create a BJData serialization of a given JSON value
     /// @sa https://json.nlohmann.me/api/basic_json/to_bjdata/
-    static void to_bjdata(const basic_json& j, detail::output_adapter<std::uint8_t> o,
+    static void to_bjdata(const basic_json& j, detail::output_adapter<std::uint8_t, std::vector<std::uint8_t>> o,
                           const bool use_size = false, const bool use_type = false,
                           const bjdata_version_t version = bjdata_version_t::draft2)
     {
@@ -24377,7 +24381,7 @@ class basic_json // NOLINT(cppcoreguidelines-special-member-functions,hicpp-spec
 
     /// @brief create a BSON serialization of a given JSON value
     /// @sa https://json.nlohmann.me/api/basic_json/to_bson/
-    static void to_bson(const basic_json& j, detail::output_adapter<std::uint8_t> o)
+    static void to_bson(const basic_json& j, detail::output_adapter<std::uint8_t, std::vector<std::uint8_t>> o)
     {
         binary_writer<std::uint8_t>(o).write_bson(j);
     }
