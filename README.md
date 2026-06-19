@@ -23,25 +23,126 @@ Under the hood, a built-in **rendering engine** with text shaping converts decla
 
 ---
 
-## Installation
-
-Install the CRAN release with:
-
-```r
-install.packages("ksTFL")
-```
-
-Documentation: <https://crow16384.github.io/ksTFL/>
+**Documentation: <https://crow16384.github.io/ksTFL/>**
 
 📄 **[Download Cheatsheet (PDF)](https://crow16384.github.io/ksTFL/ksTFL_cheatsheet.pdf)**
 
-### Fonts note
+## Installation
 
-Proprietary Microsoft fonts (Arial, Times New Roman, etc.) are **not bundled** due to licensing restrictions; open-source Liberation fonts are included as metrically compatible fallbacks. Windows and macOS systems with Microsoft Office installed typically have the original fonts already available. On Linux, additional steps may be required — see [Font Management](#7-font-management) for details.
+ksTFL is available as **pre-compiled binaries** (recommended for most users) and from **source** (for development or when binaries are unavailable).
+
+### Binary Installation (Recommended)
+
+Pre-compiled binaries are available for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
+
+#### Windows
+
+```r
+install.packages("ksTFL",
+                 repos = "https://crow16384.github.io/ksTFL-release",
+                 type  = "binary")
+```
+
+#### Linux — Ubuntu / Debian
+
+```r
+install.packages("ksTFL",
+                 repos = "https://crow16384.github.io/ksTFL-release/bin/linux/ubuntu-noble")
+```
+
+No extra HarfBuzz, FreeType, or minizip runtime packages are required.
+Linux builds are shipped with those libraries compiled from vendored source.
+
+#### Linux — Fedora / RHEL
+
+```r
+install.packages("ksTFL",
+                 repos = "https://crow16384.github.io/ksTFL-release/bin/linux/fedora")
+```
+
+No extra HarfBuzz, FreeType, or minizip runtime packages are required.
+Linux builds are shipped with those libraries compiled from vendored source.
+
+#### macOS
+
+macOS binaries are published as GitHub Release assets and can be installed from a downloaded `.tgz` file:
+
+```r
+install.packages("ksTFL_<version>.tgz", repos = NULL)
+```
+
+When a macOS binary is available in the CRAN-like repo, you can also use:
+
+```r
+install.packages("ksTFL",
+                 repos = "https://crow16384.github.io/ksTFL-release",
+                 type  = "binary")
+```
+
+#### From a downloaded file
+
+Pre-built packages can be downloaded from the
+[Releases](https://github.com/crow16384/ksTFL-release/releases) page and
+installed directly:
+
+```r
+# Linux (.tar.gz binary)
+install.packages("ksTFL_<version>_R_x86_64-pc-linux-gnu.tar.gz", repos = NULL)
+
+# Windows (.zip)
+install.packages("ksTFL_<version>.zip", repos = NULL)
+
+# macOS (.tgz)
+install.packages("ksTFL_<version>.tgz", repos = NULL)
+```
+
+Release repository: <https://github.com/crow16384/ksTFL-release>
+
+### Source Installation
+
+For development or when pre-compiled binaries are unavailable, install from source. This requires a C++20-compatible compiler and R development tools.
+
+#### Prerequisites
+
+**Windows:**
+- Install [Rtools](https://cran.r-project.org/bin/windows/Rtools/) matching your R version
+
+**macOS:**
+- Install Xcode Command Line Tools: `xcode-select --install`
+
+**Linux:**
+- Install build essentials: `sudo apt-get install -y build-essential` (Debian/Ubuntu) or `sudo dnf install gcc-c++ make` (Fedora/RHEL)
+
+#### From GitHub
+
+```r
+# Using remotes
+install.packages("remotes")
+remotes::install_github("crow16384/ksTFL")
+
+# Or using pak
+install.packages("pak")
+pak::pkg_install("crow16384/ksTFL")
+```
+
+#### From a local clone
+
+```bash
+git clone https://github.com/crow16384/ksTFL.git
+cd ksTFL
+```
+
+```r
+# From R, in the package directory
+install.packages(".", repos = NULL, type = "source")
+
+# Or using devtools/remotes
+remotes::install_local(".")
+```
 
 ### Dependencies
 
-`install.packages()` resolves and installs declared `Imports` automatically from CRAN. If you need to install them manually — for example after installing from a local file — run:
+`install.packages()` resolves and installs declared `Imports` automatically from CRAN. If you need to install them manually — for example after installing from source or a local file — run:
 
 ```r
 # Using pak (recommended)
@@ -54,6 +155,10 @@ remotes::install_deps(dependencies = TRUE)
 Required packages (`Imports`): `cli`, `checkmate`, `jsonlite`, `purrr`, `rlang`, `tidyselect`, `digest`, `htmltools`, `rstudioapi`, `Rcpp`
 
 Optional packages required for shiny addins to work: `shiny`, `colourpicker`, `sortable`, `shinyFiles`
+
+### Fonts note
+
+Proprietary Microsoft fonts (Arial, Times New Roman, etc.) are **not bundled** due to licensing restrictions; open-source Liberation fonts are included as metrically compatible fallbacks. Windows and macOS systems with Microsoft Office installed typically have the original fonts already available. On Linux, additional steps may be required — see [Font Management](#7-font-management) for details.
 
 ---
 
