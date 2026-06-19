@@ -20,9 +20,8 @@ Description: Library provides framework for generation of clinical TFLs. The
     generate final DOCX documents with styles and deterministic pagination.
     Bundled third-party components include vendored FreeType, HarfBuzz,
     minizip, and nlohmann/json code plus Liberation fonts under their
-    respective compatible licenses; see LICENSE.note for redistribution
-    details.
-License: GPL-3
+    respective compatible licenses; see LICENSE for redistribution details.
+License: GPL-3 + file LICENSE
 URL: https://crow16384.github.io/ksTFL/
 BugReports: https://github.com/crow16384/ksTFL/issues
 Encoding: UTF-8

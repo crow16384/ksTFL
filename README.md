@@ -33,7 +33,7 @@ install.packages("ksTFL")
 
 Documentation: <https://crow16384.github.io/ksTFL/>
 
-📄 **[Download Cheatsheet (PDF)](https://github.com/crow16384/ksTFL/raw/CRAN/inst/extdata/ksTFL_cheatsheet_0_11_x.pdf)**
+📄 **[Download Cheatsheet (PDF)](https://crow16384.github.io/ksTFL/ksTFL_cheatsheet.pdf)**
 
 ### Fonts note
 
