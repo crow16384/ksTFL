@@ -33,7 +33,7 @@ ksTFL is available as **pre-compiled binaries** (recommended for most users) and
 
 ### Binary Installation (Recommended)
 
-Pre-compiled binaries are available for R 4.4 and R 4.5 on Windows, Ubuntu/Debian, and Fedora/RHEL.
+Pre-compiled binaries are available for R 4.5 and R 4.6 on Windows, Ubuntu/Debian, macOS (ARM), and Fedora/RHEL.
 
 #### Windows
 
