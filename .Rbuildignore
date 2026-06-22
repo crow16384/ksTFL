@@ -38,3 +38,4 @@ cclsp.json$
 ^cran-comments\.md$
 ^tools/sync_local_vignette_help\.R$
 ^inst/extdata($|/)
+^codemeta\.json$
