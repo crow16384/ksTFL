@@ -721,20 +721,17 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
     int last_visible_idx = -1;
     for (size_t i = 0; i < columns.size(); ++i) {
       if (columns[i].is_visible) {
-        if (first_visible_idx == -1) {
-          first_visible_idx = static_cast<int>(i);
-        }
+        if (first_visible_idx == -1) { first_visible_idx = static_cast<int>(i); }
         last_visible_idx = static_cast<int>(i);
         total_width = total_width + columns[i].resolved_width;
         visible_count++;
       }
     }
-    
+
     // Calculate actual merge span: from first visible to last visible column (inclusive)
     // This accounts for any hidden columns in between
-    int actual_merge_span = (first_visible_idx >= 0 && last_visible_idx >= 0) 
-                              ? (last_visible_idx - first_visible_idx + 1) 
-                              : visible_count;
+    int actual_merge_span =
+        (first_visible_idx >= 0 && last_visible_idx >= 0) ? (last_visible_idx - first_visible_idx + 1) : visible_count;
 
     bool leader_placed = false;
     for (size_t ci = 0; ci < columns.size(); ++ci) {
@@ -874,15 +871,31 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
         // Check if the first column in the merge list is invisible
         const std::string &first_merge_col = ma.cols[0];
         bool first_is_invisible = false;
+        size_t first_merge_col_idx = SIZE_MAX;
         {
           auto it = col_to_idx.find(first_merge_col);
-          if (it == col_to_idx.end() || !columns[it->second].is_visible) { first_is_invisible = true; }
+          if (it == col_to_idx.end() || !columns[it->second].is_visible) {
+            first_is_invisible = true;
+            if (it != col_to_idx.end()) { first_merge_col_idx = it->second; }
+          }
         }
         if (first_is_invisible) {
-          // Get value from the invisible column via DataTable
-          std::string invisible_val = get_data_value(first_merge_col, src_idx);
+          // Get value from the invisible column.
+          // IMPORTANT: Use the value from row.cells (after dedupe, clear, etc.),
+          // not the original DataTable value. This ensures that all prior actions
+          // (dedupe, c_clear, c_glue, etc.) apply correctly to merged cells.
+          std::string invisible_val;
+          if (first_merge_col_idx < row.cells.size()) {
+            // Use the processed cell value (may be blank due to dedupe, c_clear, etc.)
+            invisible_val = row.cells[first_merge_col_idx].text;
+          } else {
+            // Fallback to DataTable (shouldn't happen in normal cases)
+            invisible_val = get_data_value(first_merge_col, src_idx);
+          }
           size_t leader_idx = merge_indices[0];
-          if (leader_idx < row.cells.size() && !invisible_val.empty()) { row.cells[leader_idx].text = invisible_val; }
+          // Always apply the invisible column's value, even if empty.
+          // Empty values are intentional (from dedupe, c_clear, or naturally empty data).
+          if (leader_idx < row.cells.size()) { row.cells[leader_idx].text = invisible_val; }
         }
 
         // Apply merge if 2+ visible columns

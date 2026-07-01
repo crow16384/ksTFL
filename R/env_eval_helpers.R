@@ -238,7 +238,11 @@ NULL
     function(row) {
       p <- row[1:(length(row)/2)]
       c <- row[(length(row)/2 + 1):length(row)]
-      any(is.na(p) | is.na(c) | p != c)
+      # Correct NA handling:
+      # - Both NA: no change
+      # - One NA, one not: change
+      # - Both non-NA and differ: change
+      any(xor(is.na(p), is.na(c)) | (!is.na(p) & !is.na(c) & p != c))
     }
   )
 
