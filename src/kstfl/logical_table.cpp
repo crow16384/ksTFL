@@ -716,12 +716,25 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
     // Sum width and count of visible columns only
     Length total_width{0};
     int visible_count = 0;
-    for (const auto &col : columns) {
-      if (col.is_visible) {
-        total_width = total_width + col.resolved_width;
+    // Find first and last visible column indices for merge span calculation
+    int first_visible_idx = -1;
+    int last_visible_idx = -1;
+    for (size_t i = 0; i < columns.size(); ++i) {
+      if (columns[i].is_visible) {
+        if (first_visible_idx == -1) {
+          first_visible_idx = static_cast<int>(i);
+        }
+        last_visible_idx = static_cast<int>(i);
+        total_width = total_width + columns[i].resolved_width;
         visible_count++;
       }
     }
+    
+    // Calculate actual merge span: from first visible to last visible column (inclusive)
+    // This accounts for any hidden columns in between
+    int actual_merge_span = (first_visible_idx >= 0 && last_visible_idx >= 0) 
+                              ? (last_visible_idx - first_visible_idx + 1) 
+                              : visible_count;
 
     bool leader_placed = false;
     for (size_t ci = 0; ci < columns.size(); ++ci) {
@@ -734,7 +747,7 @@ std::vector<LogicalRow> LogicalTableBuilder::apply_style_rows(std::vector<Logica
         // First visible column is the merge leader
         cell.text = value_text;
         cell.is_merge_leader = true;
-        cell.merge_span = visible_count;
+        cell.merge_span = actual_merge_span;
         cell.merged_width = total_width;
         if (ar.style_ref.has_value()) { cell.style_refs.push_back(*ar.style_ref); }
         leader_placed = true;
