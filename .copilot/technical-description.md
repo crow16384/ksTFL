@@ -236,7 +236,7 @@ Managed via `.options_env` environment in `pkg_settings.R`.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `doc_style_template` | `"CRO Example_default"` | Document template name |
+| `doc_style_template` | `"Default"` | Document template name |
 | `page` | `list(size="A4", orientation="landscape")` | Page settings |
 | `bodyTitles` | `TRUE` | Include titles in body |
 | `bodySubtitles` | `TRUE` | Include subtitles in body |

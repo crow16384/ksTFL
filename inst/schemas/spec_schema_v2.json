@@ -56,7 +56,7 @@
                                         "string"
                                     ],
                                     "description": "Name of the predefined document template",
-                                    "default": "CRO Example_default"
+                                    "default": "Default"
                                 },
                                 "page": {
                                     "type": "object",

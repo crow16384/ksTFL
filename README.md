@@ -441,7 +441,7 @@ spec <- create_table(adsl) |>
 report <- create_report(spec)
 
 # Optional global override: forces one template for all specs in this render
-write_doc(report, name = "t14_1", overrideTemplate = "CRO Example_default")
+write_doc(report, name = "t14_1", overrideTemplate = "Default")
 ```
 
 ### Report Assembly & Rendering
@@ -817,7 +817,7 @@ The rendering engine provides a complete end-to-end pipeline:
 - Support for all 3 document types (Table, Figure, Text)
 - **Per-spec template rendering** in multi-spec reports (mixed `docTemplate` values)
 - **Automatic TOC embedding** in generated documents
-- Configurable style templates (`CRO Example_default` bundled)
+- Configurable style templates (`Default` bundled)
 
 ### 7. Font Management
 

@@ -36,7 +36,7 @@
 #'   If `NULL` (default), templates are resolved per-spec from each spec's
 #'   `docTemplate` value (allowing mixed templates in
 #'   multi-spec reports). If a provided name/path cannot be resolved,
-#'   a warning is emitted and `CRO Example_default` is used.
+#'   a warning is emitted and `Default` is used.
 #' @param font_dirs Optional character vector of additional directories to
 #'   search for fonts during rendering.
 #' @param fallback_font Optional character string. Path to a fallback font file

@@ -1304,7 +1304,7 @@ p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL,
 #' \dontrun{
 #' spec <- create_text() |>
 #'   set_page_style(
-#'     docTemplate = "CRO Example_default",
+#'     docTemplate = "Default",
 #'     page = p_page(
 #'       size = "A4",
 #'       orientation = "landscape",

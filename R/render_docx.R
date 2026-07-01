@@ -14,7 +14,7 @@
       }
       cli::cli_warn(c(
         paste0(key_hint, "External template file {.path ", doc_template, "} not found."),
-        i = "Falling back to {.val CRO Example_default}."
+        i = "Falling back to {.val Default}."
       ))
     } else {
       resolved <- system.file(

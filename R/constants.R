@@ -279,7 +279,7 @@ NULL
 
 #' Default document template name
 #' @noRd
-.const_default_doc_template <- "CRO Example_default"
+.const_default_doc_template <- "Default"
 
 #' Default column format string for numeric types
 #' @noRd
