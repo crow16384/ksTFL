@@ -542,7 +542,31 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
 
   // Table header repetition: controlled by template layout flag.
   bool repeat_header = resolver.template_styles().table_style.repeat_header_on_each_page;
-  bool allow_row_break = resolver.template_styles().table_style.allow_row_break_across_pages;
+
+  // is_continues is the master switch for pagination mode:
+  //   FALSE → deterministic hard pagination (titles/subtitles repeat every page).
+  //           allow_row_break_across_pages only controls w:cantSplit on rows;
+  //           it never bypasses the renderer's own pagination.
+  //   TRUE  → single Word table, natural overflow; titles/subtitles appear once
+  //           (or per group when a #ByGroup subtitle is present).
+  bool use_deterministic_pagination = !is_continues;
+
+  // When is_continues=true, check whether any subtitle uses #ByGroup
+  // substitution.  Group-boundary page breaks are suppressed in continuous
+  // mode UNLESS a dynamic subtitle exists that needs to update its value for
+  // each group section.
+  bool has_dynamic_subtitle = false;
+  if (is_continues) {
+    for (const auto &sub : spec.subtitles) {
+      for (const auto &line : sub.text) {
+        if (line.find("#ByGroup") != std::string::npos) {
+          has_dynamic_subtitle = true;
+          break;
+        }
+      }
+      if (has_dynamic_subtitle) break;
+    }
+  }
 
   // 4. Paginate
   // When multiple segments exist (isColBreak), compute unified row heights
@@ -571,6 +595,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
       size_t last_row;
       bool is_first_page;
       bool is_last_page;
+      bool is_group_boundary_start = false; // this page starts at a group boundary
       Length body_height;
       std::vector<std::string> dynamic_subtitle_values;
     };
@@ -596,15 +621,21 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
 
       while (row_idx < rows.size()) {
         if (row_idx > last_row || row_idx > first_row) {
-          if (rows[row_idx].force_page_break) break;
+          if (rows[row_idx].force_page_break) {
+            // In continuous mode, suppress group-boundary breaks when there
+            // is no dynamic subtitle to update — let Word flow naturally.
+            bool suppress = is_continues && rows[row_idx].is_group_boundary && !has_dynamic_subtitle;
+            if (!suppress) break;
+          }
         }
 
         Length rh = pagination_heights[row_idx];
 
-        // When row breaks are allowed, skip height-based page breaks:
-        // all rows go into a single virtual page and Word handles
-        // natural pagination.  force_page_break is still respected above.
-        if (!allow_row_break) {
+        // When deterministic pagination is disabled (either row breaks allowed
+        // or continuous mode), skip height-based page breaks: all rows go into
+        // a single virtual page and Word handles natural pagination.
+        // force_page_break is still respected above.
+        if (use_deterministic_pagination) {
           if (used_height.emu > 0 && (used_height + rh) > available) { break; }
 
           if (used_height.emu == 0 && rh > (available + PAGE_SAFETY_MARGIN)) {
@@ -614,7 +645,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
             rows[row_idx].is_oversized = true;
             rows[row_idx].capped_height = available;
           }
-        } // !allow_row_break
+        } // use_deterministic_pagination
 
         used_height = used_height + rh;
         last_row = row_idx;
@@ -648,6 +679,7 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
       pb.last_row = (row_idx > first_row) ? row_idx - 1 : first_row;
       pb.is_first_page = is_first;
       pb.is_last_page = (row_idx >= rows.size());
+      pb.is_group_boundary_start = first_row < rows.size() && rows[first_row].is_group_boundary;
       pb.body_height = used_height;
       pb.dynamic_subtitle_values = std::move(dyn_sub_vals);
       page_breaks.push_back(std::move(pb));
@@ -667,13 +699,16 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
         page.last_row = pb.last_row;
         page.is_last_page = pb.is_last_page;
         page.has_titles = pb.is_first_page || repeat_titles;
-        page.has_subtitles = true;
+        // Subtitles repeat on every page in default mode.
+        // In continuous mode, subtitles appear only on the first page or on
+        // pages that start at a group boundary with a dynamic subtitle.
+        page.has_subtitles = !is_continues || pb.is_first_page || pb.is_group_boundary_start;
         page.dynamic_subtitle_values = pb.dynamic_subtitle_values;
 
         bool show_titles = page.has_titles;
         page.header_section_height = header_section_height;
         page.titles_height = show_titles ? titles_height : Length{0};
-        page.subtitles_height = subtitles_height;
+        page.subtitles_height = page.has_subtitles ? subtitles_height : Length{0};
         page.table_header_height = (pb.is_first_page || repeat_header) ? table_header_height : Length{0};
         page.footer_section_height = footer_section_height;
 
@@ -709,9 +744,10 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
     // unified.
     //
     // This reshuffling assumes deterministic hard page boundaries. When
-    // row breaks are allowed, Word performs natural row flow and we keep
-    // the initial logical slices unchanged.
-    if (!allow_row_break && fn_place == FootnotePlace::LastPage && footnotes_height.emu > 0) {
+    // deterministic pagination is disabled (row breaks allowed or continuous
+    // mode), Word performs natural row flow and we keep the initial logical
+    // slices unchanged.
+    if (use_deterministic_pagination && fn_place == FootnotePlace::LastPage && footnotes_height.emu > 0) {
       for (auto &segment : segments) {
         if (segment.pages.empty()) continue;
 
