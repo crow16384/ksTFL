@@ -549,7 +549,13 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
   //           it never bypasses the renderer's own pagination.
   //   TRUE  → single Word table, natural overflow; titles/subtitles appear once
   //           (or per group when a #ByGroup subtitle is present).
-  bool use_deterministic_pagination = !is_continues;
+  //
+  // Exception: when isColBreak splits the table into multiple horizontal
+  // segments, deterministic pagination is always used regardless of
+  // isContinues.  This preserves the physical page layout (same row ranges
+  // on the same page across all segments).  isContinues then only controls
+  // title/subtitle visibility (see segment assignment loop below).
+  bool use_deterministic_pagination = !is_continues || has_multiple_segments;
 
   // When is_continues=true, check whether any subtitle uses #ByGroup
   // substitution.  Group-boundary page breaks are suppressed in continuous
@@ -631,10 +637,10 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
 
         Length rh = pagination_heights[row_idx];
 
-        // When deterministic pagination is disabled (either row breaks allowed
-        // or continuous mode), skip height-based page breaks: all rows go into
-        // a single virtual page and Word handles natural pagination.
-        // force_page_break is still respected above.
+        // When deterministic pagination is disabled (row breaks allowed without
+        // isColBreak, or continuous single-segment mode), skip height-based
+        // page breaks: all rows go into a single virtual page and Word handles
+        // natural pagination.  force_page_break is still respected above.
         if (use_deterministic_pagination) {
           if (used_height.emu > 0 && (used_height + rh) > available) { break; }
 
@@ -688,7 +694,9 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
     }
 
     // Apply the same page breaks to every segment
-    for (auto &segment : segments) {
+    for (size_t si = 0; si < segments.size(); ++si) {
+      auto &segment = segments[si];
+      const bool is_first_segment = (si == 0);
       segment.pages.clear();
       for (size_t pi = 0; pi < page_breaks.size(); ++pi) {
         const auto &pb = page_breaks[pi];
@@ -698,11 +706,29 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
         page.first_row = pb.first_row;
         page.last_row = pb.last_row;
         page.is_last_page = pb.is_last_page;
-        page.has_titles = pb.is_first_page || repeat_titles;
-        // Subtitles repeat on every page in default mode.
-        // In continuous mode, subtitles appear only on the first page or on
-        // pages that start at a group boundary with a dynamic subtitle.
-        page.has_subtitles = !is_continues || pb.is_first_page || pb.is_group_boundary_start;
+        // Titles:
+        //   Non-continuous mode: titles repeat on every page (repeat_titles=true).
+        //   Continuous mode, single segment: titles only on the first page.
+        //   Continuous mode, multiple segments (isColBreak): titles only on
+        //     the first page of the first segment so they appear exactly once
+        //     in the document.
+        if (is_continues && has_multiple_segments) {
+          page.has_titles = pb.is_first_page && is_first_segment;
+        } else {
+          page.has_titles = pb.is_first_page || repeat_titles;
+        }
+        // Subtitles:
+        //   Non-continuous mode: subtitles repeat on every page.
+        //   Continuous mode, single segment: subtitles on the first page or
+        //     on pages that start at a group boundary (dynamic subtitle).
+        //   Continuous mode, multiple segments (isColBreak): same logic but
+        //     restricted to the first segment — subsequent segments never
+        //     show subtitles so they do not repeat across column splits.
+        if (is_continues && has_multiple_segments) {
+          page.has_subtitles = (pb.is_first_page || pb.is_group_boundary_start) && is_first_segment;
+        } else {
+          page.has_subtitles = !is_continues || pb.is_first_page || pb.is_group_boundary_start;
+        }
         page.dynamic_subtitle_values = pb.dynamic_subtitle_values;
 
         bool show_titles = page.has_titles;
@@ -748,7 +774,21 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
     // mode), Word performs natural row flow and we keep the initial logical
     // slices unchanged.
     if (use_deterministic_pagination && fn_place == FootnotePlace::LastPage && footnotes_height.emu > 0) {
-      for (auto &segment : segments) {
+      for (size_t si = 0; si < segments.size(); ++si) {
+        auto &segment = segments[si];
+        const bool is_first_segment = (si == 0);
+
+        // Helper: determine has_subtitles for a newly created overflow page
+        // (is_first_page is always false for these extra/overflow slices).
+        // Mirrors the rule used in the initial segment-assignment loop above.
+        auto overflow_has_subtitles = [&](size_t first_row_of_page) -> bool {
+          if (is_continues && has_multiple_segments) {
+            bool at_boundary = first_row_of_page < rows.size() && rows[first_row_of_page].is_group_boundary;
+            return at_boundary && is_first_segment;
+          }
+          return true; // non-continuous: subtitles repeat on every page
+        };
+
         if (segment.pages.empty()) continue;
 
         size_t last_idx = segment.pages.size() - 1;
@@ -773,10 +813,10 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
           extra.last_row = extra.first_row;
           extra.is_last_page = false;
           extra.has_titles = repeat_titles;
-          extra.has_subtitles = true;
+          extra.has_subtitles = overflow_has_subtitles(extra.first_row);
           extra.header_section_height = header_section_height;
           extra.titles_height = repeat_titles ? titles_height : Length{0};
-          extra.subtitles_height = subtitles_height;
+          extra.subtitles_height = extra.has_subtitles ? subtitles_height : Length{0};
           extra.table_header_height = repeat_header ? table_header_height : Length{0};
           extra.footnotes_height = Length{0};
           extra.footer_section_height = footer_section_height;
@@ -821,10 +861,10 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
           overflow.is_first_page = false;
           overflow.first_row = fill_start;
           overflow.has_titles = repeat_titles;
-          overflow.has_subtitles = true;
+          overflow.has_subtitles = overflow_has_subtitles(fill_start);
           overflow.header_section_height = header_section_height;
           overflow.titles_height = repeat_titles ? titles_height : Length{0};
-          overflow.subtitles_height = subtitles_height;
+          overflow.subtitles_height = overflow.has_subtitles ? subtitles_height : Length{0};
           overflow.table_header_height = repeat_header ? table_header_height : Length{0};
           overflow.footnotes_height = Length{0};
           overflow.footer_section_height = footer_section_height;

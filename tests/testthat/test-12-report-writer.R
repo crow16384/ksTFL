@@ -56,7 +56,8 @@ read_document_xml_text <- function(doc_path) {
   paste(doc_xml, collapse = "")
 }
 
-build_last_page_regression_spec <- function(data, footnote_token, template_path) {
+build_last_page_regression_spec <- function(data, footnote_token, template_path,
+                                             isContinues = TRUE) {
   create_table(data) |>
     add_title("Last-page footnote pagination regression") |>
     add_footnote(footnote_token) |>
@@ -74,7 +75,7 @@ build_last_page_regression_spec <- function(data, footnote_token, template_path)
     ) |>
     set_document(
       footnotePlace = "last_page",
-      isContinues = TRUE,
+      isContinues = isContinues,
       hasData = TRUE,
       docTemplate = template_path
     )
@@ -1067,7 +1068,8 @@ test_that("write_doc() keeps last_page footnotes once in deterministic paginatio
   spec <- build_last_page_regression_spec(
     data = create_last_page_regression_df(),
     footnote_token = footnote_token,
-    template_path = deterministic_template
+    template_path = deterministic_template,
+    isContinues = FALSE
   )
   report <- create_report(spec)
 
