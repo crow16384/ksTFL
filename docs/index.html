@@ -6,14 +6,20 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Framework for Clinical Tables, Figures, and Listings • ksTFL</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <meta property="og:title" content="Framework for Clinical Tables, Figures, and Listings">
 <meta name="description" content="Library provides framework for generation of clinical TFLs. The purpose is to provide functionality to prepare metadata that describes TFL and pass this metadata together with data to the C++ rendering engine to generate final DOCX documents with styles and deterministic pagination. Bundled third-party components include vendored FreeType, HarfBuzz, minizip, and nlohmann/json code plus Liberation fonts under their respective compatible licenses; see LICENSE for redistribution details.">
 <meta property="og:description" content="Library provides framework for generation of clinical TFLs. The purpose is to provide functionality to prepare metadata that describes TFL and pass this metadata together with data to the C++ rendering engine to generate final DOCX documents with styles and deterministic pagination. Bundled third-party components include vendored FreeType, HarfBuzz, minizip, and nlohmann/json code plus Liberation fonts under their respective compatible licenses; see LICENSE for redistribution details.">
+<meta property="og:image" content="https://crow16384.github.io/ksTFL/logo.svg">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -23,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.8</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,10 +56,12 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="kstfl-clinical-tables-figures-and-listings-framework">ksTFL: Clinical Tables, Figures, and Listings Framework<a class="anchor" aria-label="anchor" href="#kstfl-clinical-tables-figures-and-listings-framework"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.svg" class="logo" alt=""><h1 id="kstfl-clinical-tables-figures-and-listings-framework">ksTFL: Clinical Tables, Figures, and Listings Framework<a class="anchor" aria-label="anchor" href="#kstfl-clinical-tables-figures-and-listings-framework"></a>
+</h1>
+</div>
 <p><a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a></p>
-<p><img src="reference/figures/ksTFL-logo.svg" alt="ksTFL logo" width="700"></p>
+<p><img src="reference/figures/logo.svg" alt="ksTFL logo" width="700"></p>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
@@ -783,7 +791,7 @@
 <span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Optional global override: forces one template for all specs in this render</span></span>
-<span><span class="fu"><a href="reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"t14_1"</span>, overrideTemplate <span class="op">=</span> <span class="st">"CRO Example_default"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"t14_1"</span>, overrideTemplate <span class="op">=</span> <span class="st">"Default"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="report-assembly--rendering">Report Assembly &amp; Rendering<a class="anchor" aria-label="anchor" href="#report-assembly--rendering"></a>
@@ -1586,7 +1594,7 @@
 <strong>Per-spec template rendering</strong> in multi-spec reports (mixed <code>docTemplate</code> values)</li>
 <li>
 <strong>Automatic TOC embedding</strong> in generated documents</li>
-<li>Configurable style templates (<code>CRO Example_default</code> bundled)</li>
+<li>Configurable style templates (<code>Default</code> bundled)</li>
 </ul>
 </div>
 <div class="section level3">

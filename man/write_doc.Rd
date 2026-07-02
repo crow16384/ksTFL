@@ -50,7 +50,7 @@ by the internal renderer for all specs. Accepts either:
 If \code{NULL} (default), templates are resolved per-spec from each spec's
 \code{docTemplate} value (allowing mixed templates in
 multi-spec reports). If a provided name/path cannot be resolved,
-a warning is emitted and \verb{CRO Example_default} is used.}
+a warning is emitted and \code{Default} is used.}
 
 \item{font_dirs}{Optional character vector of additional directories to
 search for fonts during rendering.}

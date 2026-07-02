@@ -31,10 +31,10 @@ tfl_set_options(
 \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 }}
 
-\item{docTemplate}{Character; name of a predefined bundled template (e.g. \code{"CRO Example_default"},
+\item{docTemplate}{Character; name of a predefined bundled template (e.g. \code{"Default"},
 \code{"Navy_Pro"}) or a file path to an external template JSON file. When \code{NULL} (default) the
 current session template is left unchanged. Use \code{tfl_reset_options()} to restore the
-built-in default (\code{"CRO Example_default"}).}
+built-in default (\code{"Default"}).}
 
 \item{footnotePlace}{Character; controls where footnotes are rendered.
 One of \code{"doc_footer"} (place inside the Word footer, below footer rows),

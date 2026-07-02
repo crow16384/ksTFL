@@ -1,3 +1,17 @@
+# ksTFL 0.11.8
+
+## Pagination fixes
+
+* Fixed `isContinues` pagination logic to act as master switch for continuous tables.
+* Fixed LastPage footnote placement in column-break tables (no longer appears on every segment).
+* Corrected page layout and title/subtitle visibility for tables with both `isContinues` and `isColBreak`.
+
+## Actions and hidden columns
+
+* Fixed action deduplication and stacking for hidden columns.
+* Fixed `c_addrow()` merge span calculation with hidden columns.
+
+
 # ksTFL 0.11.7
 
 ## Parallel spec processing

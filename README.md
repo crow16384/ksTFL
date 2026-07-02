@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-<img src="man/figures/ksTFL-logo.svg" alt="ksTFL logo" width="700" />
+<img src="man/figures/logo.svg" alt="ksTFL logo" width="700" />
 
 ## Overview
 
