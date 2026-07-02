@@ -864,6 +864,19 @@ PaginationResult Paginator::paginate(const TFLSpec &spec, std::vector<LogicalRow
     }
   }
 
+  // Multi-segment (isColBreak) + LastPage footnote: only the final segment's
+  // last page physically emits the footnote text.  All preceding segments keep
+  // footnotes_height non-zero (so row distribution stays identical) but have
+  // has_footnotes cleared so the text does not appear multiple times.
+  if (fn_place == FootnotePlace::LastPage && segments.size() > 1) {
+    for (size_t si = 0; si + 1 < segments.size(); ++si) {
+      if (!segments[si].pages.empty()) {
+        segments[si].pages.back().has_footnotes = false;
+        // footnotes_height intentionally preserved for pagination consistency.
+      }
+    }
+  }
+
   // Count total pages across all segments
   result.total_pages = 0;
   for (const auto &seg : segments) {
