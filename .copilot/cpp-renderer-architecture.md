@@ -127,7 +127,6 @@ The R function `save_report()` already strips `.metadata` from all specs before 
         "isPaging": false,           // Force page break on change
         "isColBreak": false,
         "dedupe": false,             // Suppress repeated values
-        "blankAfter": false,         // Insert blank row after group change
         "labelStyleRef": ["style_id"],      // Optional: header cell styles
         "format": {
           "type": "string",          // string | numeric | integer | date | logical
@@ -449,7 +448,6 @@ struct ColumnDef {
     bool is_paging = false;
     bool is_col_break = false;
     bool dedupe = false;
-    bool blank_after = false;
     std::vector<std::string> label_style_refs;
     ColumnFormat format;
 };
@@ -736,7 +734,7 @@ Each sub-struct (`FontProps`, `ParagraphProps`, `TableCellProps`) uses the same 
                     │    - apply merges (horizontal spans)   │
                     │    - apply style overrides             │
                     │    - mark page breaks                  │
-                    │  ● Apply dedupe/blankAfter/isPaging    │
+                    │  ● Apply dedupe/isPaging               │
                     └──────────┬──────────────────────────┘
                                │
                     ┌──────────▼──────────────────────────┐
@@ -901,7 +899,6 @@ private:
     void build_data_rows(const TFLSpec& spec, const ResolvedStyles& styles);
     void apply_row_actions(const TFLSpec& spec, const ResolvedStyles& styles);
     void apply_dedupe(const TFLSpec& spec);
-    void insert_blank_after_rows(const TFLSpec& spec);
     
     std::vector<LogicalRow> rows_;
     std::vector<ColumnDef> visible_cols_;

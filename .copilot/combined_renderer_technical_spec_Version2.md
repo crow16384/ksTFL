@@ -291,7 +291,6 @@ Placement:
     `allow_row_break_across_pages=false` and `repeat_header_on_each_page=true`
     on the per-spec template (with R warning if values are overridden)
 - `dedupe`: suppress consecutive repeats
-- `blankAfter` deprecated (use rowstyles/add_row instead)
 - `format`: includes `colWidth`, `missings`, `valueStyleRef`, etc.
 
 ---
@@ -756,9 +755,7 @@ inst/
    - YES
 3. If synthetic row created by `add_row` also has `styleRows` entry?
    - YES (must support)
-4. `blankAfter`:
-   - deprecated; use `add_row`
-5. Merging borders collapse:
+4. Merging borders collapse:
    - Word-like
 
 ---

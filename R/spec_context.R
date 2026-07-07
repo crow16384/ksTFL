@@ -1700,7 +1700,6 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   Use \code{NA} as a list element to skip updating \code{labelStyleRef} for that column.
 #' @param isColBreak Whether column triggers page break (length 1 or length of cols; \code{NA} skips that position)
 #' @param dedupe Whether to deduplicate values (length 1 or length of cols; \code{NA} skips that position)
-#' @param blankAfter Whether to add blank after value change (length 1 or length of cols; \code{NA} skips that position)
 #' @param type Data type for column format: "string" or "numeric" (length 1 or length of cols;
 #'   \code{NA} skips that position). Optional; omit to preserve existing.
 #' @param format Format string for numeric data (sprintf style), e.g. "%.1f" (length 1 or length of cols;
@@ -1857,7 +1856,6 @@ define_cols <- function(spec, cols,
                         label = NULL, isID = NULL, 
                         isVisible = NULL, isGrouping = NULL, isPaging = NULL,
                         labelStyleRef = NULL, isColBreak = NULL, dedupe = NULL,
-                        blankAfter = NULL,
                         type = NULL, format = NULL, missings = NULL, 
                         colWidth = NULL, valueStyleRef = NULL) {
 
@@ -1905,11 +1903,11 @@ define_cols <- function(spec, cols,
   
   # Collect non-format parameters
   param_names <- c("label", "isID", "isVisible", "isGrouping", 
-                   "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter")
+                   "isPaging", "labelStyleRef", "isColBreak", "dedupe")
   params_list <- list(
     label = label, isID = isID, isVisible = isVisible,
     isGrouping = isGrouping, isPaging = isPaging, labelStyleRef = labelStyleRef,
-    isColBreak = isColBreak, dedupe = dedupe, blankAfter = blankAfter
+    isColBreak = isColBreak, dedupe = dedupe
   )
   
   # Handle labelStyleRef specially with resolve logic

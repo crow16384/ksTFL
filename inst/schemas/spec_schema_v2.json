@@ -733,14 +733,6 @@
                                     ],
                                     "description": "Defines if duplicated values should be removed"
                                 },
-                                "blankAfter": {
-                                    "type": [
-                                        "boolean",
-                                        "null"
-                                    ],
-                                    "description": "Whether to insert a blank line when value in the column changes",
-                                    "default": false
-                                },
                                 "format": {
                                     "type": "object",
                                     "description": "defines the column data type and representation format",

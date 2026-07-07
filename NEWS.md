@@ -1,3 +1,8 @@
+# ksTFL 0.11.9
+
+* Minor code clean-up 
+* Documenation updates
+
 # ksTFL 0.11.8
 
 ## Pagination fixes

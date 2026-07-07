@@ -15,7 +15,6 @@ define_cols(
   labelStyleRef = NULL,
   isColBreak = NULL,
   dedupe = NULL,
-  blankAfter = NULL,
   type = NULL,
   format = NULL,
   missings = NULL,
@@ -56,8 +55,6 @@ Use \code{NA} as a list element to skip updating \code{labelStyleRef} for that c
 \item{isColBreak}{Whether column triggers page break (length 1 or length of cols; \code{NA} skips that position)}
 
 \item{dedupe}{Whether to deduplicate values (length 1 or length of cols; \code{NA} skips that position)}
-
-\item{blankAfter}{Whether to add blank after value change (length 1 or length of cols; \code{NA} skips that position)}
 
 \item{type}{Data type for column format: "string" or "numeric" (length 1 or length of cols;
 \code{NA} skips that position). Optional; omit to preserve existing.}

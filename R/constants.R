@@ -244,7 +244,7 @@ NULL
   margins = c("top", "bottom", "left", "right", "header", "footer"),
   documentStyle = c("docTemplate", "page"),
   col_format = c("type", "format", "missings", "colWidth", "valueStyleRef"),
-  column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging", "labelStyleRef", "isColBreak", "dedupe", "blankAfter", "format"),
+  column = c("colOrder", "label", "isID", "isVisible", "isGrouping", "isPaging", "labelStyleRef", "isColBreak", "dedupe", "format"),
   stub_column = c("label", "cols", "labelStyleRef", "stubOrder"),
   document = c("docType", "docOrder", "isContinues", "continuousSection", "contentWidth", "footnotePlace", "hasData", "topEmptyLine", "bottomEmptyLine"),
   figure = c("width", "height", "figureScaleMode", "device"),

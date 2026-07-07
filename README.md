@@ -25,6 +25,8 @@ Under the hood, a built-in **rendering engine** with text shaping converts decla
 
 **Documentation: <https://crow16384.github.io/ksTFL/>**
 
+**Complete examples repository: <https://github.com/al-garik/ksTFL-examples>**
+
 📄 **[Download Cheatsheet (PDF)](https://crow16384.github.io/ksTFL/ksTFL_cheatsheet.pdf)**
 
 ## Installation
@@ -242,7 +244,7 @@ Define column properties and formatting:
 
 ```r
 define_cols(spec, cols, label, isVisible, isID, isGrouping, isPaging,
-            labelStyleRef, isColBreak, dedupe, blankAfter,
+            labelStyleRef, isColBreak, dedupe,
             type, format, missings, colWidth, valueStyleRef)
 ```
 
@@ -259,7 +261,6 @@ define_cols(spec, cols, label, isVisible, isID, isGrouping, isPaging,
 | `valueStyleRef` | Style reference for cell values | `"numeric_right"` |
 | `isColBreak` | Mark horizontal pagination break point | `TRUE` |
 | `dedupe` | Remove duplicate consecutive values | `TRUE` |
-| `blankAfter` | Insert blank row after value change | `TRUE` |
 | `type` | Override auto-detected column type | `"numeric"` / `"string"` |
 | `format` | Override auto-detected display format | `"%.1f"` / `"%d"` |
 | `missings` | Custom representation for missing values | `"N/A"` |

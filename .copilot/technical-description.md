@@ -59,7 +59,7 @@ The central object created by `create_table()`, `create_figure()`, or `create_te
 | `footers` | list | Footer row entries |
 | `dataRef` | character | Data file reference(s) for serialization |
 | `stubColumns` | list | Spanning column header definitions |
-| `columns` | named list | Column specs: `colOrder`, `label`, `isVisible`, `isID`, `isGrouping`, `isPaging`, `labelStyleRef`, `isColBreak`, `dedupe`, `blankAfter`, `format` |
+| `columns` | named list | Column specs: `colOrder`, `label`, `isVisible`, `isID`, `isGrouping`, `isPaging`, `labelStyleRef`, `isColBreak`, `dedupe`, `format` |
 | `styleRows` | list | Conditional row style rules (serialized as JSON during `create_report()`) |
 | `titles` | list | Title text groups |
 | `subtitles` | list | Subtitle text groups |

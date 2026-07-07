@@ -217,7 +217,6 @@
       labelStyleRef = NULL,
       isColBreak    = FALSE,
       dedupe        = FALSE,
-      blankAfter    = FALSE,
       format        = formats[[col_name]] %||% NULL
     )
   }

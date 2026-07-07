@@ -13,16 +13,25 @@ template:
     font-size-base: "0.95rem"
 
 navbar:
-  left:
-    - text: Reference
-      href: reference/index.html
-    - text: Articles
-      href: articles/index.html
-    - text: Changelog
+  structure:
+    left: [reference, articles, slides, cheatsheet, news]
+    right: [search, github]
+  components:
+    news:
+      text: Changelog
       href: news/index.html
-    - text: Cheatsheet
+    slides:
+      text: Slides
+      icon: fa-file-pdf
+      href: ksTFL_slides.pdf
+    cheatsheet:
+      text: Cheatsheet
       icon: fa-file-pdf
       href: ksTFL_cheatsheet.pdf
+
+home:
+  sidebar:
+    structure: [links, community, citation, authors, dev]
 
 # Required by pkgdown so absolute links, sitemap entries, and installed
 # metadata point to the published site.

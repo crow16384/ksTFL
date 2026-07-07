@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,9 +39,33 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/index.html">Articles</a></li>
-<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Foundations</h6></li>
+    <li><a class="dropdown-item" href="articles/Getting_Started_with_ksTFL.html">Getting Started with ksTFL</a></li>
+    <li><a class="dropdown-item" href="articles/Reporting_Examples_with_ksTFL.html">Reporting Examples using ksTFL</a></li>
+    <li><a class="dropdown-item" href="articles/Real_Examples_with_ksTFL.html">Real Examples of Clinical Outputs using ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>FAQ</h6></li>
+    <li><a class="dropdown-item" href="articles/FAQ_with_ksTFL.html">FAQ and Practical Gotchas in ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Styling and Layout</h6></li>
+    <li><a class="dropdown-item" href="articles/Styling_Guide_with_ksTFL.html">Styling Guide (ksTFL)</a></li>
+    <li><a class="dropdown-item" href="articles/Column_Width_Management.html">Column Width Management in ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Advanced</h6></li>
+    <li><a class="dropdown-item" href="articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting in ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Internals</h6></li>
+    <li><a class="dropdown-item" href="articles/Rendering_Pipeline.html">Rendering Pipeline and Full C++ Architecture in ksTFL</a></li>
+    <li><a class="dropdown-item" href="articles/Font_Management.html">Font Management in ksTFL</a></li>
+  </ul>
+</li>
+<li class="nav-item"><a class="nav-link" href="ksTFL_slides.pdf"><span class="fa fa-file-pdf"></span> Slides</a></li>
 <li class="nav-item"><a class="nav-link" href="ksTFL_cheatsheet.pdf"><span class="fa fa-file-pdf"></span> Cheatsheet</a></li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -87,6 +111,7 @@
 </ul>
 <hr>
 <p><strong>Documentation: <a href="https://crow16384.github.io/ksTFL/" class="uri">https://crow16384.github.io/ksTFL/</a></strong></p>
+<p><strong>Complete examples repository: <a href="https://github.com/al-garik/ksTFL-examples" class="external-link uri">https://github.com/al-garik/ksTFL-examples</a></strong></p>
 <p>📄 <strong><a href="https://crow16384.github.io/ksTFL/ksTFL_cheatsheet.pdf">Download Cheatsheet (PDF)</a></strong></p>
 </div>
 </div>
@@ -351,7 +376,7 @@
 <p>Define column properties and formatting:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cols</span>, <span class="va">label</span>, <span class="va">isVisible</span>, <span class="va">isID</span>, <span class="va">isGrouping</span>, <span class="va">isPaging</span>,</span>
-<span>            <span class="va">labelStyleRef</span>, <span class="va">isColBreak</span>, <span class="va">dedupe</span>, <span class="va">blankAfter</span>,</span>
+<span>            <span class="va">labelStyleRef</span>, <span class="va">isColBreak</span>, <span class="va">dedupe</span>,</span>
 <span>            <span class="va">type</span>, <span class="va">format</span>, <span class="va">missings</span>, <span class="va">colWidth</span>, <span class="va">valueStyleRef</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Column Parameters</strong> (all support 1-or-n vectorized values):</p>
 <table class="table">
@@ -411,11 +436,6 @@
 <tr>
 <td><code>dedupe</code></td>
 <td>Remove duplicate consecutive values</td>
-<td><code>TRUE</code></td>
-</tr>
-<tr>
-<td><code>blankAfter</code></td>
-<td>Insert blank row after value change</td>
 <td><code>TRUE</code></td>
 </tr>
 <tr>
@@ -1829,15 +1849,6 @@
 <ul class="list-unstyled">
 <li><a href="https://github.com/crow16384/ksTFL/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/crow16384/ksTFL/issues" class="external-link">Report a bug</a></li>
-</ul>
-</div>
-
-<div class="license">
-<h2 data-toc-skip>License</h2>
-<ul class="list-unstyled">
-<li>
-<a href="https://www.r-project.org/Licenses/GPL-3" class="external-link">GPL-3</a> + file <a href="LICENSE-text.html">LICENSE</a>
-</li>
 </ul>
 </div>
 

@@ -11,7 +11,7 @@ tfl_style_atoms_catalog() is a convenience alias for tfl_print_style_atoms()."><
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,9 +20,31 @@ tfl_style_atoms_catalog() is a convenience alias for tfl_print_style_atoms()."><
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
-<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Foundations</h6></li>
+    <li><a class="dropdown-item" href="../articles/Getting_Started_with_ksTFL.html">Getting Started with ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Reporting_Examples_with_ksTFL.html">Reporting Examples using ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Real_Examples_with_ksTFL.html">Real Examples of Clinical Outputs using ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>FAQ</h6></li>
+    <li><a class="dropdown-item" href="../articles/FAQ_with_ksTFL.html">FAQ and Practical Gotchas in ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Styling and Layout</h6></li>
+    <li><a class="dropdown-item" href="../articles/Styling_Guide_with_ksTFL.html">Styling Guide (ksTFL)</a></li>
+    <li><a class="dropdown-item" href="../articles/Column_Width_Management.html">Column Width Management in ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Advanced</h6></li>
+    <li><a class="dropdown-item" href="../articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting in ksTFL</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Internals</h6></li>
+    <li><a class="dropdown-item" href="../articles/Rendering_Pipeline.html">Rendering Pipeline and Full C++ Architecture in ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Font_Management.html">Font Management in ksTFL</a></li>
+  </ul></li>
+<li class="nav-item"><a class="nav-link" href="../ksTFL_slides.pdf"><span class="fa fa-file-pdf"></span> Slides</a></li>
 <li class="nav-item"><a class="nav-link" href="../ksTFL_cheatsheet.pdf"><span class="fa fa-file-pdf"></span> Cheatsheet</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/crow16384/ksTFL/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>

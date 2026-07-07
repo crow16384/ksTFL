@@ -133,7 +133,6 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     if (!is.null(cs$isPaging) && isTRUE(cs$isPaging)) flags <- c(flags, "page_break")
     if (!is.null(cs$isColBreak) && isTRUE(cs$isColBreak)) flags <- c(flags, "col_break")
     if (!is.null(cs$dedupe) && isTRUE(cs$dedupe)) flags <- c(flags, "dedupe")
-    if (!is.null(cs$blankAfter) && isTRUE(cs$blankAfter)) flags <- c(flags, "blank_after")
 
     # Collect styles from all style references, separated by type
     label_styles <- character(0)
@@ -201,8 +200,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
       "group" = "#",
       "page_break" = ">",
       "col_break" = "v",
-      "dedupe" = "d",
-      "blank_after" = "_"
+      "dedupe" = "d"
     )
     result <- vapply(flags, function(f) flag_symbols[[f]] %||% f, character(1L), USE.NAMES = FALSE)
     paste(result, collapse = " ")
@@ -419,8 +417,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
         "# = Grouping column (used for grouping rows)",
         "> = Page break (trigger page break)",
         "v = Column break (trigger column break)",
-        "d = Deduplicate (remove duplicate values)",
-        "_ = Blank after (insert blank row after value change)"
+        "d = Deduplicate (remove duplicate values)"
       ))
     }
   }
@@ -544,8 +541,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     !is.null(cs$isGrouping) && isTRUE(cs$isGrouping) ||
     !is.null(cs$isPaging) && isTRUE(cs$isPaging) ||
     !is.null(cs$isColBreak) && isTRUE(cs$isColBreak) ||
-    !is.null(cs$dedupe) && isTRUE(cs$dedupe) ||
-    !is.null(cs$blankAfter) && isTRUE(cs$blankAfter)
+    !is.null(cs$dedupe) && isTRUE(cs$dedupe)
   }, logical(1)))
 
   rows <- lapply(names(cols), function(nm) {
@@ -587,7 +583,6 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
     if (isTRUE(cs$isPaging)) badges <- c(badges, paste0('<span class="badge badge-page">', ">", '</span>'))
     if (isTRUE(cs$isColBreak)) badges <- c(badges, paste0('<span class="badge badge-col">', "v", '</span>'))
     if (isTRUE(cs$dedupe)) badges <- c(badges, paste0('<span class="badge badge-dedupe">', "d", '</span>'))
-    if (isTRUE(cs$blankAfter)) badges <- c(badges, paste0('<span class="badge badge-blank">', "_", '</span>'))
 
     h$tr(
       h$td(nm),
@@ -628,8 +623,7 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
           h$div(class = "flag-item", h$span(class = "flag-symbol", "#"), " = Grouping column"),
           h$div(class = "flag-item", h$span(class = "flag-symbol", ">"), " = Page break"),
           h$div(class = "flag-item", h$span(class = "flag-symbol", "v"), " = Column break"),
-          h$div(class = "flag-item", h$span(class = "flag-symbol", "d"), " = Deduplicate"),
-          h$div(class = "flag-item", h$span(class = "flag-symbol", "_"), " = Blank after")
+          h$div(class = "flag-item", h$span(class = "flag-symbol", "d"), " = Deduplicate")
         )
       )
     }
@@ -723,7 +717,6 @@ view_tfl_spec <- function(spec) {
         .badge-page { background: #dc3545; color: white; }
         .badge-col { background: #ffc107; color: black; }
         .badge-dedupe { background: #17a2b8; color: white; }
-        .badge-blank { background: #6f42c1; color: white; }
         .styles-display { font-family: monospace; font-size: 12px; background: #f8f9fa; padding: 5px; border-radius: 3px; }
         .prop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; }
         .prop-item { background: #f8f9fa; padding: 8px; border-radius: 4px; }
