@@ -2,11 +2,34 @@
 # Test: ggplot2 integration via create_figure()
 # ============================================================================
 
+# Environment independence (fixed 2026-09-29 after devtools::check() on a
+# machine WITHOUT {svglite} reported 17 errors):
+#   - ggplot2 >= 3.4 renders .svg ONLY via {svglite}; the package default
+#     figureDevice is "svg", so any create_figure(ggplot-object) call that
+#     keeps the default silently hard-depends on an undeclared suggestion.
+#   - Tests that PIN the svg contract -> skip_when_no_svg().
+#   - Tests where the device is incidental (structure/dataRef/spec flow) ->
+#     force the png device locally (base grDevices, always available).
+
 # Helper: build a minimal ggplot2 object
 make_plot <- function() {
   skip_if_not_installed("ggplot2")
   ggplot2::ggplot(mtcars, ggplot2::aes(x = wt, y = mpg)) +
     ggplot2::geom_point()
+}
+
+skip_when_no_svg <- function() skip_if_not_installed("svglite")
+
+# Switch session figureDevice to png for the duration of the calling test.
+# Restores the previous settings via defer_baked (helper-docx.R): registers
+# in the CALLER frame with the old value embedded (plain on.exit in this
+# helper would fire when the helper returns; plain substitute() would lose
+# the helper's local `old` before test exit — both verified traps 2026-09-29).
+local_figure_png <- function(.env = parent.frame()) {
+  old <- .options_env$settings
+  defer_baked(bquote(assign("settings", .(old), envir = .options_env)),
+              env = .env)
+  tfl_set_options(figureDevice = "png")
 }
 
 # Helper: temporary output directory
@@ -22,6 +45,7 @@ create_test_dir <- function() {
 
 test_that(".save_ggplot_to_temp() creates an SVG file by default", {
   skip_if_not_installed("ggplot2")
+  skip_when_no_svg()
   p <- make_plot()
   path <- ksTFL:::.save_ggplot_to_temp(p)
   expect_true(file.exists(path))
@@ -49,6 +73,7 @@ test_that(".save_ggplot_to_temp() respects device = 'jpg' alias", {
 
 test_that(".save_ggplot_to_temp() respects device = 'svg'", {
   skip_if_not_installed("ggplot2")
+  skip_when_no_svg()
   p <- make_plot()
   path <- ksTFL:::.save_ggplot_to_temp(p, device = "svg")
   expect_true(file.exists(path))
@@ -98,6 +123,7 @@ test_that(".save_ggplot_to_temp() rejects non-positive dpi", {
 
 test_that("create_figure() accepts a ggplot2 object and returns TFL_spec", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p <- make_plot()
   spec <- create_figure(p)
   expect_s3_class(spec, "TFL_spec")
@@ -129,6 +155,7 @@ test_that("create_figure() uses figure defaults from options", {
 
 test_that("set_document() overrides figure settings", {
   skip_if_not_installed("ggplot2")
+  skip_when_no_svg()   # pins figure$device == "svg" contract
   p <- make_plot()
   spec <- expect_warning(
     create_figure(p) |>
@@ -149,6 +176,7 @@ test_that("set_document() overrides figure settings", {
 
 test_that("set_document() warns and ignores explicit sizes in fit modes", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p <- make_plot()
 
   expect_warning(
@@ -164,6 +192,7 @@ test_that("set_document() warns and ignores explicit sizes in fit modes", {
 
 test_that("set_document() fills missing fixed dimension from defaults", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p <- make_plot()
   spec0 <- create_figure(p)
   spec0$figure$height <- NULL
@@ -179,6 +208,7 @@ test_that("set_document() fills missing fixed dimension from defaults", {
 
 test_that("set_document() errors for mixed percent and absolute units", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p <- make_plot()
 
   expect_error(
@@ -190,6 +220,7 @@ test_that("set_document() errors for mixed percent and absolute units", {
 
 test_that("create_figure() stores a valid readable file path for ggplot2 input", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p <- make_plot()
   spec <- create_figure(p)
   stored_path <- spec$.metadata$filePath
@@ -199,6 +230,7 @@ test_that("create_figure() stores a valid readable file path for ggplot2 input",
 
 test_that("create_figure() stores SVG path by default for ggplot2 input", {
   skip_if_not_installed("ggplot2")
+  skip_when_no_svg()   # the svg default IS the subject
   p <- make_plot()
   spec <- create_figure(p)
   expect_match(spec$.metadata$filePath, "\\.svg$", ignore.case = TRUE)
@@ -217,6 +249,7 @@ test_that("create_figure() respects device = 'jpeg' for ggplot2 input", {
 
 test_that("create_figure() respects device = 'svg' for ggplot2 input", {
   skip_if_not_installed("ggplot2")
+  skip_when_no_svg()   # svg contract
   old <- tfl_get_options()
   on.exit(.options_env$settings <- old, add = TRUE)
   tfl_set_options(figureDevice = "svg")
@@ -230,7 +263,8 @@ test_that("create_figure() forwards width/height/dpi without error", {
   skip_if_not_installed("ggplot2")
   old <- tfl_get_options()
   on.exit(.options_env$settings <- old, add = TRUE)
-  tfl_set_options(figureWidth = "8in", figureHeight = "5in")
+  tfl_set_options(figureWidth = "8in", figureHeight = "5in",
+                  figureDevice = "png")
   p <- make_plot()
   # Should not throw
   spec <- create_figure(p, dpi = 150L)
@@ -240,6 +274,7 @@ test_that("create_figure() forwards width/height/dpi without error", {
 
 test_that("create_figure() with ggplot2 object ignores filepath param name (positional)", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p <- make_plot()
   # Positional call — same as create_figure(plot_or_path = p)
   spec <- create_figure(p)
@@ -265,6 +300,7 @@ test_that("create_figure() still rejects missing / invalid file path (backward c
 
 test_that("ggplot2 figure goes through create_report() without error", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p <- make_plot()
   spec   <- create_figure(p)
   report <- create_report(spec)
@@ -274,6 +310,7 @@ test_that("ggplot2 figure goes through create_report() without error", {
 
 test_that("save_report() copies ggplot2 figure file to metaPath", {
   skip_if_not_installed("ggplot2")
+  skip_when_no_svg()   # asserts the copied asset is <dataRef>.svg
   p      <- make_plot()
   spec   <- create_figure(p) |> add_title("ggplot Test Figure")
   report <- create_report(spec)
@@ -294,6 +331,7 @@ test_that("save_report() copies ggplot2 figure file to metaPath", {
 
 test_that("save_report() handles mixed Table + ggplot2 Figure report", {
   skip_if_not_installed("ggplot2")
+  skip_when_no_svg()   # asserts the figure asset is <dataRef>.svg
   p         <- make_plot()
   spec_tbl  <- create_table(mtcars[1:5, ], cols = c(mpg, cyl, wt)) |>
     add_title("Cars Table")
@@ -319,6 +357,7 @@ test_that("save_report() handles mixed Table + ggplot2 Figure report", {
 
 test_that("dataRef for ggplot2 figure matches expected format", {
   skip_if_not_installed("ggplot2")
+  local_figure_png()
   p      <- make_plot()
   spec   <- create_figure(p)
   report <- create_report(spec)

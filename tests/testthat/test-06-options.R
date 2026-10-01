@@ -4,12 +4,12 @@
 
 test_that("tfl_set_options() sets missings option", {
   current <- tfl_get_option("missings")
+  old <- tfl_get_options()
+  on.exit(tfl_set_options(old), add = TRUE)
   tfl_set_options(missings = "N/A")
   
   expect_equal(tfl_get_option("missings"), "N/A")
-  
-  # Cleanup
-  tfl_set_options(missings = current)
+  # cleanup handled by on.exit
 })
 
 test_that("tfl_set_options() sets page_size option", {
@@ -33,8 +33,13 @@ test_that("tfl_get_options() returns list of all options", {
 })
 
 test_that("tfl_get_option() retrieves single option", {
+  # Defaults must be asserted from a pristine state, not from whatever
+  # earlier tests left behind (fragile ordering; review 2026-09-29 F4).
+  old <- tfl_get_options()
+  on.exit(tfl_set_options(old), add = TRUE)
+  tfl_reset_options()
+
   missings <- tfl_get_option("missings")
-  
   expect_is(missings, "character")
   expect_equal(missings, "")  # Default is empty string
 })

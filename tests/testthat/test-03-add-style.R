@@ -222,6 +222,7 @@ test_that("set_page_style() accepts nested p_page on TFL_spec and TFL_options", 
 
   # TFL_options: modify global session settings via tfl_set_options()
   old_opts <- tfl_get_options()
+  on.exit(tfl_set_options(old_opts), add = TRUE)
   # Use tfl_set_options() with a helper call; tfl_set_options parses the call
   tfl_set_options(set_page_style(page = p_page(size = "Letter", orientation = "portrait",
                                                margins = p_margins(top = "1in", bottom = "1in"))))
@@ -229,8 +230,7 @@ test_that("set_page_style() accepts nested p_page on TFL_spec and TFL_options", 
   expect_equal(opts_now$page$size, "Letter")
   expect_equal(opts_now$page$orientation, "portrait")
   expect_equal(opts_now$page$margins$top, "1in")
-  # restore previous session options
-  tfl_set_options(old_opts)
+  # restore handled by on.exit
 })
 
 test_that("add_style() on TFL_options accepts nested s_borders/s_border", {

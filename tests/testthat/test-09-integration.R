@@ -76,17 +76,21 @@ test_that("Complex table with multiple styles and definitions", {
 })
 
 test_that("Options applied to all created specs", {
-  # Set global options
-  original_missings <- tfl_get_option("missings")
+  # Previously this test asserted `!is.null(spec$.metadata)`, which passes
+  # regardless of the option value - no behavioral coverage (review F7).
+  # Now it pins the documented contract: session missings flows into the
+  # per-column format at create_table() time.
+  old_opts <- tfl_get_options()
+  on.exit(tfl_set_options(old_opts), add = TRUE)
+
   tfl_set_options(missings = "N/A")
-  
   spec <- create_table(test_df)
-  
-  # Check that option is accessible (through define_cols)
-  expect_true(!is.null(spec$.metadata))
-  
-  # Cleanup
-  tfl_set_options(missings = original_missings)
+  expect_equal(spec$columns$id$format$missings, "N/A")
+  expect_equal(spec$columns$value$format$missings, "N/A")
+
+  tfl_set_options(missings = "NC")
+  spec2 <- create_table(test_df)
+  expect_equal(spec2$columns$value$format$missings, "NC")
 })
 
 test_that("Chaining function calls with pipe operator", {

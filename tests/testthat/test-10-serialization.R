@@ -491,6 +491,13 @@ test_that("serialize_spec() order field preserved in content elements", {
 
 test_that("serialize_spec() handles dotted spec keys with array-protected fields", {
   skip_if_not_installed("ggplot2")
+  # device is incidental to what this test pins (spec keys + array protection);
+  # png keeps the test independent of {svglite} availability (review 29.09:
+  # default figureDevice="svg" makes every ggplot capture hard-depend on an
+  # undeclared Suggests package -> env-dependent suite).
+  old_settings <- .options_env$settings
+  on.exit(assign("settings", old_settings, envir = .options_env), add = TRUE)
+  tfl_set_options(figureDevice = "png")
 
   p <- ggplot2::ggplot(mtcars, ggplot2::aes(x = wt, y = mpg)) +
     ggplot2::geom_point()

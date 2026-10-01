@@ -2,7 +2,15 @@
 # Regression tests for no-op save behavior in styles editor.
 
 load_styles_editor_env <- function() {
-  app_path <- normalizePath(testthat::test_path("../../inst/shiny/styles_editor/app.R"), mustWork = TRUE)
+  # Works from BOTH layouts:
+  #  - source tree (testthat::test_dir): tests/testthat/../../inst/shiny/...
+  #  - installed pkg (test_check / covr staging): inst/ is copied to pkg root,
+  #    so system.file() is the portable locator.
+  app_path <- system.file("shiny", "styles_editor", "app.R", package = "ksTFL")
+  if (!nzchar(app_path) || !file.exists(app_path)) {
+    app_path <- testthat::test_path("../../inst/shiny/styles_editor/app.R")
+  }
+  app_path <- normalizePath(app_path, mustWork = TRUE)
   app_dir <- dirname(app_path)
 
   env <- new.env(parent = baseenv())
@@ -10,9 +18,10 @@ load_styles_editor_env <- function() {
   on.exit(setwd(old_wd), add = TRUE)
   setwd(app_dir)
   source(app_path, local = env)
-  env$bundled_templates_dir <- function() {
-    normalizePath(file.path(app_dir, "..", "..", "templates"), mustWork = TRUE)
-  }
+  td <- system.file("templates", package = "ksTFL")
+  if (!nzchar(td)) td <- normalizePath(file.path(app_dir, "..", "..", "templates"),
+                                       mustWork = TRUE)
+  env$bundled_templates_dir <- function() normalizePath(td, mustWork = TRUE)
   env
 }
 

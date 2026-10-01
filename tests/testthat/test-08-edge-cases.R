@@ -53,22 +53,12 @@ test_that("add_body_text() with special characters and UTF-8", {
   expect_true(grepl("中文", spec$bodyText[[1]]$text))
 })
 
-test_that("define_cols() with single column recycling", {
-  spec <- create_table(test_df)
-  spec <- define_cols(spec, c(id, value, ratio), label = "Same Label")
-  
-  expect_equal(spec$columns$id$label, "Same Label")
-  expect_equal(spec$columns$value$label, "Same Label")
-  expect_equal(spec$columns$ratio$label, "Same Label")
-})
-
-test_that("define_cols() with per-column recycling", {
-  spec <- create_table(test_df)
-  spec <- define_cols(spec, c(id, value), label = c("L1", "L2"))
-  
-  expect_equal(spec$columns$id$label, "L1")
-  expect_equal(spec$columns$value$label, "L2")
-})
+# Removed 2026-09-29 (test-suite review, task section 7): the two tests
+# "define_cols() with single column recycling" and "define_cols() with
+# per-column recycling" duplicated "recycles single parameter to all columns"
+# and "accepts per-column parameters (length matching)" from test-02-define-cols.R
+# with identical behavior and assertions on the same fixture. No unique
+# coverage was lost (assertion sets compared verbatim).
 
 test_that("add_style() creates unique IDs for auto-generated styles", {
   spec <- create_text()

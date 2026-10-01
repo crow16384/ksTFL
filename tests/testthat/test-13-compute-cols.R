@@ -290,10 +290,11 @@ test_that("non-matching rows result in empty JSON in styleRows", {
   row2_json <- spec_result$styleRows[2]
   expect_equal(row2_json, "{}")
   
-  # Row 3 (Pulse) should match and have content
+  # Row 3 is "BP": also non-matching -> empty JSON (mirrors row 2 path).
+  # (Previously this block carried a copy-pasted "Pulse" comment contradicting
+  # the data; test-suite review 2026-09-29 finding F1.)
   row3_json <- spec_result$styleRows[3]
-  expect_true(nzchar(row3_json))
-  expect_true(row3_json=="{}")
+  expect_equal(row3_json, "{}")
 })
 
 test_that("serialize_spec validates and returns fixed spec structure", {
@@ -331,7 +332,6 @@ test_that("serialize_spec validates and returns fixed spec structure", {
 # ============================================================================
 
 test_that("c_glue then c_addrow uses glued values (same column)", {
-  skip_on_cran()
   
   df <- data.frame(
     PARAM = c("ALT", "AST", "ALT"),
@@ -385,7 +385,6 @@ test_that("c_glue then c_addrow uses glued values (same column)", {
 })
 
 test_that("multiple c_glue accumulate before c_addrow", {
-  skip_on_cran()
   
   df <- data.frame(
     LABEL = c("A", "B", "C"),
@@ -436,7 +435,6 @@ test_that("multiple c_glue accumulate before c_addrow", {
 })
 
 test_that("c_glue on column A, c_addrow from column B (independent)", {
-  skip_on_cran()
   
   df <- data.frame(
     COL_A = c("X", "Y", "Z"),
@@ -480,7 +478,6 @@ test_that("c_glue on column A, c_addrow from column B (independent)", {
 })
 
 test_that("c_glue with hidden column source works with c_addrow", {
-  skip_on_cran()
   
   df <- data.frame(
     PARAM = c("ALT", "AST", "ALT"),
@@ -523,7 +520,6 @@ test_that("c_glue with hidden column source works with c_addrow", {
 })
 
 test_that("c_clear + c_glue + c_addrow works as replacement", {
-  skip_on_cran()
   
   df <- data.frame(
     DISPLAY = c("Old A", "Old B", "Old C"),
@@ -571,7 +567,6 @@ test_that("c_clear + c_glue + c_addrow works as replacement", {
 })
 
 test_that("c_addrow below position also uses glued values", {
-  skip_on_cran()
   
   df <- data.frame(
     PARAM = c("Total", "Subtotal"),
