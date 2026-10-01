@@ -17,8 +17,9 @@ s_font(
 }
 \arguments{
 \item{font_name}{Font family name. One of: "Arial", "Courier New",
-"Times New Roman", "Georgia", "Verdana", "Trebuchet MS",
-"Liberation Sans"}
+"Times New Roman", "Georgia", "Verdana", "Trebuchet MS", "Liberation Sans"
+(the set the C++ renderer resolves; missing faces fall back per
+\code{tfl_font_status()}).}
 
 \item{font_size}{Font size with units, e.g. "12pt"}
 
@@ -41,12 +42,10 @@ A font specification object (for internal use)
 This function can only be used inside \code{\link{add_style}}.
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   add_style("my_style",
     s_font(font_name = "Arial", font_size = "12pt", bold = TRUE)
   )
-}
 }
 \seealso{
 \code{\link[=add_style]{add_style()}} for applying styles, \code{\link[=s_paragraph]{s_paragraph()}}, \code{\link[=s_table_style]{s_table_style()}} for other style components

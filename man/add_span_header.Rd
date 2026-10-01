@@ -28,7 +28,9 @@ add_span_header(
 
 \item{stubOrder}{Order of stub header (auto-generated if NULL). Used to create
 multi-level headers: lower numbers appear above higher numbers. Multiple stubs
-at the same order are allowed if their column sets do not overlap.}
+at the same order are allowed if their column sets do not overlap.
+Negative values are allowed and place the band BELOW the regular column
+header row (e.g. \code{stubOrder = -1}).}
 
 \item{id}{Stub column identifier (auto-generated if NULL)}
 
@@ -56,52 +58,29 @@ This allows hierarchical header structures:
 
 Multiple calls with the same \code{stubOrder} are allowed as long as their column sets
 do not overlap. This enables building complex header structures incrementally.
+A label spanning the complete set of report columns is rendered as a single
+full-width band (gridSpan), and the table title above it shares that band row.
 }
 \examples{
-\dontrun{
 data <- data.frame(
-  id = 1:10, 
-  age = rnorm(10, 45, 10), 
+  id = 1:10,
+  age = round(rnorm(10, 45, 10), 1),
   sex = sample(c("M", "F"), 10, TRUE),
-  weight = rnorm(10, 70, 10),
-  height = rnorm(10, 170, 10)
+  weight = round(rnorm(10, 70, 10), 1)
 )
 
-# Example 1: Single-level spanning header
+# Single-level spanning header
 spec <- create_table(data) |>
-  add_span_header(
-    cols = c(age, sex),  # Using tidyselect (unquoted column names)
-    label = "Demographics",
-    labelStyleRef = c("stub_label_style", "bold")
-  )
+  add_span_header(cols = c(age, sex), label = "Demographics")
 
-# Example 2: Two-level header hierarchy
-spec <- create_table(data) |>
-  add_span_header(cols = c(age, sex, weight, height), label = "All Measurements", stubOrder = 0) |>
+# Two-level hierarchy: band 0 above band 1; non-overlapping stubs may share a level
+spec2 <- create_table(data) |>
+  add_span_header(cols = c(age, sex, weight), label = "All Measurements", stubOrder = 0) |>
   add_span_header(cols = c(age, sex), label = "Demographics", stubOrder = 1) |>
-  add_span_header(cols = c(weight, height), label = "Physical", stubOrder = 1)
+  add_span_header(cols = weight, label = "Physical", stubOrder = 1)
 
-# Example 3: Three-level header hierarchy
-spec <- create_table(data) |>
-  add_span_header(cols = starts_with("a") | starts_with("w") | starts_with("h"), 
-                  label = "Main Data", stubOrder = 0) |>
-  add_span_header(cols = c(age, sex), label = "Demographics", stubOrder = 1) |>
-  add_span_header(cols = c(weight, height), label = "Physical", stubOrder = 1) |>
-  add_span_header(cols = age, label = "Age Details", stubOrder = 2)
-
-# Example 4: Using tidyselect helpers
-spec <- create_table(data) |>
-  add_span_header(cols = contains("age"), label = "Age-related", stubOrder = 0) |>
-  add_span_header(cols = matches("^w"), label = "Weight", stubOrder = 0)
-
-# Example 5: Negation to exclude columns
-spec <- create_table(data) |>
-  add_span_header(cols = -id, label = "Measurements", stubOrder = 0)
-
-# Example 6: Multiple non-overlapping stubs at same level
-spec <- create_table(data) |>
-  add_span_header(cols = c(age, sex), label = "Group1", stubOrder = 1) |>
-  add_span_header(cols = c(weight, height), label = "Group2", stubOrder = 1)  # OK: no overlap
-}
+# tidyselect helpers and negation
+spec3 <- create_table(data) |>
+  add_span_header(cols = -id, label = "Measurements")
 
 }

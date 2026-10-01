@@ -25,14 +25,12 @@ Add a footnote to the specification. Multiple calls add multiple footnote groups
 Calling with the same ID merges with last-win strategy.
 }
 \examples{
-\dontrun{
 spec <- create_table(mtcars) |>
   add_footnote("Data source: Clinical database lock 2025-12-01") |>
   add_footnote("Missing values displayed as 'N/A'",
-               styleRef = f_combine("footnote_style", "font_courier_new"))
+               styleRef = f_combine("i", "font_courier_new"))
 
 # Multiple footnote lines in one group
-spec <- create_table(mtcars) |>
+spec2 <- create_table(mtcars) |>
   add_footnote(c("a. Treatment group A", "b. Treatment group B"))
-}
 }

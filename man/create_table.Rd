@@ -35,7 +35,6 @@ Example workflow:
 }
 }
 \examples{
-\dontrun{
 ## Basic usage with the built-in `mtcars` dataset
 spec <- create_table(mtcars)
 
@@ -50,7 +49,6 @@ spec <- create_table(mtcars, cols = -c(gear, carb))
 
 ## or simple by names
 spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
-}
 
 }
 \seealso{

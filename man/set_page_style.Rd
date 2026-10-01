@@ -33,15 +33,15 @@ Updated spec object
 Set document-level style configuration. Multiple calls merge with last-win strategy.
 }
 \examples{
-\dontrun{
-# Use a predefined bundled template
+# Use a predefined bundled template (see tfl_list_templates())
 spec <- create_text() |>
   set_page_style(
     docTemplate = "Navy_Pro",
     page = p_page(size = "A4", orientation = "landscape")
   )
 
-# Use an external template file
+\dontrun{
+# External template file instead of a bundled name:
 spec <- create_text() |>
   set_page_style(docTemplate = "/path/to/my_template.json")
 }

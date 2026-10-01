@@ -25,11 +25,17 @@ NULL
 #'   Can reference:
 #'   \itemize{
 #'     \item Data columns directly (e.g., `col1 > 10`, `Parameter == "Pulse"`)
-#'     \item Helper functions (e.g., `firstOf()`, `lastOf()`, `uniqueOf()`)
+#'     \item Condition helpers evaluated over the data: `firstOf()`, `lastOf()`,
+#'       `firstRow()`, `lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`
+#'       (see Details)
 #'   }
-#'   Must return a logical vector of length equal to `nrow(data)`.
-#' @param ... Action function calls: `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`.
-#'   Multiple actions allowed, including duplicates. Actions are captured unevaluated.
+#'   Must return a logical vector of length equal to `nrow(data)`, or a single
+#'   `TRUE`/`FALSE` scalar (applies the actions to all rows / no rows).
+#' @param ... Action function calls: `c_style()`, `c_merge()`, `c_addrow()`,
+#'   `c_glue()`, `c_clear()`, `c_pageBreak()`.
+#'   Multiple actions allowed, including duplicates. Actions are captured
+#'   unevaluated and execute in arrival order: argument order within one
+#'   `compute_cols()` call, then call order across piped calls.
 #'
 #' @return Modified `spec` object with appended action metadata in `spec$.metadata$compute_cols`.
 #'   Invisibly returns the updated spec to enable piping workflows.
@@ -37,6 +43,21 @@ NULL
 #' @seealso [c_style()], [c_merge()], [c_addrow()] for action functions used within `compute_cols()`
 #'
 #' @details
+#' **Condition helpers** (available only inside `cond`; they operate on the
+#' raw data frame):
+#' \itemize{
+#'   \item `firstOf(col)` / `lastOf(col)`: `TRUE` at the first/last row of each
+#'     RUN of equal values (run-length semantics). The input must be sorted so
+#'     that each logical group is contiguous, otherwise a value that
+#'     re-appears later counts as a new run. Multiple columns
+#'     (`firstOf(col1, col2)`) test combined run boundaries.
+#'   \item `firstRow()` / `lastRow()`: single-row markers at absolute positions.
+#'   \item `rowNumber()`: integer row index, usable in arbitrary expressions.
+#'   \item `everyNth(n)`: `TRUE` every n-th row starting from row 1.
+#'   \item `firstOfBlock(col, n = 1, offset = 0)`: `TRUE` on the first row of
+#'     every n-th run-block of `col` (after the first block).
+#' }
+#'
 #' **Execution Timeline:**
 #' 1. `compute_cols()` captures condition and actions (no evaluation)
 #' 2. Appends to `spec$.metadata$compute_cols` list
@@ -61,27 +82,32 @@ NULL
 #' }
 #'
 #' @examples
-#' \dontrun{
 #'   spec <- create_table(mtcars)
 #'   spec <- add_style(spec, id = "bold", s_font(bold = TRUE))
 #'   spec <- add_style(spec, id = "red", s_font(color = "red"))
-#'   spec <- add_style(spec, id = "highlight", s_table_style(background_color = "yellow"))
+#'   spec <- add_style(spec, id = "highlight", s_table_style(background_color = "#FFFF00"))
 #'
-#'   # Style columns in rows where cyl is first occurrence
+#'   # Style columns in rows where cyl starts a new run (sorted input!)
 #'   spec <- compute_cols(spec, firstOf(cyl), c_style(c(mpg, hp), styleRef = "bold"))
 #'
 #'   # Style and merge columns in rows with high hp
-#'   spec <- compute_cols(spec, hp > 200, 
+#'   spec <- compute_cols(spec, hp > 200,
 #'     c_style(hp, styleRef = "red"),
 #'     c_merge(c(wt, qsec), styleRef = "highlight")
 #'   )
 #'
-#'   # Add empty separator row above first occurrence
+#'   # Empty separator row above each new cyl run
 #'   spec <- compute_cols(spec, firstOf(cyl), c_addrow(pos = "above"))
 #'
-#'   # Add row with content from a column
-#'   spec <- compute_cols(spec, lastOf(cyl), c_addrow(pos = "below", value_from = "mpg"))
-#' }
+#'   # Row with content copied from a column (bare symbol or quoted name)
+#'   spec <- compute_cols(spec, lastOf(cyl), c_addrow(pos = "below", value_from = mpg))
+#'
+#'   # Page break before each new cyl run; scalar condition = all rows
+#'   spec <- compute_cols(spec, firstOf(cyl), c_pageBreak())
+#'   spec <- compute_cols(spec, TRUE, c_style(disp, "red"))
+#'
+#'   # Actions execute in arrival order (here: wt is cleared, then re-filled)
+#'   spec <- compute_cols(spec, gear == 4, c_clear(wt), c_glue(wt, "after", text = "t"))
 #'
 #' @export
 compute_cols <- function(spec, cond, ...) {
@@ -155,13 +181,13 @@ compute_cols <- function(spec, cond, ...) {
 #' Must be called inside `compute_cols()`. Columns are resolved using
 #' tidyselect syntax against the table data.
 #'
-#' @seealso [compute_cols()] for conditional row actions, [c_merge()], [c_addrow()] for other action types
-#'
 #' **Behavior:**
 #' \itemize{
 #'   \item Same column styled multiple times in one row: last style wins, warning issued
 #'   \item Same column styled from different `compute_cols()` calls on same row:
-#'     automatic style combination (merged via `create_report()`)
+#'     non-conflicting properties COMBINE (e.g. bold then italic yields
+#'     bold-italic); on a conflicting property the later block wins
+#'     (automatic style combination consolidated via `create_report()`).
 #'   \item Multiple columns in one call: all receive the same style(s)
 #' }
 #'
@@ -170,8 +196,9 @@ compute_cols <- function(spec, cond, ...) {
 #' - During `create_report()`, combined styles are consolidated into a single hash
 #' - Consolidation only happens for new specs (not pre-processed reports)
 #'
+#' @seealso [compute_cols()] for conditional row actions, [c_merge()], [c_addrow()] for other action types
+#'
 #' @examples
-#' \dontrun{
 #'   spec <- create_table(mtcars) |>
 #'     add_style("bold", s_font(bold = TRUE)) |>
 #'     add_style("red", s_font(color = "red"))
@@ -182,9 +209,8 @@ compute_cols <- function(spec, cond, ...) {
 #'   # Single style on multiple columns
 #'   spec <- compute_cols(spec, hp > 100, c_style(c(mpg, wt), styleRef = "red"))
 #'
-#'   # Combined styles on columns
+#'   # Combined styles on columns (last argument wins per property)
 #'   spec <- compute_cols(spec, cyl == 8, c_style(mpg, styleRef = f_combine("bold", "red")))
-#' }
 #'
 #' @export
 c_style <- function(cols, styleRef) {
@@ -229,31 +255,32 @@ c_style <- function(cols, styleRef) {
 #' Must be called inside `compute_cols()`. Columns must be adjacent in the
 #' final report column order.
 #'
-#' @seealso [compute_cols()] for conditional row actions, [c_style()], [c_addrow()] for other action types
-#'
 #' **Validation:**
 #' \itemize{
 #'   \item Immediate: columns exist and are consecutive (error if not)
-#'   \item Deferred: overlapping merge ranges from multiple `compute_cols()` calls
-#'     (warning if resolvable, error if ambiguous)
+#'   \item Deferred: overlapping merge ranges within/across `compute_cols()`
+#'     calls: a warning is issued and the FIRST-defined merge wins (later
+#'     overlapping merges are dropped)
 #' }
 #'
 #' **Behavior:**
 #' - Multiple merge actions in one row: all applied if non-overlapping
-#' - Overlapping merges from different `compute_cols()` blocks: raises warning/error
+#' - The merged cell keeps the LEADER (first) column's text; the other cells
+#'   are suppressed. A later `c_glue()` targeting a non-leader merged cell is
+#'   silently skipped — glue the leader column instead, or merge first via
+#'   argument order (merge -> clear -> glue is the canonical rebuild idiom).
+#'
+#' @seealso [compute_cols()] for conditional row actions, [c_style()], [c_addrow()] for other action types
 #'
 #' @examples
-#' \dontrun{
 #'   spec <- create_table(mtcars) |>
 #'     add_style("group_header", s_table_style(background_color = "#D9D9D9"))
 #'
-#'   # Merge multiple columns for group header
-#'   spec <- compute_cols(spec, group == "A", 
-#'     c_merge(c(col1, col2, col3), styleRef = "group_header"))
+#'   # Merge two adjacent columns for four-cylinder rows
+#'   spec <- compute_cols(spec, cyl == 4, c_merge(c(mpg, cyl), styleRef = "group_header"))
 #'
 #'   # Merge without style
-#'   spec <- compute_cols(spec, group == "B", c_merge(c(disp, hp)))
-#' }
+#'   spec <- compute_cols(spec, cyl == 8, c_merge(c(wt, qsec)))
 #'
 #' @export
 c_merge <- function(cols, styleRef = NULL) {
@@ -291,10 +318,16 @@ c_merge <- function(cols, styleRef = NULL) {
 #' specified column; if omitted, creates an empty separator row.
 #'
 #' @param pos Character. Position for insertion: "above" or "below".
-#' @param value_from Character or unquoted column name. Optional source column
-#'   for the inserted row's content. If NULL or missing, creates an empty separator row.
+#' @param value_from Unquoted column name or quoted column name string. Optional
+#'   source column for the inserted row's content (both `value_from = PARAM` and
+#'   `value_from = "PARAM"` are accepted). The value is copied into the FIRST
+#'   cell of the synthetic row, which spans the full table width. If NULL or
+#'   missing, creates an empty separator row (a common styled divider idiom).
 #' @param styleRef Character vector or result of `f_combine()`. Optional style
-#'   to apply to the inserted row. If NULL, no special styling.
+#'   to apply to the inserted row. If NULL, no special styling. The inserted
+#'   row's cell is owned by this `styleRef`: later `c_style()` blocks do NOT
+#'   repaint it (later `c_clear()`/`c_glue()` on the source column DO reach it —
+#'   the synthetic row shares the source cell link).
 #'
 #' @return Quosure structure (internal use within `compute_cols()`)
 #'
@@ -304,30 +337,42 @@ c_merge <- function(cols, styleRef = NULL) {
 #' Must be called inside `compute_cols()`.
 #'
 #' **Behavior:**
-#' - Multiple `c_addrow()` calls in one `compute_cols()` accumulate
-#' - Order of appearance is preserved
-#' - Coexists with other actions on same row
-#' - If `value_from` is provided, must exist in spec columns (data_env reference)
-#' - If `value_from` is NULL or missing, creates an empty separator row
+#' - Multiple `c_addrow()` calls accumulate; rows are inserted adjacent to the
+#'   source row, pushing earlier inserts away. Consequence: two inserts in ONE
+#'   call put the FIRST argument farthest from the source, while two inserts in
+#'   SEPARATE piped calls put the LATER call closest to the source — stack
+#'   order is fully controllable via call/argument order.
+#' - Coexists with other actions on the same row.
+#' - If `value_from` is provided, must resolve to exactly one spec column
+#'   (multi-column selection is an error).
+#' - If `value_from` is NULL or missing, creates an empty separator row.
+#' - With `pos = "above"` + `value_from`, the section-header idiom
+#'   (hide a label column, `firstOf()` + addrow) builds group headers.
 #'
 #' **Stackable Actions:**
-#' Actions within a single `compute_cols()` call execute **sequentially in the order
-#' specified**. This means `c_addrow()` can see values modified by earlier `c_glue()`
-#' actions, allowing you to build compound cell values (e.g., "PARAM: VISIT") before
-#' using them in inserted rows. Multiple `c_glue()` and `c_addrow()` calls can be
-#' interleaved as needed.
+#' Actions within a single `compute_cols()` call execute **sequentially in the
+#' order specified**: `c_addrow()` sees values modified by earlier `c_glue()`
+#' actions (the synthetic row copies the ALREADY-GLUED text), allowing
+#' compound cell values (e.g., "PARAM: VISIT") in inserted rows.
 #'
 #' @examples
-#' \dontrun{
-#'   compute_cols(spec, lastOf(treatment), c_addrow(pos = "below", value_from = "treatment"))
-#'   compute_cols(spec, firstOf(visit), c_addrow(pos = "above"))
-#'   
-#'   # Stackable: addrow sees glued value
-#'   compute_cols(spec, PARAM == "ALT",
+#'   lab <- data.frame(
+#'     PARAM = c("ALT", "ALT", "AST"), VISIT = c("W1", "W2", "W1"),
+#'     VAL = c(25, 28, 30), stringsAsFactors = FALSE)
+#'   spec <- create_table(lab) |>
+#'     add_style("grp", s_font(bold = TRUE))
+#'
+#'   # Empty separator row above each ALT run
+#'   spec <- compute_cols(spec, firstOf(PARAM), c_addrow(pos = "above"))
+#'
+#'   # Section-header row carrying the group value, styled
+#'   spec <- compute_cols(spec, firstOf(PARAM),
+#'     c_addrow(pos = "above", value_from = PARAM, styleRef = "grp"))
+#'
+#'   # Stackable: addrow sees the glued value
+#'   spec <- compute_cols(spec, PARAM == "AST",
 #'     c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
-#'     c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
-#'   )
-#' }
+#'     c_addrow("above", value_from = PARAM))  # inserted row shows "AST: W1"
 #'
 #' @export
 c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
@@ -368,6 +413,14 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
 #' Used inside [compute_cols()] to signal the renderer to start a new page
 #' at every row matching the condition. Takes no arguments.
 #'
+#' @details
+#' Must be called inside `compute_cols()`. Each match emits a page-level
+#' break: with the default `isContinues = FALSE` the table is split into one
+#' Word table per page segment and the column header row is re-emitted per
+#' segment; the other actions of the same call still apply to their rows.
+#' Combines with any sibling action (e.g. `c_style()` to emphasize the new
+#' page start).
+#'
 #' @return Action marker (internal use within `compute_cols()`)
 #' @seealso [compute_cols()], [c_style()], [c_addrow()], [c_merge()]
 #' @export
@@ -380,7 +433,10 @@ c_addrow <- function(pos, value_from = NULL, styleRef = NULL) {
 #'
 #' # Force a new page at the start of each group
 #' spec <- create_table(data) |>
-#'   compute_cols(firstOf(group), c_pageBreak())
+#'   compute_cols(firstOf(group), c_pageBreak()) |>
+#'   create_report() |>
+#'   write_doc(name = "pagebreak_demo", outDir = tempdir(),
+#'             metaPath = tempdir(), verbose = FALSE)
 #' }
 c_pageBreak <- function() {
   .assert_context("compute_cols", "c_pageBreak")
@@ -421,10 +477,16 @@ c_pageBreak <- function() {
 #'
 #' **Constraints:**
 #' \itemize{
-#'   \item Exactly one of `glue_col` or `text` must be provided.
+#'   \item Exactly one of `glue_col` or `text` must be provided. NOTE: inside
+#'     `compute_cols()` actions are parsed from the unevaluated call, so this
+#'     is enforced only by the interactive `c_glue()` builder; when BOTH are
+#'     supplied in a `compute_cols()` call the parser silently prefers
+#'     `glue_col` and ignores `text` (tracked for a package fix — see
+#'     Finding-need-further-attention.md U1).
 #'   \item `cols` resolves only visible report columns via tidyselect.
 #'   \item `glue_col` can reference any data column, including hidden ones.
 #'   \item `glue_col` must not overlap with `cols`.
+#'   \item `text` must be a single string (length > 1 is a hard error).
 #' }
 #'
 #' **Behavior:**
@@ -432,8 +494,11 @@ c_pageBreak <- function() {
 #'   \item When the glue value (from `glue_col` or `text`) is empty or `NA`,
 #'     the action is silently skipped for that row/cell.
 #'   \item When a target cell was suppressed by deduplication (`dedupe = TRUE`
-#'     on that column), the glue is silently skipped to preserve the visual
-#'     suppression of repeated values.
+#'     on that column), the glued text lands on the RAW cell but is not
+#'     painted (render-level suppression wins) — effectively invisible; glue a
+#'     non-suppressed column or the first row of each run instead.
+#'   \item Glue onto a target cell whose own value is `NA` renders just the
+#'     glued part (no \"NA\" text appears).
 #'   \item When a target cell is suppressed by a concurrent `c_merge()` action
 #'     (i.e., it is a non-leader merged cell), the glue is silently skipped.
 #'   \item The merge leader cell is glued normally when `c_glue()` targets a
@@ -444,9 +509,10 @@ c_pageBreak <- function() {
 #' **Interaction with other actions:**
 #' \itemize{
 #'   \item `c_style()`: Fully compatible — styling and text modification are independent.
-#'   \item `c_merge()`: Compatible. Glue is processed after merge in the renderer.
-#'     Non-leader (suppressed) merge cells are skipped; the merge-leader cell is
-#'     glued normally.
+#'   \item `c_merge()`: Compatible. Non-leader (suppressed) merge cells are
+#'     skipped; the merge-leader cell is glued normally. When a rebuild of a
+#'     merged total row is intended, keep the canonical argument order
+#'     merge -> clear -> glue inside ONE `compute_cols()` call.
 #'   \item `c_addrow()`: **Stackable** — when used together in the same `compute_cols()`,
 #'     `c_addrow()` sees glued values. This allows building compound cell values
 #'     (e.g., "PARAM: VISIT") before using them in inserted rows.
@@ -461,26 +527,30 @@ c_pageBreak <- function() {
 #' @seealso [compute_cols()], [c_style()], [c_merge()], [c_addrow()]
 #'
 #' @examples
-#' \dontrun{
-#'   # Append a unit from a hidden column (e.g. unit_col is not in spec cols)
-#'   spec <- compute_cols(spec, !is.na(value),
-#'     c_glue(value, "after", glue_col = unit, separator = " "))
+#'   lab <- data.frame(
+#'     PARAM = c("ALT", "ALT", "AST"), VISIT = c("W1", "W2", "W1"),
+#'     UNIT  = c("U/L", "U/L", "U/L"), stringsAsFactors = FALSE)
+#'   spec <- create_table(lab) |>
+#'     add_style("bold", s_font(bold = TRUE)) |>
+#'     define_cols(UNIT, isVisible = FALSE)
 #'
-#'   # Prepend a literal marker to a label column
-#'   spec <- compute_cols(spec, is_total,
-#'     c_glue(label, "before", text = ">> "))
+#'   # Append a unit from a hidden column
+#'   spec <- compute_cols(spec, TRUE,
+#'     c_glue(PARAM, "after", glue_col = UNIT, separator = " "))
 #'
-#'   # Combine with c_style() — independent operations
-#'   spec <- compute_cols(spec, firstOf(group),
-#'     c_glue(label, "before", text = "> "),
-#'     c_style(label, styleRef = "bold"))
-#'   
-#'   # Stackable with c_addrow() — addrow sees glued values
+#'   # Prepend a literal marker
+#'   spec <- compute_cols(spec, PARAM == "AST",
+#'     c_glue(PARAM, "before", text = "*"))
+#'
+#'   # Combine with c_style() - independent operations
+#'   spec <- compute_cols(spec, PARAM == "ALT",
+#'     c_glue(VISIT, "before", text = "Visit: "),
+#'     c_style(VISIT, styleRef = "bold"))
+#'
+#'   # Stackable with c_addrow() - the added row sees glued values
 #'   spec <- compute_cols(spec, PARAM == "ALT",
 #'     c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
-#'     c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
-#'   )
-#' }
+#'     c_addrow("above", value_from = PARAM))  # inserted row shows "ALT: W1"
 #'
 #' @export
 c_glue <- function(cols, position, glue_col = NULL, text = NULL, separator = NULL) {
@@ -547,29 +617,33 @@ c_glue <- function(cols, position, glue_col = NULL, text = NULL, separator = NUL
 #'
 #' **Behavior:**
 #' \itemize{
-#'   \item Sets the rendered cell text to `""` for matching rows.
-#'   \item Processed before `c_merge()` and `c_glue()` in the rendering chain,
-#'     so the cleared state participates in subsequent actions. In particular:
-#'     combining `c_clear()` + `c_glue()` on the same column effectively
-#'     *replaces* the original cell content with the glued value.
+#'   \item Sets the RENDERED cell text to `""` for matching rows. The clear is
+#'     display-only: conditions in `compute_cols()` keep seeing the RAW data
+#'     values, and the column still participates in width/format resolution.
+#'   \item Actions execute in ARRIVAL order (argument order within the call,
+#'     then pipe order across calls) — clear is not automatically "first".
+#'     Placing `c_clear()` before `c_glue()` on the same column turns the pair
+#'     into a full REPLACEMENT (glue lands on the emptied cell); placing
+#'     `c_glue()` before `c_clear()` wipes the cell afterwards.
 #'   \item Compatible with `c_style()`: styling is independent of text content.
-#'   \item When `c_merge()` targets a cleared leader cell, the merged span
+#'   \item When `c_merge()` spans a cleared leader cell, the merged span
 #'     renders as a blank merged cell.
 #' }
 #'
 #' @seealso [compute_cols()], [c_style()], [c_merge()], [c_glue()]
 #'
 #' @examples
-#' \dontrun{
-#'   # Blank label column in total rows
-#'   spec <- compute_cols(spec, is_total,
-#'     c_clear(label))
+#'   spec <- create_table(mtcars)
 #'
-#'   # Clear then replace with a value from another column (full replacement)
-#'   spec <- compute_cols(spec, condition,
-#'     c_clear(display_col),
-#'     c_glue(display_col, "after", glue_col = replacement_col))
-#' }
+#'   # Blank the disp column for four-cylinder rows
+#'   spec <- compute_cols(spec, cyl == 4, c_clear(disp))
+#'
+#'   # Clear then re-fill from another column (full replacement:
+#'   # canonical merge -> clear -> glue ordering inside ONE call)
+#'   spec2 <- create_table(mtcars) |>
+#'     compute_cols(hp == 62,
+#'       c_clear(carb),
+#'       c_glue(carb, "after", text = "-"))
 #'
 #' @export
 c_clear <- function(cols) {

@@ -13,6 +13,14 @@ Action marker (internal use within \code{compute_cols()})
 Used inside \code{\link[=compute_cols]{compute_cols()}} to signal the renderer to start a new page
 at every row matching the condition. Takes no arguments.
 }
+\details{
+Must be called inside \code{compute_cols()}. Each match emits a page-level
+break: with the default \code{isContinues = FALSE} the table is split into one
+Word table per page segment and the column header row is re-emitted per
+segment; the other actions of the same call still apply to their rows.
+Combines with any sibling action (e.g. \code{c_style()} to emphasize the new
+page start).
+}
 \examples{
 \dontrun{
 data <- data.frame(
@@ -22,7 +30,10 @@ data <- data.frame(
 
 # Force a new page at the start of each group
 spec <- create_table(data) |>
-  compute_cols(firstOf(group), c_pageBreak())
+  compute_cols(firstOf(group), c_pageBreak()) |>
+  create_report() |>
+  write_doc(name = "pagebreak_demo", outDir = tempdir(),
+            metaPath = tempdir(), verbose = FALSE)
 }
 }
 \seealso{

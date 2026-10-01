@@ -35,6 +35,11 @@
 #' (for tables) or figure files (for figures). Validates the report structure,
 #' processes each specification by its docType, and writes all outputs to disk.
 #'
+#' **This function does NOT produce a DOCX.** It only writes the spec/data
+#' JSON artifacts (the `docFileName` / `outDir` values are metadata recorded
+#' for the renderer). Rendering to DOCX happens in [write_doc()] (save +
+#' render in one step) or [replay_report()] (render from stored JSON).
+#'
 #' @param report A TFL_report object (output from `create_report()`)
 #' @param docFileName Character string. Name of the rendered document file that will be
 #'   created by the C++ renderer (e.g., "report.docx"). This value is stored in the

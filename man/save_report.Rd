@@ -55,6 +55,11 @@ Serializes a TFL_report object to JSON format along with associated data files
 processes each specification by its docType, and writes all outputs to disk.
 }
 \details{
+\strong{This function does NOT produce a DOCX.} It only writes the spec/data
+JSON artifacts (the \code{docFileName} / \code{outDir} values are metadata recorded
+for the renderer). Rendering to DOCX happens in \code{\link[=write_doc]{write_doc()}} (save +
+render in one step) or \code{\link[=replay_report]{replay_report()}} (render from stored JSON).
+
 The function performs the following steps:
 \enumerate{
 \item Validates input is a TFL_report object

@@ -20,7 +20,6 @@ A border specification object
 This function can only be used inside \code{\link{s_borders}}.
 }
 \examples{
-\dontrun{
 # Cell-level borders (inside s_table_style)
 spec <- create_text() |>
   add_style("my_style",
@@ -32,7 +31,7 @@ spec <- create_text() |>
   )
 
 # Paragraph-level borders (inside s_paragraph)
-spec <- create_table(mtcars) |>
+spec2 <- create_table(mtcars) |>
   add_style("para_underline",
     s_paragraph(
       borders = s_borders(
@@ -40,5 +39,4 @@ spec <- create_table(mtcars) |>
       )
     )
   )
-}
 }

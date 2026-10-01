@@ -45,26 +45,17 @@ Add a title to the specification. Multiple calls add multiple title groups.
 Calling with the same ID merges with last-win strategy.
 }
 \examples{
-\dontrun{
 # Basic multi-line title (no TOC)
-spec <- create_table(adsl) |>
-  add_title(c("Study ABC-123", "Table 1: Demographics")) |>
-  add_title("Full Analysis Set", styleRef = "subtitle_style")
+spec <- create_table(mtcars) |>
+  add_title(c("Study ABC-123", "Table 1: Demographics"))
 
-# Title marked for TOC at level 1 — renderer will emit a TC field on the first page
-spec <- create_table(adsl) |>
-  add_title("Table 1: Demographics", toclevel = 1)
+# Re-styling the same title group via its id (last-wins merge)
+spec <- spec |> add_title("Study ABC-123 (rev)", id = names(spec$titles)[1])
 
-# Full TOC workflow across a multi-spec report
-t1 <- create_table(adsl) |>
-  add_title("Table 1: Demographics", toclevel = 1) |>
-  set_document(hasData = TRUE)
-
-t2 <- create_table(advs) |>
-  add_title("Table 2: Vital Signs", toclevel = 1) |>
-  set_document(hasData = TRUE)
-
-report <- create_report(t1, t2)
+\dontrun{
+# Full TOC workflow: tag titles with toclevel, enable insertTOC at save
+t1 <- create_table(mtcars) |> add_title("Table 1: Demographics", toclevel = 1)
+report <- create_report(t1)
 save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
 # Open tables.docx in Word, click the TOC placeholder, press F9 to update.
 }

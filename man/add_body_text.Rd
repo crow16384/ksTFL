@@ -36,16 +36,20 @@ allowing different spec classes to implement their own body text handling.
 Multiple calls add multiple text groups. Calling with the same ID merges with last-win strategy.
 }
 \examples{
-\dontrun{
 # Text-only spec with body text
 spec <- create_text() |>
-  set_document(hasData = FALSE) |>
   add_body_text("No data available for the specified criteria.")
 
-# Table spec with body text as fallback when no data rows
-spec <- create_table(empty_df) |>
+# Table spec with body text as fallback when no data rows render
+empty_df <- mtcars[0, ]
+spec2 <- create_table(empty_df) |>
   set_document(hasData = FALSE) |>
   add_body_text("No adverse events were reported.",
                 styleRef = f_combine("b", "fc_red"))
-}
+
+# Multiple calls append groups; same id merges (last-wins)
+spec3 <- create_text() |>
+  add_body_text("First paragraph.", id = "p1") |>
+  add_body_text("Second paragraph.", id = "p2") |>
+  add_body_text("Revised first paragraph.", id = "p1")
 }

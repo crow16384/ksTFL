@@ -20,7 +20,6 @@ A spacing specification object
 This function can only be used inside \code{\link{s_paragraph}}.
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   add_style("my_style",
     s_paragraph(
@@ -28,5 +27,4 @@ spec <- create_text() |>
       spacing = s_spacing(before = "12pt", after = "6pt")
     )
   )
-}
 }

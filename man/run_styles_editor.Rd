@@ -21,7 +21,8 @@ then edited and downloaded as JSON for use with \code{\link[=set_page_style]{set
 \code{\link[=write_doc]{write_doc()}}.
 }
 \details{
-This function requires the \pkg{shiny} package to be installed.
+This function requires the \pkg{shiny}, \pkg{colourpicker}, and
+\pkg{sortable} packages to be installed.
 }
 \examples{
 \dontrun{

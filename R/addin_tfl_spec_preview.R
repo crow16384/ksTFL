@@ -177,13 +177,11 @@ tfl_spec_preview_prompt <- function() {
 #' @return Invisible `NULL`.
 #'
 #' @examples
-#' \dontrun{
-#' # Print the full catalog of built-in style atoms
+#' # Print the full catalog of built-in style atoms (console output, no return)
 #' tfl_print_style_atoms()
 #'
 #' # Same output via the alias
 #' tfl_style_atoms_catalog()
-#' }
 #'
 #' @export
 tfl_print_style_atoms <- function() {

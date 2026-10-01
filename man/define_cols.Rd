@@ -65,7 +65,8 @@ Use \code{NA} as a list element to skip updating \code{labelStyleRef} for that c
 \item{missings}{How to display missing values in columns (length 1 or length of cols;
 \code{NA} skips that position). Optional.}
 
-\item{colWidth}{Column width, e.g. "2in", "5cm", "20\%" (length 1 or length of cols;
+\item{colWidth}{Column width, e.g. "2in", "5cm", "20\%", "18mm", "30pt"
+(units: \%, in, cm, mm, pt; length 1 or length of cols;
 \code{NA} skips that position — the column's width is left unchanged). Optional.
 When at least one non-\code{NA} value is specified, affected columns are marked as LOCKED and
 automatic recalculation of remaining unlocked columns is triggered if \code{autoColWidth = TRUE}

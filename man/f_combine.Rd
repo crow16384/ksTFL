@@ -17,6 +17,9 @@ f_combine(...)
 Character vector with class "tfl_style_combine" containing all provided style names.
 This special class signals to style resolution functions that these styles should be
 applied together as a group (merged with last-win strategy during \code{create_report()}).
+The argument ORDER is semantic: for a property defined by several combined
+styles, the LAST argument wins — \code{f_combine("bold", "plain")} yields not-bold,
+\code{f_combine("plain", "bold")} yields bold.
 }
 \description{
 Helper function to group multiple style names together for explicit application
@@ -30,17 +33,13 @@ functions with multiple columns and you want to either:
 }
 }
 \examples{
-\dontrun{
-# Combine styles for recycling to all columns
-styles <- f_combine("label_style", "emphasis", "bold")
+# Combine built-in atoms for recycling to all selected columns
+spec <- create_table(mtcars) |>
+  define_cols(c(mpg, cyl), labelStyleRef = f_combine("b", "fc_navy"))
 
-# Use in define_cols for one-to-one mapping
-spec <- create_table(data) |>
-  define_cols(c("id", "age"),
-    labelStyleRef = c(
-      f_combine("id_label", "key"),
-      f_combine("numeric_label")
-    )
+# One-to-one mapping: a vector of f_combine() groups, one per column
+spec2 <- create_table(mtcars) |>
+  define_cols(c(mpg, cyl),
+    labelStyleRef = c(f_combine("b", "i"), f_combine("fc_red"))
   )
-}
 }

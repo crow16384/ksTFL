@@ -23,34 +23,35 @@ Declares adjacent columns to be merged in rows matching the parent
 \details{
 Must be called inside \code{compute_cols()}. Columns must be adjacent in the
 final report column order.
-}
-\examples{
-\dontrun{
-  spec <- create_table(mtcars) |>
-    add_style("group_header", s_table_style(background_color = "#D9D9D9"))
-
-  # Merge multiple columns for group header
-  spec <- compute_cols(spec, group == "A", 
-    c_merge(c(col1, col2, col3), styleRef = "group_header"))
-
-  # Merge without style
-  spec <- compute_cols(spec, group == "B", c_merge(c(disp, hp)))
-}
-
-}
-\seealso{
-\code{\link[=compute_cols]{compute_cols()}} for conditional row actions, \code{\link[=c_style]{c_style()}}, \code{\link[=c_addrow]{c_addrow()}} for other action types
 
 \strong{Validation:}
 \itemize{
 \item Immediate: columns exist and are consecutive (error if not)
-\item Deferred: overlapping merge ranges from multiple \code{compute_cols()} calls
-(warning if resolvable, error if ambiguous)
+\item Deferred: overlapping merge ranges within/across \code{compute_cols()}
+calls: a warning is issued and the FIRST-defined merge wins (later
+overlapping merges are dropped)
 }
 
 \strong{Behavior:}
 \itemize{
 \item Multiple merge actions in one row: all applied if non-overlapping
-\item Overlapping merges from different \code{compute_cols()} blocks: raises warning/error
+\item The merged cell keeps the LEADER (first) column's text; the other cells
+are suppressed. A later \code{c_glue()} targeting a non-leader merged cell is
+silently skipped — glue the leader column instead, or merge first via
+argument order (merge -> clear -> glue is the canonical rebuild idiom).
 }
+}
+\examples{
+  spec <- create_table(mtcars) |>
+    add_style("group_header", s_table_style(background_color = "#D9D9D9"))
+
+  # Merge two adjacent columns for four-cylinder rows
+  spec <- compute_cols(spec, cyl == 4, c_merge(c(mpg, cyl), styleRef = "group_header"))
+
+  # Merge without style
+  spec <- compute_cols(spec, cyl == 8, c_merge(c(wt, qsec)))
+
+}
+\seealso{
+\code{\link[=compute_cols]{compute_cols()}} for conditional row actions, \code{\link[=c_style]{c_style()}}, \code{\link[=c_addrow]{c_addrow()}} for other action types
 }

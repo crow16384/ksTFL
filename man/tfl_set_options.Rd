@@ -31,10 +31,12 @@ tfl_set_options(
 \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 }}
 
-\item{docTemplate}{Character; name of a predefined bundled template (e.g. \code{"Default"},
-\code{"Navy_Pro"}) or a file path to an external template JSON file. When \code{NULL} (default) the
-current session template is left unchanged. Use \code{tfl_reset_options()} to restore the
-built-in default (\code{"Default"}).}
+\item{docTemplate}{Character; name of a predefined bundled template (see
+\code{tfl_list_templates()}, e.g. \code{"Default"}, \code{"Navy_Pro"}) or a path to an
+external template JSON file. When \code{NULL} (default) the current session
+template is left unchanged. Use \code{tfl_reset_options()} to restore the
+built-in default (\code{"Default"}). Internally stored as the
+\code{doc_style_template} option (the name returned by \code{tfl_get_options()}).}
 
 \item{footnotePlace}{Character; controls where footnotes are rendered.
 One of \code{"doc_footer"} (place inside the Word footer, below footer rows),
@@ -55,11 +57,18 @@ Applied when \code{create_figure()} specs do not specify their own width.}
 \item{figureHeight}{Character; default height for figure output (e.g. \code{"4in"}, \code{"10cm"}).
 Applied when \code{create_figure()} specs do not specify their own height.}
 
-\item{figureDevice}{Character; graphics device used for figure rendering
-(e.g. \code{"png"}, \code{"pdf"}, \code{"svg"}). Default depends on system capabilities.}
+\item{figureDevice}{Character; graphics device used when a ggplot2 object is
+rendered by \code{create_figure()}. One of \code{"svg"}, \code{"png"}, \code{"jpeg"}/\code{"jpg"}
+(other values, e.g. \code{"pdf"}, are rejected). Default \code{"svg"}. Note: SVG
+export goes through the \pkg{svglite} package (ggplot2 requirement),
+which must be installed; \code{"png"} uses the grDevices built-in device.}
 
-\item{figureScaleMode}{Character; how figures are scaled into the page content area.
-Typically \code{"fit"} (scale to fit) or \code{"exact"} (use exact dimensions).}
+\item{figureScaleMode}{Character; how figures are scaled into the page
+content area. One of \code{"fixed"} (use figureWidth/figureHeight as given;
+a missing dimension is inferred from the default 6:4 ratio), \code{"fitWidth"}
+(stretch to the content-box width using the W/H-provided aspect ratio),
+or \code{"fitPage"} (largest size of the same aspect ratio that fits the
+remaining content area). Default \code{"fixed"}.}
 
 \item{autoColWidth}{Logical; enable automatic column width recalculation when user sets \code{colWidth} via \code{define_cols()}.
 Default TRUE. When TRUE, locked columns maintain exact width while unlocked columns normalize to fill remaining space.
@@ -98,52 +107,43 @@ The function tries to intelligently route each supplied object into the
 appropriate internal settings slot (headers, footers, styles, bodyText, page).
 }
 \examples{
-\dontrun{
-# Set a named option
+# (options are session-global; examples restore defaults at the end)
 tfl_set_options(contentWidth = "95\%", missings = ".")
+tfl_get_option("contentWidth")   # "95\%"
+tfl_get_option("missings")       # "."
 
-# Set a predefined bundled template
+# Bundled template by name (see tfl_list_templates()); an external template
+# path works the same way: docTemplate = "/path/to/my_template.json"
 tfl_set_options(docTemplate = "Navy_Pro")
 
-# Set an external template file
-tfl_set_options(docTemplate = "/path/to/my_template.json")
-
-# Update page style via helper
- tfl_set_options(
-   set_page_style(page= p_page(
-   size = "Letter",
-   orientation = "portrait",
-   margins = p_margins(top = "1in", bottom = "1in", left = "0.75in", right = "0.75in")
- )))
-
-# Add default header and footer via helpers
+# Update page style via the helper objects
 tfl_set_options(
-  add_header(c("Left Header", "Center Header", "Right Header")),
-  add_footer(c("Left Footer", "Center Footer", "Right Footer"))
+  set_page_style(page = p_page(
+    size = "Letter", orientation = "portrait",
+    margins = p_margins(top = "1in", bottom = "1in",
+                        left = "0.75in", right = "0.75in")))
 )
 
-# Add default body text via helper
+# Session-default header / footer / body text for every spec
 tfl_set_options(
+  add_header(c("Left Header", "Center Header", "Right Header")),
+  add_footer(c("Left Footer", "Center Footer", "Right Footer")),
   add_body_text("This is the default body text for all text specs.")
 )
 
-# Control automatic column width recalculation
-# Enable auto-recalculation (default):
+# Automatic column width recalculation (default TRUE): locking one
+# column re-normalizes the rest; FALSE keeps manually given widths.
 tfl_set_options(autoColWidth = TRUE)
-spec <- create_table(data) |>
-  define_cols("id", colWidth = "20\%")  # Locks id, others auto-adjust
+spec <- create_table(mtcars) |> define_cols(cyl, colWidth = "20\%")
 
-# Disable auto-recalculation for manual width management:
-tfl_set_options(autoColWidth = FALSE)
-spec <- create_table(data) |>
-  define_cols(c("id", "age"), colWidth = c("20\%", "30\%"))  # Exact widths, no auto-adjust
+tfl_reset_options()   # back to package defaults
 
-# Enable TOC page for all reports in the session
+# TOC workflow: enable for the session, then tag titles with toclevel
+\dontrun{
 tfl_set_options(insertTOC = TRUE, tocTitle = "List of Tables")
-# Then mark individual titles/subtitles with toclevel:
-spec <- create_table(adsl) |>
-  add_title("Table 1: Demographics", toclevel = 1)
-# save_report() will now prepend a TOC page automatically.
+spec <- create_table(mtcars) |> add_title("Table 1", toclevel = 1)
+write_doc(create_report(spec), "toc_demo", outDir = tempdir(),
+          metaPath = tempdir())
 # In Word: click the TOC placeholder and press F9 to populate it.
 }
 }

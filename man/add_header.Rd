@@ -29,14 +29,11 @@ allowing headers to be added to both spec objects and global options.
 Each call adds a new header row. Per schema, headers are arrays of arrays (each call = one row).
 }
 \examples{
-\dontrun{
-# Add to a spec object
+# Add to a spec object (one call = one header row)
 spec <- create_text() |>
   add_header("Study ABC-123", "CONFIDENTIAL", "Page {PAGE}") |>
   add_header("Protocol v2.0", "", paste("Date:", format(Sys.Date(), "\%Y-\%m-\%d")))
 
-# Add to global options
-options <- tfl_get_options()
-options <- add_header(options, "Study ABC-123", "CONFIDENTIAL", "Page {PAGE}")
-}
+# Replace an existing row by level instead of appending
+spec <- add_header(spec, "Rewritten first row", level = 1)
 }

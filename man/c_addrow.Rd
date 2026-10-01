@@ -9,11 +9,17 @@ c_addrow(pos, value_from = NULL, styleRef = NULL)
 \arguments{
 \item{pos}{Character. Position for insertion: "above" or "below".}
 
-\item{value_from}{Character or unquoted column name. Optional source column
-for the inserted row's content. If NULL or missing, creates an empty separator row.}
+\item{value_from}{Unquoted column name or quoted column name string. Optional
+source column for the inserted row's content (both \code{value_from = PARAM} and
+\code{value_from = "PARAM"} are accepted). The value is copied into the FIRST
+cell of the synthetic row, which spans the full table width. If NULL or
+missing, creates an empty separator row (a common styled divider idiom).}
 
 \item{styleRef}{Character vector or result of \code{f_combine()}. Optional style
-to apply to the inserted row. If NULL, no special styling.}
+to apply to the inserted row. If NULL, no special styling. The inserted
+row's cell is owned by this \code{styleRef}: later \code{c_style()} blocks do NOT
+repaint it (later \code{c_clear()}/\code{c_glue()} on the source column DO reach it —
+the synthetic row shares the source cell link).}
 }
 \value{
 Quosure structure (internal use within \code{compute_cols()})
@@ -28,31 +34,43 @@ Must be called inside \code{compute_cols()}.
 
 \strong{Behavior:}
 \itemize{
-\item Multiple \code{c_addrow()} calls in one \code{compute_cols()} accumulate
-\item Order of appearance is preserved
-\item Coexists with other actions on same row
-\item If \code{value_from} is provided, must exist in spec columns (data_env reference)
-\item If \code{value_from} is NULL or missing, creates an empty separator row
+\item Multiple \code{c_addrow()} calls accumulate; rows are inserted adjacent to the
+source row, pushing earlier inserts away. Consequence: two inserts in ONE
+call put the FIRST argument farthest from the source, while two inserts in
+SEPARATE piped calls put the LATER call closest to the source — stack
+order is fully controllable via call/argument order.
+\item Coexists with other actions on the same row.
+\item If \code{value_from} is provided, must resolve to exactly one spec column
+(multi-column selection is an error).
+\item If \code{value_from} is NULL or missing, creates an empty separator row.
+\item With \code{pos = "above"} + \code{value_from}, the section-header idiom
+(hide a label column, \code{firstOf()} + addrow) builds group headers.
 }
 
 \strong{Stackable Actions:}
-Actions within a single \code{compute_cols()} call execute \strong{sequentially in the order
-specified}. This means \code{c_addrow()} can see values modified by earlier \code{c_glue()}
-actions, allowing you to build compound cell values (e.g., "PARAM: VISIT") before
-using them in inserted rows. Multiple \code{c_glue()} and \code{c_addrow()} calls can be
-interleaved as needed.
+Actions within a single \code{compute_cols()} call execute \strong{sequentially in the
+order specified}: \code{c_addrow()} sees values modified by earlier \code{c_glue()}
+actions (the synthetic row copies the ALREADY-GLUED text), allowing
+compound cell values (e.g., "PARAM: VISIT") in inserted rows.
 }
 \examples{
-\dontrun{
-  compute_cols(spec, lastOf(treatment), c_addrow(pos = "below", value_from = "treatment"))
-  compute_cols(spec, firstOf(visit), c_addrow(pos = "above"))
-  
-  # Stackable: addrow sees glued value
-  compute_cols(spec, PARAM == "ALT",
+  lab <- data.frame(
+    PARAM = c("ALT", "ALT", "AST"), VISIT = c("W1", "W2", "W1"),
+    VAL = c(25, 28, 30), stringsAsFactors = FALSE)
+  spec <- create_table(lab) |>
+    add_style("grp", s_font(bold = TRUE))
+
+  # Empty separator row above each ALT run
+  spec <- compute_cols(spec, firstOf(PARAM), c_addrow(pos = "above"))
+
+  # Section-header row carrying the group value, styled
+  spec <- compute_cols(spec, firstOf(PARAM),
+    c_addrow(pos = "above", value_from = PARAM, styleRef = "grp"))
+
+  # Stackable: addrow sees the glued value
+  spec <- compute_cols(spec, PARAM == "AST",
     c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
-    c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
-  )
-}
+    c_addrow("above", value_from = PARAM))  # inserted row shows "AST: W1"
 
 }
 \seealso{

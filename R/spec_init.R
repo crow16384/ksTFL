@@ -487,13 +487,11 @@
 #' @return A `TFL_spec` object with `docType = "Text"`.
 #'
 #' @examples
-#' \dontrun{
 #' # Create a text-only spec and add narrative content
 #' spec <- create_text() |>
 #'   add_title("Listing of Adverse Events") |>
 #'   set_document(hasData = FALSE) |>
 #'   add_body_text("No adverse events were reported during the study.")
-#' }
 #'
 #' @seealso [create_table()], [create_figure()], [add_body_text()]
 #'
@@ -531,22 +529,20 @@ create_text <- function() {
 #'
 #' @export
 #' @examples
-#' \dontrun{
 #' ## Basic usage with the built-in `mtcars` dataset
 #' spec <- create_table(mtcars)
 #'
 #' ## Select specific columns using tidyselect
 #' spec <- create_table(mtcars, cols = c(cyl, mpg, hp))
-#' 
+#'
 #' ## or using ranges:
 #' spec <- create_table(mtcars, cyl:hp)
 #'
 #' ## or by excluding columns
 #' spec <- create_table(mtcars, cols = -c(gear, carb))
-#' 
+#'
 #' ## or simple by names
 #' spec <- create_table(mtcars, cols = c("cyl", "mpg", "hp"))
-#' }
 #'
 #' @seealso [create_text()], [create_figure()], [define_cols()],
 #'   [add_title()], [create_report()]
@@ -613,7 +609,9 @@ create_table <- function(data = NULL, cols = everything()) {
 #'
 #' Create and initialize a TFL specification for embedding a figure. Accepts
 #' either a **file path** to an existing image or a **ggplot2 object** that is
-#' rendered automatically to a temporary SVG file.
+#' rendered automatically to a temporary file (format chosen by the
+#' `figureDevice` option, default `"svg"` — SVG export requires the
+#' \pkg{svglite} package).
 #'
 #' @param plot_or_path One of:
 #'   \itemize{
@@ -622,7 +620,9 @@ create_table <- function(data = NULL, cols = everything()) {
 #'     \item A **ggplot2 object** (class `"gg"` or `"ggplot"`) — the plot is
 #'       rendered to a temporary file via `ggplot2::ggsave()`. Use `dpi` and
 #'       package options (`figureWidth`, `figureHeight`, `figureDevice`) to
-#'       control output dimensions and format.
+#'       control output dimensions and format. Rendered size is driven by
+#'       `figureWidth`/`figureHeight` (NOT by ggplot's own saved size): set
+#'       both or accept the 6x4in default.
 #'   }
 #' @param dpi Integer. Resolution (dots per inch) when `plot_or_path` is a
 #'   ggplot2 object. Ignored for file paths. Default: `300`.
@@ -636,38 +636,39 @@ create_table <- function(data = NULL, cols = everything()) {
 #'     `tempdir()`.
 #'   \item The temporary file path is stored in `spec$.metadata$filePath`.
 #'   \item `save_report()` copies the file (prefixed with `dataRef`) into
-#'     `metaPath`, where the C++ renderer reads it.
+#'     `metaPath`, where the C++ renderer reads it. Until then the asset
+#'     lives only in `tempdir()` — replay of a saved spec requires the meta
+#'     folder to be intact.
 #'   \item The temporary file persists for the duration of the R session.
 #' }
 #'
 #' The C++ renderer natively supports `.png`, `.jpeg`/`.jpg`, and `.svg`
-#' formats.
+#' formats. For MS Word fidelity prefer a cairo-rendered paths-only SVG or a
+#' PNG (see the figures vignette); svglite text-SVG is reflowed by Word.
 #'
 #' @export
 #' @examples
 #' \dontrun{
-#' ## From file path (existing behaviour)
-#' spec <- create_figure("inst/images/example.png")
+#' ## From an existing image file (write your own PNG first, e.g.:
+#' ##   png("plot.png", width = 640, height = 480); plot(1:10); dev.off())
+#' spec <- create_figure("plot.png")
 #'
 #' ## From a ggplot2 object
 #' library(ggplot2)
 #' p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
-#' spec <- create_figure(p)
-#'
-#' ## Control figure defaults via options
-#' tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "svg")
 #' spec <- create_figure(p, dpi = 150)
 #'
-#' ## Override per figure
-#' spec <- create_figure(p) |>
-#'   set_document(figureDevice = "jpeg", figureScaleMode = "fitWidth")
+#' ## Control figure defaults via options (both dims, or accept 6x4in default)
+#' tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "png")
+#' spec <- create_figure(p)
+#' tfl_reset_options()
 #'
 #' ## Full pipeline
 #' spec <- create_figure(p) |>
 #'   add_title("Weight vs MPG") |>
 #'   add_footnote("Source: Motor Trend, 1974.")
-#' report <- create_report(spec)
-#' write_doc(report, name = "fig01", outDir = "output", metaPath = tempdir())
+#' write_doc(create_report(spec), "fig01", outDir = tempdir(),
+#'           metaPath = tempdir(), verbose = FALSE)
 #' }
 #'
 #' @seealso [create_table()], [create_text()], [set_document()]

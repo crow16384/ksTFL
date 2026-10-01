@@ -20,7 +20,6 @@ A page specification object
 This function can only be used inside \code{\link{set_page_style}}.
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   set_page_style(
     docTemplate = "Default",
@@ -34,5 +33,4 @@ spec <- create_text() |>
       )
     )
   )
-}
 }

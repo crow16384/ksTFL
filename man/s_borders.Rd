@@ -23,7 +23,6 @@ This function can be used inside \code{\link{s_table_style}} (cell-level borders
 or \code{\link{s_paragraph}} (paragraph-level borders).
 }
 \examples{
-\dontrun{
 # Cell-level borders
 spec <- create_text() |>
   add_style("my_style",
@@ -36,7 +35,7 @@ spec <- create_text() |>
   )
 
 # Paragraph-level borders (border follows the text, not the cell edge)
-spec <- create_table(mtcars) |>
+spec2 <- create_table(mtcars) |>
   add_style("span_underline",
     s_paragraph(
       alignment = "center",
@@ -45,5 +44,4 @@ spec <- create_table(mtcars) |>
       )
     )
   )
-}
 }

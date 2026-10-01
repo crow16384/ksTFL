@@ -17,13 +17,11 @@ specifications. Text documents do not accept \code{data} and will have
 \code{docType = "Text"} set on the resulting spec.
 }
 \examples{
-\dontrun{
 # Create a text-only spec and add narrative content
 spec <- create_text() |>
   add_title("Listing of Adverse Events") |>
   set_document(hasData = FALSE) |>
   add_body_text("No adverse events were reported during the study.")
-}
 
 }
 \seealso{

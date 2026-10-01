@@ -19,9 +19,7 @@ environment. Modifying the returned object will not change package state;
 use \code{tfl_set_options()} to update settings for the current session.
 }
 \examples{
-\dontrun{
-# Inspect all current settings
+# Inspect all current settings (class "TFL_options")
 tfl_get_options()
-}
 
 }

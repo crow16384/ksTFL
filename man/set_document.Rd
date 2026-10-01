@@ -35,7 +35,8 @@ force a page break. The paginator is not adjusted — Word handles natural
 overflow when content exceeds the remaining page space. Works best for
 short content (figures, text, small tables). Default \code{FALSE}.}
 
-\item{contentWidth}{Width of content, e.g. \code{"100\%"}, \code{"25cm"}, \code{"10in"}.}
+\item{contentWidth}{Width of content, e.g. \code{"100\%"}, \code{"25cm"}, \code{"10in"},
+\code{"600pt"}, \code{"240mm"} (units: \%, in, cm, mm, pt).}
 
 \item{footnotePlace}{Character; controls where footnotes are rendered.
 One of \code{"doc_footer"} (place inside the Word footer, below footer rows),
@@ -64,12 +65,16 @@ e.g. \code{"6pt"}. Use \code{NULL} to disable. \code{"0pt"} is treated as no spa
 
 \item{figureHeight}{Figure height with units. Same syntax as \code{figureWidth}.}
 
-\item{figureDevice}{Character. Image format for ggplot2 rendering.
-One of \code{"svg"}, \code{"png"}, or \code{"jpeg"}.}
+\item{figureDevice}{Character. Image format used when \code{create_figure()}
+renders a ggplot2 object. One of \code{"svg"}, \code{"png"}, \code{"jpeg"}/\code{"jpg"}.
+(SVG export requires the \pkg{svglite} package.)}
 
 \item{figureScaleMode}{Character. How the figure is scaled in the DOCX.
-One of \code{"fixed"} (exact dimensions) or \code{"fitWidth"} (scale to page width,
-preserving aspect ratio).}
+One of \code{"fixed"} (exact \code{figureWidth} x \code{figureHeight}; a missing
+dimension is inferred from the 6:4 default ratio), \code{"fitWidth"} (figure
+box stretched to the page content width, aspect ratio taken from
+figureWidth/figureHeight — NOT from the source image), or \code{"fitPage"}
+(largest box of that same aspect ratio fitting the content area).}
 }
 \value{
 Updated spec object
@@ -81,31 +86,31 @@ Document type (\code{docType}) is set automatically by \code{create_table()},
 document order (\code{docOrder}) is assigned by \code{create_report()}.
 }
 \examples{
-\dontrun{
 # Table spec with data
 spec <- create_table(mtcars) |>
   set_document(hasData = TRUE)
 
 # Text spec for narrative-only output
-spec <- create_text() |>
+spec2 <- create_text() |>
   set_document(hasData = FALSE) |>
   add_body_text("No adverse events were reported.")
 
-# Figure spec with custom sizing
+# Footnotes placed on last page only
+spec3 <- create_table(mtcars) |>
+  set_document(footnotePlace = "last_page") |>
+  add_footnote("Source: Motor Trend, 1974.")
+
+# Bundled template by name (see tfl_list_templates())
+spec4 <- create_table(mtcars) |>
+  set_document(docTemplate = "Navy_Pro")
+
+\dontrun{
+# Figure spec with custom sizing (needs an existing image file)
 spec <- create_figure("plot.png") |>
   set_document(
     figureWidth  = "7in",
     figureHeight = "5in",
     figureScaleMode = "fitWidth"
   )
-
-# Footnotes placed on last page only
-spec <- create_table(mtcars) |>
-  set_document(hasData = TRUE, footnotePlace = "last_page") |>
-  add_footnote("Source: Motor Trend, 1974.")
-
-# Use a bundled template (see tfl_list_templates() for available names)
-spec <- create_table(mtcars) |>
-  set_document(hasData = TRUE, docTemplate = "Navy_Pro")
 }
 }

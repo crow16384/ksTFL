@@ -20,12 +20,10 @@ An indents specification object
 This function can only be used inside \code{\link{s_paragraph}}.
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   add_style("my_style",
     s_paragraph(
       indents = s_indents(left = "10mm", first_line = "-5mm")
     )
   )
-}
 }

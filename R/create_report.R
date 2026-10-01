@@ -373,18 +373,21 @@
 #'   Result has class `TFL_report`.
 #' @export
 #' @examples
-#' \dontrun{
 #' spec1 <- create_table(mtcars)
 #' spec2 <- create_text()
 #' final_report <- create_report(spec1, spec2)
 #'
-#' # Combining with a previous report
-#' spec3 <- create_figure("path/to/image.png")
-#' combined <- create_report(final_report, spec3)
+#' # Combining with a previous report (input spec keys are preserved)
+#' combined <- create_report(final_report, create_text())
 #'
-#' # Passing a named list of specs
+#' # Passing a named list of specs: slot names become the key basis
 #' out <- list(t1 = spec1, t2 = spec2)
-#' report_from_list <- create_report(out)
+#' names(create_report(out))
+#'
+#' \dontrun{
+#' # Figures need an existing image file:
+#' spec3 <- create_figure("path/to/image.png")
+#' create_report(final_report, spec3)
 #' }
 create_report <- function(...) {
   # Capture all arguments and their names

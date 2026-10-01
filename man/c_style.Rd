@@ -26,9 +26,25 @@ in rows matching the parent \code{compute_cols()} condition.
 \details{
 Must be called inside \code{compute_cols()}. Columns are resolved using
 tidyselect syntax against the table data.
+
+\strong{Behavior:}
+\itemize{
+\item Same column styled multiple times in one row: last style wins, warning issued
+\item Same column styled from different \code{compute_cols()} calls on same row:
+non-conflicting properties COMBINE (e.g. bold then italic yields
+bold-italic); on a conflicting property the later block wins
+(automatic style combination consolidated via \code{create_report()}).
+\item Multiple columns in one call: all receive the same style(s)
+}
+
+\strong{Style Combination:}
+\itemize{
+\item Use \code{f_combine("style1", "style2")} to apply multiple styles together
+\item During \code{create_report()}, combined styles are consolidated into a single hash
+\item Consolidation only happens for new specs (not pre-processed reports)
+}
 }
 \examples{
-\dontrun{
   spec <- create_table(mtcars) |>
     add_style("bold", s_font(bold = TRUE)) |>
     add_style("red", s_font(color = "red"))
@@ -39,26 +55,10 @@ tidyselect syntax against the table data.
   # Single style on multiple columns
   spec <- compute_cols(spec, hp > 100, c_style(c(mpg, wt), styleRef = "red"))
 
-  # Combined styles on columns
+  # Combined styles on columns (last argument wins per property)
   spec <- compute_cols(spec, cyl == 8, c_style(mpg, styleRef = f_combine("bold", "red")))
-}
 
 }
 \seealso{
 \code{\link[=compute_cols]{compute_cols()}} for conditional row actions, \code{\link[=c_merge]{c_merge()}}, \code{\link[=c_addrow]{c_addrow()}} for other action types
-
-\strong{Behavior:}
-\itemize{
-\item Same column styled multiple times in one row: last style wins, warning issued
-\item Same column styled from different \code{compute_cols()} calls on same row:
-automatic style combination (merged via \code{create_report()})
-\item Multiple columns in one call: all receive the same style(s)
-}
-
-\strong{Style Combination:}
-\itemize{
-\item Use \code{f_combine("style1", "style2")} to apply multiple styles together
-\item During \code{create_report()}, combined styles are consolidated into a single hash
-\item Consolidation only happens for new specs (not pre-processed reports)
-}
 }

@@ -62,10 +62,8 @@
 #' @return A named list representing the current ksTFL options.
 #'
 #' @examples
-#' \dontrun{
-#' # Inspect all current settings
+#' # Inspect all current settings (class "TFL_options")
 #' tfl_get_options()
-#' }
 #'
 #' @export
 tfl_get_options <- function() {
@@ -87,14 +85,15 @@ tfl_get_options <- function() {
 #' @return The value associated with `name` (type depends on the option).
 #'
 #' @examples
-#' \dontrun{
-#' # Get the current page settings
+#' # Get the current page settings (NULL until set via set_page_style/options)
 #' tfl_get_option("page")
 #'
 #' # Check whether TOC generation is enabled
 #' tfl_get_option("insertTOC")
 #' tfl_get_option("tocTitle")
-#' }
+#'
+#' # An unknown option name errors with a friendly message
+#' \dontrun{ tfl_get_option("nonexistent_option") }
 #'
 #' @export
 tfl_get_option <- function(name) {
@@ -126,10 +125,12 @@ tfl_get_option <- function(name) {
 #'   \item Settings objects produced by helper constructors such as `add_header()`, `add_footer()`, `add_style()`, `add_body_text()`, and `set_page_style(`p_page(`p_margins()`)`)`.
 #'   \item A mixture of both named values and settings objects is accepted; the function routes each into the appropriate internal slot.
 #' }
-#' @param docTemplate Character; name of a predefined bundled template (e.g. `"Default"`,
-#'   `"Navy_Pro"`) or a file path to an external template JSON file. When `NULL` (default) the
-#'   current session template is left unchanged. Use `tfl_reset_options()` to restore the
-#'   built-in default (`"Default"`).
+#' @param docTemplate Character; name of a predefined bundled template (see
+#'   `tfl_list_templates()`, e.g. `"Default"`, `"Navy_Pro"`) or a path to an
+#'   external template JSON file. When `NULL` (default) the current session
+#'   template is left unchanged. Use `tfl_reset_options()` to restore the
+#'   built-in default (`"Default"`). Internally stored as the
+#'   `doc_style_template` option (the name returned by `tfl_get_options()`).
 #' @param footnotePlace Character; controls where footnotes are rendered.
 #'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
 #'   `"repeated"` (place under the table on every page),
@@ -148,10 +149,17 @@ tfl_get_option <- function(name) {
 #'   Applied when `create_figure()` specs do not specify their own width.
 #' @param figureHeight Character; default height for figure output (e.g. `"4in"`, `"10cm"`).
 #'   Applied when `create_figure()` specs do not specify their own height.
-#' @param figureDevice Character; graphics device used for figure rendering
-#'   (e.g. `"png"`, `"pdf"`, `"svg"`). Default depends on system capabilities.
-#' @param figureScaleMode Character; how figures are scaled into the page content area.
-#'   Typically `"fit"` (scale to fit) or `"exact"` (use exact dimensions).
+#' @param figureDevice Character; graphics device used when a ggplot2 object is
+#'   rendered by `create_figure()`. One of `"svg"`, `"png"`, `"jpeg"`/`"jpg"`
+#'   (other values, e.g. `"pdf"`, are rejected). Default `"svg"`. Note: SVG
+#'   export goes through the \pkg{svglite} package (ggplot2 requirement),
+#'   which must be installed; `"png"` uses the grDevices built-in device.
+#' @param figureScaleMode Character; how figures are scaled into the page
+#'   content area. One of `"fixed"` (use figureWidth/figureHeight as given;
+#'   a missing dimension is inferred from the default 6:4 ratio), `"fitWidth"`
+#'   (stretch to the content-box width using the W/H-provided aspect ratio),
+#'   or `"fitPage"` (largest size of the same aspect ratio that fits the
+#'   remaining content area). Default `"fixed"`.
 #' @param insertTOC Logical; when `TRUE` the renderer prepends a Table of Contents
 #'   page (using a `{ TOC \f \h \z }` field) before the first spec. Requires at least
 #'   one `add_title()` or `add_subtitle()` call with `toclevel` set. Default `FALSE`.
@@ -166,52 +174,43 @@ tfl_get_option <- function(name) {
 #' @return The updated settings list, returned invisibly. Use `tfl_get_options()` to inspect.
 #'
 #' @examples
-#' \dontrun{
-#' # Set a named option
+#' # (options are session-global; examples restore defaults at the end)
 #' tfl_set_options(contentWidth = "95%", missings = ".")
+#' tfl_get_option("contentWidth")   # "95%"
+#' tfl_get_option("missings")       # "."
 #'
-#' # Set a predefined bundled template
+#' # Bundled template by name (see tfl_list_templates()); an external template
+#' # path works the same way: docTemplate = "/path/to/my_template.json"
 #' tfl_set_options(docTemplate = "Navy_Pro")
 #'
-#' # Set an external template file
-#' tfl_set_options(docTemplate = "/path/to/my_template.json")
+#' # Update page style via the helper objects
+#' tfl_set_options(
+#'   set_page_style(page = p_page(
+#'     size = "Letter", orientation = "portrait",
+#'     margins = p_margins(top = "1in", bottom = "1in",
+#'                         left = "0.75in", right = "0.75in")))
+#' )
 #'
-#' # Update page style via helper
-#'  tfl_set_options(
-#'    set_page_style(page= p_page(
-#'    size = "Letter",
-#'    orientation = "portrait",
-#'    margins = p_margins(top = "1in", bottom = "1in", left = "0.75in", right = "0.75in")
-#'  )))
-#' 
-#' # Add default header and footer via helpers
+#' # Session-default header / footer / body text for every spec
 #' tfl_set_options(
 #'   add_header(c("Left Header", "Center Header", "Right Header")),
-#'   add_footer(c("Left Footer", "Center Footer", "Right Footer"))
-#' )
-#' 
-#' # Add default body text via helper
-#' tfl_set_options(
+#'   add_footer(c("Left Footer", "Center Footer", "Right Footer")),
 #'   add_body_text("This is the default body text for all text specs.")
 #' )
-#' 
-#' # Control automatic column width recalculation
-#' # Enable auto-recalculation (default):
+#'
+#' # Automatic column width recalculation (default TRUE): locking one
+#' # column re-normalizes the rest; FALSE keeps manually given widths.
 #' tfl_set_options(autoColWidth = TRUE)
-#' spec <- create_table(data) |>
-#'   define_cols("id", colWidth = "20%")  # Locks id, others auto-adjust
+#' spec <- create_table(mtcars) |> define_cols(cyl, colWidth = "20%")
 #'
-#' # Disable auto-recalculation for manual width management:
-#' tfl_set_options(autoColWidth = FALSE)
-#' spec <- create_table(data) |>
-#'   define_cols(c("id", "age"), colWidth = c("20%", "30%"))  # Exact widths, no auto-adjust
+#' tfl_reset_options()   # back to package defaults
 #'
-#' # Enable TOC page for all reports in the session
+#' # TOC workflow: enable for the session, then tag titles with toclevel
+#' \dontrun{
 #' tfl_set_options(insertTOC = TRUE, tocTitle = "List of Tables")
-#' # Then mark individual titles/subtitles with toclevel:
-#' spec <- create_table(adsl) |>
-#'   add_title("Table 1: Demographics", toclevel = 1)
-#' # save_report() will now prepend a TOC page automatically.
+#' spec <- create_table(mtcars) |> add_title("Table 1", toclevel = 1)
+#' write_doc(create_report(spec), "toc_demo", outDir = tempdir(),
+#'           metaPath = tempdir())
 #' # In Word: click the TOC placeholder and press F9 to populate it.
 #' }
 #' @export
@@ -410,7 +409,6 @@ tfl_set_options <- function(..., docTemplate = NULL,
 #' @seealso [tfl_set_options()], [tfl_get_options()], [tfl_get_option()]
 #' @export
 #' @examples
-#' \dontrun{
 #' # Set some session defaults
 #' tfl_set_options(
 #'   add_header("Study ABC", "Phase II", "CONFIDENTIAL"),
@@ -422,7 +420,6 @@ tfl_set_options <- function(..., docTemplate = NULL,
 #' # Reset everything back to package defaults
 #' tfl_reset_options()
 #' tfl_get_options()  # Confirm reset
-#' }
 tfl_reset_options <- function() {
   .options_env$settings <- .options_env$defaults
   invisible(.options_env$settings)
@@ -439,9 +436,7 @@ tfl_reset_options <- function() {
 #'   sorted alphabetically.
 #'
 #' @examples
-#' \dontrun{
 #' tfl_list_templates()
-#' }
 #'
 #' @export
 tfl_list_templates <- function() {

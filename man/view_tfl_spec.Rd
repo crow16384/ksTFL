@@ -18,3 +18,15 @@ missing).
 Renders a comprehensive HTML overview of a TFL specification and displays it
 in the RStudio Viewer pane. Requires RStudio and the \pkg{htmltools} package.
 }
+\examples{
+\dontrun{
+# Inside RStudio: opens the HTML spec overview in the Viewer pane
+spec <- create_table(mtcars) |> add_title("Table 1")
+view_tfl_spec(spec)
+}
+
+}
+\seealso{
+\code{\link[=create_table]{create_table()}}, \code{\link[=tfl_spec_preview_selection]{tfl_spec_preview_selection()}} (RStudio addin
+wrapping this preview for the selected object)
+}

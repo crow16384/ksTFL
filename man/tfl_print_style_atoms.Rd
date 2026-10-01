@@ -18,12 +18,10 @@ and prints a coloured, grouped summary using \pkg{cli}.
 \code{tfl_style_atoms_catalog()} is a convenience alias for \code{tfl_print_style_atoms()}.
 }
 \examples{
-\dontrun{
-# Print the full catalog of built-in style atoms
+# Print the full catalog of built-in style atoms (console output, no return)
 tfl_print_style_atoms()
 
 # Same output via the alias
 tfl_style_atoms_catalog()
-}
 
 }

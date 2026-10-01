@@ -16,8 +16,6 @@ Returns the names of all template JSON files bundled with the package in
 \code{set_page_style(docTemplate = ...)} or \code{tfl_set_options(docTemplate = ...)}.
 }
 \examples{
-\dontrun{
 tfl_list_templates()
-}
 
 }

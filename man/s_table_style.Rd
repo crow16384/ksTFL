@@ -36,7 +36,6 @@ A table style specification object
 This function can only be used inside \code{\link{add_style}}.
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   add_style("header_style",
     s_table_style(
@@ -47,7 +46,6 @@ spec <- create_text() |>
       )
     )
   )
-}
 }
 \seealso{
 \code{\link[=add_style]{add_style()}} for applying styles, \code{\link[=s_borders]{s_borders()}}, \code{\link[=s_border]{s_border()}} for border components,

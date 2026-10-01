@@ -33,7 +33,6 @@ A margins specification object
 This function can only be used inside \code{\link{p_page}}.
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   set_page_style(
     page = p_page(
@@ -46,5 +45,4 @@ spec <- create_text() |>
       )
     )
   )
-}
 }

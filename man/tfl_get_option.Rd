@@ -22,13 +22,14 @@ convenience wrapper around \code{tfl_get_options()} that returns one element or
 throws a friendly error if the option does not exist.
 }
 \examples{
-\dontrun{
-# Get the current page settings
+# Get the current page settings (NULL until set via set_page_style/options)
 tfl_get_option("page")
 
 # Check whether TOC generation is enabled
 tfl_get_option("insertTOC")
 tfl_get_option("tocTitle")
-}
+
+# An unknown option name errors with a friendly message
+\dontrun{ tfl_get_option("nonexistent_option") }
 
 }

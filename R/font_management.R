@@ -31,10 +31,10 @@
 #' @seealso [tfl_font_status()] to print the cached report without rescanning.
 #'
 #' @examples
-#' \dontrun{
-#' # Rescan after installing new fonts
+#' # Rescan after installing new fonts (prints the resolution summary)
 #' tfl_rescan_fonts()
 #'
+#' \dontrun{
 #' # Point to a custom font directory, then rescan
 #' options(ksTFL.font_dirs = c("/usr/share/fonts/custom"))
 #' tfl_rescan_fonts()
@@ -60,10 +60,8 @@ tfl_rescan_fonts <- function() {
 #' @seealso [tfl_rescan_fonts()] to re-run the scan.
 #'
 #' @examples
-#' \dontrun{
 #' # Check which fonts are resolved and which use fallbacks
 #' tfl_font_status()
-#' }
 #'
 #' @export
 tfl_font_status <- function() {

@@ -24,27 +24,31 @@ Must be called inside \code{compute_cols()}.
 
 \strong{Behavior:}
 \itemize{
-\item Sets the rendered cell text to \code{""} for matching rows.
-\item Processed before \code{c_merge()} and \code{c_glue()} in the rendering chain,
-so the cleared state participates in subsequent actions. In particular:
-combining \code{c_clear()} + \code{c_glue()} on the same column effectively
-\emph{replaces} the original cell content with the glued value.
+\item Sets the RENDERED cell text to \code{""} for matching rows. The clear is
+display-only: conditions in \code{compute_cols()} keep seeing the RAW data
+values, and the column still participates in width/format resolution.
+\item Actions execute in ARRIVAL order (argument order within the call,
+then pipe order across calls) — clear is not automatically "first".
+Placing \code{c_clear()} before \code{c_glue()} on the same column turns the pair
+into a full REPLACEMENT (glue lands on the emptied cell); placing
+\code{c_glue()} before \code{c_clear()} wipes the cell afterwards.
 \item Compatible with \code{c_style()}: styling is independent of text content.
-\item When \code{c_merge()} targets a cleared leader cell, the merged span
+\item When \code{c_merge()} spans a cleared leader cell, the merged span
 renders as a blank merged cell.
 }
 }
 \examples{
-\dontrun{
-  # Blank label column in total rows
-  spec <- compute_cols(spec, is_total,
-    c_clear(label))
+  spec <- create_table(mtcars)
 
-  # Clear then replace with a value from another column (full replacement)
-  spec <- compute_cols(spec, condition,
-    c_clear(display_col),
-    c_glue(display_col, "after", glue_col = replacement_col))
-}
+  # Blank the disp column for four-cylinder rows
+  spec <- compute_cols(spec, cyl == 4, c_clear(disp))
+
+  # Clear then re-fill from another column (full replacement:
+  # canonical merge -> clear -> glue ordering inside ONE call)
+  spec2 <- create_table(mtcars) |>
+    compute_cols(hp == 62,
+      c_clear(carb),
+      c_glue(carb, "after", text = "-"))
 
 }
 \seealso{

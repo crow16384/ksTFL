@@ -37,7 +37,6 @@ Available modifiers inside this function:
 }
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   add_style(id = "header",
     s_font(font_name = "Arial", font_size = "14pt", bold = TRUE),
@@ -48,5 +47,4 @@ spec <- create_text() |>
   add_style(id = "header",
     s_font(color = "#FF0000")  # Adds color, keeps other font properties
   )
-}
 }

@@ -29,13 +29,17 @@ written. Defaults to \code{tfl_get_option("output_directory")}.}
 
 \item{metaPath}{Character(1). Directory where the intermediate specification
 JSON and associated data/figure files will be stored. Defaults to
-\code{tfl_get_option("meta_directory")}.}
+\code{tfl_get_option("meta_directory")}; when that option is unset, \code{tempdir()}
+is used as fallback — note that a tempdir-based meta folder disappears
+with the session, so \code{replay_report()} later needs a persistent
+\code{metaPath}.}
 
 \item{prettify}{Logical. When \code{TRUE}, pretty‑prints the JSON written by
 \code{\link[=save_report]{save_report()}} for easier inspection. Default \code{FALSE} (compact JSON).}
 
 \item{toc}{Logical. When \code{TRUE}, enables automatic insertion of a Table of
-Contents page via \code{\link[=save_report]{save_report()}}. Defaults to
+Contents page via \code{\link[=save_report]{save_report()}} (named \code{toc} here, \code{insertTOC} in
+\code{\link[=save_report]{save_report()}} / \code{\link[=tfl_set_options]{tfl_set_options()}}). Defaults to
 \code{tfl_get_option("insertTOC")}.}
 
 \item{tocTitle}{Character(1). Heading placed above the TOC field on the TOC
@@ -74,42 +78,25 @@ This mirrors the helper used in the example \code{inst/examples/init.R} script
 documented API function named \code{write_doc()}.
 }
 \examples{
-\dontrun{
-# Basic end-to-end workflow ----------------------------------------------
-library(ksTFL)
+\dontshow{old_opts <- tfl_get_options(); on.exit(tfl_set_options(old_opts))}
+# Basic end-to-end workflow (writes to tempdirs so it is self-contained) --
+out <- file.path(tempdir(), "kstfl_out")
+meta <- file.path(tempdir(), "kstfl_meta")
+dir.create(out, showWarnings = FALSE); dir.create(meta, showWarnings = FALSE)
 
-# Create a simple table spec
 tbl <- create_table(mtcars) |>
-  add_title("Table 1: Motor Trend Car Road Tests") |>
-  set_document(hasData = TRUE)
+  add_title("Table 1: Motor Trend Car Road Tests")
 
-# Combine into a report
-rpt <- create_report(tbl)
+doc_path <- write_doc(create_report(tbl), name = "mtcars_demo",
+                      outDir = out, metaPath = meta, verbose = FALSE)
+doc_path   # full path of the generated .docx
 
-# Write DOCX to the default output directory (getwd() by default)
-doc_path <- write_doc(
-  report = rpt,
-  name   = "mtcars_demo"
-)
-
-cat("DOCX written to:", doc_path, "\n")
-
-# Custom output and meta directories, with TOC ---------------------------
-tfl_set_options(
-  output_directory = "output",
-  insertTOC = TRUE,
-  tocTitle  = "List of Tables"
-)
-
-rpt2 <- create_report(tbl)
-write_doc(
-  report   = rpt2,
-  name     = "mtcars_with_toc",
-  outDir   = "output",
-  metaPath = file.path(tempdir(), "ksTFL_meta"),
-  prettify = TRUE,
-  toc      = TRUE
-)
+\dontrun{
+# Session defaults instead of per-call arguments --------------------------
+tfl_set_options(output_directory = "output", insertTOC = TRUE,
+                tocTitle = "List of Tables")
+write_doc(create_report(tbl), name = "mtcars_with_toc",
+          metaPath = file.path(tempdir(), "ksTFL_meta"), prettify = TRUE)
 }
 }
 \seealso{

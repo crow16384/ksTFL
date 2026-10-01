@@ -13,12 +13,18 @@ compute_cols(spec, cond, ...)
 Can reference:
 \itemize{
 \item Data columns directly (e.g., \code{col1 > 10}, \code{Parameter == "Pulse"})
-\item Helper functions (e.g., \code{firstOf()}, \code{lastOf()}, \code{uniqueOf()})
+\item Condition helpers evaluated over the data: \code{firstOf()}, \code{lastOf()},
+\code{firstRow()}, \code{lastRow()}, \code{rowNumber()}, \code{everyNth()}, \code{firstOfBlock()}
+(see Details)
 }
-Must return a logical vector of length equal to \code{nrow(data)}.}
+Must return a logical vector of length equal to \code{nrow(data)}, or a single
+\code{TRUE}/\code{FALSE} scalar (applies the actions to all rows / no rows).}
 
-\item{...}{Action function calls: \code{c_style()}, \code{c_merge()}, \code{c_addrow()}, \code{c_glue()}, \code{c_clear()}.
-Multiple actions allowed, including duplicates. Actions are captured unevaluated.}
+\item{...}{Action function calls: \code{c_style()}, \code{c_merge()}, \code{c_addrow()},
+\code{c_glue()}, \code{c_clear()}, \code{c_pageBreak()}.
+Multiple actions allowed, including duplicates. Actions are captured
+unevaluated and execute in arrival order: argument order within one
+\code{compute_cols()} call, then call order across piped calls.}
 }
 \value{
 Modified \code{spec} object with appended action metadata in \code{spec$.metadata$compute_cols}.
@@ -31,6 +37,21 @@ and evaluated later during \code{create_report()}. Supports complex conditions u
 data columns and helper functions.
 }
 \details{
+\strong{Condition helpers} (available only inside \code{cond}; they operate on the
+raw data frame):
+\itemize{
+\item \code{firstOf(col)} / \code{lastOf(col)}: \code{TRUE} at the first/last row of each
+RUN of equal values (run-length semantics). The input must be sorted so
+that each logical group is contiguous, otherwise a value that
+re-appears later counts as a new run. Multiple columns
+(\code{firstOf(col1, col2)}) test combined run boundaries.
+\item \code{firstRow()} / \code{lastRow()}: single-row markers at absolute positions.
+\item \code{rowNumber()}: integer row index, usable in arbitrary expressions.
+\item \code{everyNth(n)}: \code{TRUE} every n-th row starting from row 1.
+\item \code{firstOfBlock(col, n = 1, offset = 0)}: \code{TRUE} on the first row of
+every n-th run-block of \code{col} (after the first block).
+}
+
 \strong{Execution Timeline:}
 \enumerate{
 \item \code{compute_cols()} captures condition and actions (no evaluation)
@@ -59,27 +80,32 @@ data columns and helper functions.
 }
 }
 \examples{
-\dontrun{
   spec <- create_table(mtcars)
   spec <- add_style(spec, id = "bold", s_font(bold = TRUE))
   spec <- add_style(spec, id = "red", s_font(color = "red"))
-  spec <- add_style(spec, id = "highlight", s_table_style(background_color = "yellow"))
+  spec <- add_style(spec, id = "highlight", s_table_style(background_color = "#FFFF00"))
 
-  # Style columns in rows where cyl is first occurrence
+  # Style columns in rows where cyl starts a new run (sorted input!)
   spec <- compute_cols(spec, firstOf(cyl), c_style(c(mpg, hp), styleRef = "bold"))
 
   # Style and merge columns in rows with high hp
-  spec <- compute_cols(spec, hp > 200, 
+  spec <- compute_cols(spec, hp > 200,
     c_style(hp, styleRef = "red"),
     c_merge(c(wt, qsec), styleRef = "highlight")
   )
 
-  # Add empty separator row above first occurrence
+  # Empty separator row above each new cyl run
   spec <- compute_cols(spec, firstOf(cyl), c_addrow(pos = "above"))
 
-  # Add row with content from a column
-  spec <- compute_cols(spec, lastOf(cyl), c_addrow(pos = "below", value_from = "mpg"))
-}
+  # Row with content copied from a column (bare symbol or quoted name)
+  spec <- compute_cols(spec, lastOf(cyl), c_addrow(pos = "below", value_from = mpg))
+
+  # Page break before each new cyl run; scalar condition = all rows
+  spec <- compute_cols(spec, firstOf(cyl), c_pageBreak())
+  spec <- compute_cols(spec, TRUE, c_style(disp, "red"))
+
+  # Actions execute in arrival order (here: wt is cleared, then re-filled)
+  spec <- compute_cols(spec, gear == 4, c_clear(wt), c_glue(wt, "after", text = "t"))
 
 }
 \seealso{

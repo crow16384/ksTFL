@@ -350,7 +350,11 @@ list_reports <- function(meta_dir = tfl_get_option("meta_directory"),
 #'
 #' @param spec_json Character string or character vector. Either:
 #'   \itemize{
-#'     \item A full path to a spec JSON file, or
+#'     \item A full path (or bare name resolved via \code{meta_dir}) to a
+#'       \strong{spec} JSON file — the hash-named file containing a
+#'       \code{_metadata} key. Passing a data/figure asset JSON (the
+#'       \code{NNNN_hash.json} files) instead is rejected with
+#'       "does not appear to be a spec JSON",
 #'     \item A \code{doc_file} name (e.g. \code{"test_01.docx"}) - the most
 #'       recent spec for that document is used.
 #'   }

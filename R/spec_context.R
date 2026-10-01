@@ -896,9 +896,10 @@ assign("stack", character(0), envir = .context_marker_env)
 #' 
 #' This function can only be used inside \code{\link{add_style}}.
 #' 
-#' @param font_name Font family name. One of: "Arial", "Courier New", 
-#'   "Times New Roman", "Georgia", "Verdana", "Trebuchet MS",
-#'   "Liberation Sans"
+#' @param font_name Font family name. One of: "Arial", "Courier New",
+#'   "Times New Roman", "Georgia", "Verdana", "Trebuchet MS", "Liberation Sans"
+#'   (the set the C++ renderer resolves; missing faces fall back per
+#'   `tfl_font_status()`).
 #' @param font_size Font size with units, e.g. "12pt"
 #' @param bold Logical, whether text is bold
 #' @param italic Logical, whether text is italic
@@ -913,12 +914,10 @@ assign("stack", character(0), envir = .context_marker_env)
 #' @seealso [add_style()] for applying styles, [s_paragraph()], [s_table_style()] for other style components
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_font(font_name = "Arial", font_size = "12pt", bold = TRUE)
 #'   )
-#' }
 s_font <- function(font_name = NULL, font_size = NULL, bold = NULL, 
                    italic = NULL, underline = NULL, strikethrough = NULL,
                    color = NULL, highlight = NULL) {
@@ -950,7 +949,6 @@ s_font <- function(font_name = NULL, font_size = NULL, bold = NULL,
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_paragraph(
@@ -958,7 +956,6 @@ s_font <- function(font_name = NULL, font_size = NULL, bold = NULL,
 #'       spacing = s_spacing(before = "12pt", after = "6pt")
 #'     )
 #'   )
-#' }
 s_spacing <- function(before = NULL, after = NULL, line_spacing = NULL) {
   .assert_context(c("s_paragraph"), "s_spacing")
   
@@ -978,14 +975,12 @@ s_spacing <- function(before = NULL, after = NULL, line_spacing = NULL) {
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_paragraph(
 #'       indents = s_indents(left = "10mm", first_line = "-5mm")
 #'     )
 #'   )
-#' }
 s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
   .assert_context(c("s_paragraph"), "s_indents")
   
@@ -1011,7 +1006,6 @@ s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
 #'   [s_font()], [s_table_style()] for other style components
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   add_style("my_style",
 #'     s_paragraph(
@@ -1022,7 +1016,7 @@ s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
 #'   )
 #'
 #' # Paragraph with a bottom border (applied to the text, not the cell)
-#' spec <- create_table(mtcars) |>
+#' spec2 <- create_table(mtcars) |>
 #'   add_style("para_border",
 #'     s_paragraph(
 #'       alignment = "center",
@@ -1031,7 +1025,6 @@ s_indents <- function(left = NULL, right = NULL, first_line = NULL) {
 #'       )
 #'     )
 #'   )
-#' }
 s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL, 
                         word_style = NULL, borders = NULL) {
   .assert_context(c("add_style"), "s_paragraph")
@@ -1078,7 +1071,6 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' # Cell-level borders (inside s_table_style)
 #' spec <- create_text() |>
 #'   add_style("my_style",
@@ -1090,7 +1082,7 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
 #'   )
 #'
 #' # Paragraph-level borders (inside s_paragraph)
-#' spec <- create_table(mtcars) |>
+#' spec2 <- create_table(mtcars) |>
 #'   add_style("para_underline",
 #'     s_paragraph(
 #'       borders = s_borders(
@@ -1098,7 +1090,6 @@ s_paragraph <- function(alignment = NULL, spacing = NULL, indents = NULL,
 #'       )
 #'     )
 #'   )
-#' }
 s_border <- function(color = NULL, width = NULL, line_style = NULL) {
   .assert_context(c("s_borders"), "s_border")
   
@@ -1121,7 +1112,6 @@ s_border <- function(color = NULL, width = NULL, line_style = NULL) {
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' # Cell-level borders
 #' spec <- create_text() |>
 #'   add_style("my_style",
@@ -1134,7 +1124,7 @@ s_border <- function(color = NULL, width = NULL, line_style = NULL) {
 #'   )
 #'
 #' # Paragraph-level borders (border follows the text, not the cell edge)
-#' spec <- create_table(mtcars) |>
+#' spec2 <- create_table(mtcars) |>
 #'   add_style("span_underline",
 #'     s_paragraph(
 #'       alignment = "center",
@@ -1143,7 +1133,6 @@ s_border <- function(color = NULL, width = NULL, line_style = NULL) {
 #'       )
 #'     )
 #'   )
-#' }
 s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
   .assert_context(c("s_table_style", "s_paragraph"), "s_borders")
   
@@ -1190,7 +1179,6 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   add_style("header_style",
 #'     s_table_style(
@@ -1201,7 +1189,6 @@ s_borders <- function(top = NULL, bottom = NULL, left = NULL, right = NULL) {
 #'       )
 #'     )
 #'   )
-#' }
 s_table_style <- function(background_color = NULL, row_height = NULL,
                           topEmptyLine = NULL, bottomEmptyLine = NULL,
                           vertical_alignment = NULL, text_orientation = NULL,
@@ -1256,7 +1243,6 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   set_page_style(
 #'     page = p_page(
@@ -1269,7 +1255,6 @@ s_table_style <- function(background_color = NULL, row_height = NULL,
 #'       )
 #'     )
 #'   )
-#' }
 p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL, footer=NULL) {
   .assert_context(c("p_page"), "p_margins")
   
@@ -1301,7 +1286,6 @@ p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL,
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   set_page_style(
 #'     docTemplate = "Default",
@@ -1315,7 +1299,6 @@ p_margins <- function(top=NULL, bottom=NULL, left=NULL, right=NULL, header=NULL,
 #'       )
 #'     )
 #'   )
-#' }
 p_page <- function(size = NULL, 
                    orientation = NULL, 
                    margins = NULL) {
@@ -1440,7 +1423,6 @@ p_page <- function(size = NULL,
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_text() |>
 #'   add_style(id = "header",
 #'     s_font(font_name = "Arial", font_size = "14pt", bold = TRUE),
@@ -1451,7 +1433,6 @@ p_page <- function(size = NULL,
 #'   add_style(id = "header",
 #'     s_font(color = "#FF0000")  # Adds color, keeps other font properties
 #'   )
-#' }
 add_style <- function(spec, id, ...) {
   UseMethod("add_style", spec)
 }
@@ -1597,22 +1578,21 @@ add_style.default <- function(spec, id = NULL, ...) {
 #' @return Character vector with class "tfl_style_combine" containing all provided style names.
 #'   This special class signals to style resolution functions that these styles should be
 #'   applied together as a group (merged with last-win strategy during `create_report()`).
+#'   The argument ORDER is semantic: for a property defined by several combined
+#'   styles, the LAST argument wins — `f_combine("bold", "plain")` yields not-bold,
+#'   `f_combine("plain", "bold")` yields bold.
 #' @export
 #' 
 #' @examples
-#' \dontrun{
-#' # Combine styles for recycling to all columns
-#' styles <- f_combine("label_style", "emphasis", "bold")
-#' 
-#' # Use in define_cols for one-to-one mapping
-#' spec <- create_table(data) |>
-#'   define_cols(c("id", "age"),
-#'     labelStyleRef = c(
-#'       f_combine("id_label", "key"),
-#'       f_combine("numeric_label")
-#'     )
+#' # Combine built-in atoms for recycling to all selected columns
+#' spec <- create_table(mtcars) |>
+#'   define_cols(c(mpg, cyl), labelStyleRef = f_combine("b", "fc_navy"))
+#'
+#' # One-to-one mapping: a vector of f_combine() groups, one per column
+#' spec2 <- create_table(mtcars) |>
+#'   define_cols(c(mpg, cyl),
+#'     labelStyleRef = c(f_combine("b", "i"), f_combine("fc_red"))
 #'   )
-#' }
 f_combine <- function(...) {
   styles <- list(...)
   
@@ -1706,7 +1686,8 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   \code{NA} skips that position). Optional.
 #' @param missings How to display missing values in columns (length 1 or length of cols;
 #'   \code{NA} skips that position). Optional.
-#' @param colWidth Column width, e.g. "2in", "5cm", "20%" (length 1 or length of cols;
+#' @param colWidth Column width, e.g. "2in", "5cm", "20%", "18mm", "30pt"
+#'   (units: %, in, cm, mm, pt; length 1 or length of cols;
 #'   \code{NA} skips that position — the column's width is left unchanged). Optional.
 #'   When at least one non-\code{NA} value is specified, affected columns are marked as LOCKED and
 #'   automatic recalculation of remaining unlocked columns is triggered if \code{autoColWidth = TRUE}
@@ -2121,26 +2102,17 @@ define_cols <- function(spec, cols,
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' # Basic multi-line title (no TOC)
-#' spec <- create_table(adsl) |>
-#'   add_title(c("Study ABC-123", "Table 1: Demographics")) |>
-#'   add_title("Full Analysis Set", styleRef = "subtitle_style")
+#' spec <- create_table(mtcars) |>
+#'   add_title(c("Study ABC-123", "Table 1: Demographics"))
 #'
-#' # Title marked for TOC at level 1 — renderer will emit a TC field on the first page
-#' spec <- create_table(adsl) |>
-#'   add_title("Table 1: Demographics", toclevel = 1)
+#' # Re-styling the same title group via its id (last-wins merge)
+#' spec <- spec |> add_title("Study ABC-123 (rev)", id = names(spec$titles)[1])
 #'
-#' # Full TOC workflow across a multi-spec report
-#' t1 <- create_table(adsl) |>
-#'   add_title("Table 1: Demographics", toclevel = 1) |>
-#'   set_document(hasData = TRUE)
-#'
-#' t2 <- create_table(advs) |>
-#'   add_title("Table 2: Vital Signs", toclevel = 1) |>
-#'   set_document(hasData = TRUE)
-#'
-#' report <- create_report(t1, t2)
+#' \dontrun{
+#' # Full TOC workflow: tag titles with toclevel, enable insertTOC at save
+#' t1 <- create_table(mtcars) |> add_title("Table 1: Demographics", toclevel = 1)
+#' report <- create_report(t1)
 #' save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
 #' # Open tables.docx in Word, click the TOC placeholder, press F9 to update.
 #' }
@@ -2244,19 +2216,18 @@ add_title <- function(spec, text, id = NULL, styleRef = NULL, order = NULL, tocl
 #' @export
 #'
 #' @examples
+#' # Static subtitles (multiple lines via repeated calls or a character vector)
+#' spec <- create_table(mtcars) |>
+#'   add_title("Table 1: Demographics") |>
+#'   add_subtitle("Safety Analysis Set") |>
+#'   add_subtitle(c("Data Cutoff: 2025-12-14", "Protocol ABC-123"))
+#'
 #' \dontrun{
-#' # Static subtitle — one TOC entry for the whole report
-#' spec <- create_table(adsl) |>
-#'   add_title("Table 1: Demographics", toclevel = 1) |>
-#'   add_subtitle("Safety Analysis Set", toclevel = 2) |>
-#'   add_subtitle("Data Cutoff: 2025-12-14")
-#'
-#' # Dynamic subtitle — one TOC entry per group value (e.g. one per visit)
+#' # TOC entries: tag title/subtitle with toclevel; #ByGroupN placeholders
+#' # resolve per page for dynamic per-group TOC entries:
 #' spec <- create_table(advs) |>
-#'   add_title("Table 2: Vital Signs by Visit and Parameter", toclevel = 1) |>
+#'   add_title("Table 2: Vital Signs by Visit", toclevel = 1) |>
 #'   add_subtitle("#ByGroup1 - #ByGroup2", toclevel = 2)
-#'
-#' # Generate the TOC page
 #' report <- create_report(spec)
 #' save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
 #' # Open tables.docx in Word, click the TOC placeholder, press F9 to update.
@@ -2287,16 +2258,14 @@ add_subtitle <- function(spec, text, id = NULL, styleRef = NULL, order = NULL, t
 #' @export
 #' 
 #' @examples
-#' \dontrun{
 #' spec <- create_table(mtcars) |>
 #'   add_footnote("Data source: Clinical database lock 2025-12-01") |>
 #'   add_footnote("Missing values displayed as 'N/A'",
-#'                styleRef = f_combine("footnote_style", "font_courier_new"))
+#'                styleRef = f_combine("i", "font_courier_new"))
 #'
 #' # Multiple footnote lines in one group
-#' spec <- create_table(mtcars) |>
+#' spec2 <- create_table(mtcars) |>
 #'   add_footnote(c("a. Treatment group A", "b. Treatment group B"))
-#' }
 add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
   assert_class(spec, "TFL_spec")
   spec <- .add_text_group_impl(spec = spec, target = "footnotes", text = text, id = id,
@@ -2324,18 +2293,22 @@ add_footnote <- function(spec, text, id = NULL, styleRef = NULL, order = NULL) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' # Text-only spec with body text
 #' spec <- create_text() |>
-#'   set_document(hasData = FALSE) |>
 #'   add_body_text("No data available for the specified criteria.")
 #'
-#' # Table spec with body text as fallback when no data rows
-#' spec <- create_table(empty_df) |>
+#' # Table spec with body text as fallback when no data rows render
+#' empty_df <- mtcars[0, ]
+#' spec2 <- create_table(empty_df) |>
 #'   set_document(hasData = FALSE) |>
 #'   add_body_text("No adverse events were reported.",
 #'                 styleRef = f_combine("b", "fc_red"))
-#' }
+#'
+#' # Multiple calls append groups; same id merges (last-wins)
+#' spec3 <- create_text() |>
+#'   add_body_text("First paragraph.", id = "p1") |>
+#'   add_body_text("Second paragraph.", id = "p2") |>
+#'   add_body_text("Revised first paragraph.", id = "p1")
 add_body_text <- function(spec = NULL, text = NULL, id = NULL, styleRef = NULL, order = NULL) {
   UseMethod("add_body_text", spec)
 }
@@ -2421,16 +2394,13 @@ add_body_text.default <- function(spec, text = NULL, id = NULL, styleRef = NULL,
 #' @export
 #' 
 #' @examples
-#' \dontrun{
-#' # Add to a spec object
+#' # Add to a spec object (one call = one header row)
 #' spec <- create_text() |>
 #'   add_header("Study ABC-123", "CONFIDENTIAL", "Page {PAGE}") |>
 #'   add_header("Protocol v2.0", "", paste("Date:", format(Sys.Date(), "%Y-%m-%d")))
-#' 
-#' # Add to global options
-#' options <- tfl_get_options()
-#' options <- add_header(options, "Study ABC-123", "CONFIDENTIAL", "Page {PAGE}")
-#' }
+#'
+#' # Replace an existing row by level instead of appending
+#' spec <- add_header(spec, "Rewritten first row", level = 1)
 add_header <- function(spec = NULL, ..., level = NULL) {
   # Spec context: spec IS a TFL_spec or TFL_options object
   UseMethod("add_header", spec)
@@ -2547,16 +2517,10 @@ add_header.default <- function(spec, ...) {
 #' @export
 #' 
 #' @examples
-#' \dontrun{
-#' # Add to a spec object
+#' # Add to a spec object; {PAGE}/{NUMPAGES} become real Word fields on render
 #' spec <- create_text() |>
 #'   add_footer("Company Name", "", "Page {PAGE} of {NUMPAGES}") |>
 #'   add_footer("", "Confidential", "")
-#' 
-#' # Add to global options
-#' options <- tfl_get_options()
-#' options <- add_footer(options, "Company Name", "", "Page {PAGE} of {NUMPAGES}")
-#' }
 add_footer <- function(spec = NULL, ..., level = NULL) {
   # Spec context: spec IS a TFL_spec or TFL_options object
   UseMethod("add_footer", spec)
@@ -2631,6 +2595,8 @@ add_footer.default <- function(spec, ...) {
 #' @param stubOrder Order of stub header (auto-generated if NULL). Used to create
 #'   multi-level headers: lower numbers appear above higher numbers. Multiple stubs
 #'   at the same order are allowed if their column sets do not overlap.
+#'   Negative values are allowed and place the band BELOW the regular column
+#'   header row (e.g. `stubOrder = -1`).
 #' @param id Stub column identifier (auto-generated if NULL)
 #' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report
 #' 
@@ -2649,55 +2615,32 @@ add_footer.default <- function(spec, ...) {
 #'
 #'
 #' @examples
-#' \dontrun{
 #' data <- data.frame(
-#'   id = 1:10, 
-#'   age = rnorm(10, 45, 10), 
+#'   id = 1:10,
+#'   age = round(rnorm(10, 45, 10), 1),
 #'   sex = sample(c("M", "F"), 10, TRUE),
-#'   weight = rnorm(10, 70, 10),
-#'   height = rnorm(10, 170, 10)
+#'   weight = round(rnorm(10, 70, 10), 1)
 #' )
-#' 
-#' # Example 1: Single-level spanning header
-#' spec <- create_table(data) |>
-#'   add_span_header(
-#'     cols = c(age, sex),  # Using tidyselect (unquoted column names)
-#'     label = "Demographics",
-#'     labelStyleRef = c("stub_label_style", "bold")
-#'   )
 #'
-#' # Example 2: Two-level header hierarchy
+#' # Single-level spanning header
 #' spec <- create_table(data) |>
-#'   add_span_header(cols = c(age, sex, weight, height), label = "All Measurements", stubOrder = 0) |>
+#'   add_span_header(cols = c(age, sex), label = "Demographics")
+#'
+#' # Two-level hierarchy: band 0 above band 1; non-overlapping stubs may share a level
+#' spec2 <- create_table(data) |>
+#'   add_span_header(cols = c(age, sex, weight), label = "All Measurements", stubOrder = 0) |>
 #'   add_span_header(cols = c(age, sex), label = "Demographics", stubOrder = 1) |>
-#'   add_span_header(cols = c(weight, height), label = "Physical", stubOrder = 1)
+#'   add_span_header(cols = weight, label = "Physical", stubOrder = 1)
 #'
-#' # Example 3: Three-level header hierarchy
-#' spec <- create_table(data) |>
-#'   add_span_header(cols = starts_with("a") | starts_with("w") | starts_with("h"), 
-#'                   label = "Main Data", stubOrder = 0) |>
-#'   add_span_header(cols = c(age, sex), label = "Demographics", stubOrder = 1) |>
-#'   add_span_header(cols = c(weight, height), label = "Physical", stubOrder = 1) |>
-#'   add_span_header(cols = age, label = "Age Details", stubOrder = 2)
+#' # tidyselect helpers and negation
+#' spec3 <- create_table(data) |>
+#'   add_span_header(cols = -id, label = "Measurements")
 #'
-#' # Example 4: Using tidyselect helpers
-#' spec <- create_table(data) |>
-#'   add_span_header(cols = contains("age"), label = "Age-related", stubOrder = 0) |>
-#'   add_span_header(cols = matches("^w"), label = "Weight", stubOrder = 0)
-#'
-#' # Example 5: Negation to exclude columns
-#' spec <- create_table(data) |>
-#'   add_span_header(cols = -id, label = "Measurements", stubOrder = 0)
-#'
-#' # Example 6: Multiple non-overlapping stubs at same level
-#' spec <- create_table(data) |>
-#'   add_span_header(cols = c(age, sex), label = "Group1", stubOrder = 1) |>
-#'   add_span_header(cols = c(weight, height), label = "Group2", stubOrder = 1)  # OK: no overlap
-#' }
-#' 
 #' @details
-#' Multiple calls with the same `stubOrder` are allowed as long as their column sets 
+#' Multiple calls with the same `stubOrder` are allowed as long as their column sets
 #' do not overlap. This enables building complex header structures incrementally.
+#' A label spanning the complete set of report columns is rendered as a single
+#' full-width band (gridSpan), and the table title above it shares that band row.
 add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL, 
                             labelStyleRef = NULL) {
   assert_class(spec, "TFL_spec")
@@ -2781,7 +2724,8 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   force a page break. The paginator is not adjusted — Word handles natural
 #'   overflow when content exceeds the remaining page space. Works best for
 #'   short content (figures, text, small tables). Default `FALSE`.
-#' @param contentWidth Width of content, e.g. `"100%"`, `"25cm"`, `"10in"`.
+#' @param contentWidth Width of content, e.g. `"100%"`, `"25cm"`, `"10in"`,
+#'   `"600pt"`, `"240mm"` (units: %, in, cm, mm, pt).
 #' @param footnotePlace Character; controls where footnotes are rendered.
 #'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
 #'   `"repeated"` (place under the table on every page),
@@ -2802,42 +2746,46 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' @param figureWidth Figure width with units, e.g. `"6in"`, `"70%"`,
 #'   `"16.51cm"`. Only relevant for `docType = "Figure"`.
 #' @param figureHeight Figure height with units. Same syntax as `figureWidth`.
-#' @param figureDevice Character. Image format for ggplot2 rendering.
-#'   One of `"svg"`, `"png"`, or `"jpeg"`.
+#' @param figureDevice Character. Image format used when `create_figure()`
+#'   renders a ggplot2 object. One of `"svg"`, `"png"`, `"jpeg"`/`"jpg"`.
+#'   (SVG export requires the \pkg{svglite} package.)
 #' @param figureScaleMode Character. How the figure is scaled in the DOCX.
-#'   One of `"fixed"` (exact dimensions) or `"fitWidth"` (scale to page width,
-#'   preserving aspect ratio).
+#'   One of `"fixed"` (exact `figureWidth` x `figureHeight`; a missing
+#'   dimension is inferred from the 6:4 default ratio), `"fitWidth"` (figure
+#'   box stretched to the page content width, aspect ratio taken from
+#'   figureWidth/figureHeight — NOT from the source image), or `"fitPage"`
+#'   (largest box of that same aspect ratio fitting the content area).
 #' 
 #' @return Updated spec object
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #' # Table spec with data
 #' spec <- create_table(mtcars) |>
 #'   set_document(hasData = TRUE)
 #'
 #' # Text spec for narrative-only output
-#' spec <- create_text() |>
+#' spec2 <- create_text() |>
 #'   set_document(hasData = FALSE) |>
 #'   add_body_text("No adverse events were reported.")
 #'
-#' # Figure spec with custom sizing
+#' # Footnotes placed on last page only
+#' spec3 <- create_table(mtcars) |>
+#'   set_document(footnotePlace = "last_page") |>
+#'   add_footnote("Source: Motor Trend, 1974.")
+#'
+#' # Bundled template by name (see tfl_list_templates())
+#' spec4 <- create_table(mtcars) |>
+#'   set_document(docTemplate = "Navy_Pro")
+#'
+#' \dontrun{
+#' # Figure spec with custom sizing (needs an existing image file)
 #' spec <- create_figure("plot.png") |>
 #'   set_document(
 #'     figureWidth  = "7in",
 #'     figureHeight = "5in",
 #'     figureScaleMode = "fitWidth"
 #'   )
-#'
-#' # Footnotes placed on last page only
-#' spec <- create_table(mtcars) |>
-#'   set_document(hasData = TRUE, footnotePlace = "last_page") |>
-#'   add_footnote("Source: Motor Trend, 1974.")
-#'
-#' # Use a bundled template (see tfl_list_templates() for available names)
-#' spec <- create_table(mtcars) |>
-#'   set_document(hasData = TRUE, docTemplate = "Navy_Pro")
 #' }
 set_document <- function(spec, isContinues = NULL, continuousSection = NULL,
                          contentWidth = NULL,
@@ -2976,15 +2924,15 @@ set_document <- function(spec, isContinues = NULL, continuousSection = NULL,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' # Use a predefined bundled template
+#' # Use a predefined bundled template (see tfl_list_templates())
 #' spec <- create_text() |>
 #'   set_page_style(
 #'     docTemplate = "Navy_Pro",
 #'     page = p_page(size = "A4", orientation = "landscape")
 #'   )
 #'
-#' # Use an external template file
+#' \dontrun{
+#' # External template file instead of a bundled name:
 #' spec <- create_text() |>
 #'   set_page_style(docTemplate = "/path/to/my_template.json")
 #' }

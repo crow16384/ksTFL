@@ -29,14 +29,8 @@ allowing footers to be added to both spec objects and global options.
 Each call adds a new footer row. Per schema, footers are arrays of arrays (each call = one row).
 }
 \examples{
-\dontrun{
-# Add to a spec object
+# Add to a spec object; {PAGE}/{NUMPAGES} become real Word fields on render
 spec <- create_text() |>
   add_footer("Company Name", "", "Page {PAGE} of {NUMPAGES}") |>
   add_footer("", "Confidential", "")
-
-# Add to global options
-options <- tfl_get_options()
-options <- add_footer(options, "Company Name", "", "Page {PAGE} of {NUMPAGES}")
-}
 }

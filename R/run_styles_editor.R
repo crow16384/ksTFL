@@ -6,7 +6,8 @@
 #' then edited and downloaded as JSON for use with [set_page_style()] /
 #' [write_doc()].
 #'
-#' This function requires the \pkg{shiny} package to be installed.
+#' This function requires the \pkg{shiny}, \pkg{colourpicker}, and
+#' \pkg{sortable} packages to be installed.
 #'
 #' @param ... Additional arguments passed to [shiny::runApp()], such as
 #'   `launch.browser = TRUE` or `port = 4321`.

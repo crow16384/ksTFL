@@ -16,7 +16,6 @@ defaults. Useful at the start of a new reporting session or after
 experimenting with \code{tfl_set_options()}.
 }
 \examples{
-\dontrun{
 # Set some session defaults
 tfl_set_options(
   add_header("Study ABC", "Phase II", "CONFIDENTIAL"),
@@ -28,7 +27,6 @@ tfl_set_options(
 # Reset everything back to package defaults
 tfl_reset_options()
 tfl_get_options()  # Confirm reset
-}
 }
 \seealso{
 \code{\link[=tfl_set_options]{tfl_set_options()}}, \code{\link[=tfl_get_options]{tfl_get_options()}}, \code{\link[=tfl_get_option]{tfl_get_option()}}

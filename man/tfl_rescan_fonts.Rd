@@ -37,10 +37,10 @@ To make the setting persistent across sessions, add the \code{options()}
 call to your \file{~/.Rprofile}.
 }
 \examples{
-\dontrun{
-# Rescan after installing new fonts
+# Rescan after installing new fonts (prints the resolution summary)
 tfl_rescan_fonts()
 
+\dontrun{
 # Point to a custom font directory, then rescan
 options(ksTFL.font_dirs = c("/usr/share/fonts/custom"))
 tfl_rescan_fonts()

@@ -14,7 +14,9 @@ create_figure(plot_or_path, dpi = 300L)
 \item A \strong{ggplot2 object} (class \code{"gg"} or \code{"ggplot"}) — the plot is
 rendered to a temporary file via \code{ggplot2::ggsave()}. Use \code{dpi} and
 package options (\code{figureWidth}, \code{figureHeight}, \code{figureDevice}) to
-control output dimensions and format.
+control output dimensions and format. Rendered size is driven by
+\code{figureWidth}/\code{figureHeight} (NOT by ggplot's own saved size): set
+both or accept the 6x4in default.
 }}
 
 \item{dpi}{Integer. Resolution (dots per inch) when \code{plot_or_path} is a
@@ -26,7 +28,9 @@ A \code{TFL_spec} object with \code{docType = "Figure"}.
 \description{
 Create and initialize a TFL specification for embedding a figure. Accepts
 either a \strong{file path} to an existing image or a \strong{ggplot2 object} that is
-rendered automatically to a temporary SVG file.
+rendered automatically to a temporary file (format chosen by the
+\code{figureDevice} option, default \code{"svg"} — SVG export requires the
+\pkg{svglite} package).
 }
 \details{
 When a ggplot2 object is passed:
@@ -35,37 +39,38 @@ When a ggplot2 object is passed:
 \code{tempdir()}.
 \item The temporary file path is stored in \code{spec$.metadata$filePath}.
 \item \code{save_report()} copies the file (prefixed with \code{dataRef}) into
-\code{metaPath}, where the C++ renderer reads it.
+\code{metaPath}, where the C++ renderer reads it. Until then the asset
+lives only in \code{tempdir()} — replay of a saved spec requires the meta
+folder to be intact.
 \item The temporary file persists for the duration of the R session.
 }
 
 The C++ renderer natively supports \code{.png}, \code{.jpeg}/\code{.jpg}, and \code{.svg}
-formats.
+formats. For MS Word fidelity prefer a cairo-rendered paths-only SVG or a
+PNG (see the figures vignette); svglite text-SVG is reflowed by Word.
 }
 \examples{
 \dontrun{
-## From file path (existing behaviour)
-spec <- create_figure("inst/images/example.png")
+## From an existing image file (write your own PNG first, e.g.:
+##   png("plot.png", width = 640, height = 480); plot(1:10); dev.off())
+spec <- create_figure("plot.png")
 
 ## From a ggplot2 object
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
-spec <- create_figure(p)
-
-## Control figure defaults via options
-tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "svg")
 spec <- create_figure(p, dpi = 150)
 
-## Override per figure
-spec <- create_figure(p) |>
-  set_document(figureDevice = "jpeg", figureScaleMode = "fitWidth")
+## Control figure defaults via options (both dims, or accept 6x4in default)
+tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "png")
+spec <- create_figure(p)
+tfl_reset_options()
 
 ## Full pipeline
 spec <- create_figure(p) |>
   add_title("Weight vs MPG") |>
   add_footnote("Source: Motor Trend, 1974.")
-report <- create_report(spec)
-write_doc(report, name = "fig01", outDir = "output", metaPath = tempdir())
+write_doc(create_report(spec), "fig01", outDir = tempdir(),
+          metaPath = tempdir(), verbose = FALSE)
 }
 
 }

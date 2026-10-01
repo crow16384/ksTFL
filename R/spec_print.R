@@ -641,6 +641,16 @@ print.TFL_spec <- function(x, layout = c("full", "compact"), width = getOption("
 #'   not be opened (e.g. not running inside RStudio or \pkg{htmltools} is
 #'   missing).
 #'
+#' @examples
+#' \dontrun{
+#' # Inside RStudio: opens the HTML spec overview in the Viewer pane
+#' spec <- create_table(mtcars) |> add_title("Table 1")
+#' view_tfl_spec(spec)
+#' }
+#'
+#' @seealso [create_table()], [tfl_spec_preview_selection()] (RStudio addin
+#'   wrapping this preview for the selected object)
+#'
 #' @export
 view_tfl_spec <- function(spec) {
   assert_class(spec, "TFL_spec")

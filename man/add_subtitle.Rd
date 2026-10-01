@@ -50,19 +50,18 @@ Add a subtitle to the specification. Multiple calls add multiple subtitle groups
 Calling with the same ID merges with last-win strategy.
 }
 \examples{
+# Static subtitles (multiple lines via repeated calls or a character vector)
+spec <- create_table(mtcars) |>
+  add_title("Table 1: Demographics") |>
+  add_subtitle("Safety Analysis Set") |>
+  add_subtitle(c("Data Cutoff: 2025-12-14", "Protocol ABC-123"))
+
 \dontrun{
-# Static subtitle — one TOC entry for the whole report
-spec <- create_table(adsl) |>
-  add_title("Table 1: Demographics", toclevel = 1) |>
-  add_subtitle("Safety Analysis Set", toclevel = 2) |>
-  add_subtitle("Data Cutoff: 2025-12-14")
-
-# Dynamic subtitle — one TOC entry per group value (e.g. one per visit)
+# TOC entries: tag title/subtitle with toclevel; #ByGroupN placeholders
+# resolve per page for dynamic per-group TOC entries:
 spec <- create_table(advs) |>
-  add_title("Table 2: Vital Signs by Visit and Parameter", toclevel = 1) |>
+  add_title("Table 2: Vital Signs by Visit", toclevel = 1) |>
   add_subtitle("#ByGroup1 - #ByGroup2", toclevel = 2)
-
-# Generate the TOC page
 report <- create_report(spec)
 save_report(report, docFileName = "tables.docx", insertTOC = TRUE)
 # Open tables.docx in Word, click the TOC placeholder, press F9 to update.

@@ -31,7 +31,6 @@ A paragraph specification object
 This function can only be used inside \code{\link{add_style}}.
 }
 \examples{
-\dontrun{
 spec <- create_text() |>
   add_style("my_style",
     s_paragraph(
@@ -42,7 +41,7 @@ spec <- create_text() |>
   )
 
 # Paragraph with a bottom border (applied to the text, not the cell)
-spec <- create_table(mtcars) |>
+spec2 <- create_table(mtcars) |>
   add_style("para_border",
     s_paragraph(
       alignment = "center",
@@ -51,7 +50,6 @@ spec <- create_table(mtcars) |>
       )
     )
   )
-}
 }
 \seealso{
 \code{\link[=add_style]{add_style()}} for applying styles, \code{\link[=s_spacing]{s_spacing()}}, \code{\link[=s_indents]{s_indents()}}, \code{\link[=s_borders]{s_borders()}} for nested components,

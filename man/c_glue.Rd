@@ -38,10 +38,16 @@ Must be called inside \code{compute_cols()}.
 
 \strong{Constraints:}
 \itemize{
-\item Exactly one of \code{glue_col} or \code{text} must be provided.
+\item Exactly one of \code{glue_col} or \code{text} must be provided. NOTE: inside
+\code{compute_cols()} actions are parsed from the unevaluated call, so this
+is enforced only by the interactive \code{c_glue()} builder; when BOTH are
+supplied in a \code{compute_cols()} call the parser silently prefers
+\code{glue_col} and ignores \code{text} (tracked for a package fix — see
+Finding-need-further-attention.md U1).
 \item \code{cols} resolves only visible report columns via tidyselect.
 \item \code{glue_col} can reference any data column, including hidden ones.
 \item \code{glue_col} must not overlap with \code{cols}.
+\item \code{text} must be a single string (length > 1 is a hard error).
 }
 
 \strong{Behavior:}
@@ -49,8 +55,11 @@ Must be called inside \code{compute_cols()}.
 \item When the glue value (from \code{glue_col} or \code{text}) is empty or \code{NA},
 the action is silently skipped for that row/cell.
 \item When a target cell was suppressed by deduplication (\code{dedupe = TRUE}
-on that column), the glue is silently skipped to preserve the visual
-suppression of repeated values.
+on that column), the glued text lands on the RAW cell but is not
+painted (render-level suppression wins) — effectively invisible; glue a
+non-suppressed column or the first row of each run instead.
+\item Glue onto a target cell whose own value is \code{NA} renders just the
+glued part (no \"NA\" text appears).
 \item When a target cell is suppressed by a concurrent \code{c_merge()} action
 (i.e., it is a non-leader merged cell), the glue is silently skipped.
 \item The merge leader cell is glued normally when \code{c_glue()} targets a
@@ -61,9 +70,10 @@ column involved in \code{c_merge()} as the first column.
 \strong{Interaction with other actions:}
 \itemize{
 \item \code{c_style()}: Fully compatible — styling and text modification are independent.
-\item \code{c_merge()}: Compatible. Glue is processed after merge in the renderer.
-Non-leader (suppressed) merge cells are skipped; the merge-leader cell is
-glued normally.
+\item \code{c_merge()}: Compatible. Non-leader (suppressed) merge cells are
+skipped; the merge-leader cell is glued normally. When a rebuild of a
+merged total row is intended, keep the canonical argument order
+merge -> clear -> glue inside ONE \code{compute_cols()} call.
 \item \code{c_addrow()}: \strong{Stackable} — when used together in the same \code{compute_cols()},
 \code{c_addrow()} sees glued values. This allows building compound cell values
 (e.g., "PARAM: VISIT") before using them in inserted rows.
@@ -76,26 +86,30 @@ specified}. This means \code{c_glue()} modifications are visible to subsequent \
 actions in the same call, enabling complex multi-step transformations.
 }
 \examples{
-\dontrun{
-  # Append a unit from a hidden column (e.g. unit_col is not in spec cols)
-  spec <- compute_cols(spec, !is.na(value),
-    c_glue(value, "after", glue_col = unit, separator = " "))
+  lab <- data.frame(
+    PARAM = c("ALT", "ALT", "AST"), VISIT = c("W1", "W2", "W1"),
+    UNIT  = c("U/L", "U/L", "U/L"), stringsAsFactors = FALSE)
+  spec <- create_table(lab) |>
+    add_style("bold", s_font(bold = TRUE)) |>
+    define_cols(UNIT, isVisible = FALSE)
 
-  # Prepend a literal marker to a label column
-  spec <- compute_cols(spec, is_total,
-    c_glue(label, "before", text = ">> "))
+  # Append a unit from a hidden column
+  spec <- compute_cols(spec, TRUE,
+    c_glue(PARAM, "after", glue_col = UNIT, separator = " "))
 
-  # Combine with c_style() — independent operations
-  spec <- compute_cols(spec, firstOf(group),
-    c_glue(label, "before", text = "> "),
-    c_style(label, styleRef = "bold"))
-  
-  # Stackable with c_addrow() — addrow sees glued values
+  # Prepend a literal marker
+  spec <- compute_cols(spec, PARAM == "AST",
+    c_glue(PARAM, "before", text = "*"))
+
+  # Combine with c_style() - independent operations
+  spec <- compute_cols(spec, PARAM == "ALT",
+    c_glue(VISIT, "before", text = "Visit: "),
+    c_style(VISIT, styleRef = "bold"))
+
+  # Stackable with c_addrow() - the added row sees glued values
   spec <- compute_cols(spec, PARAM == "ALT",
     c_glue(PARAM, "after", glue_col = VISIT, separator = ": "),
-    c_addrow("above", value_from = PARAM)  # Uses "ALT: Week 2"
-  )
-}
+    c_addrow("above", value_from = PARAM))  # inserted row shows "ALT: W1"
 
 }
 \seealso{
