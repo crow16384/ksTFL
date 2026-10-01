@@ -518,7 +518,7 @@ Configure global defaults that apply to all specs in a session:
 | `minColWidth` | `0.5` | Numeric | Minimum relative width (%) for unlocked columns during auto-recalculation |
 | `figureWidth` | `"6in"` | Character | Default figure width (e.g., `"70%"`, `"6.5in"`, `"16.51cm"`) |
 | `figureHeight` | `"4in"` | Character | Default figure height (same format as `figureWidth`) |
-| `figureDevice` | `"svg"` | Character | Graphics device for ggplot2 rendering: `"svg"`, `"png"`, `"jpeg"` |
+| `figureDevice` | `"cairo"` | Character | Graphics device for ggplot2 rendering: `"cairo"` (default; paths-only SVG, MS Word-safe, needs Cairo), `"svg"` (svglite text-SVG — renders wrong in Word; warns once), `"png"`, `"jpeg"`. Missing packages fall back cairo -> svg -> png with a one-time warning. |
 | `figureScaleMode` | `"fixed"` | Character | Figure scaling: `"fixed"`, `"fitWidth"` (scale to page width), `"fitPage"` |
 | `insertTOC` | `FALSE` | Logical | Prepend a Table of Contents page (requires `toclevel` on titles) |
 | `tocTitle` | `"Table of Contents"` | Character | TOC page heading; use `""` to omit |

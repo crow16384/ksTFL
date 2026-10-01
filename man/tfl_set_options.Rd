@@ -58,10 +58,14 @@ Applied when \code{create_figure()} specs do not specify their own width.}
 Applied when \code{create_figure()} specs do not specify their own height.}
 
 \item{figureDevice}{Character; graphics device used when a ggplot2 object is
-rendered by \code{create_figure()}. One of \code{"svg"}, \code{"png"}, \code{"jpeg"}/\code{"jpg"}
-(other values, e.g. \code{"pdf"}, are rejected). Default \code{"svg"}. Note: SVG
-export goes through the \pkg{svglite} package (ggplot2 requirement),
-which must be installed; \code{"png"} uses the grDevices built-in device.}
+rendered by \code{create_figure()}. One of \code{"cairo"} (default), \code{"svg"},
+\code{"png"}, \code{"jpeg"}/\code{"jpg"} (other values, e.g. \code{"pdf"}, are rejected).
+\code{"cairo"} exports a paths-only SVG via \pkg{Cairo} (text is converted to
+vector outlines) — the MS Word-safe vector format; Word's SVG engine
+corrupts svglite text-SVG (font substitution, text-anchor and px-scaling
+bugs), so plain \code{"svg"} emits a one-time warning. If \pkg{Cairo} is not
+installed the device falls back to \code{"svg"} and then \code{"png"} with a
+warning. \code{dpi} is ignored for \code{"cairo"} (vector output).}
 
 \item{figureScaleMode}{Character; how figures are scaled into the page
 content area. One of \code{"fixed"} (use figureWidth/figureHeight as given;

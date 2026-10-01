@@ -147,10 +147,14 @@ Applied when <code><a href="create_figure.html">create_figure()</a></code> specs
 
 <dt id="arg-figuredevice">figureDevice<a class="anchor" aria-label="anchor" href="#arg-figuredevice"></a></dt>
 <dd><p>Character; graphics device used when a ggplot2 object is
-rendered by <code><a href="create_figure.html">create_figure()</a></code>. One of <code>"svg"</code>, <code>"png"</code>, <code>"jpeg"</code>/<code>"jpg"</code>
-(other values, e.g. <code>"pdf"</code>, are rejected). Default <code>"svg"</code>. Note: SVG
-export goes through the <span class="pkg">svglite</span> package (ggplot2 requirement),
-which must be installed; <code>"png"</code> uses the grDevices built-in device.</p></dd>
+rendered by <code><a href="create_figure.html">create_figure()</a></code>. One of <code>"cairo"</code> (default), <code>"svg"</code>,
+<code>"png"</code>, <code>"jpeg"</code>/<code>"jpg"</code> (other values, e.g. <code>"pdf"</code>, are rejected).
+<code>"cairo"</code> exports a paths-only SVG via <span class="pkg">Cairo</span> (text is converted to
+vector outlines) — the MS Word-safe vector format; Word's SVG engine
+corrupts svglite text-SVG (font substitution, text-anchor and px-scaling
+bugs), so plain <code>"svg"</code> emits a one-time warning. If <span class="pkg">Cairo</span> is not
+installed the device falls back to <code>"svg"</code> and then <code>"png"</code> with a
+warning. <code>dpi</code> is ignored for <code>"cairo"</code> (vector output).</p></dd>
 
 
 <dt id="arg-figurescalemode">figureScaleMode<a class="anchor" aria-label="anchor" href="#arg-figurescalemode"></a></dt>

@@ -106,7 +106,12 @@ NULL
 
 #' Allowed figure device values
 #' @noRd
-.const_figure_devices <- c("png", "jpeg", "jpg", "svg")
+.const_figure_devices <- c("png", "jpeg", "jpg", "svg", "cairo")
+
+#' Device -> output file extension mapping (cairo = paths-only SVG, Word-safe)
+#' @noRd
+.const_figure_ext <- c(png = "png", jpeg = "jpeg", jpg = "jpeg",
+                       svg = "svg", cairo = "svg")
 
 #' Border sides (used for iterating over borders)
 #' @noRd

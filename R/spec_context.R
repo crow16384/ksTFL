@@ -2752,8 +2752,11 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   `"16.51cm"`. Only relevant for `docType = "Figure"`.
 #' @param figureHeight Figure height with units. Same syntax as `figureWidth`.
 #' @param figureDevice Character. Image format used when `create_figure()`
-#'   renders a ggplot2 object. One of `"svg"`, `"png"`, `"jpeg"`/`"jpg"`.
-#'   (SVG export requires the \pkg{svglite} package.)
+#'   renders a ggplot2 object. One of `"cairo"` (default; \pkg{Cairo}
+#'   paths-only SVG, MS Word-safe), `"svg"` (requires \pkg{svglite}; known
+#'   to render incorrectly in MS Word — warns once), `"png"`, `"jpeg"`/`"jpg"`.
+#'   If the chosen package-backed device is unavailable, `create_figure()`
+#'   falls back cairo -> svg -> png with a warning.
 #' @param figureScaleMode Character. How the figure is scaled in the DOCX.
 #'   One of `"fixed"` (exact `figureWidth` x `figureHeight`; a missing
 #'   dimension is inferred from the 6:4 default ratio), `"fitWidth"` (figure

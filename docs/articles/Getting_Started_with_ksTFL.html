@@ -334,24 +334,41 @@ no need to rearrange the underlying data frame.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">wt</span>, <span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">png_plot</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># From a ggplot2 object — rendered automatically to a temporary image file</span></span>
+<span><span class="co"># From a ggplot2 object — rendered automatically to a temporary image file.</span></span>
+<span><span class="co"># The DEFAULT device is "cairo": a paths-only SVG (text converted to vector</span></span>
+<span><span class="co"># outlines), which is the MS Word-safe vector format.</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">mtcars</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">wt</span>, y <span class="op">=</span> <span class="va">mpg</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>             <span class="co"># uses configured defaults</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, dpi <span class="op">=</span> <span class="fl">150L</span><span class="op">)</span> <span class="co"># custom resolution (default dpi = 300)</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>             <span class="co"># cairo SVG (default)</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, dpi <span class="op">=</span> <span class="fl">150L</span><span class="op">)</span> <span class="co"># dpi applies to raster devices only</span></span>
 <span></span>
-<span><span class="co"># Control output size/format via options</span></span>
-<span><span class="co"># tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "jpeg")</span></span>
-<span><span class="co"># spec_fig &lt;- create_figure(p)</span></span></code></pre></div>
+<span><span class="co"># Device options:</span></span>
+<span><span class="co">#   figureDevice = "cairo" (default) -&gt; Word-safe paths-only SVG (needs Cairo)</span></span>
+<span><span class="co">#   figureDevice = "svg"             -&gt; svglite text-SVG: renders correctly in</span></span>
+<span><span class="co">#                                        LibreOffice but is CROPPED/RESKINNED</span></span>
+<span><span class="co">#                                        by MS Word (font substitution,</span></span>
+<span><span class="co">#                                        text-anchor, px-scaling bugs) —</span></span>
+<span><span class="co">#                                        use only when Word is not the target</span></span>
+<span><span class="co">#   figureDevice = "png"/"jpeg"      -&gt; raster (300 dpi by default)</span></span>
+<span><span class="co"># If Cairo/svglite are missing, ksTFL falls back cairo -&gt; svg -&gt; png with a</span></span>
+<span><span class="co"># one-time warning, so figure production never breaks on a dev machine.</span></span>
+<span><span class="co"># tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "png")</span></span></code></pre></div>
 <p><strong>What happens</strong>:</p>
 <p>- If a <strong>file path</strong> is given: it is validated (must
 exist and be readable); the file is used as-is</p>
-<p>- If a <strong>ggplot2 object</strong> is given: rendered via
-<code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code> to <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> using package
-defaults (<code>figureWidth</code>, <code>figureHeight</code>,
-<code>figureDevice</code>); the resulting path is stored in the spec</p>
-<p>- The <code>dpi</code> parameter applies when a ggplot2 object is
-passed; width/height/device are configured through package options</p>
+<p>- If a <strong>ggplot2 object</strong> is given: rendered to a
+<code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code> file using the package defaults
+(<code>figureWidth</code>, <code>figureHeight</code>,
+<code>figureDevice</code>). The default
+<code>figureDevice = "cairo"</code> goes through
+<code><a href="https://rdrr.io/pkg/Cairo/man/Cairo.html" class="external-link">Cairo::CairoSVG()</a></code> (paths-only, MS Word-safe vector); raster
+and <code>"svg"</code> devices go through
+<code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggplot2::ggsave()</a></code>. The resulting path is stored in the
+spec.</p>
+<p>- The <code>dpi</code> parameter applies to raster devices
+(<code>png</code>/<code>jpeg</code>); it is ignored for the vector
+<code>cairo</code>/<code>svg</code> output. width/height/device are
+configured through package options.</p>
 <p>- The image file is copied to <code>metaPath</code> when the report
 is saved</p>
 </div>
@@ -1282,7 +1299,8 @@ reference</a>
 <tr class="even">
 <td>Create figure spec</td>
 <td><code>create_figure(plot_or_path, dpi = 300L)</code></td>
-<td>File path or ggplot2 object; path must be readable</td>
+<td>File path or ggplot2 object; default device <code>cairo</code>
+(Word-safe paths-only SVG)</td>
 </tr>
 <tr class="odd">
 <td>Create text spec</td>

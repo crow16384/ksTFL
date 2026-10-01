@@ -158,8 +158,11 @@ e.g. <code>"6pt"</code>. Use <code>NULL</code> to disable. <code>"0pt"</code> is
 
 <dt id="arg-figuredevice">figureDevice<a class="anchor" aria-label="anchor" href="#arg-figuredevice"></a></dt>
 <dd><p>Character. Image format used when <code><a href="create_figure.html">create_figure()</a></code>
-renders a ggplot2 object. One of <code>"svg"</code>, <code>"png"</code>, <code>"jpeg"</code>/<code>"jpg"</code>.
-(SVG export requires the <span class="pkg">svglite</span> package.)</p></dd>
+renders a ggplot2 object. One of <code>"cairo"</code> (default; <span class="pkg">Cairo</span>
+paths-only SVG, MS Word-safe), <code>"svg"</code> (requires <span class="pkg">svglite</span>; known
+to render incorrectly in MS Word — warns once), <code>"png"</code>, <code>"jpeg"</code>/<code>"jpg"</code>.
+If the chosen package-backed device is unavailable, <code><a href="create_figure.html">create_figure()</a></code>
+falls back cairo -&gt; svg -&gt; png with a warning.</p></dd>
 
 
 <dt id="arg-figurescalemode">figureScaleMode<a class="anchor" aria-label="anchor" href="#arg-figurescalemode"></a></dt>

@@ -763,7 +763,73 @@ data.</li>
 </div>
 </div>
 <div class="section level3">
-<h3 id="how-do-i-switch-between-continuous-sections-repeatingnot-repeating-headers-and-row-break-behavior-across-pages">34. How do I switch between continuous sections, repeating/not
+<h3 id="my-figure-looks-fine-in-libreoffice-but-text-is-croppedreskinned-in-ms-word-why">34. My figure looks fine in LibreOffice but text is
+cropped/reskinned in MS Word — why?<a class="anchor" aria-label="anchor" href="#my-figure-looks-fine-in-libreoffice-but-text-is-croppedreskinned-in-ms-word-why"></a>
+</h3>
+<p>This was the classic svglite trap, and it is why
+<code>figureDevice</code> now defaults to <code>"cairo"</code>. Word’s
+SVG engine has three independent bugs that LibreOffice does not
+reproduce: it ignores <code>font-family</code> (substitutes its own
+font), mishandles right-anchored text (<code>text-anchor="end"</code>
+shifts the glyph start into negative x — labels get cropped mid-letter),
+and rescales CSS <code>px</code> units by 96/72. The only structural
+defense is embedding text as vector paths: <code>cairo</code> output
+(<code><a href="https://rdrr.io/pkg/Cairo/man/Cairo.html" class="external-link">Cairo::CairoSVG</a></code>, paths-only SVG) contains zero
+<code>&lt;text&gt;</code> elements, so Word has nothing to corrupt.</p>
+<table class="table">
+<colgroup>
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>device</th>
+<th>format</th>
+<th>Word-safe</th>
+<th>vector</th>
+<th>relative size</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>"cairo"</code> (default)</td>
+<td>paths-only SVG</td>
+<td>yes</td>
+<td>yes (text is outlines)</td>
+<td>~4x svglite SVG</td>
+</tr>
+<tr class="even">
+<td><code>"svg"</code></td>
+<td>svglite text-SVG</td>
+<td>
+<strong>no</strong> (warns once)</td>
+<td>yes</td>
+<td>smallest</td>
+</tr>
+<tr class="odd">
+<td>
+<code>"png"</code> / <code>"jpeg"</code>
+</td>
+<td>raster</td>
+<td>yes</td>
+<td>no (DPI-limited)</td>
+<td>largest</td>
+</tr>
+</tbody>
+</table>
+<p>No embedded figure is text-editable in Word regardless of device —
+Word treats <code>word/media/*</code> as one picture; the device choice
+affects rendering fidelity and zoom/sharpness, not editability.</p>
+<p>If you pre-export the image yourself, the same gate applies:
+<code>unzip -p your.docx word/media/*.svg | grep -c '&lt;text'</code>
+must be <code>0</code> for a Word-safe vector embed. When Cairo/svglite
+are missing, ksTFL falls back cairo -&gt; svg -&gt; png with a one-time
+warning, so builds never die.</p>
+</div>
+<div class="section level3">
+<h3 id="how-do-i-switch-between-continuous-sections-repeatingnot-repeating-headers-and-row-break-behavior-across-pages">35. How do I switch between continuous sections, repeating/not
 repeating headers, and row-break behavior across pages?<a class="anchor" aria-label="anchor" href="#how-do-i-switch-between-continuous-sections-repeatingnot-repeating-headers-and-row-break-behavior-across-pages"></a>
 </h3>
 <p>These controls come from different layers:</p>
@@ -798,7 +864,7 @@ pagination.</p>
 <h2 id="metadata-workflows-replay-combine-and-validation">Metadata workflows: replay, combine, and validation<a class="anchor" aria-label="anchor" href="#metadata-workflows-replay-combine-and-validation"></a>
 </h2>
 <div class="section level3">
-<h3 id="how-do-i-replay-a-document-from-stored-metadata-without-re-running-r-code">35. How do I replay a document from stored metadata without
+<h3 id="how-do-i-replay-a-document-from-stored-metadata-without-re-running-r-code">36. How do I replay a document from stored metadata without
 re-running R code?<a class="anchor" aria-label="anchor" href="#how-do-i-replay-a-document-from-stored-metadata-without-re-running-r-code"></a>
 </h3>
 <p>Use <code><a href="../reference/replay_report.html">replay_report()</a></code> with either the DOCX filename (uses
@@ -826,7 +892,7 @@ re-runs, template switches, or regulatory re-submissions without
 touching the original R scripts.</p>
 </div>
 <div class="section level3">
-<h3 id="how-do-i-combine-multiple-documents-into-a-single-docx-with-a-table-of-contents">36. How do I combine multiple documents into a single DOCX with a
+<h3 id="how-do-i-combine-multiple-documents-into-a-single-docx-with-a-table-of-contents">37. How do I combine multiple documents into a single DOCX with a
 Table of Contents?<a class="anchor" aria-label="anchor" href="#how-do-i-combine-multiple-documents-into-a-single-docx-with-a-table-of-contents"></a>
 </h3>
 <p>Pass a vector of spec references (DOCX names or JSON hashes) to
@@ -858,7 +924,7 @@ document and optionally inserts a TOC page at the front.</p>
 from individually validated outputs.</p>
 </div>
 <div class="section level3">
-<h3 id="how-do-i-filter-and-combine-only-the-latest-versions-of-documents">37. How do I filter and combine only the latest versions of
+<h3 id="how-do-i-filter-and-combine-only-the-latest-versions-of-documents">38. How do I filter and combine only the latest versions of
 documents?<a class="anchor" aria-label="anchor" href="#how-do-i-filter-and-combine-only-the-latest-versions-of-documents"></a>
 </h3>
 <p>Use <code><a href="../reference/list_reports.html">list_reports()</a></code> to scan the meta folder, filter for
@@ -890,7 +956,7 @@ where hundreds of outputs are generated separately and then assembled
 into themed bundles (tables-only, figures-only, or full report).</p>
 </div>
 <div class="section level3">
-<h3 id="how-do-i-match-saved-metadata-with-actual-docx-files-for-qc-validation">38. How do I match saved metadata with actual DOCX files for QC
+<h3 id="how-do-i-match-saved-metadata-with-actual-docx-files-for-qc-validation">39. How do I match saved metadata with actual DOCX files for QC
 validation?<a class="anchor" aria-label="anchor" href="#how-do-i-match-saved-metadata-with-actual-docx-files-for-qc-validation"></a>
 </h3>
 <p>Use <code><a href="../reference/list_reports.html">list_reports()</a></code> to get the metadata index, then
@@ -943,7 +1009,7 @@ reviewers scan the output folder and metadata folder, then match and
 replay only the entries that exist in both places.</p>
 </div>
 <div class="section level3">
-<h3 id="how-do-i-store-metadata-persistently-for-regulatory-validation">39. How do I store metadata persistently for regulatory
+<h3 id="how-do-i-store-metadata-persistently-for-regulatory-validation">40. How do I store metadata persistently for regulatory
 validation?<a class="anchor" aria-label="anchor" href="#how-do-i-store-metadata-persistently-for-regulatory-validation"></a>
 </h3>
 <p>Use <code><a href="../reference/save_report.html">save_report()</a></code> with a persistent
@@ -1005,7 +1071,7 @@ not from live R sessions</li>
 </ul>
 </div>
 <div class="section level3">
-<h3 id="how-do-i-clean-up-obsolete-metadata-files-while-keeping-the-latest-versions">40. How do I clean up obsolete metadata files while keeping the
+<h3 id="how-do-i-clean-up-obsolete-metadata-files-while-keeping-the-latest-versions">41. How do I clean up obsolete metadata files while keeping the
 latest versions?<a class="anchor" aria-label="anchor" href="#how-do-i-clean-up-obsolete-metadata-files-while-keeping-the-latest-versions"></a>
 </h3>
 <p>Use <code><a href="../reference/clean_reports.html">clean_reports()</a></code> to remove old spec JSONs and

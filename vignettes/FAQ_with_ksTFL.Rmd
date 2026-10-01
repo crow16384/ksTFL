@@ -654,7 +654,33 @@ Both patterns are valid. Choose by source shape:
 - Use Pattern A when hierarchy should be derived from boundaries.
 - Use Pattern B when hierarchy rows already exist in incoming data.
 
-### 34. How do I switch between continuous sections, repeating/not repeating headers, and row-break behavior across pages?
+### 34. My figure looks fine in LibreOffice but text is cropped/reskinned in MS Word — why?
+
+This was the classic svglite trap, and it is why `figureDevice` now defaults to
+`"cairo"`. Word's SVG engine has three independent bugs that LibreOffice does
+not reproduce: it ignores `font-family` (substitutes its own font), mishandles
+right-anchored text (`text-anchor="end"` shifts the glyph start into negative
+x — labels get cropped mid-letter), and rescales CSS `px` units by 96/72. The
+only structural defense is embedding text as vector paths: `cairo` output
+(`Cairo::CairoSVG`, paths-only SVG) contains zero `<text>` elements, so Word
+has nothing to corrupt.
+
+| device | format | Word-safe | vector | relative size |
+|---|---|---|---|---|
+| `"cairo"` (default) | paths-only SVG | yes | yes (text is outlines) | ~4x svglite SVG |
+| `"svg"` | svglite text-SVG | **no** (warns once) | yes | smallest |
+| `"png"` / `"jpeg"` | raster | yes | no (DPI-limited) | largest |
+
+No embedded figure is text-editable in Word regardless of device — Word treats
+`word/media/*` as one picture; the device choice affects rendering fidelity
+and zoom/sharpness, not editability.
+
+If you pre-export the image yourself, the same gate applies:
+`unzip -p your.docx word/media/*.svg | grep -c '<text'` must be `0` for a
+Word-safe vector embed. When Cairo/svglite are missing, ksTFL falls back
+cairo -> svg -> png with a one-time warning, so builds never die.
+
+### 35. How do I switch between continuous sections, repeating/not repeating headers, and row-break behavior across pages?
 
 These controls come from different layers:
 
@@ -684,7 +710,7 @@ Important caveat: when `isColBreak` is active, ksTFL enforces
 
 ## Metadata workflows: replay, combine, and validation
 
-### 35. How do I replay a document from stored metadata without re-running R code?
+### 36. How do I replay a document from stored metadata without re-running R code?
 
 Use `replay_report()` with either the DOCX filename (uses the latest saved
 spec) or the exact spec JSON hash for a specific historical version. This
@@ -711,7 +737,7 @@ Practical workflow: run production specs with `save_report()` instead of
 re-runs, template switches, or regulatory re-submissions without touching the
 original R scripts.
 
-### 36. How do I combine multiple documents into a single DOCX with a Table of Contents?
+### 37. How do I combine multiple documents into a single DOCX with a Table of Contents?
 
 Pass a vector of spec references (DOCX names or JSON hashes) to
 `replay_report()` along with a combined `output_path`. The function merges all
@@ -743,7 +769,7 @@ replay_report(
 This is the standard pattern for assembling final submission packages from
 individually validated outputs.
 
-### 37. How do I filter and combine only the latest versions of documents?
+### 38. How do I filter and combine only the latest versions of documents?
 
 Use `list_reports()` to scan the meta folder, filter for `is_latest == TRUE`,
 then pass the matched `spec_file` entries to `replay_report()`. This is useful
@@ -774,7 +800,7 @@ This pattern is particularly useful for batch production workflows where
 hundreds of outputs are generated separately and then assembled into themed
 bundles (tables-only, figures-only, or full report).
 
-### 38. How do I match saved metadata with actual DOCX files for QC validation?
+### 39. How do I match saved metadata with actual DOCX files for QC validation?
 
 Use `list_reports()` to get the metadata index, then cross-check with the actual
 files on disk using an inner join. This ensures both the metadata and the
@@ -827,7 +853,7 @@ programmers save metadata during production runs, QC reviewers scan the output
 folder and metadata folder, then match and replay only the entries that exist in
 both places.
 
-### 39. How do I store metadata persistently for regulatory validation?
+### 40. How do I store metadata persistently for regulatory validation?
 
 Use `save_report()` with a persistent `metaPath` (not `tempdir()`) to create a
 durable metadata archive. This archive contains:
@@ -877,7 +903,7 @@ Validation workflow benefits:
   specs
 - **QC independence**: Reviewers replay from metadata, not from live R sessions
 
-### 40. How do I clean up obsolete metadata files while keeping the latest versions?
+### 41. How do I clean up obsolete metadata files while keeping the latest versions?
 
 Use `clean_reports()` to remove old spec JSONs and orphaned data files while
 preserving the most recent N versions per document. This keeps the metadata

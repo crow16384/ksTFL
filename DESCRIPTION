@@ -54,6 +54,7 @@ Suggests:
     magrittr,
     tibble,
     vctrs,
+    Cairo,
     svglite,
     xml2,
     withr

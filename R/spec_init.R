@@ -564,14 +564,15 @@ create_table <- function(data = NULL, cols = everything()) {
 #' @param width Numeric. Plot width in inches. Default: `6`.
 #' @param height Numeric. Plot height in inches. Default: `4`.
 #' @param dpi Integer. Resolution in dots per inch. Default: `300`.
-#' @param device Character. Output device. One of `"svg"` (default),
-#'   `"jpeg"`, `"svg"`. Must be supported by the C++ renderer.
+#' @param device Character. Output device: `"cairo"` (paths-only SVG via
+#'   \pkg{Cairo}; MS Word-safe), `"svg"` (svglite), `"png"`,
+#'   `"jpeg"`/`"jpg"`. `dpi` is ignored for cairo/svg (vector output).
 #'
 #' @return Character string — absolute path to the created temporary file.
 #'
 #' @keywords internal
 #' @noRd
-.save_ggplot_to_temp <- function(plot, width = 6, height = 4, dpi = 300L, device = "svg") {
+.save_ggplot_to_temp <- function(plot, width = 6, height = 4, dpi = 300L, device = "cairo") {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     cli_abort(c(
       "Package {.pkg ggplot2} is required to use ggplot2 objects with {.fn create_figure}.",
@@ -582,26 +583,127 @@ create_table <- function(data = NULL, cols = everything()) {
   checkmate::assert_number(width,  lower = 0.01, .var.name = "width")
   checkmate::assert_number(height, lower = 0.01, .var.name = "height")
   checkmate::assert_integerish(dpi, lower = 1L,  .var.name = "dpi")
-  checkmate::assert_choice(device, c("png", "jpeg", "jpg", "svg"), .var.name = "device")
+  checkmate::assert_choice(device, .const_figure_devices, .var.name = "device")
 
-  # Normalise device alias
-  ext <- switch(device,
-    "jpg"  = "jpeg",
-    device
-  )
-
+  ext <- .const_figure_ext[[device]]
   tmp_path <- tempfile(pattern = "ksTFL_ggplot_", fileext = paste0(".", ext))
 
-  ggplot2::ggsave(
-    filename = tmp_path,
-    plot     = plot,
-    width    = width,
-    height   = height,
-    dpi      = as.integer(dpi),
-    device   = ext
-  )
+  if (device == "cairo") {
+    if (!.fig_ns_available("Cairo")) {
+      cli_abort(c(
+        "Package {.pkg Cairo} is required for {.code figureDevice = \"cairo\"}.",
+        i = "Install it with: {.code install.packages('Cairo')}"
+      ))
+    }
+    # NOT ggsave: ggsave does not forward filename to CairoSVG correctly
+    # (Cairo writes to its own default and the requested path stays missing).
+    Cairo::CairoSVG(file = tmp_path, width = width, height = height,
+                    pointsize = 12, bg = "white", onepass = TRUE)
+    on.exit(grDevices::dev.off(), add = TRUE)
+    print(plot)
+  } else {
+    if (device == "svg") {
+      .warn_word_unsafe_svg(paste0("figureDevice = \"", device, "\""))
+    }
+    ggplot2::ggsave(
+      filename = tmp_path,
+      plot     = plot,
+      width    = width,
+      height   = height,
+      dpi      = as.integer(dpi),
+      device   = ext
+    )
+  }
 
   normalizePath(tmp_path, winslash = "/", mustWork = FALSE)
+}
+
+#' One-time session warning: svglite text-SVG is broken in MS Word
+#' (font substitution, text-anchor, px->96dpi scaling; svglite issues #90/#118
+#' closed won't-fix). LibreOffice displays it correctly, so headless QC gates
+#' cannot see the defect — only a real Word client can.
+#' @noRd
+.warn_word_unsafe_svg <- function(source = "figureDevice = \"svg\"") {
+  .pkg_warn_once("word_unsafe_svg", c(
+    "svglite text-SVG is known to render incorrectly in MS Word",
+    i = "Word's SVG engine ignores font-family, mishandles text-anchor=\"end\"",
+      "and scales px units by 96/72 - figure text can be cropped or substituted.",
+    i = "Prefer {.code figureDevice = \"cairo\"} (paths-only SVG) or a raster device,",
+      "or pass a pre-exported image path to {.fn create_figure}.",
+    i = "LibreOffice displays this format correctly; the defect is Word-only,",
+      "which is why headless QC does not catch it.",
+    i = paste0("Warning shown once per session (trigger: ", source, ").")
+  ))
+}
+
+#' Availability hook for suggested figure backends (Cairo/svglite).
+#' Isolated so tests can mock it via testthat::local_mocked_bindings().
+#' @noRd
+.fig_ns_available <- function(pkg) requireNamespace(pkg, quietly = TRUE)
+
+#' Session-level warn-once helper on .pkg_env.
+#' @noRd
+.pkg_warn_once <- function(key, message) {
+  flag <- paste0("warned_", key)
+  if (isTRUE(.pkg_env[[flag]])) {
+    return(invisible(TRUE))
+  }
+  .pkg_env[[flag]] <- TRUE
+  cli_warn(message)
+  invisible(TRUE)
+}
+
+#' Reset all session warn-once flags (internal/testing helper).
+#' @noRd
+.reset_warn_once <- function() {
+  keys <- ls(.pkg_env)
+  rm(list = keys[grepl("^warned_", keys)], envir = .pkg_env)
+  invisible(NULL)
+}
+
+#' Resolve the effective ggplot export device with graceful fallbacks:
+#' cairo -> svg -> png (fallbacks warn once per session). Device names other
+#' than cairo/svg (png/jpeg/jpg) pass through unchanged.
+#' @noRd
+.resolve_figure_device <- function(device) {
+  switch(device,
+    "cairo" = {
+      if (.fig_ns_available("Cairo")) {
+        device
+      } else if (.fig_ns_available("svglite")) {
+        .pkg_warn_once("device_fallback_cairo_svg", c(
+          "{.pkg Cairo} is not installed - falling back to text-SVG (svglite).",
+          i = "The fallback text-SVG renders incorrectly in MS Word; install",
+            "{.pkg Cairo} or set {.code figureDevice = \"png\"}."
+        ))
+        "svg"
+      } else {
+        .pkg_warn_once("device_fallback_cairo_png", c(
+          "Neither {.pkg Cairo} nor {.pkg svglite} is installed -",
+          "falling back to {.code figureDevice = \"png\"}."
+        ))
+        "png"
+      }
+    },
+    "svg" = {
+      if (.fig_ns_available("svglite")) {
+        device
+      } else if (.fig_ns_available("Cairo")) {
+        .pkg_warn_once("device_fallback_svg_cairo", c(
+          "{.pkg svglite} is not installed - serving {.code figureDevice = \"svg\"}",
+          "via {.pkg Cairo} paths-only output instead (Word-safe)."
+        ))
+        "cairo"
+      } else {
+        .pkg_warn_once("device_fallback_svg_png", c(
+          "Neither {.pkg svglite} nor {.pkg Cairo} is installed -",
+          "falling back to {.code figureDevice = \"png\"}."
+        ))
+        "png"
+      }
+    },
+    device
+  )
 }
 
 
@@ -610,15 +712,16 @@ create_table <- function(data = NULL, cols = everything()) {
 #' Create and initialize a TFL specification for embedding a figure. Accepts
 #' either a **file path** to an existing image or a **ggplot2 object** that is
 #' rendered automatically to a temporary file (format chosen by the
-#' `figureDevice` option, default `"svg"` — SVG export requires the
-#' \pkg{svglite} package).
+#' `figureDevice` option, default `"cairo"` — a paths-only, MS Word-safe
+#' SVG produced by \pkg{Cairo}; see Details for the fallback chain).
 #'
 #' @param plot_or_path One of:
 #'   \itemize{
 #'     \item A **character string** — path to an existing, readable image file
 #'       (`.png`, `.jpeg`/`.jpg`, or `.svg`).
 #'     \item A **ggplot2 object** (class `"gg"` or `"ggplot"`) — the plot is
-#'       rendered to a temporary file via `ggplot2::ggsave()`. Use `dpi` and
+#'       rendered to a temporary file (`ggplot2::ggsave()` for raster/svg
+#'       devices, `Cairo::CairoSVG()` for the default `"cairo"`). Use `dpi` and
 #'       package options (`figureWidth`, `figureHeight`, `figureDevice`) to
 #'       control output dimensions and format. Rendered size is driven by
 #'       `figureWidth`/`figureHeight` (NOT by ggplot's own saved size): set
@@ -632,8 +735,10 @@ create_table <- function(data = NULL, cols = everything()) {
 #' @details
 #' When a ggplot2 object is passed:
 #' \enumerate{
-#'   \item The plot is rendered via `ggplot2::ggsave()` to a temporary file in
-#'     `tempdir()`.
+#'   \item The plot is rendered to a temporary file in `tempdir()`: with the
+#'     default `figureDevice = "cairo"` via `Cairo::CairoSVG(onepass = TRUE)`
+#'     (text becomes vector paths — MS Word cannot corrupt it); raster and
+#'     `"svg"` devices go through `ggplot2::ggsave()`.
 #'   \item The temporary file path is stored in `spec$.metadata$filePath`.
 #'   \item `save_report()` copies the file (prefixed with `dataRef`) into
 #'     `metaPath`, where the C++ renderer reads it. Until then the asset
@@ -642,9 +747,18 @@ create_table <- function(data = NULL, cols = everything()) {
 #'   \item The temporary file persists for the duration of the R session.
 #' }
 #'
+#' **Device availability.** The requested `figureDevice` is resolved through
+#' a fallback chain `"cairo"` -> `"svg"` -> `"png"`: if the backing package
+#' (\pkg{Cairo} or \pkg{svglite}) is unavailable, the next device is used
+#' with a once-per-session warning, so figure production never dies on a
+#' missing suggested package.
+#'
 #' The C++ renderer natively supports `.png`, `.jpeg`/`.jpg`, and `.svg`
-#' formats. For MS Word fidelity prefer a cairo-rendered paths-only SVG or a
-#' PNG (see the figures vignette); svglite text-SVG is reflowed by Word.
+#' formats. Word fidelity: svglite text-SVG is reflowed by MS Word (font
+#' substitution, text-anchor and px-scaling bugs that LibreOffice does not
+#' show); this is why the default device exports a cairo paths-only SVG.
+#' Figures embedded as paths are not text-editable in Word — a deliberate
+#' determinism trade for clinical deliverables.
 #'
 #' @export
 #' @examples
@@ -663,6 +777,12 @@ create_table <- function(data = NULL, cols = everything()) {
 #' spec <- create_figure(p)
 #' tfl_reset_options()
 #'
+#' ## Default device: cairo paths-only SVG (MS Word-safe vector)
+#' spec <- create_figure(p)          # figureDevice = "cairo"
+#' ## Force text-SVG (renders wrong in Word; warns once) or raster:
+#' ## tfl_set_options(figureDevice = "svg")
+#' ## tfl_set_options(figureDevice = "jpeg")
+#'
 #' ## Full pipeline
 #' spec <- create_figure(p) |>
 #'   add_title("Weight vs MPG") |>
@@ -676,18 +796,20 @@ create_table <- function(data = NULL, cols = everything()) {
 create_figure <- function(plot_or_path, dpi = 300L) {
 
   settings <- tfl_get_options()
-  fig_device <- settings$figureDevice %||% "svg"
+  fig_device <- settings$figureDevice %||% "cairo"
+  ggplot_device <- NULL
 
   # Branch 1: ggplot2 object — render to temporary file
   if (inherits(plot_or_path, c("gg", "ggplot"))) {
     export_w <- .figure_size_to_inches(settings$figureWidth %||% "6in", default_in = 6)
     export_h <- .figure_size_to_inches(settings$figureHeight %||% "4in", default_in = 4)
+    ggplot_device <- .resolve_figure_device(fig_device)
     plot_or_path <- .save_ggplot_to_temp(
       plot   = plot_or_path,
       width  = export_w,
       height = export_h,
       dpi    = dpi,
-      device = fig_device
+      device = ggplot_device
     )
 
   # Branch 2: character file path — pass through as-is
@@ -705,5 +827,10 @@ create_figure <- function(plot_or_path, dpi = 300L) {
   }
 
   spec <- .tfl_init(data = plot_or_path, cols = everything(), docType = "Figure")
+  # Record the device that actually produced the file (fallback chain may
+  # resolve differently than the session figureDevice; schema allows both)
+  if (!is.null(ggplot_device)) {
+    spec$figure$device <- unclass(ggplot_device)
+  }
   spec
 }

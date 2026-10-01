@@ -12,7 +12,8 @@ create_figure(plot_or_path, dpi = 300L)
 \item A \strong{character string} — path to an existing, readable image file
 (\code{.png}, \code{.jpeg}/\code{.jpg}, or \code{.svg}).
 \item A \strong{ggplot2 object} (class \code{"gg"} or \code{"ggplot"}) — the plot is
-rendered to a temporary file via \code{ggplot2::ggsave()}. Use \code{dpi} and
+rendered to a temporary file (\code{ggplot2::ggsave()} for raster/svg
+devices, \code{Cairo::CairoSVG()} for the default \code{"cairo"}). Use \code{dpi} and
 package options (\code{figureWidth}, \code{figureHeight}, \code{figureDevice}) to
 control output dimensions and format. Rendered size is driven by
 \code{figureWidth}/\code{figureHeight} (NOT by ggplot's own saved size): set
@@ -29,14 +30,16 @@ A \code{TFL_spec} object with \code{docType = "Figure"}.
 Create and initialize a TFL specification for embedding a figure. Accepts
 either a \strong{file path} to an existing image or a \strong{ggplot2 object} that is
 rendered automatically to a temporary file (format chosen by the
-\code{figureDevice} option, default \code{"svg"} — SVG export requires the
-\pkg{svglite} package).
+\code{figureDevice} option, default \code{"cairo"} — a paths-only, MS Word-safe
+SVG produced by \pkg{Cairo}; see Details for the fallback chain).
 }
 \details{
 When a ggplot2 object is passed:
 \enumerate{
-\item The plot is rendered via \code{ggplot2::ggsave()} to a temporary file in
-\code{tempdir()}.
+\item The plot is rendered to a temporary file in \code{tempdir()}: with the
+default \code{figureDevice = "cairo"} via \code{Cairo::CairoSVG(onepass = TRUE)}
+(text becomes vector paths — MS Word cannot corrupt it); raster and
+\code{"svg"} devices go through \code{ggplot2::ggsave()}.
 \item The temporary file path is stored in \code{spec$.metadata$filePath}.
 \item \code{save_report()} copies the file (prefixed with \code{dataRef}) into
 \code{metaPath}, where the C++ renderer reads it. Until then the asset
@@ -45,9 +48,18 @@ folder to be intact.
 \item The temporary file persists for the duration of the R session.
 }
 
+\strong{Device availability.} The requested \code{figureDevice} is resolved through
+a fallback chain \code{"cairo"} -> \code{"svg"} -> \code{"png"}: if the backing package
+(\pkg{Cairo} or \pkg{svglite}) is unavailable, the next device is used
+with a once-per-session warning, so figure production never dies on a
+missing suggested package.
+
 The C++ renderer natively supports \code{.png}, \code{.jpeg}/\code{.jpg}, and \code{.svg}
-formats. For MS Word fidelity prefer a cairo-rendered paths-only SVG or a
-PNG (see the figures vignette); svglite text-SVG is reflowed by Word.
+formats. Word fidelity: svglite text-SVG is reflowed by MS Word (font
+substitution, text-anchor and px-scaling bugs that LibreOffice does not
+show); this is why the default device exports a cairo paths-only SVG.
+Figures embedded as paths are not text-editable in Word — a deliberate
+determinism trade for clinical deliverables.
 }
 \examples{
 \dontrun{
@@ -64,6 +76,12 @@ spec <- create_figure(p, dpi = 150)
 tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "png")
 spec <- create_figure(p)
 tfl_reset_options()
+
+## Default device: cairo paths-only SVG (MS Word-safe vector)
+spec <- create_figure(p)          # figureDevice = "cairo"
+## Force text-SVG (renders wrong in Word; warns once) or raster:
+## tfl_set_options(figureDevice = "svg")
+## tfl_set_options(figureDevice = "jpeg")
 
 ## Full pipeline
 spec <- create_figure(p) |>

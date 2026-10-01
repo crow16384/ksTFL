@@ -21,7 +21,7 @@
     contentWidth        = "100%",
     figureWidth         = "6in",
     figureHeight        = "4in",
-    figureDevice        = "svg",
+    figureDevice        = "cairo",
     figureScaleMode     = .const_figure_scale_modes[1L],
     
     # Data display defaults
@@ -150,10 +150,14 @@ tfl_get_option <- function(name) {
 #' @param figureHeight Character; default height for figure output (e.g. `"4in"`, `"10cm"`).
 #'   Applied when `create_figure()` specs do not specify their own height.
 #' @param figureDevice Character; graphics device used when a ggplot2 object is
-#'   rendered by `create_figure()`. One of `"svg"`, `"png"`, `"jpeg"`/`"jpg"`
-#'   (other values, e.g. `"pdf"`, are rejected). Default `"svg"`. Note: SVG
-#'   export goes through the \pkg{svglite} package (ggplot2 requirement),
-#'   which must be installed; `"png"` uses the grDevices built-in device.
+#'   rendered by `create_figure()`. One of `"cairo"` (default), `"svg"`,
+#'   `"png"`, `"jpeg"`/`"jpg"` (other values, e.g. `"pdf"`, are rejected).
+#'   `"cairo"` exports a paths-only SVG via \pkg{Cairo} (text is converted to
+#'   vector outlines) — the MS Word-safe vector format; Word's SVG engine
+#'   corrupts svglite text-SVG (font substitution, text-anchor and px-scaling
+#'   bugs), so plain `"svg"` emits a one-time warning. If \pkg{Cairo} is not
+#'   installed the device falls back to `"svg"` and then `"png"` with a
+#'   warning. `dpi` is ignored for `"cairo"` (vector output).
 #' @param figureScaleMode Character; how figures are scaled into the page
 #'   content area. One of `"fixed"` (use figureWidth/figureHeight as given;
 #'   a missing dimension is inferred from the default 6:4 ratio), `"fitWidth"`

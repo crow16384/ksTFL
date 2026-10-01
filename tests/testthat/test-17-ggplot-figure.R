@@ -2,14 +2,13 @@
 # Test: ggplot2 integration via create_figure()
 # ============================================================================
 
-# Environment independence (fixed 2026-09-29 after devtools::check() on a
-# machine WITHOUT {svglite} reported 17 errors):
-#   - ggplot2 >= 3.4 renders .svg ONLY via {svglite}; the package default
-#     figureDevice is "svg", so any create_figure(ggplot-object) call that
-#     keeps the default silently hard-depends on an undeclared suggestion.
-#   - Tests that PIN the svg contract -> skip_when_no_svg().
+# Environment independence (fixed 2026-09-29; default changed to "cairo"
+# 2026-10-01 for MS Word-safe paths-only SVG — see test-31-cairo-device.R):
+#   - the DEFAULT device needs {Cairo}; svg contract tests need {svglite};
+#     raster tests need nothing beyond base grDevices.
+#   - Tests that PIN the svg/cairo contract -> skip guards below.
 #   - Tests where the device is incidental (structure/dataRef/spec flow) ->
-#     force the png device locally (base grDevices, always available).
+#     force the png device locally (local_figure_png).
 
 # Helper: build a minimal ggplot2 object
 make_plot <- function() {
@@ -45,7 +44,7 @@ create_test_dir <- function() {
 
 test_that(".save_ggplot_to_temp() creates an SVG file by default", {
   skip_if_not_installed("ggplot2")
-  skip_when_no_svg()
+  skip_if_not_installed("Cairo")   # default device is cairo since 2026-10-01
   p <- make_plot()
   path <- ksTFL:::.save_ggplot_to_temp(p)
   expect_true(file.exists(path))
@@ -74,8 +73,12 @@ test_that(".save_ggplot_to_temp() respects device = 'jpg' alias", {
 test_that(".save_ggplot_to_temp() respects device = 'svg'", {
   skip_if_not_installed("ggplot2")
   skip_when_no_svg()
+  # svg is still honored, but now emits the once-per-session MS Word warning
+  # (P2 from Finding-Office-SVG-text-crop); consumed here so the suite stays
+  # warning-clean. The warn-once contract itself is pinned in test-31.
+  ksTFL:::.reset_warn_once()
   p <- make_plot()
-  path <- ksTFL:::.save_ggplot_to_temp(p, device = "svg")
+  path <- suppressWarnings(ksTFL:::.save_ggplot_to_temp(p, device = "svg"))
   expect_true(file.exists(path))
   expect_match(path, "\\.svg$", ignore.case = TRUE)
   unlink(path)
@@ -230,7 +233,7 @@ test_that("create_figure() stores a valid readable file path for ggplot2 input",
 
 test_that("create_figure() stores SVG path by default for ggplot2 input", {
   skip_if_not_installed("ggplot2")
-  skip_when_no_svg()   # the svg default IS the subject
+  skip_if_not_installed("Cairo")   # the cairo default produces .svg output
   p <- make_plot()
   spec <- create_figure(p)
   expect_match(spec$.metadata$filePath, "\\.svg$", ignore.case = TRUE)
@@ -253,8 +256,10 @@ test_that("create_figure() respects device = 'svg' for ggplot2 input", {
   old <- tfl_get_options()
   on.exit(.options_env$settings <- old, add = TRUE)
   tfl_set_options(figureDevice = "svg")
+  ksTFL:::.reset_warn_once()
   p <- make_plot()
-  spec <- create_figure(p)
+  suppressWarnings(spec <- create_figure(p))
+  ksTFL:::.reset_warn_once()
   expect_match(spec$.metadata$filePath, "\\.svg$", ignore.case = TRUE)
   expect_true(file.exists(spec$.metadata$filePath))
 })

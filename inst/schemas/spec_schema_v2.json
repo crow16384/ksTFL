@@ -599,7 +599,8 @@
                                 "png",
                                 "jpeg",
                                 "jpg",
-                                "svg"
+                                "svg",
+                                "cairo"
                             ]
                         }
                     }

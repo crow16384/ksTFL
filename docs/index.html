@@ -1038,10 +1038,9 @@
 </tr>
 <tr>
 <td><code>figureDevice</code></td>
-<td><code>"svg"</code></td>
+<td><code>"cairo"</code></td>
 <td>Character</td>
-<td>Graphics device for ggplot2 rendering: <code>"svg"</code>, <code>"png"</code>, <code>"jpeg"</code>
-</td>
+<td>Graphics device for ggplot2 rendering: <code>"cairo"</code> (default; paths-only SVG, MS Word-safe, needs Cairo), <code>"svg"</code> (svglite text-SVG — renders wrong in Word; warns once), <code>"png"</code>, <code>"jpeg"</code>. Missing packages fall back cairo -&gt; svg -&gt; png with a one-time warning.</td>
 </tr>
 <tr>
 <td><code>figureScaleMode</code></td>

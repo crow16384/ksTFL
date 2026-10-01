@@ -66,8 +66,11 @@ e.g. \code{"6pt"}. Use \code{NULL} to disable. \code{"0pt"} is treated as no spa
 \item{figureHeight}{Figure height with units. Same syntax as \code{figureWidth}.}
 
 \item{figureDevice}{Character. Image format used when \code{create_figure()}
-renders a ggplot2 object. One of \code{"svg"}, \code{"png"}, \code{"jpeg"}/\code{"jpg"}.
-(SVG export requires the \pkg{svglite} package.)}
+renders a ggplot2 object. One of \code{"cairo"} (default; \pkg{Cairo}
+paths-only SVG, MS Word-safe), \code{"svg"} (requires \pkg{svglite}; known
+to render incorrectly in MS Word — warns once), \code{"png"}, \code{"jpeg"}/\code{"jpg"}.
+If the chosen package-backed device is unavailable, \code{create_figure()}
+falls back cairo -> svg -> png with a warning.}
 
 \item{figureScaleMode}{Character. How the figure is scaled in the DOCX.
 One of \code{"fixed"} (exact \code{figureWidth} x \code{figureHeight}; a missing
