@@ -2,14 +2,14 @@
 title: "Advanced StyleRows and Conditional Formatting in ksTFL"
 author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
-output: 
+output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 3
-    dev: pdf
     css: ksTFL-vignette.css
 resource_files:
   - images/
+  - figures/
 vignette: >
   %\VignetteIndexEntry{Advanced StyleRows and Conditional Formatting in ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -118,8 +118,9 @@ spec <- create_table(data_groups) |>
 ```
 
 **Result:** When consecutive rows have the same `group`, their `group`
-and `visit` cells merge, displaying the merged content in the `group`
-column.
+and `visit` cells merge into one display cell showing the `group` value
+(the merged cell always keeps the text of the FIRST column in `cols`;
+the other columns' values are not shown).
 
 ![merge group visit cells](images/merge-group-visit-cells.png)
 
@@ -212,6 +213,10 @@ conditions:
 ```{r helpers-example}
 # Highlight first and last rows using helper functions
 spec <- create_table(data) |>
+  add_style(id = "border_emphasis",
+            s_font(bold = TRUE),
+            s_table_style(borders = s_borders(top = s_border(width = "2pt"),
+                                              bottom = s_border(width = "2pt")))) |>
   compute_cols(
     firstRow() | lastRow(),
     c_style(everything(), styleRef = "border_emphasis")
@@ -436,8 +441,7 @@ spec <- create_table(data_sales) |>
   # Add column labels:
   define_cols(
     c(product, revenue),
-    label = c('Region<br>    Product', 'Revenue<br>(Million of $)'),
-    # Use embedded indent style to indent the `product` value in a column
+    label = c('Region<br>    Product', 'Revenue<br>(Million of $)')
   ) |>
   # Use `c_addrow` to add a line with the value from `region` column
   compute_cols(
@@ -475,11 +479,13 @@ markers, or building composite labels without creating extra columns.
 
 \- `position`: `"before"` or `"after"` — where to attach the text
 
-\- `glue_col`: name of a data column whose value to attach (mutually
-exclusive with `text`)
+\- `glue_col`: unquoted name of a data column whose value to attach
 
-\- `text`: a literal string to attach (mutually exclusive with
-`glue_col`)
+\- `text`: a literal string (single value) to attach
+
+Exactly one of `glue_col` / `text` must be provided: calling `c_glue()`
+directly with both is an error, and inside `compute_cols()` the parser
+keeps `glue_col` and silently drops `text` — supply one or the other.
 
 \- `separator`: string inserted between original value and the glued
 text (default `NULL`)
@@ -534,7 +540,10 @@ spec <- create_table(data_groups) |>
 
 **Note:** `c_clear()` only affects the rendered display text. The
 underlying data value is still available for conditions in other
-`compute_cols()` calls.
+`compute_cols()` calls. Actions run in arrival order, so `c_clear()`
+before `c_glue()` in the same call turns the glue into a full cell
+replacement, while `c_glue()` before `c_clear()` erases the glued
+result.
 
 ------------------------------------------------------------------------
 
@@ -575,12 +584,12 @@ spec <- create_table(data_sales) |>
     c_merge(c(product, revenue), styleRef = f_combine('b','i','bt_th','ar')), 
     # clear the value, since we want to rebuild it:
     c_clear(product),
-    # take the value of `region` to the merged cells..
-    c_glue(product, 'after', region),
-    # add the word 'total' ...
+    # take the value of `region` into the merged cell...
+    c_glue(product, 'after', glue_col = region),
+    # then the word 'total: ' ...
     c_glue(product, 'after', text = ' total: '),
-    # and add the value for `revenue` column to get the final string
-    c_glue(product, 'after', revenue)
+    # and finally the `revenue` value to complete the string
+    c_glue(product, 'after', glue_col = revenue)
   ) 
 ```
 
@@ -593,36 +602,28 @@ become a production ready table:\
 
 ## Performance Tips
 
-### 1. Minimize `compute_cols()` Calls
+### 1. One condition block per rule
 
-Each call adds evaluation overhead. Combine conditions when possible:
+Every `compute_cols()` block adds one condition/action group to the spec
+and one resolution pass at `create_report()`. There is no `case_when`
+construct inside conditions — group rules under a shared condition when
+they apply together, and keep style lookups cheap by reusing ids:
 
 ```{r perf-minimize}
-# ❌ Less efficient:
-spec <- create_table(data) |>
-  compute_cols(age < 30, c_style(age, styleRef = "young")) |>
-  compute_cols(age >= 30 & age < 60, c_style(age, styleRef = "middle")) |>
-  compute_cols(age >= 60, c_style(age, styleRef = "senior"))
-
-# ✅ More efficient (single pass with case_when logic):
+# Three rules over the same column (idiomatic):
 spec <- create_table(data) |>
   add_style(id = "young",  s_font(color = "#008000")) |>
   add_style(id = "middle", s_font(color = "#0000FF")) |>
   add_style(id = "senior", s_font(color = "#FF0000")) |>
-  compute_cols(
-    age < 30,
-    c_style(age, styleRef = "young")
-  ) |>
-  compute_cols(
-    age >= 30 & age < 60,
-    c_style(age, styleRef = "middle")
-  ) |>
-  compute_cols(
-    age >= 60,
-    c_style(age, styleRef = "senior")
-  )
-  
-# Note: Consider refactoring to reduce compute_cols() calls if performance is critical
+  compute_cols(age < 30, c_style(age, styleRef = "young")) |>
+  compute_cols(age >= 30 & age < 60, c_style(age, styleRef = "middle")) |>
+  compute_cols(age >= 60, c_style(age, styleRef = "senior"))
+
+# When the same action set applies to several ranges, merge the ranges
+# into ONE condition with `|`:
+spec <- create_table(data) |>
+  add_style(id = "extreme", s_font(bold = TRUE)) |>
+  compute_cols(age < 25 | age >= 65, c_style(age, styleRef = "extreme"))
 ```
 
 ### 2. Use Vectorized Conditions
@@ -632,6 +633,7 @@ Avoid row-by-row operations in custom functions:
 ```{r perf-vectorized}
 # ❌ Slower (scalar logic):
 spec <- create_table(data) |>
+  add_style(id = "responder", s_font(bold = TRUE)) |>
   compute_cols(
     sapply(response, function(x) x %in% c("CR", "PR")),  # Row-by-row
     c_style(response, styleRef = "responder")
@@ -639,6 +641,7 @@ spec <- create_table(data) |>
 
 # ✅ Faster (vectorized):
 spec <- create_table(data) |>
+  add_style(id = "responder", s_font(bold = TRUE)) |>
   compute_cols(
     response %in% c("CR", "PR"),  # Vectorized
     c_style(response, styleRef = "responder")
@@ -698,9 +701,9 @@ spec <- create_table(data) |>
     c_style(age, styleRef = "elderly")
   )
 
-# Examine metadata
+# Examine metadata (internal structure — read-only, may change between versions)
 str(spec$.metadata$compute_cols)
-# Shows captured quosures and action types
+# Shows the captured condition quosures and per-block action lists
 ```
 
 ### Testing Conditions Manually
@@ -804,25 +807,44 @@ spec <- create_table(data_sales) |>
 
 ## Limitations and Workarounds
 
-### Limitation 1: No Direct Aggregate Functions in Conditions
+### Limitation 1: Conditions must be row-wise
 
-You can't use `sum()`, `mean()`, etc. directly in conditions:
+The condition expression must evaluate to a logical vector with exactly
+one element per data row, or a single logical scalar (recycled to all
+rows). Anything else errors at `create_report()`:
 
 ```{r limit-aggregates, error=TRUE}
-# ❌ This won't work as expected:
+# ❌ Wrong-length result: the condition may capture fine, but
+#    create_report() aborts because it resolves lazily:
 spec <- create_table(data) |>
+  add_style(id = "above_average", s_font(italic = TRUE)) |>
   compute_cols(
-    age > mean(age),  # Evaluates mean() at condition capture, not evaluation
+    age > head(mean(age), 0),  # returns logical(0), not one value per row
+    c_style(age, styleRef = "above_average")
+  )
+create_report(spec)  # aborts: condition must return a length-20 logical
+```
+
+Scalar-returning aggregates DO work — they are recycled across rows:
+
+```{r aggregates-ok}
+spec <- create_table(data) |>
+  add_style(id = "above_average", s_font(italic = TRUE)) |>
+  compute_cols(
+    age > mean(age),   # scalar mean -> age > 29.5 for every row
     c_style(age, styleRef = "above_average")
   )
 ```
 
-**Workaround:** Pre-calculate and add as a column:
+Still, the recommended idiom is precomputing helper columns upstream —
+it is explicit, cacheable, and lets invisible columns drive several
+rules at once:
 
 ```{r workaround-aggregates}
 data$age_above_avg <- data$age > mean(data$age)
 
 spec <- create_table(data) |>
+  define_cols(age_above_avg, isVisible = FALSE) |>
   compute_cols(
     age_above_avg,
     c_style(age, styleRef = "above_average")
@@ -834,12 +856,15 @@ spec <- create_table(data) |>
 You can't nest action functions:
 
 ```{r limit-nested, error=TRUE}
-# ❌ This is invalid:
+# ❌ This is invalid: actions are siblings, not expressions that can be
+#    nested inside each other's arguments. (Aborts at create_report():
+#    the nested c_merge() has no compute_cols() context when resolved.)
 spec <- create_table(data) |>
   compute_cols(
     age > 60,
-    c_style(age, styleRef = c_merge(patient, age))  # Not allowed
+    c_style(age, styleRef = c_merge(c(patient, age)))  # Not allowed
   )
+create_report(spec)
 ```
 
 **Workaround:** Use separate `compute_cols()` calls:
@@ -855,9 +880,11 @@ spec <- create_table(data) |>
 `styleRef` must reference a previously defined style:
 
 ```{r limit-styleref, error=TRUE}
-# ❌ This will error at evaluation time:
+# ❌ This will error at evaluation time (create_report validates all
+#    referenced style ids):
 spec <- create_table(data) |>
   compute_cols(age > 60, c_style(age, styleRef = "undefined_style"))
+create_report(spec)
 ```
 
 **Workaround:** Always define styles before using them:
@@ -876,6 +903,7 @@ spec <- create_table(data) |>
 
 ```{r integrate-define}
 spec <- create_table(data) |>
+  add_style(id = "elderly", s_font(bold = TRUE)) |>
   define_cols(age, type = "numeric", format = "0.0", colWidth = "15%") |>
   compute_cols(
     age > 65,
@@ -891,6 +919,7 @@ Reference invisible columns in conditions:
 data$flag <- sample(c(TRUE, FALSE), nrow(data), replace = TRUE)
 
 spec <- create_table(data) |>
+  add_style(id = "flagged", s_font(color = "#B8860B", bold = TRUE)) |>
   define_cols(flag, isVisible = FALSE) |>  # Hide column
   compute_cols(
     flag == TRUE,  # But use it in condition

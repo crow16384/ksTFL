@@ -1,11 +1,14 @@
 ---
 title: "Styling Guide (ksTFL)"
-author: "ksTFL Team"
+author: "ksTFL Development Team"
+date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
-    fig_width: 6
-    fig_height: 4
-    dev: pdf
+    toc: true
+    toc_depth: 3
+    css: ksTFL-vignette.css
+resource_files:
+  - figures/
 vignette: >
   %\VignetteIndexEntry{Styling Guide (ksTFL)}
   %\VignetteEncoding{UTF-8}
@@ -342,7 +345,10 @@ the header label.
 Paragraph borders are set via `s_borders()` inside `s_paragraph()`:
 
 ```{r para_borders_example, eval = FALSE}
-spec <- create_table(my_data)
+demo <- data.frame(
+  trt_a = c(12, 15), trt_b = c(14, 13), age = c(45, 52), sex = c("M", "F"),
+  stringsAsFactors = FALSE)
+spec <- create_table(demo)
 
 # Paragraph bottom border — underlines only the text, not the full cell
 spec <- add_style(spec, id = "span_underline",
@@ -386,10 +392,12 @@ has a unique `id` and contains one or more style primitives.
 ### Basic syntax
 
 ```{r add_style_basic, eval = FALSE}
+spec <- create_table(mtcars)
+
 spec <- add_style(spec, id = "style_name",
-  s_font(...),
-  s_paragraph(...),
-  s_table_style(...)
+  s_font(bold = TRUE),
+  s_paragraph(alignment = "center"),
+  s_table_style(background_color = "#EFEFEF")
 )
 ```
 
@@ -458,6 +466,7 @@ Apply styles to **column header labels**:
 spec <- create_table(mtcars)
 
 spec <- add_style(spec, id = "header_bold", s_font(bold = TRUE, font_size = "12pt"))
+spec <- add_style(spec, id = "header_italic", s_font(italic = TRUE))
 
 # Apply to single column
 spec <- define_cols(spec, mpg, label = "MPG (miles/gallon)", labelStyleRef = "header_bold")
@@ -592,6 +601,12 @@ grey90 (or gray with 'a')
 -   Georgia
 -   Verdana
 -   Trebuchet MS
+-   Liberation Sans
+
+These are the exact names the font resolver accepts; which of them are
+physically available on your machine is shown by `tfl_font_status()`
+(missing faces fall back — see the [Font Management](Font_Management.html)
+vignette).
 
 ### Alignment
 
@@ -629,7 +644,12 @@ grey90 (or gray with 'a')
 ### Pattern 1: Clinical table headers
 
 ```{r pattern_clinical_header, eval = FALSE}
-spec <- create_table(my_data)
+demo <- data.frame(
+  PARAM = c("Systolic BP", "Diastolic BP", "Pulse Rate"),
+  N = c(96, 96, 95), MEAN = c(128.4, 78.1, 72.6),
+  stringsAsFactors = FALSE)
+
+spec <- create_table(demo)
 
 spec <- add_style(spec, id = "clinical_header",
   s_font(font_name = "Arial", font_size = "11pt", bold = TRUE, color = "#FFFFFF"),
@@ -637,12 +657,15 @@ spec <- add_style(spec, id = "clinical_header",
   s_table_style(background_color = "#003366", row_height = "28pt", vertical_alignment = "center")
 )
 
-spec <- define_cols(spec, c("col1", "col2", "col3"), labelStyleRef = "clinical_header")
+spec <- define_cols(spec, c(PARAM, N, MEAN), labelStyleRef = "clinical_header")
 ```
 
 ### Pattern 2: Right-aligned numeric columns
 
 ```{r pattern_numeric, eval = FALSE}
+demo2 <- data.frame(age = 45, weight = 70.5, dose = 250)
+spec <- create_table(demo2)
+
 spec <- add_style(spec, id = "numeric_format",
   s_font(font_name = "Courier New", font_size = "10pt"),
   s_paragraph(alignment = "right")
@@ -654,6 +677,9 @@ spec <- define_cols(spec, c(age, weight, dose), type = "numeric", valueStyleRef 
 ### Pattern 3: ID/key columns (bold, wide)
 
 ```{r pattern_id_column, eval = FALSE}
+demo3 <- data.frame(subject_id = c("S001", "S002"), age = c(45, 52))
+spec <- create_table(demo3)
+
 spec <- add_style(spec, id = "id_column",
   s_font(bold = TRUE, font_size = "11pt"),
   s_paragraph(alignment = "left")
@@ -669,6 +695,9 @@ spec <- define_cols(spec, subject_id,
 ### Pattern 4: Multi-level headers with styled stubs
 
 ```{r pattern_multi_stub, eval = FALSE}
+demo4 <- data.frame(var1 = 1, var2 = 2, var3 = 3)
+spec <- create_table(demo4)
+
 spec <- add_style(spec, id = "level1_stub",
   s_font(bold = TRUE, font_size = "12pt", color = "#FFFFFF"),
   s_table_style(background_color = "#666666", vertical_alignment = "center"))
@@ -677,11 +706,12 @@ spec <- add_style(spec, id = "level2_stub",
   s_font(bold = TRUE, font_size = "11pt"),
   s_table_style(background_color = "#CCCCCC", vertical_alignment = "center"))
 
-spec <- add_span_header(spec, cols = c("var1", "var2", "var3"), label = "Baseline",
-  stubOrder = 1, labelStyleRef = "level1_stub")
-
+# Wider banner gets the higher order -> renders ABOVE the sub-group band
 spec <- add_span_header(spec, cols = c("var1", "var2"), label = "Safety",
-  stubOrder = 2, labelStyleRef = "level2_stub")
+  stubOrder = 1, labelStyleRef = "level2_stub")
+
+spec <- add_span_header(spec, cols = c("var1", "var2", "var3"), label = "Baseline",
+  stubOrder = 2, labelStyleRef = "level1_stub")
 ```
 
 ------------------------------------------------------------------------
@@ -693,10 +723,12 @@ spec <- add_span_header(spec, cols = c("var1", "var2"), label = "Safety",
 **Problem**: You used an `s_*` helper outside `add_style()`.
 
 ```{r error_context, eval = FALSE}
-# WRONG
-my_style <- s_font(bold = TRUE)  # ERROR
+# WRONG — s_font() outside add_style() aborts with
+# "`s_font()` can only be used inside `add_style()`":
+# my_style <- s_font(bold = TRUE)
 
 # CORRECT
+spec <- create_table(mtcars)
 spec <- add_style(spec, id = "my_style", s_font(bold = TRUE))
 ```
 
@@ -706,11 +738,13 @@ spec <- add_style(spec, id = "my_style", s_font(bold = TRUE))
 of TRUE).
 
 ```{r error_invalid, eval = FALSE}
-# WRONG
-s_font(bold = "bolded")  # ERROR: must be TRUE/FALSE
+# WRONG — invalid parameter values abort with the allowed set in the
+# message (e.g. bold must be TRUE/FALSE):
+# spec <- add_style(spec, id = "bad", s_font(bold = "bolded"))
 
 # CORRECT
-s_font(bold = TRUE)
+spec <- create_table(mtcars)
+spec <- add_style(spec, id = "good", s_font(bold = TRUE))
 ```
 
 ### Styles not applied after `create_report()`
@@ -719,11 +753,15 @@ s_font(bold = TRUE)
 before the styles are consolidated.
 
 ```{r error_consolidate, eval = FALSE}
-spec <- create_table(mtcars)
-spec <- define_cols(spec, mpg, labelStyleRef = f_combine("bold", "red"))
+# Style ids referenced via f_combine() MUST exist in the spec; otherwise
+# create_report() aborts with "Referenced styles not found in spec".
+spec <- create_table(mtcars) |>
+  add_style(id = "bold", s_font(bold = TRUE)) |>
+  add_style(id = "red", s_font(color = "red")) |>
+  define_cols(mpg, labelStyleRef = f_combine("bold", "red"))
 
-# CORRECT: create_report() consolidates combined styles before rendering
-report <- create_report(spec)  # Merges "bold" + "red" into a single resolved style
+# create_report() consolidates "bold" + "red" into one resolved style
+report <- create_report(spec)
 write_doc(report, name = "out", outDir = "./output", metaPath = tempdir())
 ```
 
@@ -868,8 +906,12 @@ tfl_print_style_atoms()
 **Usage:**
 
 ```{r atoms_usage, eval = FALSE}
+demo5 <- data.frame(group = c("A", "A", "B"), value = c(1.5, 2.7, 3.1),
+                    stringsAsFactors = FALSE)
+spec <- create_table(demo5)
+
 # Single atom as styleRef
-spec <- add_footnote(spec, "Source: database.", styleRef = "tw_80")
+spec <- add_footnote(spec, "Source: database.", styleRef = "fs_8")
 
 # Combine atoms with f_combine()
 spec <- define_cols(spec, value,
@@ -911,7 +953,7 @@ page margins** (content width ≈ 27.16 cm). Each 5 % step corresponds to
 **Usage — match footnotes and titles to a narrower table:**
 
 ```{r tw_basic, eval = FALSE}
-spec <- create_table(data) |>
+spec <- create_table(mtcars) |>
   set_document(contentWidth = "80%") |>
   add_title("Demographics Table",   styleRef = "tw_80") |>
   add_subtitle("Safety Population", styleRef = "tw_80") |>
@@ -921,6 +963,7 @@ spec <- create_table(data) |>
 **Combine with other atoms** using `f_combine()`:
 
 ```{r tw_combine, eval = FALSE}
+spec <- create_table(mtcars)
 # Bold title, indented to match a 75 % table
 spec <- add_title(spec, "Efficacy Summary",
                   styleRef = f_combine("b", "tw_75"))
@@ -933,6 +976,8 @@ spec <- add_footnote(spec, "Values are least-squares means.",
 **Apply via a named style** for reuse across multiple specs:
 
 ```{r tw_named, eval = FALSE}
+spec1 <- create_table(mtcars)
+spec2 <- create_table(iris)
 # Define the style on each spec (or use a helper function to apply it)
 add_footnote_80 <- function(spec, text) {
   spec <- add_style(spec, id = "fn_80",

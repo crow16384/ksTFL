@@ -2,7 +2,7 @@
 title: "Font Management in ksTFL"
 author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
-output: 
+output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 3

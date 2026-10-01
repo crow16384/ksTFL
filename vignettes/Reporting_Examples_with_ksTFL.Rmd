@@ -1,12 +1,15 @@
 ---
 title: "Reporting Examples using ksTFL"
-author: "ksTFL Team"
+author: "ksTFL Development Team"
+date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
-    dev: pdf
+    toc: true
+    toc_depth: 3
     css: ksTFL-vignette.css
 resource_files:
   - images/
+  - figures/
 vignette: >
   %\VignetteIndexEntry{Reporting Examples using ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -104,6 +107,7 @@ labs_tbl <- data.frame(
 # type = "cairo" avoids needing an X11 display (headless-safe for pkgdown/CI)
 out_dir <- file.path(tempdir(), "ksTFL-reporting-examples")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(file.path(out_dir, "meta"), recursive = TRUE, showWarnings = FALSE)
 
 plot_file <- file.path(tempdir(), "example_plot.png")
 png(plot_file, width = 600, height = 400, type = "cairo")
@@ -774,7 +778,7 @@ spec_para <- add_span_header(spec_para,
 
 ```{r save_stub, eval = FALSE}
 # Render stubbed table report to DOCX
-rpt_stub <- create_report(spec_stubs_style)
+rpt_stub <- create_report(spec_spans_style)
 write_doc(rpt_stub, name = "tbl_stub", outDir = "./out", metaPath = tempdir())
 ```
 

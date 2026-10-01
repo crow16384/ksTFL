@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="Getting Started with ksTFL">
@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,8 +82,10 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Getting Started with ksTFL</h1>
-                        <h4 data-toc-skip class="author">ksTFL Team</h4>
+                        <h4 data-toc-skip class="author">ksTFL
+Development Team</h4>
             
+            <h4 data-toc-skip class="date">2026-10-01</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Getting_Started_with_ksTFL.Rmd" class="external-link"><code>vignettes/Getting_Started_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Getting_Started_with_ksTFL.Rmd</code></div>
@@ -304,13 +306,19 @@ intact, <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
 in the output. For example, you might exclude a <code>flag</code> column
 from the report but still use it to drive conditional styling:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Only age, sex, trt go to the document; flag stays hidden</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demog</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span>, <span class="va">trt</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">demog</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">45</span>, <span class="fl">62</span>, <span class="fl">38</span><span class="op">)</span>, sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"M"</span>, <span class="st">"F"</span>, <span class="st">"F"</span><span class="op">)</span>,</span>
+<span>  trt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, flag <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Y"</span>, <span class="st">"N"</span>, <span class="st">"Y"</span><span class="op">)</span>,</span>
+<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># But flag is still available for conditional logic</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">trt</span>,</span>
-<span>  <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="st">"highlight"</span><span class="op">)</span>,</span>
-<span>  when <span class="op">=</span> <span class="va">flag</span> <span class="op">==</span> <span class="st">"Y"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Only age, sex, trt go to the document; flag stays out of cols</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demog</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span>, <span class="va">trt</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"highlight"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># But flag is still available for conditional logic: the first argument of</span></span>
+<span><span class="co"># compute_cols() is the condition, followed by the actions</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">flag</span> <span class="op">==</span> <span class="st">"Y"</span>,</span>
+<span>  <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">sex</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"highlight"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The order in which columns are passed to <code>cols</code> also
 determines their left-to-right order in the rendered table, so
 <code>cols</code> doubles as a convenient column-reordering mechanism —
@@ -320,14 +328,17 @@ no need to rearrange the underlying data frame.</p>
 <h3 id="figure-spec-from-image-file">Figure spec (from image file)<a class="anchor" aria-label="anchor" href="#figure-spec-from-image-file"></a>
 </h3>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># From a file path — any image format your renderer supports (PNG, JPEG, etc.)</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="st">"path/to/plot.png"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># From a file path — PNG, JPEG/JPG, or SVG (the renderer's supported formats)</span></span>
+<span><span class="va">png_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"plot.png"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/png.html" class="external-link">png</a></span><span class="op">(</span><span class="va">png_plot</span>, width <span class="op">=</span> <span class="fl">600</span>, height <span class="op">=</span> <span class="fl">400</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">wt</span>, <span class="va">mtcars</span><span class="op">$</span><span class="va">mpg</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">png_plot</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># From a ggplot2 object — rendered automatically to a temporary image file</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">mtcars</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">wt</span>, y <span class="op">=</span> <span class="va">mpg</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>          <span class="co"># uses configured defaults</span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, dpi <span class="op">=</span> <span class="fl">150L</span><span class="op">)</span> <span class="co"># custom resolution (dpi)</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>             <span class="co"># uses configured defaults</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span>, dpi <span class="op">=</span> <span class="fl">150L</span><span class="op">)</span> <span class="co"># custom resolution (default dpi = 300)</span></span>
 <span></span>
 <span><span class="co"># Control output size/format via options</span></span>
 <span><span class="co"># tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "jpeg")</span></span>
@@ -366,7 +377,9 @@ narrative content via <code><a href="../reference/add_body_text.html">add_body_t
 <h3 id="single-column">Single column<a class="anchor" aria-label="anchor" href="#single-column"></a>
 </h3>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">mpg</span>,</span>
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">mpg</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"Miles per Gallon"</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"numeric"</span>,</span>
 <span>  format <span class="op">=</span> <span class="st">"%.1f"</span>,</span>
@@ -376,7 +389,9 @@ narrative content via <code><a href="../reference/add_body_text.html">add_body_t
 <h3 id="batch-update-multiple-columns-with-single-values">Batch update (multiple columns with single values)<a class="anchor" aria-label="anchor" href="#batch-update-multiple-columns-with-single-values"></a>
 </h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Apply same label format to all columns</span></span>
+<code class="sourceCode R"><span><span class="co"># (continuing from the previous chunk: spec = create_table(mtcars))</span></span>
+<span></span>
+<span><span class="co"># Apply same label format to all columns</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MPG"</span>, <span class="st">"Cylinders"</span>, <span class="st">"HP"</span><span class="op">)</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"numeric"</span>,        <span class="co"># Recycled to all 3</span></span>
@@ -460,24 +475,27 @@ tidyselect expressions:</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"MPG"</span>, <span class="st">"Cyl"</span>, <span class="st">"HP"</span>, <span class="st">"Weight"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Top-level span header spanning all columns</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span>,</span>
-<span>  label <span class="op">=</span> <span class="st">"Motor Vehicle Specs"</span>,</span>
-<span>  stubOrder <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span><span class="co"># Second-level headers: finer grouping</span></span>
-<span><span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span><span class="op">)</span>,</span>
+<span><span class="co"># Band 1 (directly above the column-label row): finer grouping — these two</span></span>
+<span><span class="co"># share one row because their column sets do not overlap</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"Engine"</span>,</span>
 <span>  stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span><span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="va">wt</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"Weight"</span>,</span>
-<span>  stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<span>  stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span><span class="co"># Band 2 (higher on the page): full-width banner above both</span></span>
+<span><span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span>,</span>
+<span>  label <span class="op">=</span> <span class="st">"Motor Vehicle Specs"</span>,</span>
+<span>  stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Tidyselect support</strong>: <code><a href="../reference/add_span_header.html">add_span_header()</a></code>
 accepts all tidyselect expressions:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Using column ranges and helpers</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>, cols <span class="op">=</span> <span class="va">mpg</span><span class="op">:</span><span class="va">hp</span>, label <span class="op">=</span> <span class="st">"First"</span>, stubOrder <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"c"</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"C-columns"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="op">-</span><span class="va">mpg</span>, label <span class="op">=</span> <span class="st">"Non-MPG"</span>, stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Fresh spec (stub sets must not overlap within one stubOrder)</span></span>
+<span><span class="va">spec_ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Using column ranges and helpers</span></span>
+<span><span class="va">spec_ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec_ts</span>, cols <span class="op">=</span> <span class="va">mpg</span><span class="op">:</span><span class="va">hp</span>, label <span class="op">=</span> <span class="st">"Engine block"</span>, stubOrder <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="va">wt</span><span class="op">:</span><span class="va">qsec</span>, label <span class="op">=</span> <span class="st">"Chassis"</span>, stubOrder <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Key concepts</strong>:</p>
 <p>- <code>cols</code>: Column names (from <code>spec$columns</code>) to
 span.</p>
@@ -491,8 +509,13 @@ span.</p>
 <p>- <strong>Negation</strong>: <code>-mpg</code> (all columns except
 mpg)</p>
 <p>- <code>label</code>: Spanning header text</p>
-<p>- <code>stubOrder</code>: Vertical stacking order (1 = top, 2 = next,
-etc.; auto-generated if NULL)</p>
+<p>- <code>stubOrder</code>: Vertical stacking order — HIGHER numbers
+render HIGHER on the page. <code>stubOrder = 1</code> is the band
+directly above the column-label row, <code>stubOrder = 2</code> sits
+above it (0 and negatives are allowed too — every band still renders
+above the column labels; they only sort against each other by value).
+Auto-generated when <code>NULL</code>: each later call takes the next
+number and stacks above the earlier ones.</p>
 <p>- <code>labelStyleRef</code>: Style(s) for the header label</p>
 <p><strong>Rules</strong>:</p>
 <p>- Stubs at the <strong>same</strong> <code>stubOrder</code> cannot
@@ -600,9 +623,20 @@ the rendered DOCX:</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>hasData <span class="op">=</span> <span class="cn">TRUE</span>, docTemplate <span class="op">=</span> <span class="st">"Carbon_Dark"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Use a custom external template (JSON file)</span></span>
+<span><span class="co"># Use a custom external template (JSON file). IMPORTANT: pass an ABSOLUTE</span></span>
+<span><span class="co"># path — a relative path is silently treated as a bundled name, fails the</span></span>
+<span><span class="co"># lookup, and falls back to the "Default" template on replay from another</span></span>
+<span><span class="co"># working directory. (Any template JSON works, including a copy of a bundled</span></span>
+<span><span class="co"># one, which is what this example does.)</span></span>
+<span><span class="va">my_tpl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"my_custom_template.json"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.copy</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"templates"</span>, <span class="st">"Navy_Pro.json"</span>, package <span class="op">=</span> <span class="st">"ksTFL"</span><span class="op">)</span>, <span class="va">my_tpl</span><span class="op">)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"path/to/my_custom_template.json"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="va">my_tpl</span><span class="op">)</span></span></code></pre></div>
+<p>Bundled templates: <code>Default</code>, <code>Navy_Pro</code>,
+<code>Carbon_Dark</code>, <code>Classic_portrait</code>,
+<code>Classic_landscape_times</code>, <code>Listings</code>,
+<code>Regulatory_Arial</code> (confirm any time with
+<code><a href="../reference/tfl_list_templates.html">tfl_list_templates()</a></code>).</p>
 <p>Use <code>docTemplate</code> on the spec when different sections of
 one report should keep different looks. Use
 <code>write_doc(..., overrideTemplate = ...)</code> or
@@ -625,10 +659,8 @@ template JSON files.</p>
 <span><span class="va">spec_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">spec_text</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="va">spec_text</span>, <span class="st">"Analysis performed in R."</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="st">"plots/histogram.png"</span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># Combine into single report</span></span>
-<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_table</span>, <span class="va">spec_text</span>, <span class="va">spec_fig</span><span class="op">)</span></span>
+<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_table</span>, <span class="va">spec_text</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Inspect combined report</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">report</span><span class="op">)</span></span></code></pre></div>
@@ -648,8 +680,7 @@ once — useful when the set of outputs is assembled dynamically:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">specs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  t_dm   <span class="op">=</span> <span class="va">spec_table</span>,</span>
-<span>  t_text <span class="op">=</span> <span class="va">spec_text</span>,</span>
-<span>  t_fig  <span class="op">=</span> <span class="va">spec_fig</span></span>
+<span>  t_text <span class="op">=</span> <span class="va">spec_text</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">specs</span><span class="op">)</span></span>
@@ -714,10 +745,20 @@ columns</strong>: Create group headers by merging columns -
 <td><code>c_merge(c(col1, col2), styleRef = "header")</code></td>
 </tr>
 <tr class="odd">
+<td></td>
 <td><code>c_addrow(pos, value_from = NULL, styleRef = NULL)</code></td>
 <td>Insert row above/below</td>
+</tr>
+<tr class="even">
+<td><code>c_glue(cols, side, glue_col/text, separator)</code></td>
+<td>Append/prepend text to cell values</td>
+<td><code>c_glue(PARAM, "after", glue_col = VISIT)</code></td>
+</tr>
+<tr class="odd">
+<td><code>c_clear(cols)</code></td>
+<td>Blank the rendered text of cells</td>
 <td>
-<code>c_addrow(pos = "above")</code> for empty separator</td>
+<code>c_clear(label)</code> in total rows</td>
 </tr>
 <tr class="even">
 <td><code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code></td>
@@ -731,12 +772,13 @@ columns</strong>: Create group headers by merging columns -
 <code class="sourceCode R"><span><span class="co"># Direct column comparison</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cyl</span> <span class="op">&gt;</span> <span class="fl">6</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">mpg</span>, styleRef <span class="op">=</span> <span class="st">"emphasize"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># String matching</span></span>
-<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">Parameter</span> <span class="op">==</span> <span class="st">"Pulse"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">value</span>, styleRef <span class="op">=</span> <span class="st">"numeric"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># String matching (in a clinical listing, e.g.: Parameter == "Pulse")</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">am</span> <span class="op">==</span> <span class="fl">1</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">mpg</span>, styleRef <span class="op">=</span> <span class="st">"numeric"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Helper functions available INSIDE compute_cols() conditions:</span></span>
-<span><span class="co">#   firstOf(col1, col2, ...)  — TRUE for first row of each unique combination</span></span>
-<span><span class="co">#   lastOf(col1, col2, ...)   — TRUE for last row of each unique combination</span></span>
+<span><span class="co">#   firstOf(col1, col2, ...)  — TRUE at the first row of each RUN of equal</span></span>
+<span><span class="co">#                               values (contiguous groups — sort the data first)</span></span>
+<span><span class="co">#   lastOf(col1, col2, ...)   — TRUE at the last row of each RUN</span></span>
 <span><span class="co">#   firstRow()                — TRUE only for the very first data row</span></span>
 <span><span class="co">#   lastRow()                 — TRUE only for the very last data row</span></span>
 <span><span class="co">#   everyNth(n)               — TRUE every n-th row (1, n+1, 2n+1, ...)</span></span>
@@ -745,11 +787,16 @@ columns</strong>: Create group headers by merging columns -
 <span><span class="co"># Note: these helpers are NOT standalone functions — they only work inside</span></span>
 <span><span class="co"># the condition argument of compute_cols().</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">col1</span>, <span class="va">col2</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"group_header"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">firstOf</span><span class="op">(</span><span class="va">cyl</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">hp</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"group_header"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">lastOf</span><span class="op">(</span><span class="va">cyl</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">everyNth</span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">mpg</span>, styleRef <span class="op">=</span> <span class="st">"zebra"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># A scalar condition is allowed: compute_cols(spec, TRUE, ...) acts on all rows</span></span>
+<span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="cn">TRUE</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">disp</span>, styleRef <span class="op">=</span> <span class="st">"group_header"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">lastOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="fu">everyNth</span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">mpg</span>, styleRef <span class="op">=</span> <span class="st">"zebra"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Combine conditions</span></span>
+<span><span class="co"># Combine conditions with base logical operators</span></span>
 <span><span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">spec</span>, <span class="va">cyl</span> <span class="op">==</span> <span class="fl">8</span> <span class="op">&amp;</span> <span class="va">hp</span> <span class="op">&gt;</span> <span class="fl">100</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">mpg</span>, styleRef <span class="op">=</span> <span class="st">"high_power"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Key concepts</strong>:</p>
 <p>- Conditions are evaluated during <code><a href="../reference/create_report.html">create_report()</a></code> — at
@@ -793,7 +840,9 @@ progress messages to R console</p>
 <p>This is the recommended approach for production use. Set session
 defaults once:</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"./output"</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"./meta"</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span></span>
 <span>  output_directory <span class="op">=</span> <span class="st">"./output"</span>,</span>
 <span>  meta_directory   <span class="op">=</span> <span class="st">"./meta"</span></span>
 <span><span class="op">)</span></span>
@@ -879,6 +928,8 @@ and compare them.</p>
 </h3>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">meta_dir</span> <span class="op">&lt;-</span> <span class="st">"./meta"</span></span>
+<span><span class="co"># (report + ./meta set up by the previous chunks; write_doc already saved</span></span>
+<span><span class="co">#  its spec there — or call save_report(report, "demo.docx", metaPath = meta_dir))</span></span>
 <span></span>
 <span><span class="co"># List all spec JSONs in the meta folder</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/list_reports.html">list_reports</a></span><span class="op">(</span><span class="va">meta_dir</span><span class="op">)</span></span>
@@ -887,8 +938,9 @@ and compare them.</p>
 <span><span class="co"># Re-render a DOCX from stored JSON (no R objects needed)</span></span>
 <span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"demographics.docx"</span>, meta_dir <span class="op">=</span> <span class="va">meta_dir</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Or replay a specific version by spec hash</span></span>
-<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"abc123def456.json"</span>, meta_dir <span class="op">=</span> <span class="va">meta_dir</span>,</span>
+<span><span class="co"># Or replay a specific version by its spec JSON file name</span></span>
+<span><span class="va">some_spec</span> <span class="op">&lt;-</span> <span class="va">df</span><span class="op">$</span><span class="va">spec_file</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="va">some_spec</span>, meta_dir <span class="op">=</span> <span class="va">meta_dir</span>,</span>
 <span>              output_path <span class="op">=</span> <span class="st">"./output/demographics_v2.docx"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Clean up obsolete spec files (keeps latest version per document)</span></span>
@@ -918,6 +970,8 @@ files. By default keeps 1 version per document
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># All write_doc() calls now use these directories automatically</span></span>
+<span><span class="va">report1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 1"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">report2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span>    <span class="op">|&gt;</span> <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 2"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report1</span>, name <span class="op">=</span> <span class="st">"tbl_demographics"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report2</span>, name <span class="op">=</span> <span class="st">"tbl_labs"</span><span class="op">)</span></span>
 <span></span>
@@ -970,8 +1024,8 @@ file:</p>
 <span>  <span class="fu"><a href="../reference/add_body_text.html">add_body_text</a></span><span class="op">(</span><span class="st">"Analysis performed in R with ksTFL."</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># All new specs created afterward inherit these settings</span></span>
-<span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data1</span><span class="op">)</span>  <span class="co"># Automatically gets headers/footers/body text</span></span>
-<span><span class="va">spec2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data2</span><span class="op">)</span>  <span class="co"># Also inherits defaults</span></span>
+<span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span>  <span class="co"># Automatically gets headers/footers/body text</span></span>
+<span><span class="va">spec2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span>    <span class="co"># Also inherits defaults</span></span>
 <span></span>
 <span><span class="co"># Check current options</span></span>
 <span><span class="fu"><a href="../reference/tfl_get_options.html">tfl_get_options</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -1362,7 +1416,7 @@ margins via <code><a href="../reference/p_margins.html">p_margins()</a></code>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

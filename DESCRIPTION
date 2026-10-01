@@ -50,6 +50,8 @@ Suggests:
     colourpicker,
     sortable,
     shinyFiles,
+    dplyr,
+    magrittr,
     tibble,
     vctrs,
     svglite,

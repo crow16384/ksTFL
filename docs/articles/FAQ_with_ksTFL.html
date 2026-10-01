@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
 <meta property="og:title" content="FAQ and Practical Gotchas in ksTFL">
@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ksTFL</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.11.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.12.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -82,8 +82,10 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>FAQ and Practical Gotchas in ksTFL</h1>
-                        <h4 data-toc-skip class="author">ksTFL Team</h4>
+                        <h4 data-toc-skip class="author">ksTFL
+Development Team</h4>
             
+            <h4 data-toc-skip class="date">2026-10-01</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/FAQ_with_ksTFL.Rmd" class="external-link"><code>vignettes/FAQ_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>FAQ_with_ksTFL.Rmd</code></div>
@@ -142,6 +144,7 @@ fields such as <code>SECTION</code>, <code>SECTION_ID</code>,
 <code>MODELVAL</code>, and <code>SOC_GROUP</code>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="st">"flagged"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#8B0000"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">FLAG</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">FLAG</span> <span class="op">==</span> <span class="st">"Y"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"flagged"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -162,7 +165,7 @@ column?<a class="anchor" aria-label="anchor" href="#why-did-the-other-column-wid
 remaining visible unlocked columns so they fill the leftover width.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">ID</span>, colWidth <span class="op">=</span> <span class="st">"20%"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">ID</span>, colWidth <span class="op">=</span> <span class="st">"20%"</span><span class="op">)</span>   <span class="co"># ID locked; rest re-normalized</span></span></code></pre></div>
 <p>After that call, <code>ID</code> stays fixed at <code>20%</code> and
 the remaining visible unlocked columns are recalculated to fill the
 rest.</p>
@@ -181,17 +184,23 @@ deduplication off for that field.</p>
 <h2 id="row-actions-and-layout-rules">Row actions and layout rules<a class="anchor" aria-label="anchor" href="#row-actions-and-layout-rules"></a>
 </h2>
 <div class="section level3">
-<h3 id="why-does-compute_cols-not-like-aggregate-logic-such-as-meanx">6. Why does <code>compute_cols()</code> not like aggregate logic
-such as <code>mean(x)</code>?<a class="anchor" aria-label="anchor" href="#why-does-compute_cols-not-like-aggregate-logic-such-as-meanx"></a>
+<h3 id="can-i-use-aggregate-logic-such-as-meanx-inside-a-compute_cols-condition">6. Can I use aggregate logic such as <code>mean(x)</code> inside a
+<code>compute_cols()</code> condition?<a class="anchor" aria-label="anchor" href="#can-i-use-aggregate-logic-such-as-meanx-inside-a-compute_cols-condition"></a>
 </h3>
-<p><code><a href="../reference/compute_cols.html">compute_cols()</a></code> conditions are captured lazily and
-evaluated row-wise. If you need section-level or whole-table aggregates,
-calculate them upstream or write them into a helper column before
-creating the spec.</p>
+<p>Yes for scalar-returning aggregates: conditions are evaluated over
+the whole column vector, so <code>age &gt; mean(age)</code> works (the
+scalar <code>mean</code> is recycled row-wise). What is <em>not</em>
+allowed is anything that changes the vector shape — subsetting like
+<code>head(x)</code>, summaries grouped per row, or returning the wrong
+length: the condition must yield one logical per row (or a single
+scalar). Still, for section-level statistics the recommended pattern is
+precomputing a helper column upstream — it keeps rules explicit and
+reusable.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span><span class="op">$</span><span class="va">group_mean</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/ave.html" class="external-link">ave</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">AVAL</span>, <span class="va">df</span><span class="op">$</span><span class="va">GROUP</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="st">"flagged"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">group_mean</span> <span class="op">&gt;</span> <span class="fl">10</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">AVAL</span>, styleRef <span class="op">=</span> <span class="st">"flagged"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -212,7 +221,8 @@ new level.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A_N</span>, <span class="va">TRT_A_PCT</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"Treatment A"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_B_N</span>, <span class="va">TRT_B_PCT</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"Treatment B"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_B_N</span>, <span class="va">TRT_B_PCT</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"Treatment B"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co"># same stubOrder = same header row; columns must not overlap within a row</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="can-span-headers-overlap">9. Can span headers overlap?<a class="anchor" aria-label="anchor" href="#can-span-headers-overlap"></a>
@@ -231,11 +241,13 @@ sections, and use this pattern for short follow-on content because Word
 still handles overflow naturally.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">plot_obj</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">plot_obj</span><span class="op">)</span> <span class="op">|&gt;</span>            <span class="co"># a ggplot object or an image path</span></span>
 <span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary_tbl</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"fig_with_table"</span>, outDir <span class="op">=</span> <span class="st">"output"</span>,</span>
+<span>          metaPath <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="when-should-i-use-isgrouping-ispaging-and-iscolbreak">11. When should I use <code>isGrouping</code>,
@@ -272,9 +284,13 @@ payloads without rendering, while <code><a href="../reference/replay_report.html
 later from those saved artifacts and can also combine previously saved
 outputs into one document.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"tables"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># one step</span></span>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"tables"</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># two steps</span></span>
 <span><span class="va">saved</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/save_report.html">save_report</a></span><span class="op">(</span><span class="va">report</span>, docFileName <span class="op">=</span> <span class="st">"tables.docx"</span>, metaPath <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span>
+<span><span class="co"># NOTE: save_report() itself does NOT render a DOCX — it only writes the</span></span>
+<span><span class="co"># spec/data JSON into metaPath. replay_report() (or write_doc) renders.</span></span>
 <span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="va">saved</span><span class="op">$</span><span class="va">spec_file</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -311,8 +327,9 @@ bundled template while a text or figure section uses another.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="../reference/create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"Carbon_Dark"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/create_text.html">create_text</a></span><span class="op">(</span><span class="op">)</span>      <span class="op">|&gt;</span> <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"Carbon_Dark"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"mixed_sections"</span>, outDir <span class="op">=</span> <span class="st">"output"</span>, metaPath <span class="op">=</span> <span class="st">"meta"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="how-do-i-force-one-template-across-every-section">17. How do I force one template across every section?<a class="anchor" aria-label="anchor" href="#how-do-i-force-one-template-across-every-section"></a>
@@ -322,7 +339,8 @@ bundled template while a text or figure section uses another.</p>
 <code>docTemplate</code> values and is the cleanest way to re-skin a
 finished bundle.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"tables"</span>, overrideTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"tables"</span>, outDir <span class="op">=</span> <span class="st">"output"</span>, metaPath <span class="op">=</span> <span class="st">"meta"</span>,</span>
+<span>          overrideTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/replay_report.html">replay_report</a></span><span class="op">(</span><span class="st">"tables.docx"</span>, meta_dir <span class="op">=</span> <span class="st">"meta"</span>, overrideTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
@@ -343,7 +361,9 @@ entries has nothing to index.</p>
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 1"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"tables"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"tables"</span>, outDir <span class="op">=</span> <span class="st">"output"</span>,</span>
+<span>          metaPath <span class="op">=</span> <span class="st">"meta"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co"># In Word: click the TOC field and press F9 to populate it.</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="why-is-the-toc-still-just-a-placeholder-when-i-open-the-docx">19. Why is the TOC still just a placeholder when I open the
@@ -364,10 +384,12 @@ prefixes inside the final <code>TFL_report</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">specs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  demog <span class="op">=</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span>,</span>
-<span>  labs <span class="op">=</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adlb</span><span class="op">)</span></span>
+<span>  labs  <span class="op">=</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adlb</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">specs</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">specs</span><span class="op">)</span>   <span class="co"># slot names become key prefixes</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">report</span><span class="op">)</span></span>
+<span><span class="co"># "demog_&lt;hash&gt;" "labs_&lt;hash&gt;"</span></span></code></pre></div>
 <hr>
 </div>
 </div>
@@ -420,9 +442,10 @@ formatting?<a class="anchor" aria-label="anchor" href="#how-do-i-hide-a-helper-c
 in <code><a href="../reference/compute_cols.html">compute_cols()</a></code> as usual.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">FLAG</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Parameter"</span>, <span class="st">"Value"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span><span class="st">"flagged"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#8B0000"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Parameter"</span>, <span class="st">"Value"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># hide last: invisible columns reject colWidth and are excluded from recalc</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">FLAG</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="va">FLAG</span> <span class="op">==</span> <span class="st">"Y"</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PARAM</span>, <span class="va">VALUE</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"flagged"</span><span class="op">)</span></span>
@@ -442,8 +465,9 @@ the display text from the hidden column.</p>
 <span>    <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, color <span class="op">=</span> <span class="st">"#FFFFFF"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#4682B4"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">REGION</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="co"># labels/widths first, hide LAST (invisible columns reject colWidth):</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PRODUCT</span>, <span class="va">REVENUE</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Product"</span>, <span class="st">"Revenue"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">REGION</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">REGION</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span></span>
@@ -941,12 +965,12 @@ specs)</li>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Save report with metadata</span></span>
-<span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 1: Demographics"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">adsl</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 1: Demographics"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>hasData <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">spec2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">advs</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 2: Vital Signs"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="va">spec2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">advs</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 2: Vital Signs"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>hasData <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec1</span>, <span class="va">spec2</span><span class="op">)</span></span>
@@ -989,11 +1013,11 @@ orphaned data files while preserving the most recent N versions per
 document. This keeps the metadata folder manageable in long-running
 projects.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Keep only the 2 most recent versions of each document</span></span>
+<code class="sourceCode R"><span><span class="co"># Preview first (dry_run = TRUE is the default — nothing is deleted yet):</span></span>
 <span><span class="fu"><a href="../reference/clean_reports.html">clean_reports</a></span><span class="op">(</span>meta_dir <span class="op">=</span> <span class="st">"meta"</span>, keep_versions <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Keep only the latest version (most aggressive cleanup)</span></span>
-<span><span class="fu"><a href="../reference/clean_reports.html">clean_reports</a></span><span class="op">(</span>meta_dir <span class="op">=</span> <span class="st">"meta"</span>, keep_versions <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Apply the cleanup:</span></span>
+<span><span class="fu"><a href="../reference/clean_reports.html">clean_reports</a></span><span class="op">(</span>meta_dir <span class="op">=</span> <span class="st">"meta"</span>, keep_versions <span class="op">=</span> <span class="fl">2</span>, dry_run <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>The function:</p>
 <ul>
 <li>Identifies obsolete spec JSONs (older than
@@ -1020,7 +1044,7 @@ only the final validated versions.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

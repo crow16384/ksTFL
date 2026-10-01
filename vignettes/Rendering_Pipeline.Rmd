@@ -73,6 +73,9 @@ Core modules
     -   LogicalTableBuilder::build()
     -   build_header_grid(), build_data_rows()
     -   apply_dedupe(), apply_style_rows(), detect_grouping_boundaries()
+-   src/kstfl/inline_parser.cpp
+    -   inline markup extraction (`<b> <i> <u> <br> <sup> <sub>` etc.)
+        feeding vertAlign/bold/italic runs to the emitter
 
 ### 2.4 Font discovery, measurement, and pagination
 

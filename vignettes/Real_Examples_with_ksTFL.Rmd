@@ -1,9 +1,11 @@
 ---
 title: "Real Examples of Clinical Outputs using ksTFL"
-author: "ksTFL Team"
+author: "ksTFL Development Team"
+date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
-    dev: pdf
+    toc: true
+    toc_depth: 3
     css: ksTFL-vignette.css
 resource_files:
   - example_01.pdf
@@ -15,6 +17,7 @@ resource_files:
   - example_05_figures_single_doc_toc.pdf
   - example_03.1_table_under_figure.pdf
   - spanning_headers_gap.pdf
+  - figures/
 vignette: >
   %\VignetteIndexEntry{Real Examples of Clinical Outputs using ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -49,7 +52,17 @@ listings with grouping, and finally figure output.
 
 All code chunks use `eval = FALSE`; the rendered PDFs were pre-generated and are
 embedded below. To reproduce an example locally, run the shown code in an R
-session with ksTFL loaded.
+session with ksTFL loaded and the session setup above applied (the examples
+use the magrittr pipe `%>%`, so attach `dplyr` or `magrittr` as in the setup
+block).
+
+> **Data note**: Examples 1 and 5 build their input completely in the shown
+> code (and Example 5 runs on `mtcars`). In the other examples the input frame
+> (`data`, `tbl`, `lab_listing`, `pk`, `summary_tbl`, `demo_data`) is displayed
+> as printed output only — it stands for the result of upstream analysis
+> programs (ADaM-style summaries). To reproduce those, rebuild an equivalent
+> frame from the printed rows (column names and order are what the spec code
+> consumes); the focus here is the ksTFL specification layer, not statistics.
 
 ## How examples are organised
 
@@ -895,7 +908,9 @@ t.fig.spec <- t.fig %>% create_figure() %>%
   add_subtitle("All vehicles, 1974") |>
   add_footnote("Source: 1974 Motor Trend US magazine (n = 32 vehicles).")
 
-# figureScaleMode = "fitPage" scales the image to fill the available area.
+# figureScaleMode = "fitPage" scales the image to fill the available area:
+# the session figureWidth/figureHeight are deliberately ignored in this mode
+# (the renderer computes the size from page bounds — a warning documents it).
 t.fig.spec <- t.fig.spec %>%
   set_document(figureScaleMode = "fitPage",
                docTemplate = "Classic_landscape_times")

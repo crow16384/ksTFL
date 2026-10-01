@@ -184,10 +184,12 @@ test_that("add_span_header() preserves column order within stub", {
   expect_true(all(c("col_a", "col_b", "col_d") %in% stub$cols))
 })
 
-test_that("add_span_header() with negative stubOrder (for alternate header placement)", {
+test_that("add_span_header() with negative stubOrder (sorts below positive bands)", {
   spec <- create_table(test_df_simple)
-  
-  # Create stub with negative order (may be used for footer-like headers)
+
+  # Negative order is accepted and sorts BELOW positive bands, but all span
+  # bands still render ABOVE the column-label row (verified live 2026-10-01;
+  # header grid sorts stubs by stub_order descending — logical_table.cpp:138)
   spec <- add_span_header(spec, cols = c(value, ratio), label = "Footer Header", stubOrder = -1)
   
   stub <- spec$stubColumns[[1]]

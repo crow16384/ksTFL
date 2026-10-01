@@ -1,10 +1,14 @@
 ---
 title: "FAQ and Practical Gotchas in ksTFL"
-author: "ksTFL Team"
+author: "ksTFL Development Team"
+date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
-    dev: pdf
+    toc: true
+    toc_depth: 3
     css: ksTFL-vignette.css
+resource_files:
+  - figures/
 vignette: >
   %\VignetteIndexEntry{FAQ and Practical Gotchas in ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -65,6 +69,7 @@ examples do this with fields such as `SECTION`, `SECTION_ID`, `MODELVAL`, and
 
 ```r
 spec <- create_table(df) |>
+  add_style("flagged", s_font(color = "#8B0000", bold = TRUE)) |>
   define_cols(FLAG, isVisible = FALSE) |>
   compute_cols(FLAG == "Y", c_style(c(PARAM, VALUE), styleRef = "flagged"))
 ```
@@ -83,7 +88,7 @@ fill the leftover width.
 
 ```r
 spec <- create_table(df) |>
-  define_cols(ID, colWidth = "20%")
+  define_cols(ID, colWidth = "20%")   # ID locked; rest re-normalized
 ```
 
 After that call, `ID` stays fixed at `20%` and the remaining visible unlocked
@@ -99,16 +104,21 @@ leader column or turn deduplication off for that field.
 
 ## Row actions and layout rules
 
-### 6. Why does `compute_cols()` not like aggregate logic such as `mean(x)`?
+### 6. Can I use aggregate logic such as `mean(x)` inside a `compute_cols()` condition?
 
-`compute_cols()` conditions are captured lazily and evaluated row-wise. If you
-need section-level or whole-table aggregates, calculate them upstream or write
-them into a helper column before creating the spec.
+Yes for scalar-returning aggregates: conditions are evaluated over the whole
+column vector, so `age > mean(age)` works (the scalar `mean` is recycled
+row-wise). What is *not* allowed is anything that changes the vector shape —
+subsetting like `head(x)`, summaries grouped per row, or returning the wrong
+length: the condition must yield one logical per row (or a single scalar).
+Still, for section-level statistics the recommended pattern is precomputing a
+helper column upstream — it keeps rules explicit and reusable.
 
 ```r
 df$group_mean <- ave(df$AVAL, df$GROUP, FUN = mean)
 
 spec <- create_table(df) |>
+  add_style("flagged", s_font(bold = TRUE)) |>
   compute_cols(group_mean > 10, c_style(AVAL, styleRef = "flagged"))
 ```
 
@@ -128,6 +138,7 @@ increase it when you really want a new level.
 spec <- create_table(df) |>
   add_span_header(c(TRT_A_N, TRT_A_PCT), label = "Treatment A", stubOrder = 1) |>
   add_span_header(c(TRT_B_N, TRT_B_PCT), label = "Treatment B", stubOrder = 1)
+# same stubOrder = same header row; columns must not overlap within a row
 ```
 
 ### 9. Can span headers overlap?
@@ -144,11 +155,13 @@ short follow-on content because Word still handles overflow naturally.
 
 ```r
 report <- create_report(
-  create_figure(plot_obj) |>
+  create_figure(plot_obj) |>            # a ggplot object or an image path
     set_document(continuousSection = TRUE),
   create_table(summary_tbl) |>
     set_document(continuousSection = TRUE)
 )
+write_doc(report, name = "fig_with_table", outDir = "output",
+          metaPath = "meta")
 ```
 
 ### 11. When should I use `isGrouping`, `isPaging`, and `isColBreak`?
@@ -181,9 +194,13 @@ renders later from those saved artifacts and can also combine previously saved
 outputs into one document.
 
 ```r
+# one step
 write_doc(report, name = "tables")
 
+# two steps
 saved <- save_report(report, docFileName = "tables.docx", metaPath = "meta")
+# NOTE: save_report() itself does NOT render a DOCX — it only writes the
+# spec/data JSON into metaPath. replay_report() (or write_doc) renders.
 replay_report(saved$spec_file, meta_dir = "meta")
 ```
 
@@ -217,8 +234,9 @@ section uses another.
 ```r
 report <- create_report(
   create_table(adsl) |> set_page_style(docTemplate = "Navy_Pro"),
-  create_text() |> set_page_style(docTemplate = "Carbon_Dark")
+  create_text()      |> set_page_style(docTemplate = "Carbon_Dark")
 )
+write_doc(report, name = "mixed_sections", outDir = "output", metaPath = "meta")
 ```
 
 ### 17. How do I force one template across every section?
@@ -228,7 +246,8 @@ override wins over per-spec `docTemplate` values and is the cleanest way to
 re-skin a finished bundle.
 
 ```r
-write_doc(report, name = "tables", overrideTemplate = "Navy_Pro")
+write_doc(report, name = "tables", outDir = "output", metaPath = "meta",
+          overrideTemplate = "Navy_Pro")
 replay_report("tables.docx", meta_dir = "meta", overrideTemplate = "Navy_Pro")
 ```
 
@@ -247,7 +266,9 @@ to index.
 spec <- create_table(df) |>
   add_title("Table 1", toclevel = 1)
 
-write_doc(create_report(spec), name = "tables", toc = TRUE)
+write_doc(create_report(spec), name = "tables", outDir = "output",
+          metaPath = "meta", toc = TRUE)
+# In Word: click the TOC field and press F9 to populate it.
 ```
 
 ### 19. Why is the TOC still just a placeholder when I open the DOCX?
@@ -264,10 +285,12 @@ list names become the key prefixes inside the final `TFL_report`.
 ```r
 specs <- list(
   demog = create_table(adsl),
-  labs = create_table(adlb)
+  labs  = create_table(adlb)
 )
 
-report <- create_report(specs)
+report <- create_report(specs)   # slot names become key prefixes
+names(report)
+# "demog_<hash>" "labs_<hash>"
 ```
 
 ------------------------------------------------------------------------
@@ -320,9 +343,10 @@ Hide the helper with `isVisible = FALSE`, then refer to it in
 
 ```r
 spec <- create_table(df) |>
-  define_cols(FLAG, isVisible = FALSE) |>
-  define_cols(c(PARAM, VALUE), label = c("Parameter", "Value")) |>
   add_style("flagged", s_font(color = "#8B0000", bold = TRUE)) |>
+  define_cols(c(PARAM, VALUE), label = c("Parameter", "Value")) |>
+  # hide last: invisible columns reject colWidth and are excluded from recalc
+  define_cols(FLAG, isVisible = FALSE) |>
   compute_cols(
     FLAG == "Y",
     c_style(c(PARAM, VALUE), styleRef = "flagged")
@@ -343,8 +367,9 @@ spec <- create_table(df) |>
     s_font(bold = TRUE, color = "#FFFFFF"),
     s_table_style(background_color = "#4682B4")
   ) |>
-  define_cols(REGION, isVisible = FALSE) |>
+  # labels/widths first, hide LAST (invisible columns reject colWidth):
   define_cols(c(PRODUCT, REVENUE), label = c("Product", "Revenue")) |>
+  define_cols(REGION, isVisible = FALSE) |>
   compute_cols(
     firstOf(REGION),
     c_addrow(
@@ -820,12 +845,12 @@ tfl_set_options(
 )
 
 # Save report with metadata
-spec1 <- create_table(adsl) %>%
-  add_title("Table 1: Demographics", toclevel = 1) %>%
+spec1 <- create_table(adsl) |>
+  add_title("Table 1: Demographics", toclevel = 1) |>
   set_document(hasData = TRUE)
 
-spec2 <- create_table(advs) %>%
-  add_title("Table 2: Vital Signs", toclevel = 1) %>%
+spec2 <- create_table(advs) |>
+  add_title("Table 2: Vital Signs", toclevel = 1) |>
   set_document(hasData = TRUE)
 
 report <- create_report(spec1, spec2)
@@ -859,11 +884,11 @@ preserving the most recent N versions per document. This keeps the metadata
 folder manageable in long-running projects.
 
 ```r
-# Keep only the 2 most recent versions of each document
+# Preview first (dry_run = TRUE is the default — nothing is deleted yet):
 clean_reports(meta_dir = "meta", keep_versions = 2)
 
-# Keep only the latest version (most aggressive cleanup)
-clean_reports(meta_dir = "meta", keep_versions = 1)
+# Apply the cleanup:
+clean_reports(meta_dir = "meta", keep_versions = 2, dry_run = FALSE)
 ```
 
 The function:

@@ -2,12 +2,13 @@
 title: "Column Width Management in ksTFL"
 author: "ksTFL Development Team"
 date: "`r Sys.Date()`"
-output: 
+output:
   rmarkdown::html_vignette:
     toc: true
     toc_depth: 3
-    dev: pdf
     css: ksTFL-vignette.css
+resource_files:
+  - figures/
 vignette: >
   %\VignetteIndexEntry{Column Width Management in ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -234,9 +235,12 @@ Invisible columns are perfect for conditional formatting:
 
 ```{r invisible-logic}
 spec <- create_table(data) |>
-  # Hide the flag column but keep data available
+  add_style(id = "highlight_yellow",
+            s_font(bold = TRUE),
+            s_table_style(background_color = "#FFFF99")) |>
+  # Define/lock widths BEFORE hiding (invisible columns reject colWidth)
   define_cols(patient_id, isVisible = FALSE) |>
-  # Use it in compute_cols() for conditional styling
+  # Use the hidden column in compute_cols() for conditional styling
   compute_cols(
     startsWith(patient_id, "PAT-001"),
     c_style(age, styleRef = "highlight_yellow")

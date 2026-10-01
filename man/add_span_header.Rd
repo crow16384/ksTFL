@@ -27,10 +27,14 @@ add_span_header(
 \item{label}{Spanning header label}
 
 \item{stubOrder}{Order of stub header (auto-generated if NULL). Used to create
-multi-level headers: lower numbers appear above higher numbers. Multiple stubs
-at the same order are allowed if their column sets do not overlap.
-Negative values are allowed and place the band BELOW the regular column
-header row (e.g. \code{stubOrder = -1}).}
+multi-level headers: HIGHER numbers render HIGHER on the page.
+\code{stubOrder = 1} is the band directly above the column-label row,
+\code{stubOrder = 2} the band above that, and so on. Multiple stubs at the
+same order share one header row if their column sets do not overlap.
+Any numeric value is accepted (0 and negatives included) — bands simply
+sort by value; all of them still sit ABOVE the column-label row. When
+omitted, the order auto-increments, so each later call stacks above the
+previous one.}
 
 \item{id}{Stub column identifier (auto-generated if NULL)}
 
@@ -73,11 +77,12 @@ data <- data.frame(
 spec <- create_table(data) |>
   add_span_header(cols = c(age, sex), label = "Demographics")
 
-# Two-level hierarchy: band 0 above band 1; non-overlapping stubs may share a level
+# Two-level hierarchy: higher stubOrder = higher band; non-overlapping
+# stubs may share a level (Demographics | Physical row, banner above it)
 spec2 <- create_table(data) |>
-  add_span_header(cols = c(age, sex, weight), label = "All Measurements", stubOrder = 0) |>
   add_span_header(cols = c(age, sex), label = "Demographics", stubOrder = 1) |>
-  add_span_header(cols = weight, label = "Physical", stubOrder = 1)
+  add_span_header(cols = weight, label = "Physical", stubOrder = 1) |>
+  add_span_header(cols = c(age, sex, weight), label = "All Measurements", stubOrder = 2)
 
 # tidyselect helpers and negation
 spec3 <- create_table(data) |>

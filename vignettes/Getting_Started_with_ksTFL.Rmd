@@ -1,12 +1,15 @@
 ---
 title: "Getting Started with ksTFL"
-author: "ksTFL Team"
+author: "ksTFL Development Team"
+date: "`r Sys.Date()`"
 output:
   rmarkdown::html_vignette:
-    dev: pdf
+    toc: true
+    toc_depth: 3
     css: ksTFL-vignette.css
 resource_files:
   - images/
+  - figures/
 vignette: >
   %\VignetteIndexEntry{Getting Started with ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -205,13 +208,19 @@ appear in the output. For example, you might exclude a `flag` column
 from the report but still use it to drive conditional styling:
 
 ```{r cols_concept, eval = FALSE}
-# Only age, sex, trt go to the document; flag stays hidden
-spec <- create_table(demog, cols = c(age, sex, trt))
+demog <- data.frame(
+  age = c(45, 62, 38), sex = c("M", "F", "F"),
+  trt = c("A", "A", "B"), flag = c("Y", "N", "Y"),
+  stringsAsFactors = FALSE)
 
-# But flag is still available for conditional logic
-spec <- compute_cols(spec, trt,
-  c_style("highlight"),
-  when = flag == "Y")
+# Only age, sex, trt go to the document; flag stays out of cols
+spec <- create_table(demog, cols = c(age, sex, trt)) |>
+  add_style(id = "highlight", s_font(bold = TRUE))
+
+# But flag is still available for conditional logic: the first argument of
+# compute_cols() is the condition, followed by the actions
+spec <- compute_cols(spec, flag == "Y",
+  c_style(c(age, sex), styleRef = "highlight"))
 ```
 
 The order in which columns are passed to `cols` also determines their
@@ -222,14 +231,17 @@ underlying data frame.
 ### Figure spec (from image file)
 
 ```{r create_figure_spec, eval = FALSE}
-# From a file path — any image format your renderer supports (PNG, JPEG, etc.)
-spec_fig <- create_figure("path/to/plot.png")
+# From a file path — PNG, JPEG/JPG, or SVG (the renderer's supported formats)
+png_plot <- file.path(tempdir(), "plot.png")
+png(png_plot, width = 600, height = 400)
+plot(mtcars$wt, mtcars$mpg); dev.off()
+spec_fig <- create_figure(png_plot)
 
 # From a ggplot2 object — rendered automatically to a temporary image file
 library(ggplot2)
 p <- ggplot(mtcars, aes(x = wt, y = mpg)) + geom_point()
-spec_fig <- create_figure(p)          # uses configured defaults
-spec_fig <- create_figure(p, dpi = 150L) # custom resolution (dpi)
+spec_fig <- create_figure(p)             # uses configured defaults
+spec_fig <- create_figure(p, dpi = 150L) # custom resolution (default dpi = 300)
 
 # Control output size/format via options
 # tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "jpeg")
@@ -271,6 +283,8 @@ After creating a table spec, customize columns with `define_cols()`:
 ### Single column
 
 ```{r define_single_column, eval = FALSE}
+spec <- create_table(mtcars)
+
 spec <- define_cols(spec, mpg,
   label = "Miles per Gallon",
   type = "numeric",
@@ -281,6 +295,8 @@ spec <- define_cols(spec, mpg,
 ### Batch update (multiple columns with single values)
 
 ```{r define_batch_single, eval = FALSE}
+# (continuing from the previous chunk: spec = create_table(mtcars))
+
 # Apply same label format to all columns
 spec <- define_cols(spec, c(mpg, cyl, hp),
   label = c("MPG", "Cylinders", "HP"),
@@ -383,27 +399,30 @@ spec <- create_table(mtcars)
 spec <- define_cols(spec, c(mpg, cyl, hp, wt),
   label = c("MPG", "Cyl", "HP", "Weight"))
 
-# Top-level span header spanning all columns
-spec <- add_span_header(spec, cols = c(mpg, cyl, hp, wt),
-  label = "Motor Vehicle Specs",
-  stubOrder = 0) |>
-# Second-level headers: finer grouping
-add_span_header(cols = c(mpg, cyl, hp),
+# Band 1 (directly above the column-label row): finer grouping — these two
+# share one row because their column sets do not overlap
+spec <- add_span_header(spec, cols = c(mpg, cyl, hp),
   label = "Engine",
   stubOrder = 1) |>
 add_span_header(cols = wt,
   label = "Weight",
-  stubOrder = 1)
+  stubOrder = 1) |>
+# Band 2 (higher on the page): full-width banner above both
+add_span_header(cols = c(mpg, cyl, hp, wt),
+  label = "Motor Vehicle Specs",
+  stubOrder = 2)
 ```
 
 **Tidyselect support**: `add_span_header()` accepts all tidyselect
 expressions:
 
 ```{r add_stubs_tidyselect, eval = FALSE}
+# Fresh spec (stub sets must not overlap within one stubOrder)
+spec_ts <- create_table(mtcars)
+
 # Using column ranges and helpers
-spec <- add_span_header(spec, cols = mpg:hp, label = "First", stubOrder = 0) |>
-  add_span_header(cols = starts_with("c"), label = "C-columns", stubOrder = 1) |>
-  add_span_header(cols = -mpg, label = "Non-MPG", stubOrder = 2)
+spec_ts <- add_span_header(spec_ts, cols = mpg:hp, label = "Engine block", stubOrder = 0) |>
+  add_span_header(cols = wt:qsec, label = "Chassis", stubOrder = 0)
 ```
 
 **Key concepts**:
@@ -424,8 +443,12 @@ Accepts:
 
 \- `label`: Spanning header text
 
-\- `stubOrder`: Vertical stacking order (1 = top, 2 = next, etc.;
-auto-generated if NULL)
+\- `stubOrder`: Vertical stacking order — HIGHER numbers render HIGHER
+on the page. `stubOrder = 1` is the band directly above the column-label row,
+`stubOrder = 2` sits above it (0 and negatives are allowed too — every band
+still renders above the column labels; they only sort against each other by
+value). Auto-generated when `NULL`: each later call takes the next number and
+stacks above the earlier ones.
 
 \- `labelStyleRef`: Style(s) for the header label
 
@@ -547,10 +570,20 @@ spec <- create_table(mtcars) |>
 spec <- create_table(mtcars) |>
   set_document(hasData = TRUE, docTemplate = "Carbon_Dark")
 
-# Use a custom external template (JSON file)
+# Use a custom external template (JSON file). IMPORTANT: pass an ABSOLUTE
+# path — a relative path is silently treated as a bundled name, fails the
+# lookup, and falls back to the "Default" template on replay from another
+# working directory. (Any template JSON works, including a copy of a bundled
+# one, which is what this example does.)
+my_tpl <- file.path(tempdir(), "my_custom_template.json")
+file.copy(system.file("templates", "Navy_Pro.json", package = "ksTFL"), my_tpl)
 spec <- create_table(mtcars) |>
-  set_page_style(docTemplate = "path/to/my_custom_template.json")
+  set_page_style(docTemplate = my_tpl)
 ```
+
+Bundled templates: `Default`, `Navy_Pro`, `Carbon_Dark`, `Classic_portrait`,
+`Classic_landscape_times`, `Listings`, `Regulatory_Arial` (confirm any time
+with `tfl_list_templates()`).
 
 Use `docTemplate` on the spec when different sections of one report should keep
 different looks. Use `write_doc(..., overrideTemplate = ...)` or
@@ -574,10 +607,8 @@ spec_table <- add_title(spec_table, "Table 1: Demographics")
 spec_text <- create_text()
 spec_text <- add_body_text(spec_text, "Analysis performed in R.")
 
-spec_fig <- create_figure("plots/histogram.png")
-
 # Combine into single report
-report <- create_report(spec_table, spec_text, spec_fig)
+report <- create_report(spec_table, spec_text)
 
 # Inspect combined report
 print(report)
@@ -603,8 +634,7 @@ useful when the set of outputs is assembled dynamically:
 ```{r create_report_list, eval = FALSE}
 specs <- list(
   t_dm   = spec_table,
-  t_text = spec_text,
-  t_fig  = spec_fig
+  t_text = spec_text
 )
 
 report <- create_report(specs)
@@ -658,7 +688,9 @@ groups - **Merge columns**: Create group headers by merging columns -
 | --------------------------------------------------- | ------------------------------------------------- | --------------------------------------------- |
 | `c_style(cols, styleRef)`                           | Apply style to columns in matching rows           | `c_style(c(mpg, hp), styleRef = "bold")`      |
 | `c_merge(cols, styleRef = NULL)`                    | Merge adjacent columns                            | `c_merge(c(col1, col2), styleRef = "header")` |
-| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below                            | `c_addrow(pos = "above")` for empty separator |
+| | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below                            | `c_addrow(pos = "above")` for empty separator |
+| `c_glue(cols, side, glue_col/text, separator)`      | Append/prepend text to cell values                | `c_glue(PARAM, "after", glue_col = VISIT)`    |
+| `c_clear(cols)`                                     | Blank the rendered text of cells                  | `c_clear(label)` in total rows                |
 | `c_pageBreak()`                                     | Insert a page break at the matching row (no args) | `c_pageBreak()`                               |
 
 **Condition syntax**:
@@ -667,12 +699,13 @@ groups - **Merge columns**: Create group headers by merging columns -
 # Direct column comparison
 compute_cols(spec, cyl > 6, c_style(mpg, styleRef = "emphasize"))
 
-# String matching
-compute_cols(spec, Parameter == "Pulse", c_style(value, styleRef = "numeric"))
+# String matching (in a clinical listing, e.g.: Parameter == "Pulse")
+compute_cols(spec, am == 1, c_style(mpg, styleRef = "numeric"))
 
 # Helper functions available INSIDE compute_cols() conditions:
-#   firstOf(col1, col2, ...)  — TRUE for first row of each unique combination
-#   lastOf(col1, col2, ...)   — TRUE for last row of each unique combination
+#   firstOf(col1, col2, ...)  — TRUE at the first row of each RUN of equal
+#                               values (contiguous groups — sort the data first)
+#   lastOf(col1, col2, ...)   — TRUE at the last row of each RUN
 #   firstRow()                — TRUE only for the very first data row
 #   lastRow()                 — TRUE only for the very last data row
 #   everyNth(n)               — TRUE every n-th row (1, n+1, 2n+1, ...)
@@ -681,11 +714,16 @@ compute_cols(spec, Parameter == "Pulse", c_style(value, styleRef = "numeric"))
 # Note: these helpers are NOT standalone functions — they only work inside
 # the condition argument of compute_cols().
 
-compute_cols(spec, firstOf(group), c_style(c(col1, col2), styleRef = "group_header"))
+compute_cols(spec, firstOf(cyl), c_style(c(mpg, hp), styleRef = "group_header"))
+compute_cols(spec, lastOf(cyl), c_addrow(pos = "below"))
+compute_cols(spec, everyNth(5), c_style(mpg, styleRef = "zebra"))
+
+# A scalar condition is allowed: compute_cols(spec, TRUE, ...) acts on all rows
+compute_cols(spec, TRUE, c_style(disp, styleRef = "group_header"))
 compute_cols(spec, lastOf(group), c_addrow(pos = "below"))
 compute_cols(spec, everyNth(5), c_style(mpg, styleRef = "zebra"))
 
-# Combine conditions
+# Combine conditions with base logical operators
 compute_cols(spec, cyl == 8 & hp > 100, c_style(mpg, styleRef = "high_power"))
 ```
 
@@ -739,6 +777,8 @@ This is the recommended approach for production use. Set session
 defaults once:
 
 ```{r write_doc_with_options, eval = FALSE}
+dir.create("./output", showWarnings = FALSE)
+dir.create("./meta", showWarnings = FALSE)
 tfl_set_options(
   output_directory = "./output",
   meta_directory   = "./meta"
@@ -820,6 +860,8 @@ spec file. You can keep multiple versions and compare them.
 
 ```{r metadata_management, eval = FALSE}
 meta_dir <- "./meta"
+# (report + ./meta set up by the previous chunks; write_doc already saved
+#  its spec there — or call save_report(report, "demo.docx", metaPath = meta_dir))
 
 # List all spec JSONs in the meta folder
 df <- list_reports(meta_dir)
@@ -828,8 +870,9 @@ print(df[df$is_latest, c("doc_file", "datetime", "spec_file")])
 # Re-render a DOCX from stored JSON (no R objects needed)
 replay_report("demographics.docx", meta_dir = meta_dir)
 
-# Or replay a specific version by spec hash
-replay_report("abc123def456.json", meta_dir = meta_dir,
+# Or replay a specific version by its spec JSON file name
+some_spec <- df$spec_file[1]
+replay_report(some_spec, meta_dir = meta_dir,
               output_path = "./output/demographics_v2.docx")
 
 # Clean up obsolete spec files (keeps latest version per document)
@@ -858,6 +901,8 @@ tfl_set_options(
 )
 
 # All write_doc() calls now use these directories automatically
+report1 <- create_report(create_table(mtcars) |> add_title("Table 1"))
+report2 <- create_report(create_table(iris)    |> add_title("Table 2"))
 write_doc(report1, name = "tbl_demographics")
 write_doc(report2, name = "tbl_labs")
 
@@ -912,8 +957,8 @@ tfl_set_options(
   add_body_text("Analysis performed in R with ksTFL."))
 
 # All new specs created afterward inherit these settings
-spec1 <- create_table(data1)  # Automatically gets headers/footers/body text
-spec2 <- create_table(data2)  # Also inherits defaults
+spec1 <- create_table(mtcars)  # Automatically gets headers/footers/body text
+spec2 <- create_table(iris)    # Also inherits defaults
 
 # Check current options
 tfl_get_options()
