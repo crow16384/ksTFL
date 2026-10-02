@@ -92,50 +92,170 @@ Clinical Tables, Figures, and Listings —<br>from R code to validated DOCX, in 
 <p><a class="btn btn-kstfl" href="articles/Getting_Started_with_ksTFL.html">Start here</a> <a class="external-link btn btn-kstfl-ghost" href="https://github.com/al-garik/ksTFL-examples">Full example gallery</a></p>
 </div>
 </div>
+<div class="section level2">
+<h2 id="why-kstfl">Why ksTFL<a class="anchor" aria-label="anchor" href="#why-kstfl"></a>
+</h2>
 <p><strong>ksTFL</strong> is a professional R package designed to fill a long-standing gap in the R ecosystem: the lack of a dedicated, end-to-end solution for producing well-formatted, regulatory-compliant clinical Tables, Figures, and Listings (TFLs). While R excels at statistical analysis, generating submission-quality DOCX outputs that meet pharmaceutical industry standards has traditionally required fragile workarounds or external tooling. ksTFL solves this by distilling the best ideas from existing reporting solutions into a simple, minimalistic, yet highly flexible declarative language — a compact set of composable functions whose combinations can produce virtually any clinical output format.</p>
 <p>The core philosophy is <strong>data–presentation separation</strong>: input data stays clean and planar, free of reporting artefacts such as merged cells, indentation columns, or display-only rows. Formatting, pagination, grouping, and styling are declared independently and applied at render time. This keeps datasets maintainable, traceable, and validation-ready — exactly what regulated environments demand.</p>
 <p>Under the hood, a built-in <strong>rendering engine</strong> with text shaping converts declarative specs into styled DOCX documents with deterministic, pixel-perfect pagination. Rendering is extremely fast even on large datasets, making ksTFL practical for batch production of hundreds of outputs in a single pipeline run.</p>
+<div class="section level3">
+<h3 id="key-design-principles">Key design principles<a class="anchor" aria-label="anchor" href="#key-design-principles"></a>
+</h3>
+<ul>
+<li>
+<strong>Separation of concerns</strong> — metadata generation (R) is decoupled from document rendering; input data remain clean and analysis-ready</li>
+<li>
+<strong>Declarative syntax</strong> — describe <em>what</em> to render, not <em>how</em> to render it; a small function vocabulary covers the full range of clinical outputs</li>
+<li>
+<strong>Deterministic pagination</strong> — font shaping guarantees pixel-perfect, reproducible layouts and page breaks</li>
+<li>
+<strong>High performance</strong> — the C++ engine renders large multi-spec reports in seconds</li>
+<li>
+<strong>Type safety</strong> — comprehensive input validation with informative error messages</li>
+<li>
+<strong>Reproducibility</strong> — specifications are serializable, so stored metadata can be replayed years later without re-running the analysis pipeline</li>
+</ul>
+</div>
+</div>
 <div class="section level2">
-<h2 id="from-one-pipe-to-a-report-page">From one pipe to a report page<a class="anchor" aria-label="anchor" href="#from-one-pipe-to-a-report-page"></a>
+<h2 id="what-the-output-looks-like">What the output looks like<a class="anchor" aria-label="anchor" href="#what-the-output-looks-like"></a>
 </h2>
-<p>The whole point of ksTFL is that the code <em>is</em> the specification of the output. This is a real, runnable fragment:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demography</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">LEVEL</span>, label <span class="op">=</span> <span class="st">"Parameter Category"</span>, valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLCB_N</span>, <span class="va">PLCB_PCT</span><span class="op">)</span>, <span class="st">"Placebo"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">DRGA_N</span>, <span class="va">DRGA_PCT</span><span class="op">)</span>, <span class="st">"Drug A"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 8.1 Demography with Span Headers"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Counts and percentages by treatment arm."</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/set_document.html">set_document</a></span><span class="op">(</span>footnotePlace <span class="op">=</span> <span class="st">"last_page"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_8_1.docx"</span><span class="op">)</span></span></code></pre></div>
-<p>And this is what ksTFL renders from it — a print-ready page, headers, span lattice, footnotes and all:</p>
+<p>Every page below was rendered by ksTFL itself from short, commented example programs. Click any page to open it full size.</p>
 <div class="ksgallery">
-<figure class="ksdemo"><img src="home/demo-span-headers.png" alt="Rendered demography table with span headers"><figcaption>
-Table with <code><a href="reference/add_span_header.html">add_span_header()</a></code> lattice and <code><a href="reference/c_addrow.html">c_addrow()</a></code> section rows — <a href="articles/Real_Examples_with_ksTFL.html">Real Examples →</a>
-</figcaption></figure><figure class="ksdemo"><img src="home/demo-figure.png" alt="Rendered clinical figure page"><figcaption>
-ggplot2 figure embedded with deterministic scaling (<code>figureScaleMode</code>) — <a href="articles/Getting_Started_with_ksTFL.html">Getting Started →</a>
-</figcaption></figure><figure class="ksdemo"><img src="home/demo-disposition.png" alt="Rendered subject disposition table"><figcaption>
-Disposition table from a multi-spec report (table + text + figure in one run) — <a href="articles/Reporting_Examples_with_ksTFL.html">Reporting Examples →</a>
-</figcaption></figure>
+<a class="ksdemo" href="home/demo-span-headers.png" target="_blank" rel="noopener"> <img src="home/demo-span-headers.png" alt="Demography table with grouped treatment-arm headers"><figcaption>
+Demography table with grouped column headers for each treatment arm
+</figcaption><p></p></a>
+<a class="ksdemo" href="home/demo-ae-summary.png" target="_blank" rel="noopener"> <img src="home/demo-ae-summary.png" alt="Adverse event summary table"><figcaption>
+Adverse-event summary across dose groups, with counts and percentages
+</figcaption><p></p></a>
+<a class="ksdemo" href="home/demo-figure.png" target="_blank" rel="noopener"> <img src="home/demo-figure.png" alt="Scatter plot embedded in a report page"><figcaption>
+A ggplot2 scatter plot embedded in the report, fitted to the page exactly
+</figcaption><p></p></a>
+<a class="ksdemo" href="home/demo-report-sections.png" target="_blank" rel="noopener"> <img src="home/demo-report-sections.png" alt="Multi-section report page"><figcaption>
+Sections of a larger report flowing page to page, titles and footnotes placed exactly where you ask
+</figcaption><p></p></a>
+<a class="ksdemo" href="home/demo-styled-status.png" target="_blank" rel="noopener"> <img src="home/demo-styled-status.png" alt="Table with conditionally colored values"><figcaption>
+Values highlighted automatically — the colors follow the data, not manual editing
+</figcaption><p></p></a>
+<a class="ksdemo" href="home/demo-disposition.png" target="_blank" rel="noopener"> <img src="home/demo-disposition.png" alt="Subject disposition table"><figcaption>
+Subject disposition inside a combined report of tables, text, and figures
+</figcaption><p></p></a>
 </div>
 </div>
 <div class="section level2">
-<h2 id="why-teams-choose-kstfl">Why teams choose ksTFL<a class="anchor" aria-label="anchor" href="#why-teams-choose-kstfl"></a>
+<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL/">ksTFL</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 1. Initialize a table specification</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cyl</span>, <span class="va">mpg</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 2. Add document content</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Motor Trend Car Road Tests"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Number of Cylinders: #ByGroup1"</span>, styleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_blue"</span>, <span class="st">"tw_50"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Source: 1974 Motor Trend US magazine"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. Define column properties</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span>,</span>
+<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Miles/(US) gallon"</span>, <span class="st">"Horsepower"</span>, <span class="st">"Weight (1000 lbs)"</span><span class="op">)</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">cyl</span>, isGrouping <span class="op">=</span> <span class="cn">TRUE</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 4. Conditional row styling: red-highlight powerful engines</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">hp</span> <span class="op">&gt;</span> <span class="fl">200</span>, <span class="fu"><a href="reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">hp</span>, styleRef <span class="op">=</span> <span class="st">"fc_red"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 5. Assemble and render to DOCX</span></span>
+<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"demo"</span>, outDir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The result is a print-ready Word document: grouped by cylinder count, right-aligned numbers, an italic title, and red horsepowers — no post-editing in Word.</p>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>ksTFL ships <strong>pre-compiled binaries</strong> for R 4.5 and R 4.6 on Windows, Ubuntu/Debian, Fedora/RHEL, and macOS (ARM) — no compilers or system libraries needed for most users.</p>
+<p>The simplest method, works on every platform:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
+<span>  repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://crow16384.r-universe.dev"</span>, <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Windows binaries are also available directly:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
+<span>  repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release"</span>,</span>
+<span>  type  <span class="op">=</span> <span class="st">"binary"</span><span class="op">)</span></span></code></pre></div>
+<p>Or download finished packages (<code>.zip</code>, <code>.tar.gz</code>, <code>.tgz</code>) from the <a href="https://github.com/crow16384/ksTFL-release/releases" class="external-link">release repository</a> and install with <code>install.packages(file, repos = NULL)</code>.</p>
+<p>Building from source requires a C++20 compiler and R development tools (Rtools on Windows, Xcode Command Line Tools on macOS, <code>build-essential</code> on Linux):</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"crow16384/ksTFL"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="what-else-it-can-do">What else it can do<a class="anchor" aria-label="anchor" href="#what-else-it-can-do"></a>
 </h2>
 <ul>
 <li>
-<strong>Deterministic pagination</strong> — font shaping guarantees pixel-perfect, reproducible layouts; what validates once paginates identically forever.</li>
+<strong>Templates</strong> — bundled corporate layouts (<code>Navy_Pro</code>, <code>Carbon_Dark</code>, <code>Listings</code>, …); switch one option and the whole document family changes its look. Your own JSON template can live next to the report and travel with it.</li>
 <li>
-<strong>Declarative syntax</strong> — describe <em>what</em> to render, not <em>how</em>; a small function vocabulary covers the full range of clinical outputs.</li>
+<strong>Font management</strong> — the package finds fonts installed on your system and falls back to metric-compatible open-source alternatives (Liberation family) when a proprietary one is missing, so a report paginates the same on any machine.</li>
 <li>
-<strong>Replayable specifications</strong> — every report serializes its metadata, so a submission package can be re-rendered years later without re-running the analysis pipeline.</li>
+<strong>Replay</strong> — <code><a href="reference/save_report.html">save_report()</a></code> keeps a specification bundle; <code><a href="reference/replay_report.html">replay_report()</a></code> rebuilds the exact DOCX on another machine, later, without the original analysis session. Ideal for validation and QA.</li>
 <li>
-<strong>C++ engine, batch speed</strong> — multi-spec reports of hundreds of pages render in seconds.</li>
+<strong>Table of contents</strong> — one option prepends a clickable ToC page to a report.</li>
 <li>
-<strong>Style atoms, not handcraft</strong> — 122 built-in formatting atoms (<code>fc_*</code>, <code>bg_*</code>, <code>indent_*</code>, alignments, borders) compose into any corporate shell or guideline format.</li>
+<strong>RStudio add-ins</strong> — a template editor and a style picker, so layout work does not require memorizing option names.</li>
+<li>
+<strong>Multilingual</strong> — any Unicode text: Cyrillic, CJK, and Greek letters share the same page with ordinary cell values.</li>
 </ul>
+</div>
+<div class="section level2">
+<h2 id="documentation--resources">Documentation &amp; resources<a class="anchor" aria-label="anchor" href="#documentation--resources"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="63%">
+<col width="36%">
+</colgroup>
+<thead><tr class="header">
+<th>I want to…</th>
+<th>Go to</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Learn the workflow in one sitting</td>
+<td><a href="articles/Getting_Started_with_ksTFL.html">Getting Started</a></td>
+</tr>
+<tr class="even">
+<td>Solve a specific problem</td>
+<td><a href="articles/FAQ_with_ksTFL.html">FAQ &amp; Troubleshooting</a></td>
+</tr>
+<tr class="odd">
+<td>See real examples, table by table</td>
+<td>
+<a href="articles/Real_Examples_with_ksTFL.html">Real Examples</a> and the <a href="https://github.com/al-garik/ksTFL-examples" class="external-link">examples repository</a>
+</td>
+</tr>
+<tr class="even">
+<td>Fine-tune colors, fonts, borders</td>
+<td><a href="articles/Styling_Guide_with_ksTFL.html">Styling Guide</a></td>
+</tr>
+<tr class="odd">
+<td>Look up any function</td>
+<td><a href="reference/index.html">Reference</a></td>
+</tr>
+<tr class="even">
+<td>Print a cheat sheet</td>
+<td><a href="ksTFL_cheatsheet.pdf">Cheatsheet (PDF)</a></td>
+</tr>
+<tr class="odd">
+<td>Give a talk</td>
+<td><a href="ksTFL_slides.pdf">Slides (PDF)</a></td>
+</tr>
+</tbody>
+</table>
 <hr>
-<p>Documentation lives on this site; the <a href="ksTFL_cheatsheet.pdf">cheatsheet</a> and <a href="ksTFL_slides.pdf">slides</a> are one click away in the navbar, and the <a href="https://github.com/al-garik/ksTFL-examples" class="external-link">example repository</a> holds 37 fully commented programs — one DOCX per feature, regenerated with every release.</p>
+<p><strong>License.</strong> GPL-3. <strong>Authors.</strong> Igor Aleschenkov, Vladimir Larchenko — ksTFL Team ©</p>
 </div>
 
   </main><aside class="col-md-3"><div class="links">

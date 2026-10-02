@@ -28,9 +28,11 @@ body::before {
 
 /* ── Code blocks ────────────────────────────────────────── */
 pre {
-    border-left: 4px solid #2166AC;
+    /* quiet paper look: hairline frame, no accent stripe */
+    border: 1px solid #dfe3e8;
     border-radius: 6px;
     font-variant-ligatures: none;
+    box-shadow: none;
 }
 
 code {
@@ -53,11 +55,13 @@ main#main {
 
 main#main h2 {
     font-weight: 600;
+    font-size: clamp(1.45rem, 2.2vw, 1.8rem);
     counter-increment: ksec;
     counter-reset: ksub;
-    border-bottom: 1px solid rgba(33, 102, 172, 0.25);
-    padding-bottom: 0.3em;
-    margin-top: 2.2em;
+    border-bottom: 1px solid rgba(33, 102, 172, 0.35);
+    padding-bottom: 0.35em;
+    margin-top: 3.4em;
+    margin-bottom: 1.3em;
 }
 
 main#main h2::before {
@@ -300,20 +304,34 @@ main#main img[src*="logo"] {
     color: #fff;
 }
 
-/* Demo gallery: rendered pages as "printed sheets" */
+/* Demo gallery: rendered pages as "printed sheets". Tiles are real links
+   (open the full-resolution page), so they must be honest about it:
+   zoom cursor, no fake interactive chrome. */
 .ksgallery {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.4rem;
-    margin: 1.6rem 0;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin: 1.8rem 0;
 }
 
-.ksdemo {
+@media (max-width: 991.98px) {
+    .ksgallery { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 575.98px) {
+    .ksgallery { grid-template-columns: 1fr; }
+}
+
+a.ksdemo {
     margin: 0;
     text-align: center;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    cursor: zoom-in;
 }
 
-.ksdemo img {
+a.ksdemo img {
     width: 100%;
     margin: 0;
     border: 1px solid #d8dee4;
@@ -322,15 +340,19 @@ main#main img[src*="logo"] {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ksdemo:hover img {
+a.ksdemo:hover img {
     transform: translateY(-3px);
     box-shadow: 0 8px 22px rgba(16, 24, 40, 0.2);
 }
 
-.ksdemo figcaption {
-    font-size: 0.86rem;
-    color: #55606c;
-    margin-top: 0.6rem;
+a.ksdemo:hover figcaption {
+    color: #2166AC;
+}
+
+a.ksdemo figcaption {
+    font-size: 0.92rem;
+    color: #3d4650;
+    margin-top: 0.7rem;
     line-height: 1.5;
 }
 
@@ -428,7 +450,7 @@ pre::-webkit-scrollbar-thumb:hover {
 }
 
 [data-bs-theme="dark"] pre {
-    border-left-color: #4A9EDE;
+    border-color: #3a3f4b;
 }
 
 [data-bs-theme="dark"] blockquote {

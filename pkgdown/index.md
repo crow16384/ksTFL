@@ -11,56 +11,155 @@
 
 </div>
 
+## Why ksTFL
+
 **ksTFL** is a professional R package designed to fill a long-standing gap in the R ecosystem: the lack of a dedicated, end-to-end solution for producing well-formatted, regulatory-compliant clinical Tables, Figures, and Listings (TFLs). While R excels at statistical analysis, generating submission-quality DOCX outputs that meet pharmaceutical industry standards has traditionally required fragile workarounds or external tooling. ksTFL solves this by distilling the best ideas from existing reporting solutions into a simple, minimalistic, yet highly flexible declarative language — a compact set of composable functions whose combinations can produce virtually any clinical output format.
 
 The core philosophy is **data–presentation separation**: input data stays clean and planar, free of reporting artefacts such as merged cells, indentation columns, or display-only rows. Formatting, pagination, grouping, and styling are declared independently and applied at render time. This keeps datasets maintainable, traceable, and validation-ready — exactly what regulated environments demand.
 
 Under the hood, a built-in **rendering engine** with text shaping converts declarative specs into styled DOCX documents with deterministic, pixel-perfect pagination. Rendering is extremely fast even on large datasets, making ksTFL practical for batch production of hundreds of outputs in a single pipeline run.
 
-## From one pipe to a report page
+### Key design principles
 
-The whole point of ksTFL is that the code *is* the specification of the output. This is a real, runnable fragment:
+- **Separation of concerns** — metadata generation (R) is decoupled from document rendering; input data remain clean and analysis-ready
+- **Declarative syntax** — describe *what* to render, not *how* to render it; a small function vocabulary covers the full range of clinical outputs
+- **Deterministic pagination** — font shaping guarantees pixel-perfect, reproducible layouts and page breaks
+- **High performance** — the C++ engine renders large multi-spec reports in seconds
+- **Type safety** — comprehensive input validation with informative error messages
+- **Reproducibility** — specifications are serializable, so stored metadata can be replayed years later without re-running the analysis pipeline
 
-```r
-create_table(demography) |>
-  define_cols(LEVEL, label = "Parameter Category", valueStyleRef = "indent_1") |>
-  add_span_header(c(PLCB_N, PLCB_PCT), "Placebo") |>
-  add_span_header(c(DRGA_N, DRGA_PCT), "Drug A", stubOrder = 1) |>
-  add_title("Table 8.1 Demography with Span Headers") |>
-  add_footnote("Counts and percentages by treatment arm.") |>
-  set_document(footnotePlace = "last_page") |>
-  write_doc("table_8_1.docx")
-```
+## What the output looks like
 
-And this is what ksTFL renders from it — a print-ready page, headers, span lattice, footnotes and all:
+Every page below was rendered by ksTFL itself from short, commented example
+programs. Click any page to open it full size.
 
 <div class="ksgallery">
 
-<figure class="ksdemo">
-  <img src="home/demo-span-headers.png" alt="Rendered demography table with span headers" />
-  <figcaption>Table with <code>add_span_header()</code> lattice and <code>c_addrow()</code> section rows — <a href="articles/Real_Examples_with_ksTFL.html">Real Examples →</a></figcaption>
-</figure>
+<a class="ksdemo" href="home/demo-span-headers.png" target="_blank" rel="noopener">
+  <img src="home/demo-span-headers.png" alt="Demography table with grouped treatment-arm headers" />
+  <figcaption>Demography table with grouped column headers for each treatment arm</figcaption>
+</a>
 
-<figure class="ksdemo">
-  <img src="home/demo-figure.png" alt="Rendered clinical figure page" />
-  <figcaption>ggplot2 figure embedded with deterministic scaling (<code>figureScaleMode</code>) — <a href="articles/Getting_Started_with_ksTFL.html">Getting Started →</a></figcaption>
-</figure>
+<a class="ksdemo" href="home/demo-ae-summary.png" target="_blank" rel="noopener">
+  <img src="home/demo-ae-summary.png" alt="Adverse event summary table" />
+  <figcaption>Adverse-event summary across dose groups, with counts and percentages</figcaption>
+</a>
 
-<figure class="ksdemo">
-  <img src="home/demo-disposition.png" alt="Rendered subject disposition table" />
-  <figcaption>Disposition table from a multi-spec report (table + text + figure in one run) — <a href="articles/Reporting_Examples_with_ksTFL.html">Reporting Examples →</a></figcaption>
-</figure>
+<a class="ksdemo" href="home/demo-figure.png" target="_blank" rel="noopener">
+  <img src="home/demo-figure.png" alt="Scatter plot embedded in a report page" />
+  <figcaption>A ggplot2 scatter plot embedded in the report, fitted to the page exactly</figcaption>
+</a>
+
+<a class="ksdemo" href="home/demo-report-sections.png" target="_blank" rel="noopener">
+  <img src="home/demo-report-sections.png" alt="Multi-section report page" />
+  <figcaption>Sections of a larger report flowing page to page, titles and footnotes placed exactly where you ask</figcaption>
+</a>
+
+<a class="ksdemo" href="home/demo-styled-status.png" target="_blank" rel="noopener">
+  <img src="home/demo-styled-status.png" alt="Table with conditionally colored values" />
+  <figcaption>Values highlighted automatically — the colors follow the data, not manual editing</figcaption>
+</a>
+
+<a class="ksdemo" href="home/demo-disposition.png" target="_blank" rel="noopener">
+  <img src="home/demo-disposition.png" alt="Subject disposition table" />
+  <figcaption>Subject disposition inside a combined report of tables, text, and figures</figcaption>
+</a>
 
 </div>
 
-## Why teams choose ksTFL
+## Quick start
 
-- **Deterministic pagination** — font shaping guarantees pixel-perfect, reproducible layouts; what validates once paginates identically forever.
-- **Declarative syntax** — describe *what* to render, not *how*; a small function vocabulary covers the full range of clinical outputs.
-- **Replayable specifications** — every report serializes its metadata, so a submission package can be re-rendered years later without re-running the analysis pipeline.
-- **C++ engine, batch speed** — multi-spec reports of hundreds of pages render in seconds.
-- **Style atoms, not handcraft** — 122 built-in formatting atoms (`fc_*`, `bg_*`, `indent_*`, alignments, borders) compose into any corporate shell or guideline format.
+```r
+library(ksTFL)
+
+# 1. Initialize a table specification
+spec <- create_table(mtcars, cols = c(cyl, mpg, hp, wt))
+
+# 2. Add document content
+spec <- spec |>
+  add_title("Motor Trend Car Road Tests", styleRef = "i") |>
+  add_subtitle("Number of Cylinders: #ByGroup1", styleRef = f_combine("fc_blue", "tw_50")) |>
+  add_footnote("Source: 1974 Motor Trend US magazine")
+
+# 3. Define column properties
+spec <- spec |>
+  define_cols(c(mpg, hp, wt),
+              label = c("Miles/(US) gallon", "Horsepower", "Weight (1000 lbs)"),
+              valueStyleRef = "ac") |>
+  define_cols(cyl, isGrouping = TRUE, isVisible = FALSE)
+
+# 4. Conditional row styling: red-highlight powerful engines
+spec <- spec |>
+  compute_cols(hp > 200, c_style(hp, styleRef = "fc_red"))
+
+# 5. Assemble and render to DOCX
+report <- create_report(spec)
+write_doc(report, name = "demo", outDir = tempdir())
+```
+
+The result is a print-ready Word document: grouped by cylinder count, right-aligned
+numbers, an italic title, and red horsepowers — no post-editing in Word.
+
+## Installation
+
+ksTFL ships **pre-compiled binaries** for R 4.5 and R 4.6 on Windows, Ubuntu/Debian,
+Fedora/RHEL, and macOS (ARM) — no compilers or system libraries needed for most users.
+
+The simplest method, works on every platform:
+
+```r
+install.packages("ksTFL",
+  repos = c("https://crow16384.r-universe.dev", "https://cloud.r-project.org"))
+```
+
+Windows binaries are also available directly:
+
+```r
+install.packages("ksTFL",
+  repos = "https://crow16384.github.io/ksTFL-release",
+  type  = "binary")
+```
+
+Or download finished packages (`.zip`, `.tar.gz`, `.tgz`) from the
+[release repository](https://github.com/crow16384/ksTFL-release/releases) and
+install with `install.packages(file, repos = NULL)`.
+
+Building from source requires a C++20 compiler and R development tools
+(Rtools on Windows, Xcode Command Line Tools on macOS, `build-essential` on Linux):
+
+```r
+remotes::install_github("crow16384/ksTFL")
+```
+
+## What else it can do
+
+- **Templates** — bundled corporate layouts (`Navy_Pro`, `Carbon_Dark`, `Listings`, …);
+  switch one option and the whole document family changes its look. Your own JSON
+  template can live next to the report and travel with it.
+- **Font management** — the package finds fonts installed on your system and falls
+  back to metric-compatible open-source alternatives (Liberation family) when a
+  proprietary one is missing, so a report paginates the same on any machine.
+- **Replay** — `save_report()` keeps a specification bundle; `replay_report()`
+  rebuilds the exact DOCX on another machine, later, without the original analysis
+  session. Ideal for validation and QA.
+- **Table of contents** — one option prepends a clickable ToC page to a report.
+- **RStudio add-ins** — a template editor and a style picker, so layout work does
+  not require memorizing option names.
+- **Multilingual** — any Unicode text: Cyrillic, CJK, and Greek letters share the
+  same page with ordinary cell values.
+
+## Documentation & resources
+
+| I want to… | Go to |
+|------------|-------|
+| Learn the workflow in one sitting | [Getting Started](articles/Getting_Started_with_ksTFL.html) |
+| Solve a specific problem | [FAQ & Troubleshooting](articles/FAQ_with_ksTFL.html) |
+| See real examples, table by table | [Real Examples](articles/Real_Examples_with_ksTFL.html) and the [examples repository](https://github.com/al-garik/ksTFL-examples) |
+| Fine-tune colors, fonts, borders | [Styling Guide](articles/Styling_Guide_with_ksTFL.html) |
+| Look up any function | [Reference](reference/index.html) |
+| Print a cheat sheet | [Cheatsheet (PDF)](ksTFL_cheatsheet.pdf) |
+| Give a talk | [Slides (PDF)](ksTFL_slides.pdf) |
 
 --------------------------------------------------------------------------------
 
-Documentation lives on this site; the [cheatsheet](ksTFL_cheatsheet.pdf) and [slides](ksTFL_slides.pdf) are one click away in the navbar, and the [example repository](https://github.com/al-garik/ksTFL-examples) holds 37 fully commented programs — one DOCX per feature, regenerated with every release.
+**License.** GPL-3. **Authors.** Igor Aleschenkov, Vladimir Larchenko — ksTFL Team ©
