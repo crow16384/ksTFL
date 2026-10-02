@@ -2738,10 +2738,9 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   `"repeated"` (place under the table on every page),
 #'   or `"last_page"` (place under the table on the last page only).
 #'   Default `"repeated"`. Any other value is rejected.
-#'   NOTE: `"doc_footer"` renders the footnote into the section's footer part,
-#'   which the package creates only when the spec has footer content — pair it
-#'   with `add_footer()`, otherwise the footnote text has nowhere to go
-#'   (a footer-less `doc_footer` silently drops the note in current versions).
+#'   NOTE: `"doc_footer"` renders the footnote into the section's footer part;
+#'   a footer part is created automatically even without `add_footer()`
+#'   (pairing is no longer required).
 #' @param hasData Logical. Whether this spec has data to render. Set to `TRUE`
 #'   for tables with data rows. When `FALSE`, the body text (if any) is
 #'   rendered instead.

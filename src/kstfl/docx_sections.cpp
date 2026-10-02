@@ -31,13 +31,16 @@ void DocxEmitter::build_hdr_ftr_parts(const TFLDocument &doc, std::vector<HdrFtr
       hdr_ftr_idx++;
     }
 
-    if (!spec.footers.empty()) {
+    // A footer part is needed when the spec has footer rows, OR when
+    // doc_footer footnotes must live in the footer region even though the
+    // user did not call add_footer() (finding F05a: those notes were dropped).
+    bool doc_footer_notes =
+        spec.document.footnote_place == FootnotePlace::DocFooter && !spec.footnotes.empty();
+    if (!spec.footers.empty() || doc_footer_notes) {
       std::string rid = "rId" + std::to_string(next_rid++);
       std::string part_path = "word/footer" + std::to_string(hdr_ftr_idx) + ".xml";
       StyleDef footer_style = resolver.resolve_doc_footer_style();
-      const std::vector<TextGroup> *footnotes =
-          (spec.document.footnote_place == FootnotePlace::DocFooter && !spec.footnotes.empty()) ? &spec.footnotes
-                                                                                                : nullptr;
+      const std::vector<TextGroup> *footnotes = doc_footer_notes ? &spec.footnotes : nullptr;
       std::string xml = emit_hdr_ftr_xml_part(spec.footers, footer_style, usable_width, "w:ftr", footnotes, &resolver);
       all_hdr_ftr_parts.push_back({part_path, rid, xml, false});
       spec_hdr_ftr_refs[spec_idx].footer_rid = rid;

@@ -135,17 +135,19 @@ test_that("footnotePlace=doc_footer puts the note in the footer part WHEN paired
     grepl("DF-NOTE-ABC", docx_part_text(p, q), fixed = TRUE), logical(1))),
     label = "note lands in a footer part")
 
-  # unpaired: documented silent drop (register item 1) - assert the CURRENT
-  # behavior so a future warning/fix breaks this test on purpose
+  # unpaired: FIXED behavior (F05a) — the footer part is auto-created and
+  # the note survives without add_footer() (was silently dropped pre-fix)
   dirs2 <- local_docx_dirs()
   spec2 <- create_table(data.frame(a = 1:2)) |>
     set_document(footnotePlace = "doc_footer") |>
     add_footnote("DF-NOTE-DROPPED")
   p2 <- write_doc(create_report(spec2), "sem_docfooter2", outDir = dirs2$out,
                   metaPath = dirs2$meta, verbose = FALSE)
-  anywhere <- any(vapply(docx_parts(p2), function(q)
-    grepl("DF-NOTE-DROPPED", docx_part_text(p2, q), fixed = TRUE), logical(1)))
-  expect_false(anywhere, label = "doc_footer without add_footer drops the note (known)")
+  fparts2 <- grep("^word/footer", docx_parts(p2), value = TRUE)
+  expect_gte(length(fparts2), 1L, label = "footer part auto-created without add_footer")
+  expect_true(any(vapply(fparts2, function(q)
+    grepl("DF-NOTE-DROPPED", docx_part_text(p2, q), fixed = TRUE), logical(1))),
+    label = "doc_footer note survives without add_footer")
 })
 
 test_that("footnotePlace last_page vs repeated differ only across multi-page splits", {

@@ -135,6 +135,46 @@ test_that("isContinues=FALSE splits long tables into per-page <w:tbl>; TRUE keep
   expect_match(x_t, "<w:tblHeader/>", fixed = TRUE)
 })
 
+test_that("doc_footer footnotes survive WITHOUT add_footer (finding F05a)", {
+  df <- data.frame(a = c("x", "y"), stringsAsFactors = FALSE)
+  p <- render_spec(create_table(df) |>
+                     add_footnote("NOTE_IN_DOCFOOTER") |>
+                     set_document(hasData = TRUE, footnotePlace = "doc_footer"),
+                   "f05a_noftr")
+  parts <- docx_parts(p)
+  footers <- grep("^word/footer.*\\.xml$", parts, value = TRUE)
+  expect_gte(length(footers), 1L, label = "footer part auto-created for doc_footer notes")
+  all_ft <- paste(vapply(footers, function(f) docx_part_text(p, f), character(1)), collapse = "")
+  expect_match(all_ft, "NOTE_IN_DOCFOOTER", fixed = TRUE,
+               label = "footnote text present in the footer part")
+  # repeated mode must NOT gain a footer part when no footer rows were added
+  p2 <- render_spec(create_table(df) |>
+                      add_footnote("NOTE_REPEATED") |>
+                      set_document(hasData = TRUE, footnotePlace = "repeated"),
+                    "f05a_rep")
+  expect_equal(length(grep("^word/footer.*\\.xml$", docx_parts(p2))), 0L,
+               label = "no footer part without footer rows in repeated mode")
+  x2 <- docx_part_text(p2)
+  expect_match(x2, "NOTE_REPEATED", fixed = TRUE, label = "repeated note still in body")
+})
+
+test_that("doc_footer with explicit add_footer keeps footer rows AND note (regression pair)", {
+  df <- data.frame(a = c("x", "y"), stringsAsFactors = FALSE)
+  p <- render_spec(create_table(df) |>
+                     add_footnote("NOTE_A") |>
+                     add_footer("FOOTER_ROW_B") |>
+                     set_document(hasData = TRUE, footnotePlace = "doc_footer"),
+                   "f05a_with")
+  parts <- docx_parts(p)
+  footers <- grep("^word/footer.*\\.xml$", parts, value = TRUE)
+  expect_gte(length(footers), 1L)
+  all_ft <- paste(vapply(footers, function(f) docx_part_text(p, f), character(1)), collapse = "")
+  expect_true(all(c("NOTE_A", "FOOTER_ROW_B") %in% c(
+    if (grepl("NOTE_A", all_ft, fixed = TRUE)) "NOTE_A" else NA,
+    if (grepl("FOOTER_ROW_B", all_ft, fixed = TRUE)) "FOOTER_ROW_B" else NA)),
+    label = "both footnote and footer rows land in the footer part")
+})
+
 test_that("empty-text document renders body paragraphs without a table", {
   dirs <- local_docx_dirs()
   spec <- create_text() |>
