@@ -297,6 +297,7 @@ colours, and borders, identical content and structure:
 -   **`c_pageBreak()`** and **`row_h4` spacers** give precise control over
     pagination and whitespace.
 -   **Template switching** re-skins the whole output via one option.
+
 ## Example 2 — Demographics table (UTF-8 encoding support)
 
 Clinical trials run in many countries, and regulatory submissions often require
@@ -765,6 +766,7 @@ create_report(spec) %>% write_doc('example_03b_ae_periods')
 [Open example_03b_ae_periods.pdf](example_03b_ae_periods.pdf)
 
 <iframe src="example_03b_ae_periods.pdf" title="example_03b_ae_periods.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+
 ## Example 4 — Data listing with automatic two-level TOC
 
 Data listings present individual patient records with minimal aggregation. They
@@ -1200,6 +1202,7 @@ create_report(spec_fig_split, spec_tbl_split) %>%
 
 Prefer to keep one page instead? Lower `figureHeight` on the figure spec so
 the table fits in the space that remains.
+
 ## Example 7 — Gap between Spanning Header Lines {#example-07}
 
 Sometimes it is necessary to include a visual gap between spanning column groups
@@ -1573,3 +1576,21 @@ create_report(spec) %>% write_doc('example_10_navy_lab')
 
 <iframe src="example_10_navy_lab.pdf" title="example_10_navy_lab.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
+## Final notes
+
+This vignette stays deliberately example-heavy: each section is a complete,
+runnable pattern, not an API tour. Reuse them when you want a compact recipe
+for a minimal spec, a multi-spec report, span-header lattices, width tuning,
+conditional emphasis, figure-plus-table pages, or session-level defaults.
+Examples 1, 3b, 6, 8, 9, and 10 are the same documents shown as demo tiles on
+the package site home page — the tiles' captions link straight back here.
+
+**Running examples locally**: set the top chunk `eval=TRUE` to generate the
+sample data, then execute examples in order. All code uses exported functions
+only — no internal API manipulation needed. Figures require the suggested
+`Cairo` package for the Word-safe `figureDevice = "cairo"` path; without it the
+device chain falls back to `svg`/`png` with a one-time warning.
+
+For parameter details on any function, see the reference index or
+`?create_table`, `?define_cols`, `?add_span_header`, `?compute_cols`,
+`?set_document`, `?write_doc`.

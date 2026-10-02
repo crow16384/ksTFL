@@ -382,9 +382,13 @@ footnote reference into the title.</li>
 pagination and whitespace.</li>
 <li>
 <strong>Template switching</strong> re-skins the whole output via
-one option. ## Example 2 — Demographics table (UTF-8 encoding
-support)</li>
+one option.</li>
 </ul>
+</div>
+</div>
+<div class="section level2">
+<h2 id="example-2-demographics-table-utf-8-encoding-support">Example 2 — Demographics table (UTF-8 encoding support)<a class="anchor" aria-label="anchor" href="#example-2-demographics-table-utf-8-encoding-support"></a>
+</h2>
 <p>Clinical trials run in many countries, and regulatory submissions
 often require documents in local languages. ksTFL has full UTF-8 support
 — titles, footnotes, column labels, and data values can all contain
@@ -393,7 +397,6 @@ non-Latin characters without any special configuration.</p>
 Example 1, but entirely in Russian. The code also serves as a detailed
 walkthrough of the spec-building pipeline, with comments explaining
 every step.</p>
-</div>
 <div class="section level3">
 <h3 id="input-data-1">Input data<a class="anchor" aria-label="anchor" href="#input-data-1"></a>
 </h3>
@@ -1318,8 +1321,12 @@ flows to a fresh page:</p>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig_split</span>, <span class="va">spec_tbl_split</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_06_split'</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Prefer to keep one page instead? Lower <code>figureHeight</code> on
-the figure spec so the table fits in the space that remains. ## Example
-7 — Gap between Spanning Header Lines {#example-07}</p>
+the figure spec so the table fits in the space that remains.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="example-07">Example 7 — Gap between Spanning Header Lines<a class="anchor" aria-label="anchor" href="#example-07"></a>
+</h2>
 <p>Sometimes it is necessary to include a visual gap between spanning
 column groups so it is clear which columns belong to which header. This
 can be achieved by adding empty dummy columns to the dataset, but it can
@@ -1393,7 +1400,6 @@ other:</p>
 spanning_headers_gap.pdf</a></p>
 <iframe src="spanning_headers_gap.pdf" title="spanning_headers_gap.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
-</div>
 </div>
 <div class="section level2">
 <h2 id="example-08">Example 8 — Risk-difference forest figure<a class="anchor" aria-label="anchor" href="#example-08"></a>
@@ -1703,6 +1709,29 @@ example_10_navy_lab.pdf</a></p>
 <iframe src="example_10_navy_lab.pdf" title="example_10_navy_lab.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
+</div>
+<div class="section level2">
+<h2 id="final-notes">Final notes<a class="anchor" aria-label="anchor" href="#final-notes"></a>
+</h2>
+<p>This vignette stays deliberately example-heavy: each section is a
+complete, runnable pattern, not an API tour. Reuse them when you want a
+compact recipe for a minimal spec, a multi-spec report, span-header
+lattices, width tuning, conditional emphasis, figure-plus-table pages,
+or session-level defaults. Examples 1, 3b, 6, 8, 9, and 10 are the same
+documents shown as demo tiles on the package site home page — the tiles’
+captions link straight back here.</p>
+<p><strong>Running examples locally</strong>: set the top chunk
+<code>eval=TRUE</code> to generate the sample data, then execute
+examples in order. All code uses exported functions only — no internal
+API manipulation needed. Figures require the suggested
+<code>Cairo</code> package for the Word-safe
+<code>figureDevice = "cairo"</code> path; without it the device chain
+falls back to <code>svg</code>/<code>png</code> with a one-time
+warning.</p>
+<p>For parameter details on any function, see the reference index or
+<code><a href="../reference/create_table.html">?create_table</a></code>, <code><a href="../reference/define_cols.html">?define_cols</a></code>,
+<code><a href="../reference/add_span_header.html">?add_span_header</a></code>, <code><a href="../reference/compute_cols.html">?compute_cols</a></code>,
+<code><a href="../reference/set_document.html">?set_document</a></code>, <code><a href="../reference/write_doc.html">?write_doc</a></code>.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
