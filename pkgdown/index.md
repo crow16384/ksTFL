@@ -37,8 +37,12 @@ create_*()  ->  define / add_* / compute_*  ->  create_report()  ->  write_doc()
   specify            style & compose            validate & merge          render
 ```
 
-No external tools, no Word macros, no "final_v7_reallyfinal.docx". Every page below
-was rendered by ksTFL itself from short, commented example programs.
+No external tools, no Word macros, no "final_v7_reallyfinal.docx". One table, one
+figure, one listing — or all of them, dozens per run, assembled into a single report
+whose clickable table of contents writes itself. And the endless argument with Word
+over pagination simply ends: pages break where your spec says they should break, not
+where Word decides to, so the layout you validated today is the layout on screen a
+year from now. Every page below was rendered by ksTFL itself.
 Click any page to open it full size.
 
 <div class="ksgallery">
