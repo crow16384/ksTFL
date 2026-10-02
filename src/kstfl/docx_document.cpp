@@ -2,8 +2,11 @@
 
 #include "docx_emitter.h"
 #include "inline_parser.h"
+#include <Rcpp.h>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <sstream>
 
 namespace kstfl {
 
@@ -34,6 +37,146 @@ static void fit_within_bounds(Length &w, Length &h, Length max_w, Length max_h) 
     h = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(static_cast<long double>(h.emu) * scale)))};
   }
 }
+
+// ---------------------------------------------------------------------------
+// Intrinsic image size reader (F01/step 9) for figureScaleMode = "fitKeepAR".
+//
+// Reads only the header bytes of the embedded file — no decode, no external
+// libraries, safe on arbitrary input:
+//   PNG  : IHDR width/height (big-endian u32 at fixed offsets after signature)
+//   JPEG : any SOFn marker (0xC0-0xCF except C4/C8/CC), length-prefixed
+//   SVG  : root <svg> attributes width/height (plain numbers or with unit),
+//          falling back to viewBox w/h
+// Returns aspect ratio (w/h) > 0, or 0.0 when the size cannot be determined
+// (caller then falls back to the legacy box-arithmetic path with a warning).
+// ---------------------------------------------------------------------------
+
+static double png_intrinsic_ar(const std::vector<char> &buf) {
+  const unsigned char sig[8] = {0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n'};
+  if (buf.size() < 24) return 0.0;
+  const auto *b = reinterpret_cast<const unsigned char *>(buf.data());
+  for (int i = 0; i < 8; i++) {
+    if (b[i] != sig[i]) return 0.0;
+  }
+  // IHDR must be the first chunk: len(4) "IHDR"(4) then width(4) height(4)
+  if (b[12] != 'I' || b[13] != 'H' || b[14] != 'D' || b[15] != 'R') return 0.0;
+  auto be32 = [](const unsigned char *p) -> double {
+    return static_cast<double>((static_cast<uint64_t>(p[0]) << 24) | (static_cast<uint64_t>(p[1]) << 16) |
+                               (static_cast<uint64_t>(p[2]) << 8) | p[3]);
+  };
+  double w = be32(b + 16), h = be32(b + 20);
+  if (w <= 0 || h <= 0) return 0.0;
+  return w / h;
+}
+
+static double jpeg_intrinsic_ar(const std::vector<char> &buf) {
+  const auto *b = reinterpret_cast<const unsigned char *>(buf.data());
+  size_t n = buf.size();
+  if (n < 4 || b[0] != 0xFF || b[1] != 0xD8) return 0.0;
+  size_t p = 2;
+  // Bounded scan: JPEG headers are small; refuse to walk huge files.
+  const size_t limit = std::min<size_t>(n, 1u << 20);
+  while (p + 4 <= limit) {
+    if (b[p] != 0xFF) { p++; continue; }
+    uint8_t marker = b[p + 1];
+    if (marker == 0xFF) { p++; continue; }  // padding fill byte
+    size_t seg_start = p + 2;
+    // Standalone markers without payload.
+    if ((marker >= 0xD0 && marker <= 0xD7) || marker == 0xD8 || marker == 0x01) { p = seg_start; continue; }
+    if (marker == 0xDA) break;  // start of scan: image data, no more headers
+    if (seg_start + 2 > limit) break;
+    uint16_t seglen = static_cast<uint16_t>((b[seg_start] << 8) | b[seg_start + 1]);
+    if (seglen < 2) break;
+    // SOF markers carry height/width right after the segment length.
+    bool is_sof = marker >= 0xC0 && marker <= 0xCF && marker != 0xC4 && marker != 0xC8 && marker != 0xCC;
+    if (is_sof && seg_start + 7 <= limit) {
+      double h = static_cast<double>((b[seg_start + 3] << 8) | b[seg_start + 4]);
+      double w = static_cast<double>((b[seg_start + 5] << 8) | b[seg_start + 6]);
+      if (w > 0 && h > 0) return w / h;
+    }
+    p = seg_start + seglen;
+  }
+  return 0.0;
+}
+
+static double svg_intrinsic_ar(const std::vector<char> &buf) {
+  // Parse only the root <svg ...> tag text: first '<' ... matching '>' of the
+  // svg element. Search windows stay tiny (attribute names, digits).
+  std::string s(buf.data(), buf.size());
+  size_t tag = s.find("<svg");
+  if (tag == std::string::npos) return 0.0;
+  size_t end = s.find('>', tag);
+  if (end == std::string::npos || end - tag > 4096) return 0.0;
+  std::string attrs = s.substr(tag, end - tag);
+
+  // unit-aware number parser for attribute values (px,pt,cm,mm,in,% ignored —
+  // only the ratio matters; '%' on one dim without the other: bail).
+  auto attr_number = [&attrs](const char *name, double &out) -> bool {
+    size_t k = attrs.find(name);
+    if (k == std::string::npos) return false;
+    // ensure it's the attribute (next char after name is '=')
+    size_t eq = attrs.find('=', k + std::char_traits<char>::length(name));
+    if (eq == std::string::npos || eq - (k + std::char_traits<char>::length(name)) > 1) return false;
+    // find quote
+    size_t q = attrs.find_first_of("\"'", eq + 1);
+    if (q == std::string::npos || q - eq > 2) return false;
+    char quote = attrs[q];
+    size_t vstart = q + 1;
+    size_t vend = attrs.find(quote, vstart);
+    if (vend == std::string::npos || vend - vstart > 32) return false;
+    std::string val = attrs.substr(vstart, vend - vstart);
+    if (val.find('%') != std::string::npos) return false;  // percentage: not absolute
+    try {
+      size_t idx = 0;
+      double v = std::stod(val, &idx);
+      if (idx == 0) return false;
+      // unit tail allowed (px|pt|cm|mm|in|em|ex|pc)
+      out = v;
+      return v > 0;
+    } catch (...) { return false; }
+  };
+
+  double w = 0, h = 0;
+  if (attr_number("width", w) && attr_number("height", h) && w > 0 && h > 0) return w / h;
+
+  // viewBox="minx miny w h"
+  size_t k = attrs.find("viewBox");
+  if (k == std::string::npos) k = attrs.find("viewbox");
+  if (k != std::string::npos) {
+    size_t q = attrs.find_first_of("\"", k);
+    if (q != std::string::npos) {
+      size_t vend = attrs.find('"', q + 1);
+      if (vend != std::string::npos && vend - q < 128) {
+        std::istringstream iss(attrs.substr(q + 1, vend - q - 1));
+        double x, y, vbw, vbh;
+        if (iss >> x >> y >> vbw >> vbh && vbw > 0 && vbh > 0) return vbw / vbh;
+      }
+    }
+  }
+  return 0.0;
+}
+
+static double figure_intrinsic_ar(const std::string &path) {
+  std::ifstream f(path, std::ios::binary);
+  if (!f) return 0.0;
+  // Read at most 64 KiB — everything a header can be (SVG root tag is at the
+  // document start; Cairo text-SVGs put width/height on the <svg> line).
+  std::vector<char> buf(65536);
+  f.read(buf.data(), static_cast<std::streamsize>(buf.size()));
+  auto got = static_cast<size_t>(f.gcount());
+  buf.resize(got);
+  if (got < 8) return 0.0;
+
+  const auto *b = reinterpret_cast<const unsigned char *>(buf.data());
+  if (b[0] == 0x89) return png_intrinsic_ar(buf);
+  if (b[0] == 0xFF && b[1] == 0xD8) return jpeg_intrinsic_ar(buf);
+  if (b[0] == '<' || (got > 5 && b[0] == '?' )) {
+    // allow leading XML declaration
+    return svg_intrinsic_ar(buf);
+  }
+  return 0.0;
+}
+
 
 static std::pair<int64_t, int64_t> resolve_figure_size_emu(const TFLSpec &spec, const PageConfig &page,
                                                            const StyleResolver &resolver, Length max_figure_height) {
@@ -74,6 +217,33 @@ static std::pair<int64_t, int64_t> resolve_figure_size_emu(const TFLSpec &spec, 
       h = max_figure_height;
       w = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(static_cast<double>(h.emu) * requested_ar)))};
     }
+  } else if (spec.figure.scale_mode == "fitKeepAR") {
+    // Step 9 (F01): fit the SOURCE aspect into the body area (content width x
+    // reserved max height). W/H from the spec are ignored on the R layer with
+    // a warning; here we read the embedded file's intrinsic AR. Upscaling to
+    // the page width is intentional (consistent with fitWidth). If the header
+    // is unreadable, fall back to the legacy fitWidth arithmetic once + warn.
+    double src_ar = figure_intrinsic_ar(spec.figure_path);
+    if (src_ar > 0.0) {
+      Length fit_h_from_w{
+          std::max<int64_t>(1, static_cast<int64_t>(std::llround(static_cast<double>(content_w.emu) / src_ar)))};
+      if (fit_h_from_w <= max_figure_height) {
+        w = content_w;   // landscape-ish source: width is the constraint
+        h = fit_h_from_w;
+      } else {
+        h = max_figure_height;  // portrait-ish source: height is the constraint
+        w = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(static_cast<double>(h.emu) * src_ar)))};
+      }
+    } else {
+      static bool warned_unreadable = false;
+      if (!warned_unreadable) {
+        warned_unreadable = true;
+        Rcpp::Rcerr << "[ksTFL] WARNING: fitKeepAR could not read intrinsic size of '" << spec.figure_path
+                    << "' — falling back to fitWidth box arithmetic (once per session).\n";
+      }
+      w = content_w;
+      h = Length{std::max<int64_t>(1, static_cast<int64_t>(std::llround(static_cast<double>(w.emu) / requested_ar)))};
+    }
   } else {
     // fixed: if one dimension is missing, infer from default 6:4 ratio.
     bool has_w = spec.figure.width.has_value();
@@ -93,6 +263,26 @@ static std::pair<int64_t, int64_t> resolve_figure_size_emu(const TFLSpec &spec, 
   if (h > max_figure_height) h = max_figure_height;
   if (w.emu <= 0) w = default_w;
   if (h.emu <= 0) h = default_h;
+
+  // F01 guardrail: in fixed mode the box comes from the spec (or the 6x4
+  // default) and the embedded file is stretched to it. When the source has a
+  // readable aspect that clearly differs from the final box, the picture WILL
+  // be distorted in Word - warn once per session so this is not silent.
+  if (spec.figure.scale_mode == "fixed") {
+    double src_ar = figure_intrinsic_ar(spec.figure_path);
+    if (src_ar > 0.0 && w.emu > 0 && h.emu > 0) {
+      double box_ar = static_cast<double>(w.emu) / static_cast<double>(h.emu);
+      if (std::fabs(box_ar / src_ar - 1.0) > 0.01) {
+        static bool warned_distortion = false;
+        if (!warned_distortion) {
+          warned_distortion = true;
+          Rcpp::Rcerr << "[ksTFL] WARNING: figureScaleMode 'fixed' stretches '" << spec.figure_path
+                      << "' from its source aspect (" << src_ar << ") to the box aspect (" << box_ar
+                      << "); use figureScaleMode = \"fitKeepAR\" or matching figureWidth/figureHeight (once per session).\n";
+        }
+      }
+    }
+  }
 
   return {w.emu, h.emu};
 }

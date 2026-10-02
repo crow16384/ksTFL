@@ -102,7 +102,7 @@ NULL
 
 #' Allowed figure scale modes
 #' @noRd
-.const_figure_scale_modes <- c("fixed", "fitWidth", "fitPage")
+.const_figure_scale_modes <- c("fixed", "fitWidth", "fitPage", "fitKeepAR")
 
 #' Allowed figure device values
 #' @noRd

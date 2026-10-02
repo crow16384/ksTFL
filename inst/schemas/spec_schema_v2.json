@@ -586,7 +586,8 @@
                             "enum": [
                                 "fixed",
                                 "fitWidth",
-                                "fitPage"
+                                "fitPage",
+                                "fitKeepAR"
                             ]
                         },
                         "device": {

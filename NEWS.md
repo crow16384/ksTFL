@@ -1,7 +1,49 @@
+# ksTFL 0.12.0
+
+## Figures
+
+* New `figureScaleMode = "fitKeepAR"`: the embedded image's intrinsic aspect
+  ratio is read from its header (PNG IHDR, JPEG SOFn, SVG width/height or
+  viewBox) and the picture is fitted into the page body area without
+  distortion. `figureWidth`/`figureHeight` are ignored in this mode (warning).
+  Unreadable headers fall back to the fitWidth behavior with a warning.
+* Renderer warns once per session when `fixed` mode stretches a source image
+  whose aspect clearly differs from the final box.
+
+## Templates (silent keys became effective)
+
+* `tableStyle.header.row.row_height` / `tableStyle.body.row.row_height` are
+  now applied as the row height (spec-level `row_h*` styles and structural
+  rows still take precedence; the bundled `"auto"` keeps measured heights).
+* `tableStyle.cellDefaults.vertical_alignment` is now applied as the
+  lowest-precedence cell vertical alignment.
+* Bare numeric `font_size` in template JSON is interpreted as points
+  (it was silently ignored before). Malformed strings still error.
+
+## Pagination / footnotes
+
+* `footnotePlace = "doc_footer"` now keeps the footnote even without
+  `add_footer()` — the Word footer part is created automatically.
+* `write_doc()` page-count message subtracts continuousSection seams, so the
+  printed number matches the rendered document for short joined content.
+
+## Validation and actions
+
+* `set_document(footnotePlace = ...)` validates the value (previously typos
+  silently fell back to `"repeated"`).
+* `c_glue()` with both `glue_col` and `text` now warns inside the DSL
+  (`compute_cols()`); precedence is unchanged — `glue_col` wins.
+
+## Template paths
+
+* A relative `docTemplate` stored in a spec is resolved against the render
+  cwd first and then retried against the saved spec directory — replaying a
+  report from another folder no longer falls back to `Default`.
+
 # ksTFL 0.11.9
 
 * Minor code clean-up 
-* Documenation updates
+* Documentation updates
 
 # ksTFL 0.11.8
 

@@ -333,7 +333,7 @@ assign("stack", character(0), envir = .context_marker_env)
 #'
 #' @param width Character or NULL. Figure width.
 #' @param height Character or NULL. Figure height.
-#' @param figureScaleMode Character. One of fixed/fitWidth/fitPage.
+#' @param figureScaleMode Character. One of fixed/fitWidth/fitPage/fitKeepAR.
 #' @param fn_name Character. Calling function name for diagnostics.
 #' @param default_width Character. Fallback width for fixed mode.
 #' @param default_height Character. Fallback height for fixed mode.
@@ -347,11 +347,16 @@ assign("stack", character(0), envir = .context_marker_env)
                                                 default_height = "4in") {
   mode <- figureScaleMode %||% .const_figure_scale_modes[1L]
 
-  if (mode %in% .const_figure_scale_modes[c(2L, 3L)]) {
+  if (mode %in% .const_figure_scale_modes[c(2L, 3L, 4L)]) {
     if (!is.null(width) || !is.null(height)) {
+      hint <- if (mode == .const_figure_scale_modes[4L]) {
+        "The renderer sizes the figure from the SOURCE image aspect fitted into the page area"
+      } else {
+        "The renderer computes figure size from page bounds in this mode"
+      }
       cli_warn(c(
         "Figure dimensions are ignored when {.arg figureScaleMode = {.str {mode}}} in {.fn {fn_name}}",
-        i = "The renderer computes figure size from page bounds in this mode"
+        i = hint
       ))
     }
     return(list(width = NULL, height = NULL, figureScaleMode = mode))
@@ -2773,13 +2778,21 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   One of `"fixed"` (exact `figureWidth` x `figureHeight`; a missing
 #'   dimension is inferred from the 6:4 default ratio), `"fitWidth"` (figure
 #'   box stretched to the page content width, aspect ratio taken from
-#'   figureWidth/figureHeight — NOT from the source image), or `"fitPage"`
-#'   (largest box of that same aspect ratio fitting the content area).
-#'   IMPORTANT: no mode inspects the embedded image — the source file's own
-#'   proportions are only honored when `figureWidth`/`figureHeight` match
-#'   them. Set explicit W/H equal to the source aspect ratio to avoid
-#'   distortion (or use ggplot objects, which are exported at the requested
-#'   size). For Figure specs the rendering CAPTION is the `add_subtitle()`
+#'   figureWidth/figureHeight — NOT from the source image), `"fitPage"`
+#'   (largest box of that same aspect ratio fitting the content area), or
+#'   `"fitKeepAR"` (the SOURCE image aspect is read from the embedded file —
+#'   PNG/JPEG header or SVG width/height/viewBox — and fitted into the page
+#'   content area; `figureWidth`/`figureHeight` are ignored with a warning;
+#'   the picture is never distorted, small images are upscaled to the width,
+#'   portrait-tall ones are limited by the reserved height). If the source
+#'   size cannot be read, fitKeepAR falls back to fitWidth behavior once +
+#'   warning.
+#'   fixed/fitWidth/fitPage do NOT inspect the embedded image — the source
+#'   file's own proportions are honored only when `figureWidth`/`figureHeight`
+#'   match them. Set explicit W/H equal to the source aspect ratio to avoid
+#'   distortion — or just use `figureScaleMode = "fitKeepAR"`. ggplot objects
+#'   are exported at the requested size, so their AR always matches the box.
+#'   For Figure specs the rendering CAPTION is the `add_subtitle()`
 #'   text, positioned by the template key `figureStyle.caption.position`
 #'   (`"above"` — default — or `"below"` the image); `add_title()` always
 #'   stays above the image and cannot act as a caption.

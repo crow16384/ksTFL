@@ -162,8 +162,11 @@ tfl_get_option <- function(name) {
 #'   content area. One of `"fixed"` (use figureWidth/figureHeight as given;
 #'   a missing dimension is inferred from the default 6:4 ratio), `"fitWidth"`
 #'   (stretch to the content-box width using the W/H-provided aspect ratio),
-#'   or `"fitPage"` (largest size of the same aspect ratio that fits the
-#'   remaining content area). Default `"fixed"`.
+#'   `"fitPage"` (largest size of the same aspect ratio that fits the
+#'   remaining content area), or `"fitKeepAR"` (read the aspect ratio from
+#'   the embedded source image — PNG/JPEG header or SVG width/height/viewBox —
+#'   and fit it into the page content area; figureWidth/figureHeight are
+#'   ignored with a warning). Default `"fixed"`.
 #' @param insertTOC Logical; when `TRUE` the renderer prepends a Table of Contents
 #'   page (using a `{ TOC \f \h \z }` field) before the first spec. Requires at least
 #'   one `add_title()` or `add_subtitle()` call with `toclevel` set. Default `FALSE`.
