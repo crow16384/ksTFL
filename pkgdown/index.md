@@ -57,9 +57,9 @@ walked through line by line in [Real Examples](articles/Real_Examples_with_ksTFL
 
 <figure class="ksdemo">
   <a class="ksdemo-zoom" href="home/show-ae-complex.png" target="_blank" rel="noopener">
-    <img src="home/show-ae-complex.png" alt="Adverse events by system organ class and period" />
+    <img src="home/show-ae-complex.png" alt="Adverse events by system organ class with three-tier spanning headers" />
   </a>
-  <figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-3b">Adverse events: subjects and events per period under stacked banners</a></figcaption>
+  <figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-03">Adverse events: three-tier spanning headers, landscape fit</a></figcaption>
 </figure>
 
 <figure class="ksdemo">

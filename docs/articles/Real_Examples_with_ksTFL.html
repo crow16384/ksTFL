@@ -124,12 +124,11 @@ setup above applied (the examples use the magrittr pipe
 <p><strong>Data note</strong>: Examples 1, 5, 8 and 10 build their input
 completely in the shown code (Example 5 runs on <code>mtcars</code>). In
 the other examples the input frame (<code>data</code>, <code>tbl</code>,
-<code>lab_listing</code>, <code>demo_data</code>) is displayed as
-printed output only — it stands for the result of upstream analysis
-programs (ADaM-style summaries). To reproduce those, rebuild an
-equivalent frame from the printed rows (column names and order are what
-the spec code consumes); the focus here is the ksTFL specification
-layer, not statistics.</p>
+<code>demo_data</code>) is displayed as printed output only — it stands
+for the result of upstream analysis programs (ADaM-style summaries). To
+reproduce those, rebuild an equivalent frame from the printed rows
+(column names and order are what the spec code consumes); the focus here
+is the ksTFL specification layer, not statistics.</p>
 </blockquote>
 </div>
 <div class="section level2">
@@ -235,7 +234,11 @@ elsewhere — which is how <code><a href="../reference/compute_cols.html">comput
 <code>SECTION_ID</code> is derived from the grouping and drives the
 spacing and page-break logic:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="co"># --- Input data: a flat analyst frame, one row per statistic ---</span></span>
+<span><span class="co"># Four parameter sections (Age, Sex, Race, Ethnicity); each ends with a</span></span>
+<span><span class="co"># p-value row. Values are already in display form - the renderer never</span></span>
+<span><span class="co"># re-formats what the analyst supplies.</span></span>
+<span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  SECTION <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Age (years)"</span>, <span class="fl">6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Sex"</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Race"</span>, <span class="fl">4</span><span class="op">)</span>,</span>
 <span>              <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Ethnicity"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  STAT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"Mean (SD)"</span>, <span class="st">"Median"</span>, <span class="st">"Q1; Q3"</span>, <span class="st">"Min; Max"</span>, <span class="st">"p-value (ANOVA)"</span>,</span>
@@ -254,11 +257,17 @@ spacing and page-break logic:</p>
 <span>            <span class="st">"178 (56.0%)"</span>, <span class="st">"140 (44.0%)"</span>, <span class="st">""</span>,</span>
 <span>            <span class="st">"254 (79.9%)"</span>, <span class="st">"40 (12.6%)"</span>, <span class="st">"24 (7.5%)"</span>, <span class="st">""</span>,</span>
 <span>            <span class="st">"39 (12.3%)"</span>, <span class="st">"279 (87.7%)"</span>, <span class="st">""</span><span class="op">)</span>,</span>
+<span><span class="co"># MODELVAL is a hidden driver column: populated only on p-value rows,</span></span>
+<span><span class="co"># NA everywhere else. compute_cols() below tests !is.na(MODELVAL) to</span></span>
+<span><span class="co"># find exactly those rows - no extra flag column needed.</span></span>
 <span>  MODELVAL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"0.041"</span>,</span>
 <span>               <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"&gt;0.999"</span>,</span>
 <span>               <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"0.772"</span>,</span>
 <span>               <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"0.664"</span><span class="op">)</span>,</span>
 <span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co"># Cumulative group index derived from first-seen order of SECTION.</span></span>
+<span><span class="co"># It drives the spacer rows (lastOf) and the page break (== 4) below,</span></span>
+<span><span class="co"># and is also hidden from the document.</span></span>
 <span><span class="va">raw</span><span class="op">$</span><span class="va">SECTION_ID</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html" class="external-link">duplicated</a></span><span class="op">(</span><span class="va">raw</span><span class="op">$</span><span class="va">SECTION</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The resulting frame:</p>
 <pre><code>   SECTION                      STAT                    DRUGX         PLCB         TOTAL
@@ -283,46 +292,78 @@ spacing and page-break logic:</p>
 <h3 id="building-the-specification">Building the specification<a class="anchor" aria-label="anchor" href="#building-the-specification"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">raw</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<code class="sourceCode R"><span><span class="co"># --- Building the specification ---</span></span>
+<span><span class="co"># create_table() takes the flat frame as-is; every presentation concern</span></span>
+<span><span class="co"># is declared from here on, never baked into the data.</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">raw</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Multi-line title: table number on line 1, description on line 2.</span></span>
+<span><span class="co"># toclevel = 1 makes the entry appear in the report's Table of Contents.</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S1"</span>, <span class="st">"Demographic and Baseline Characteristics"</span><span class="op">)</span>,</span>
 <span>    toclevel <span class="op">=</span> <span class="fl">1</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Population line in italics. &lt;sup&gt;a&lt;/sup&gt; is inline markup that the</span></span>
+<span><span class="co"># renderer converts to real Word superscript - the footnote reference.</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Full Analysis Set&lt;sup&gt;a&lt;/sup&gt;"</span>, styleRef <span class="op">=</span> <span class="st">"font_italic"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Footnote body; composition f_combine("fs_8", "fc_gray") assembles the</span></span>
+<span><span class="co"># style from built-in atoms: 8-point font + gray color.</span></span>
 <span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"&lt;sup&gt;a&lt;/sup&gt; Values are shown as n (%), mean (SD), median, or quartiles; "</span>,</span>
 <span>           <span class="st">"percentages are based on the number of subjects in the treatment arm."</span><span class="op">)</span>,</span>
 <span>    styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Hide the three helper columns. They are NOT printed, but stay visible</span></span>
+<span><span class="co"># to all compute_cols() conditions - the core ksTFL metadata-column</span></span>
+<span><span class="co"># pattern.</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SECTION</span>, <span class="va">SECTION_ID</span>, <span class="va">MODELVAL</span><span class="op">)</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Stub column: &lt;br&gt; stacks the two label lines; labelStyleRef moves the</span></span>
+<span><span class="co"># header text left, valueStyleRef indents every value one level so rows</span></span>
+<span><span class="co"># sit visually under the bold section headers inserted later.</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">STAT</span>,</span>
 <span>    label <span class="op">=</span> <span class="st">"Parameter&lt;br&gt;  Statistic"</span>,</span>
 <span>    labelStyleRef <span class="op">=</span> <span class="st">"text_left"</span>,</span>
 <span>    valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># The three arms are defined in one batch with vectorised per-column</span></span>
+<span><span class="co"># values (1-to-N mapping). &lt;br&gt; splits each header into name + (N=...);</span></span>
+<span><span class="co"># the shared fixed width keeps the arms visually identical.</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">DRUGX</span>, <span class="va">PLCB</span>, <span class="va">TOTAL</span><span class="op">)</span>,</span>
 <span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DrugX&lt;br&gt;(N=160)"</span>, <span class="st">"Placebo&lt;br&gt;(N=158)"</span>, <span class="st">"Total&lt;br&gt;(N=318)"</span><span class="op">)</span>,</span>
 <span>    valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span>,</span>
 <span>    colWidth <span class="op">=</span> <span class="st">"16%"</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># 1. Section headers: on the FIRST row of every SECTION run insert a bold</span></span>
+<span><span class="co">#    row ABOVE it, pulling the text straight from the hidden SECTION</span></span>
+<span><span class="co">#    column - zero duplicated strings in the data.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">SECTION</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">SECTION</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># 2. p-value rows, three actions in one rule, evaluated left to right:</span></span>
+<span><span class="co">#    merge DrugX+Placebo into one centered italic cell with a thin top</span></span>
+<span><span class="co">#    border, italicise the statistic label, then glue the p-value text</span></span>
+<span><span class="co">#    after the merged cell - the familiar "p = 0.041" display.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">MODELVAL</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">DRUGX</span>, <span class="va">PLCB</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"text_center"</span>, <span class="st">"bt_th"</span>, <span class="st">"i"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">STAT</span>, <span class="st">"i"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">DRUGX</span>, <span class="st">"after"</span>, glue_col <span class="op">=</span> <span class="va">MODELVAL</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># 3. Spacers: an empty 4-point row below each section gives the eye rest.</span></span>
+<span><span class="co">#    lastOf() is run-length-aware: it fires on the LAST row of each run.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">lastOf</span><span class="op">(</span><span class="va">SECTION_ID</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"below"</span>, styleRef <span class="op">=</span> <span class="st">"row_h4"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># 4. Page break: the table is long, so the Ethnicity section (id 4)</span></span>
+<span><span class="co">#    deliberately starts on a fresh page instead of being split by Word.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="va">SECTION_ID</span> <span class="op">==</span> <span class="fl">4</span> <span class="op">&amp;</span> <span class="fu">firstOf</span><span class="op">(</span><span class="va">SECTION_ID</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_pageBreak.html">c_pageBreak</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Document-level polish: 75% content width centers the table as a</span></span>
+<span><span class="co"># typographic choice; the zero empty lines remove the template's</span></span>
+<span><span class="co"># default blank rows above and below the body.</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span></span>
 <span>    contentWidth <span class="op">=</span> <span class="st">"75%"</span>,</span>
 <span>    topEmptyLine <span class="op">=</span> <span class="st">"0pt"</span>,</span>
@@ -333,7 +374,10 @@ spacing and page-break logic:</p>
 <h3 id="render">Render<a class="anchor" aria-label="anchor" href="#render"></a>
 </h3>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_01'</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Two calls, two roles: create_report() runs the whole pipeline -</span></span>
+<span><span class="co"># style resolution, conditional rules, pagination - and write_doc()</span></span>
+<span><span class="co"># emits the file. Nothing between them to babysit.</span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_01'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="rendered-output">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output"></a>
@@ -351,7 +395,10 @@ separate</strong>: you can switch to a completely different visual theme
 by changing a single parameter on an already-built spec, without
 touching any data or conditional logic:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec</span>, docTemplate <span class="op">=</span> <span class="st">'Navy_Pro'</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># One option swaps the entire corporate look: fonts, colors, borders</span></span>
+<span><span class="co"># all come from the named template. Data and conditional logic are</span></span>
+<span><span class="co"># untouched - styling is separable from content by design.</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec</span>, docTemplate <span class="op">=</span> <span class="st">'Navy_Pro'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_01_navy'</span><span class="op">)</span></span></code></pre></div>
 <p>The same table now wears the <code>Navy_Pro</code> template —
 different fonts, colours, and borders, identical content and
@@ -519,7 +566,7 @@ correspondence:</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-3-adverse-events-table-with-complex-spanning-headers">Example 3 — Adverse Events table with complex spanning headers<a class="anchor" aria-label="anchor" href="#example-3-adverse-events-table-with-complex-spanning-headers"></a>
+<h2 id="example-03">Example 3 — Adverse Events table with complex spanning headers<a class="anchor" aria-label="anchor" href="#example-03"></a>
 </h2>
 <p>Adverse Event (AE) frequency tables are a staple of clinical safety
 reporting. They often have many columns (treatment periods, follow-up
@@ -748,130 +795,6 @@ between the “Any AE” summary and per-SOC detail.</li>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-3b">Example 3b — Adverse events with subjects and events per period<a class="anchor" aria-label="anchor" href="#example-3b"></a>
-</h2>
-<p>The previous AE example counts <em>subjects</em>. Regulators often
-want the companion view that also reports <em>events</em> — how many
-subjects experienced an AE and how many times it recurred — split
-between the on-treatment and follow-up periods. Same vocabulary, one
-more dimension of headers.</p>
-<p>Demonstrated here:</p>
-<ul>
-<li>
-<strong>Paired sub-columns per period</strong> — <code>n (%)</code>
-and <code>E</code> sit together under three period banners
-(<code>Treatment Period</code>, <code>Follow-up</code>,
-<code>Total</code>), all beneath one <code>Drug A</code> umbrella:
-<code>stubOrder = 1</code> for the siblings, <code>2</code> for the
-banner above them.</li>
-<li>
-<strong>Nested indentation</strong> — preferred-term rows take
-<code>indent_1</code>, causality rows <code>indent_2</code>, straight
-from the flat frame.</li>
-<li>
-<strong>Emphasis without extra columns</strong> — the “Any adverse
-event” block is bolded and “Related” rows coloured by
-<code><a href="../reference/compute_cols.html">compute_cols()</a></code>.</li>
-<li>
-<strong>A landscape page for one table only</strong> —
-<code>set_page_style(p_page(...))</code> rotates this spec while the
-rest of the report stays portrait.</li>
-</ul>
-<div class="section level3">
-<h3 id="input-data-3">Input data<a class="anchor" aria-label="anchor" href="#input-data-3"></a>
-</h3>
-<pre><code>   SOC                          TERM                 REL             TRT_N   TRT_E
-1  Any adverse event                                       18 (50.0%)    32
-2  Any adverse event             Not related               10 (27.8%)    15
-3  Any adverse event             Related                    8 (22.2%)    17
-4  Infections and infestations   Nasopharyngitis            5 (13.9%)     6
-5  Infections and infestations   Nasopharyngitis Not related 2 (5.6%)     2
-6  Infections and infestations   Nasopharyngitis Related     3 (8.3%)     4
-7  Infections and infestations   Rhinitis                   3 (8.3%)      4
-8  Gastrointestinal disorders    Nausea                     4 (11.1%)     5
-9  Gastrointestinal disorders    Diarrhoea                  3 (8.3%)      4
-10 Nervous system disorders      Headache                  4 (11.1%)      7
-   ... 7 more rows; plus FU_N, FU_E, TOT_N, TOT_E for the other periods</code></pre>
-</div>
-<div class="section level3">
-<h3 id="code-2">Code<a class="anchor" aria-label="anchor" href="#code-2"></a>
-</h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">make_ae_row</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">soc</span>, <span class="va">term</span>, <span class="va">rel</span>, <span class="va">trt_n</span>, <span class="va">trt_e</span>, <span class="va">fu_n</span>, <span class="va">fu_e</span>, <span class="va">tot_n</span>, <span class="va">tot_e</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>SOC <span class="op">=</span> <span class="va">soc</span>, TERM <span class="op">=</span> <span class="va">term</span>, REL <span class="op">=</span> <span class="va">rel</span>,</span>
-<span>             TRT_N <span class="op">=</span> <span class="va">trt_n</span>, TRT_E <span class="op">=</span> <span class="va">trt_e</span>, FU_N <span class="op">=</span> <span class="va">fu_n</span>, FU_E <span class="op">=</span> <span class="va">fu_e</span>,</span>
-<span>             TOT_N <span class="op">=</span> <span class="va">tot_n</span>, TOT_E <span class="op">=</span> <span class="va">tot_e</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="va">ae_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Any adverse event"</span>, <span class="st">""</span>, <span class="st">""</span>,      <span class="st">"18 (50.0%)"</span>, <span class="fl">32</span>, <span class="st">"9 (25.0%)"</span>, <span class="fl">14</span>, <span class="st">"22 (61.1%)"</span>, <span class="fl">46</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Any adverse event"</span>, <span class="st">""</span>, <span class="st">"Not related"</span>, <span class="st">"10 (27.8%)"</span>, <span class="fl">15</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span>, <span class="st">"12 (33.3%)"</span>, <span class="fl">20</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Any adverse event"</span>, <span class="st">""</span>, <span class="st">"Related"</span>,     <span class="st">"8 (22.2%)"</span>, <span class="fl">17</span>, <span class="st">"5 (13.9%)"</span>, <span class="fl">9</span>, <span class="st">"10 (27.8%)"</span>, <span class="fl">26</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Nasopharyngitis"</span>, <span class="st">""</span>,  <span class="st">"5 (13.9%)"</span>, <span class="fl">6</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"6 (16.7%)"</span>, <span class="fl">8</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Nasopharyngitis"</span>, <span class="st">"Not related"</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Nasopharyngitis"</span>, <span class="st">"Related"</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Rhinitis"</span>, <span class="st">""</span>,    <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Rhinitis"</span>, <span class="st">"Related"</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">3</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>, <span class="st">"Nausea"</span>, <span class="st">""</span>,        <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"5 (13.9%)"</span>, <span class="fl">6</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>, <span class="st">"Nausea"</span>, <span class="st">"Related"</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>, <span class="st">"Diarrhoea"</span>, <span class="st">""</span>,     <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">6</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Nervous system disorders"</span>, <span class="st">"Headache"</span>, <span class="st">""</span>,        <span class="st">"4 (11.1%)"</span>, <span class="fl">7</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">3</span>, <span class="st">"5 (13.9%)"</span>, <span class="fl">10</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Nervous system disorders"</span>, <span class="st">"Headache"</span>, <span class="st">"Related"</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">6</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">3</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">9</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Skin and subcutaneous tissue disorders"</span>, <span class="st">"Rash"</span>, <span class="st">""</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Musculoskeletal disorders"</span>, <span class="st">"Myalgia"</span>, <span class="st">""</span>,        <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Hepatobiliary disorders"</span>, <span class="st">"ALT increased"</span>, <span class="st">""</span>,    <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"0 (0.0%)"</span>, <span class="fl">0</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span><span class="op">)</span>,</span>
-<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Hepatobiliary disorders"</span>, <span class="st">"ALT increased"</span>, <span class="st">"Related"</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"0 (0.0%)"</span>, <span class="fl">0</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">ae_tbl</span><span class="op">$</span><span class="va">SECT</span> <span class="op">&lt;-</span> <span class="va">ae_tbl</span><span class="op">$</span><span class="va">SOC</span></span>
-<span><span class="va">ae_tbl</span><span class="op">$</span><span class="va">IS_ANY</span> <span class="op">&lt;-</span> <span class="va">ae_tbl</span><span class="op">$</span><span class="va">SOC</span> <span class="op">==</span> <span class="st">"Any adverse event"</span></span></code></pre></div>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">ae_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S3.1b"</span>,</span>
-<span>              <span class="st">"Adverse Events by System Organ Class, Preferred Term, and Relationship"</span><span class="op">)</span>,</span>
-<span>            toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Drug A (N=36); Safety Population"</span>, styleRef <span class="op">=</span> <span class="st">"font_italic"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"AEs are coded with MedDRA; relationship assessed by the investigator."</span>,</span>
-<span>               styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SECT</span>, <span class="va">IS_ANY</span><span class="op">)</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SOC</span>, <span class="va">TERM</span>, <span class="va">REL</span><span class="op">)</span>,</span>
-<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"System Organ Class"</span>, <span class="st">"Preferred Term"</span>, <span class="st">"Causality"</span><span class="op">)</span>,</span>
-<span>              labelStyleRef <span class="op">=</span> <span class="st">"text_left"</span>, colWidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"20%"</span>, <span class="st">"18%"</span>, <span class="st">"12%"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">SOC</span><span class="op">)</span>,</span>
-<span>               <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">SOC</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">TERM</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">TERM</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">TERM</span> <span class="op">!=</span> <span class="st">""</span>,</span>
-<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">TERM</span>, styleRef <span class="op">=</span> <span class="st">"indent_1"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">REL</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">REL</span> <span class="op">!=</span> <span class="st">""</span>,</span>
-<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">REL</span>, styleRef <span class="op">=</span> <span class="st">"indent_2"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_N</span>, <span class="va">TRT_E</span>, <span class="va">FU_N</span>, <span class="va">FU_E</span>, <span class="va">TOT_N</span>, <span class="va">TOT_E</span><span class="op">)</span>,</span>
-<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n (%)"</span>, <span class="st">"n"</span>, <span class="st">"n (%)"</span>, <span class="st">"n"</span>, <span class="st">"n (%)"</span>, <span class="st">"n"</span><span class="op">)</span>,</span>
-<span>              valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_N</span>, <span class="va">TRT_E</span><span class="op">)</span>, <span class="st">"Treatment Period"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">FU_N</span>, <span class="va">FU_E</span><span class="op">)</span>,   <span class="st">"Follow-up"</span>,       stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TOT_N</span>, <span class="va">TOT_E</span><span class="op">)</span>, <span class="st">"Total"</span>,           stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_N</span>, <span class="va">TRT_E</span>, <span class="va">FU_N</span>, <span class="va">FU_E</span>, <span class="va">TOT_N</span>, <span class="va">TOT_E</span><span class="op">)</span>,</span>
-<span>                  <span class="st">"Drug A"</span>, stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">IS_ANY</span>,</span>
-<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">REL</span> <span class="op">==</span> <span class="st">"Related"</span>,</span>
-<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TERM</span>, <span class="va">REL</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"fc_rust"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span></span>
-<span>    page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
-<span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
-<span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"Regulatory_Arial"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_03b_ae_periods'</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="rendered-output-3">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-3"></a>
-</h3>
-<p><a href="example_03b_ae_periods.pdf">Open
-example_03b_ae_periods.pdf</a></p>
-<iframe src="example_03b_ae_periods.pdf" title="example_03b_ae_periods.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
-</iframe>
-</div>
-</div>
-<div class="section level2">
 <h2 id="example-4-data-listing-with-automatic-two-level-toc">Example 4 — Data listing with automatic two-level TOC<a class="anchor" aria-label="anchor" href="#example-4-data-listing-with-automatic-two-level-toc"></a>
 </h2>
 <p>Data listings present individual patient records with minimal
@@ -901,7 +824,7 @@ headers 90° to save horizontal space for the many narrow lab-parameter
 columns.</li>
 </ul>
 <div class="section level3">
-<h3 id="input-data-4">Input data<a class="anchor" aria-label="anchor" href="#input-data-4"></a>
+<h3 id="input-data-3">Input data<a class="anchor" aria-label="anchor" href="#input-data-3"></a>
 </h3>
 <pre><code># A tibble: 550 × 16
         ID AGE SEX     TRT    VISIT       DATE   ALT  ALTNR   AST  ASTNR BILI BILINR  HGB  HGBNR  PH WBCU
@@ -922,9 +845,9 @@ columns.</li>
 15 SUBJ002  39   F  Drug A  Visit 3 2024-03-10  42.0   high  11.9 normal 0.52 normal 13.0 normal 6.8    -</code></pre>
 </div>
 <div class="section level3">
-<h3 id="code-3">Code<a class="anchor" aria-label="anchor" href="#code-3"></a>
+<h3 id="code-2">Code<a class="anchor" aria-label="anchor" href="#code-2"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_lbl_01</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">lab_listing</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    </span>
 <span>    <span class="co"># --- Title and dynamic subtitle ---</span></span>
@@ -1032,7 +955,7 @@ columns.</li>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_lbl_01</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"example_04_list"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-4">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-4"></a>
+<h3 id="rendered-output-3">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-3"></a>
 </h3>
 <p><a href="example_04_list.pdf">Open example_04_list.pdf</a></p>
 <iframe src="example_04_list.pdf" title="example_04_list.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
@@ -1050,7 +973,7 @@ reader always sees the identifying context.</p>
 <p>For example, adding a column break at <code>PH</code> splits the
 listing into two column groups — Bilirubin through Nitrites on the first
 page, and pH through White Blood Cells on the second:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_lbl_02</span> <span class="op">&lt;-</span> <span class="va">spec_lbl_01</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="co"># Add a column break at PH — all columns from PH onward move to a new page.</span></span>
 <span>  <span class="co"># The Treatment, Visit, and Date columns (isID = TRUE) repeat automatically.</span></span>
@@ -1083,9 +1006,9 @@ from the <code>toclevel</code> values set in titles.</p>
 <p>This example creates three ggplot2 figures and writes them into a
 single landscape document with a TOC page.</p>
 <div class="section level3">
-<h3 id="code-4">Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
+<h3 id="code-3">Code<a class="anchor" aria-label="anchor" href="#code-3"></a>
 </h3>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- Figure 1: Fuel efficiency scatter plot from mtcars ---</span></span>
@@ -1189,7 +1112,7 @@ single landscape document with a TOC page.</p>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">t.fig.report</span>, <span class="st">"example_05_figures_single_doc_toc"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-5">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-5"></a>
+<h3 id="rendered-output-4">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-4"></a>
 </h3>
 <p>The resulting document contains a TOC page listing all three figures,
 followed by one page per figure. Each figure fills the landscape page
@@ -1231,10 +1154,16 @@ the unit for a compact header.</li>
 <div class="section level3">
 <h3 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
 </h3>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Simulated single-dose PK profile ---</span></span>
+<span><span class="co"># Nine sampling times over 24 h for four treatment arms.</span></span>
+<span><span class="va">times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span></span>
 <span><span class="va">pk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo"</span>, <span class="st">"Drug X 50 mg"</span>, <span class="st">"Drug X 100 mg"</span>, <span class="st">"Drug X 200 mg"</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">trt</span><span class="op">)</span> <span class="op">{</span></span>
+<span><span class="co"># Dose-proportional expected Cmax per arm; placebo carries only assay</span></span>
+<span><span class="co"># background noise.</span></span>
 <span>  <span class="va">peak</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch</a></span><span class="op">(</span><span class="va">trt</span>, <span class="st">"Placebo"</span> <span class="op">=</span> <span class="fl">0</span>, <span class="st">"Drug X 50 mg"</span> <span class="op">=</span> <span class="fl">21</span>, <span class="st">"Drug X 100 mg"</span> <span class="op">=</span> <span class="fl">43</span>, <span class="st">"Drug X 200 mg"</span> <span class="op">=</span> <span class="fl">66</span><span class="op">)</span></span>
+<span><span class="co"># Classic absorption/elimination curve (rates ka and ke) plus small</span></span>
+<span><span class="co"># normally distributed measurement error - a believable profile shape.</span></span>
 <span>  <span class="va">ka</span> <span class="op">&lt;-</span> <span class="fl">1.35</span>; <span class="va">ke</span> <span class="op">&lt;-</span> <span class="fl">0.16</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>TRT <span class="op">=</span> <span class="va">trt</span>, TIME <span class="op">=</span> <span class="va">times</span>,</span>
 <span>             CONC <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">peak</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">times</span><span class="op">)</span>, <span class="fl">0.4</span>, <span class="fl">1.4</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span>
@@ -1242,8 +1171,12 @@ the unit for a compact header.</li>
 <span>                               <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">times</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">1.6</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>             stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># Factor levels fix the plotting and legend order once, here,</span></span>
+<span><span class="co"># instead of being fought over downstream.</span></span>
 <span><span class="va">pk</span><span class="op">$</span><span class="va">TRT</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">pk</span><span class="op">$</span><span class="va">TRT</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo"</span>, <span class="st">"Drug X 50 mg"</span>, <span class="st">"Drug X 100 mg"</span>, <span class="st">"Drug X 200 mg"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># The figure is an ordinary ggplot object - ksTFL embeds it directly,</span></span>
+<span><span class="co"># brand palette included: Lapis blues with rust for the top dose.</span></span>
 <span><span class="va">p6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pk</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">TIME</span>, <span class="va">CONC</span>, colour <span class="op">=</span> <span class="va">TRT</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, colour <span class="op">=</span> <span class="st">"grey70"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1255,6 +1188,8 @@ the unit for a compact header.</li>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
 <span>        legend.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7.2</span><span class="op">)</span>, axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7.5</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Derived NCA parameters, presented under the figure as a separate</span></span>
+<span><span class="co"># table spec - the classic CSR "figure + numbers" page.</span></span>
 <span><span class="va">summary_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  TRT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">pk</span><span class="op">$</span><span class="va">TRT</span><span class="op">)</span>,</span>
 <span>  CMAX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1.1 (0.4)"</span>, <span class="st">"21.6 (3.2)"</span>, <span class="st">"43.2 (5.8)"</span>, <span class="st">"65.9 (8.4)"</span><span class="op">)</span>,</span>
@@ -1278,32 +1213,51 @@ levels):</p>
 30  1.0 Drug X 200 mg    33.6</code></pre>
 </div>
 <div class="section level3">
-<h3 id="code-5">Code<a class="anchor" aria-label="anchor" href="#code-5"></a>
+<h3 id="code-4">Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
 </h3>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Figure spec ---</span></span>
+<span><span class="co"># A figure is a first-class TFL spec: titles, subtitles and footnotes</span></span>
+<span><span class="co"># attach exactly like on tables, so figure pages follow the same</span></span>
+<span><span class="co"># document style. toclevel = 1 lists the figure in the ToC.</span></span>
+<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S6.1"</span>, <span class="st">"Mean Plasma Concentration-Time Profiles"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Day 15, fasted conditions; PK Analysis Set"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Landscape sheet: the concentration-time profile wants the width.</span></span>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
 <span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
 <span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># The two-line magic: continuousSection = TRUE lets the parameter</span></span>
+<span><span class="co"># table flow onto the SAME page, and figureHeight is dialed so</span></span>
+<span><span class="co"># figure + table + titles + footnote all fit the sheet.</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span>, figureHeight <span class="op">=</span> <span class="st">"3.2in"</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># --- Table spec ---</span></span>
+<span><span class="co"># Second document of the same report; standard define_cols + footnote</span></span>
+<span><span class="co"># toolkit.</span></span>
 <span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table S6.1  Pharmacokinetic Summary Parameters"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">TRT</span>, label <span class="op">=</span> <span class="st">"Treatment"</span>, colWidth <span class="op">=</span> <span class="st">"28%"</span>, valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># &lt;br&gt; stacks units over statistic names for a compact two-line</span></span>
+<span><span class="co"># header ("Cmax (ng/mL)" over "mean (SD)").</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">CMAX</span>, <span class="va">TMAX</span>, <span class="va">AUC</span>, <span class="va">HL</span><span class="op">)</span>,</span>
 <span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Cmax (ng/mL)&lt;br&gt;mean (SD)"</span>, <span class="st">"Tmax (h)"</span>, <span class="st">"AUC0-24&lt;br&gt;mean (SD)"</span>, <span class="st">"t1/2 (h)&lt;br&gt;mean (SD)"</span><span class="op">)</span>,</span>
 <span>              valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Non-compartmental analysis; placebo values include assay background."</span>,</span>
 <span>               styleRef <span class="op">=</span> <span class="st">"fc_gray"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># The paired flag: this spec also keeps flowing instead of starting</span></span>
+<span><span class="co"># a new page.</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># One report, two specs: create_report(spec_fig, spec_tbl) merges</span></span>
+<span><span class="co"># figure and table into a single .docx, each keeping its own titles,</span></span>
+<span><span class="co"># so the ToC gets both entries. toc = TRUE writes the automatic</span></span>
+<span><span class="co"># Table of Contents page.</span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_06_pk'</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-6">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-6"></a>
+<h3 id="rendered-output-5">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-5"></a>
 </h3>
 <p><a href="example_06_pk.pdf">Open example_06_pk.pdf</a></p>
 <iframe src="example_06_pk.pdf" title="example_06_pk.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
@@ -1315,8 +1269,11 @@ levels):</p>
 <p>The only thing keeping figure and table on one page is
 <code>continuousSection</code> on both specs. Turn it off and the table
 flows to a fresh page:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec_fig_split</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec_fig</span>, continuousSection <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># The only thing gluing figure and table onto one page is the</span></span>
+<span><span class="co"># continuousSection flag. Flip it off and the table flows to a</span></span>
+<span><span class="co"># fresh page:</span></span>
+<span><span class="va">spec_fig_split</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec_fig</span>, continuousSection <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">spec_tbl_split</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec_tbl</span>, continuousSection <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig_split</span>, <span class="va">spec_tbl_split</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_06_split'</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -1345,8 +1302,11 @@ the following dataset:</p>
 <code>TRT_A1</code> and <code>TRT_B1</code>, and ‘Group 2’ covering
 <code>TRT_A2</code> and <code>TRT_B2</code>.</p>
 <p>If we do this in the usual way:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Default look: what spanning headers do out of the box ---</span></span>
+<span><span class="co"># No extra styling: the two bands render with the template's own</span></span>
+<span><span class="co"># cell borders, which visually weld adjacent groups together.</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="st">"Source: ADSL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1356,6 +1316,8 @@ the following dataset:</p>
 <span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Parameter'</span>, <span class="st">'Statistics'</span>, <span class="st">'Drug A'</span>, <span class="st">'Drug B'</span>, <span class="st">'Drug A'</span>, <span class="st">'Drug B'</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">PARAM</span>, dedupe <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span><span class="co"># Two disjoint bands: 'Group 1' over the first arm pair, 'Group 2' over</span></span>
+<span><span class="co"># the second. Their column sets never overlap, so the lattice stays flat.</span></span>
 <span>  <span class="co">### Spanning headers</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A1</span>, <span class="va">TRT_B1</span><span class="op">)</span>, <span class="st">'Group 1'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A2</span>, <span class="va">TRT_B2</span><span class="op">)</span>, <span class="st">'Group 2'</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> </span></code></pre></div>
@@ -1372,8 +1334,10 @@ we can use built-in atomic styles to replace the cell bottom border with
 a paragraph bottom border. The paragraph border only underlines the text
 of each spanning header individually, creating a visible gap between the
 two groups:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- The gap treatment: borders are the whole trick ---</span></span>
+<span><span class="co"># Same data, same lattice; only the band label styles differ.</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_footer.html">add_footer</a></span><span class="op">(</span><span class="st">"Source: ADSL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1384,12 +1348,18 @@ two groups:</p>
 <span>    labelStyleRef <span class="op">=</span> <span class="st">'bc_white'</span> <span class="co"># drop all cell borders from column header row</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">PARAM</span>, dedupe <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span><span class="co"># First group: underline the text (pb), suppress the cell borders</span></span>
+<span><span class="co"># (bc_white), then a 4pt white right border carves the visual gap</span></span>
+<span><span class="co"># between the two groups. All three are built-in atoms composed</span></span>
+<span><span class="co"># with f_combine - no custom style definitions needed.</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A1</span>, <span class="va">TRT_B1</span><span class="op">)</span>, <span class="st">'Group 1'</span>,</span>
 <span>                  <span class="co"># pb       - paragraph bottom border (underlines the text only)</span></span>
 <span>                  <span class="co"># bc_white - suppress cell borders (white, 0pt)</span></span>
 <span>                  <span class="co"># brw_thick - 4pt white right border to create a gap before the next group</span></span>
 <span>                  labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"pb"</span>, <span class="st">'bc_white'</span>, <span class="st">'brw_thick'</span><span class="op">)</span></span>
 <span>                  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span><span class="co"># Second group gets the same treatment minus the thick right border -</span></span>
+<span><span class="co"># it is the last one, so there is nothing to separate it from.</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A2</span>, <span class="va">TRT_B2</span><span class="op">)</span>, <span class="st">'Group 2'</span>, stubOrder <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                  <span class="co"># same as above, but no thick right border needed on the last group</span></span>
 <span>                  labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"pb"</span>, <span class="st">'bc_white'</span><span class="op">)</span></span>
@@ -1431,8 +1401,12 @@ consistent look.</li>
 <p>CI bounds and the significance category are derived, exactly as the
 chunk shows, so nothing is hand-typed (plot order is the reversed
 factor):</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">soc8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>,<span class="st">"Infections and infestations"</span>,</span>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Data: risk differences per System Organ Class ---</span></span>
+<span><span class="co"># SOC names become a reversed factor below to fix plot order.</span></span>
+<span><span class="co"># Incidences are simulated; CI bounds are DERIVED, so the picture and</span></span>
+<span><span class="co"># the numbers can never disagree.</span></span>
+<span><span class="va">soc8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>,<span class="st">"Infections and infestations"</span>,</span>
 <span>          <span class="st">"Nervous system disorders"</span>,<span class="st">"Skin and subcutaneous tissue disorders"</span>,</span>
 <span>          <span class="st">"Musculoskeletal and connective tissue disorders"</span>,<span class="st">"Hepatobiliary disorders"</span>,</span>
 <span>          <span class="st">"Cardiac disorders"</span>,<span class="st">"Endocrine disorders"</span>,<span class="st">"Psychiatric disorders"</span>,</span>
@@ -1440,13 +1414,19 @@ factor):</p>
 <span>          <span class="st">"Vascular disorders"</span>,<span class="st">"Metabolism and nutrition disorders"</span>,<span class="st">"Eye disorders"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7L</span><span class="op">)</span></span>
 <span><span class="va">n8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">soc8</span><span class="op">)</span></span>
+<span><span class="co"># RD = risk difference in percentage points; SE = its standard error.</span></span>
+<span><span class="co"># EV_PL / EV_DR keep the raw event counts for transparency.</span></span>
 <span><span class="va">ae_rd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  SOC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">soc8</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">soc8</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  RD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n8</span>, <span class="op">-</span><span class="fl">4.5</span>, <span class="fl">5.0</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>  SE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n8</span>, <span class="fl">1.4</span>, <span class="fl">2.6</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>  EV_PL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">4</span><span class="op">:</span><span class="fl">26</span>, <span class="va">n8</span>, <span class="cn">TRUE</span><span class="op">)</span>, EV_DR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">6</span><span class="op">:</span><span class="fl">31</span>, <span class="va">n8</span>, <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># 1.96 * SE gives the classic 95% CI limits - computed, not typed.</span></span>
 <span><span class="va">ae_rd</span><span class="op">$</span><span class="va">LO</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">RD</span> <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">ae_rd</span><span class="op">$</span><span class="va">SE</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">RD</span> <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">ae_rd</span><span class="op">$</span><span class="va">SE</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="co"># Significance category derived from the CI: if the interval crosses</span></span>
+<span><span class="co"># zero the row is "Not significant", otherwise the sign decides which</span></span>
+<span><span class="co"># arm the difference favors. Colour comes from this, never by hand.</span></span>
 <span><span class="va">ae_rd</span><span class="op">$</span><span class="va">SIG</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">LO</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="st">"Favors Drug A"</span>,</span>
 <span>            <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span> <span class="op">&lt;</span> <span class="fl">0</span>, <span class="st">"Favors Placebo"</span>, <span class="st">"Not significant"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code>   SOC                                          RD   SE EV_PL EV_DR    LO   HI
@@ -1466,16 +1446,23 @@ factor):</p>
 14 Eye disorders                               4.9 1.93    25      30   1.1  8.7</code></pre>
 </div>
 <div class="section level3">
-<h3 id="code-6">Code<a class="anchor" aria-label="anchor" href="#code-6"></a>
+<h3 id="code-5">Code<a class="anchor" aria-label="anchor" href="#code-5"></a>
 </h3>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ae_rd</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">RD</span>, y <span class="op">=</span> <span class="va">SOC</span>, colour <span class="op">=</span> <span class="va">SIG</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Forest plot: plain ggplot code ---</span></span>
+<span><span class="co"># Dashed zero-effect reference line, CI whiskers, point estimates;</span></span>
+<span><span class="co"># colour carries the significance category computed above.</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ae_rd</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">RD</span>, y <span class="op">=</span> <span class="va">SOC</span>, colour <span class="op">=</span> <span class="va">SIG</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, colour <span class="op">=</span> <span class="st">"grey50"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">LO</span>, xmax <span class="op">=</span> <span class="va">HI</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.14</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.2</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="co"># Numeric labels sit at one shared x-anchor, so the values form a</span></span>
+<span><span class="co"># neat reading column independent of whisker lengths.</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%+.1f  [%+.1f, %+.1f]"</span>, <span class="va">RD</span>, <span class="va">LO</span>, <span class="va">HI</span><span class="op">)</span>,</span>
 <span>                x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1.6</span><span class="op">)</span>, hjust <span class="op">=</span> <span class="fl">0</span>, size <span class="op">=</span> <span class="fl">2.1</span>,</span>
 <span>            colour <span class="op">=</span> <span class="st">"grey20"</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="co"># Axis limits leave a clear right margin: labels never ride the panel</span></span>
+<span><span class="co"># edge - the thing eyeballing a PDF always catches.</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">LO</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1.6</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span><span class="op">)</span> <span class="op">+</span> <span class="fl">13.0</span><span class="op">)</span>,</span>
 <span>                     breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Favors Drug A"</span> <span class="op">=</span> <span class="st">"#B2182B"</span>,</span>
@@ -1490,20 +1477,29 @@ factor):</p>
 <span>        legend.position <span class="op">=</span> <span class="st">"bottom"</span>, legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>        legend.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># --- Figure spec ---</span></span>
+<span><span class="co"># Same title/footnote API as tables; toclevel = 1 for the ToC entry.</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S8.1"</span>, <span class="st">"Treatment-Emergent Adverse Events by System Organ Class"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Risk difference with 95% CI; Safety Population"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"AEs reported at &gt;= 5% in either arm. Positive values indicate higher incidence with Drug A."</span>,</span>
 <span>               styleRef <span class="op">=</span> <span class="st">"fc_gray"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Landscape A4: fourteen SOC rows need horizontal room for the</span></span>
+<span><span class="co"># labels and the value column.</span></span>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
 <span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
 <span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># fitKeepAR reads the rendered figure's own aspect ratio and fits it</span></span>
+<span><span class="co"># to the largest box the page allows, no distortion: the plot fills</span></span>
+<span><span class="co"># the sheet exactly.</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>figureScaleMode <span class="op">=</span> <span class="st">"fitKeepAR"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_08_forest'</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Same single pipeline as for tables - a figure spec is just another</span></span>
+<span><span class="co"># document to create_report() and write_doc().</span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_08_forest'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-7">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-7"></a>
+<h3 id="rendered-output-6">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-6"></a>
 </h3>
 <p><a href="example_08_forest.pdf">Open example_08_forest.pdf</a></p>
 <iframe src="example_08_forest.pdf" title="example_08_forest.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
@@ -1540,8 +1536,11 @@ header.</li>
 <div class="section level3">
 <h3 id="data-2">Data<a class="anchor" aria-label="anchor" href="#data-2"></a>
 </h3>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">exp9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Two natural CSR neighbors, one page ---</span></span>
+<span><span class="co"># Table S9.1: duration of exposure by arm; values pre-formatted for</span></span>
+<span><span class="co"># display, Total row present because it is also styled by rule below.</span></span>
+<span><span class="va">exp9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  GRP <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo"</span>, <span class="st">"Drug X 50 mg"</span>, <span class="st">"Drug X 100 mg"</span>, <span class="st">"Total"</span><span class="op">)</span>,</span>
 <span>  RAND <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"42"</span>, <span class="st">"22"</span>, <span class="st">"22"</span>, <span class="st">"86"</span><span class="op">)</span>,</span>
 <span>  DOSED <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"42 (100)"</span>, <span class="st">"22 (100)"</span>, <span class="st">"22 (100)"</span>, <span class="st">"86 (100)"</span><span class="op">)</span>,</span>
@@ -1549,6 +1548,8 @@ header.</li>
 <span>  MED_WK  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"17.1 (2.9-22.4)"</span>, <span class="st">"16.8 (2.1-22.2)"</span>, <span class="st">"17.5 (3.4-22.6)"</span>, <span class="st">"17.1 (2.1-22.6)"</span><span class="op">)</span>,</span>
 <span>  CUM_PAT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"680"</span>, <span class="st">"348"</span>, <span class="st">"361"</span>, <span class="st">"1389"</span><span class="op">)</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># Table S9.2: discontinuations by reason. Reasons cross-foot to</span></span>
+<span><span class="co"># "Any reason", the row the bold rule below highlights.</span></span>
 <span><span class="va">dsc9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  REASON <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Any reason"</span>, <span class="st">"Adverse event"</span>, <span class="st">"Withdrawal of consent"</span>,</span>
 <span>             <span class="st">"Lost to follow-up"</span>, <span class="st">"Lack of efficacy"</span>, <span class="st">"Investigator decision"</span>,</span>
@@ -1560,10 +1561,11 @@ header.</li>
 <span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="code-7">Code<a class="anchor" aria-label="anchor" href="#code-7"></a>
+<h3 id="code-6">Code<a class="anchor" aria-label="anchor" href="#code-6"></a>
 </h3>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec_exposure</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">exp9</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Spec 1: duration of exposure ---</span></span>
+<span><span class="va">spec_exposure</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">exp9</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">GRP</span>, label <span class="op">=</span> <span class="st">"Treatment Group"</span>, colWidth <span class="op">=</span> <span class="st">"26%"</span>,</span>
 <span>              valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span>, labelStyleRef <span class="op">=</span> <span class="st">"al"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">RAND</span>, <span class="va">DOSED</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Randomized"</span>, <span class="st">"Dosed, n (%)"</span><span class="op">)</span>,</span>
@@ -1571,8 +1573,14 @@ header.</li>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">MEAN_WK</span>, label <span class="op">=</span> <span class="st">"Mean, weeks (SD)"</span>, valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">MED_WK</span>, label <span class="op">=</span> <span class="st">"Median (min-max)"</span>, valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">CUM_PAT</span>, label <span class="op">=</span> <span class="st">"Total, patient-weeks"</span>, valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Span lattice: disjoint sibling bands take the SAME stubOrder (= 1);</span></span>
+<span><span class="co"># anything sitting above them one level higher (= 2). ksTFL draws the</span></span>
+<span><span class="co"># bracket geometry from the column sets alone.</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">RAND</span>, <span class="va">DOSED</span><span class="op">)</span>, <span class="st">"Subjects"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Second sibling band on the same row - no staircase, no overlap.</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">MEAN_WK</span>, <span class="va">MED_WK</span>, <span class="va">CUM_PAT</span><span class="op">)</span>, <span class="st">"Exposure on treatment"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># The Total row wears bold, applied by a plain value comparison -</span></span>
+<span><span class="co"># everything() widens the style to the full row.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">GRP</span> <span class="op">==</span> <span class="st">"Total"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table S9.1  Duration of Exposure"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Safety population; double-blind period only"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -1581,33 +1589,46 @@ header.</li>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
 <span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
 <span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># continuousSection: this table ends, the next one continues on the</span></span>
+<span><span class="co"># same sheet instead of a new page. Paired with the landscape</span></span>
+<span><span class="co"># set_page_style above.</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># --- Spec 2: discontinuations by reason ---</span></span>
 <span><span class="va">spec_disposition</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">dsc9</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">REASON</span>, label <span class="op">=</span> <span class="st">"Reason for discontinuation"</span>, colWidth <span class="op">=</span> <span class="st">"34%"</span>,</span>
 <span>              valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span>, labelStyleRef <span class="op">=</span> <span class="st">"al"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span>, <span class="va">D50</span>, <span class="va">D100</span>, <span class="va">TOT</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n (%)"</span>, <span class="st">"n (%)"</span>, <span class="st">"n (%)"</span>, <span class="st">"n (%)"</span><span class="op">)</span>,</span>
 <span>              valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Richer lattice: four arm banners side by side (stubOrder = 1) plus</span></span>
+<span><span class="co"># one umbrella spanning all of them (stubOrder = 2) - siblings share</span></span>
+<span><span class="co"># the row number, the umbrella sits above. Each banner carries its</span></span>
+<span><span class="co"># (N = ...) count right in the label.</span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span><span class="op">)</span>,  <span class="st">"Placebo (N = 42)"</span>,        stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">D50</span><span class="op">)</span>,  <span class="st">"Drug X 50 mg (N = 22)"</span>,   stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">D100</span><span class="op">)</span>, <span class="st">"Drug X 100 mg (N = 22)"</span>,  stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TOT</span><span class="op">)</span>,  <span class="st">"Total (N = 86)"</span>,          stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span>, <span class="va">D50</span>, <span class="va">D100</span>, <span class="va">TOT</span><span class="op">)</span>, <span class="st">"Treatment Arm"</span>, stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># The table's own total row gets the emphasis - rule-driven again.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">REASON</span> <span class="op">==</span> <span class="st">"Any reason"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table S9.2  Summary of Discontinuations"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"First reason recorded per subject"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># A footnote stating the cross-foot contract auditors check.</span></span>
 <span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Subjects discontinuing for an adverse event are not re-counted under subsequent reasons; the reason rows cross-foot to the 'Any reason' total."</span>,</span>
 <span>               styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span>, <span class="st">"i"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
 <span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
 <span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_exposure</span>, <span class="va">spec_disposition</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Two specs go into ONE report call: ksTFL merges them into a single</span></span>
+<span><span class="co"># .docx, each keeping its own title block and ToC entry, flowing</span></span>
+<span><span class="co"># continuously thanks to the flags in the specs above.</span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_exposure</span>, <span class="va">spec_disposition</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_09_two_tables'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-8">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-8"></a>
+<h3 id="rendered-output-7">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-7"></a>
 </h3>
 <p><a href="example_09_two_tables.pdf">Open
 example_09_two_tables.pdf</a></p>
@@ -1648,8 +1669,11 @@ subtitles, and notes alike.</li>
 <div class="section level3">
 <h3 id="data-3">Data<a class="anchor" aria-label="anchor" href="#data-3"></a>
 </h3>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">lab_shifts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Laboratory shift table ---</span></span>
+<span><span class="co"># Eight analytes, each with mean and "worst severity" lines; counts</span></span>
+<span><span class="co"># embedded with percentages, exactly how lab listings ship.</span></span>
+<span><span class="va">lab_shifts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  PARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Alanine aminotransferase, U/L"</span>,</span>
 <span>                <span class="st">"Aspartate aminotransferase, U/L"</span>,</span>
 <span>                <span class="st">"Gamma-glutamyl transferase, U/L"</span>,</span>
@@ -1674,22 +1698,35 @@ subtitles, and notes alike.</li>
 <span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="code-8">Code<a class="anchor" aria-label="anchor" href="#code-8"></a>
+<h3 id="code-7">Code<a class="anchor" aria-label="anchor" href="#code-7"></a>
 </h3>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">lab_shifts</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># --- Spec: threshold highlighting on the displayed text ---</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">lab_shifts</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># PARAM names the analyte group; hidden, but it drives the section</span></span>
+<span><span class="co"># headers through firstOf(PARAM) - the Example 1 pattern at scale.</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">PARAM</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">DIRECTION</span>, label <span class="op">=</span> <span class="st">"Laboratory parameter"</span>, colWidth <span class="op">=</span> <span class="st">"38%"</span>,</span>
 <span>              valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span>, labelStyleRef <span class="op">=</span> <span class="st">"al"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span>, <span class="va">D50</span>, <span class="va">D100</span><span class="op">)</span>,</span>
 <span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo (n = 42)"</span>, <span class="st">"Drug X 50 mg (n = 22)"</span>, <span class="st">"Drug X 100 mg (n = 22)"</span><span class="op">)</span>,</span>
 <span>              valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Re-inject the analyte name as a bold in-table header at every</span></span>
+<span><span class="co"># group start, straight from the hidden column.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">PARAM</span><span class="op">)</span>,</span>
 <span>               <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">PARAM</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># The interesting part: the condition PARSES THE DISPLAYED STRING -</span></span>
+<span><span class="co"># pulls the percentage out of "4 (18.2%)" and fires rust-bold when a</span></span>
+<span><span class="co"># prespecified threshold is crossed. Rules read the printed value,</span></span>
+<span><span class="co"># so they survive re-formatting without helper columns. Two arms,</span></span>
+<span><span class="co"># two thresholds, two rules.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"%"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">".*\\((.*)\\).*"</span>, <span class="st">"\\1"</span>, <span class="va">D100</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">13</span>,</span>
 <span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">D100</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_rust"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"%"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">".*\\((.*)\\).*"</span>, <span class="st">"\\1"</span>, <span class="va">D50</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">10</span>,</span>
 <span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">D50</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_rust"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Two-line main title (number + description), then an italic</span></span>
+<span><span class="co"># population line carrying the &lt;sup&gt;a&lt;/sup&gt; marker referenced by the</span></span>
+<span><span class="co"># footnote below - inline markup works across titles alike.</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S10.1"</span>, <span class="st">"Shifts in Clinical Laboratory Values"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Safety population; values in SI units&lt;sup&gt;a&lt;/sup&gt;"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"&lt;sup&gt;a&lt;/sup&gt; Red: &gt;= 10% of subjects with confirmed central-lab abnormalities in the corresponding arm. ULN/LLN per site local ranges, re-read centrally."</span>,</span>
@@ -1697,12 +1734,17 @@ subtitles, and notes alike.</li>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
 <span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
 <span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="co"># Navy_Pro turns ONE option into a different corporate face: navy</span></span>
+<span><span class="co"># header bands, adjusted typography, banded look - the spec code</span></span>
+<span><span class="co"># stays identical to any other template's.</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>contentWidth <span class="op">=</span> <span class="st">"94%"</span>, docTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_10_navy_lab'</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Nothing figure-specific or template-specific in the call itself -</span></span>
+<span><span class="co"># the whole page came from the spec declarations.</span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_10_navy_lab'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-9">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-9"></a>
+<h3 id="rendered-output-8">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-8"></a>
 </h3>
 <p><a href="example_10_navy_lab.pdf">Open
 example_10_navy_lab.pdf</a></p>
@@ -1717,7 +1759,7 @@ example_10_navy_lab.pdf</a></p>
 complete, runnable pattern, not an API tour. Reuse them when you want a
 compact recipe for a minimal spec, a multi-spec report, span-header
 lattices, width tuning, conditional emphasis, figure-plus-table pages,
-or session-level defaults. Examples 1, 3b, 6, 8, 9, and 10 are the same
+or session-level defaults. Examples 1, 3, 6, 8, 9, and 10 are the same
 documents shown as demo tiles on the package site home page — the tiles’
 captions link straight back here.</p>
 <p><strong>Running examples locally</strong>: set the top chunk
