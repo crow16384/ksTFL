@@ -100,6 +100,22 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
 
   std::vector<Length> heights(rows.size());
 
+  // Template-level row height (tableStyle.header|body.row.row_height): a FALLBACK
+  // used only when no spec-level row/cell style carries an explicit height (F04b).
+  // Cascade precedence mirrors style resolution: structural beats the row default.
+  Length tmpl_body_row_height{0};
+  {
+    const auto &ts = resolver.template_styles().table_style;
+    if (ts.body_row.has_value() && ts.body_row->table_style.has_value() &&
+        ts.body_row->table_style->row_height.has_value()) {
+      tmpl_body_row_height = *ts.body_row->table_style->row_height;
+    }
+    if (ts.structural.table_body.has_value() && ts.structural.table_body->table_style.has_value() &&
+        ts.structural.table_body->table_style->row_height.has_value()) {
+      tmpl_body_row_height = *ts.structural.table_body->table_style->row_height;
+    }
+  }
+
   // Pre-compute per-column base styles (steps 1-5 of the cascade) for both
   // regular and synthetic (addrow) rows.  Steps 1-4 are template-only and
   // step 5 depends only on the column, so these are constant across all rows.
@@ -190,7 +206,9 @@ static std::vector<Length> compute_row_heights_impl(const std::vector<LogicalRow
       }
     }
 
-    heights[ri] = (explicit_row_height.emu > 0) ? explicit_row_height : max_height;
+    heights[ri] = (explicit_row_height.emu > 0) ? explicit_row_height
+                : (tmpl_body_row_height.emu > 0) ? tmpl_body_row_height
+                : max_height;
   }
 
   return heights;

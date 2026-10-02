@@ -444,6 +444,20 @@ size_t Renderer::render_from_strings(const std::string &spec_json, const std::st
 
     Length total_header_height{0};
     header_grid.row_heights.clear();
+    // Template-level header row height (tableStyle.header.row.row_height, structural
+    // allHeaders wins) — fallback after measurement when no explicit height exists (F04b).
+    Length tmpl_hdr_row_height{0};
+    {
+      const auto &tts = resolver.template_styles().table_style;
+      if (tts.header_row.has_value() && tts.header_row->table_style.has_value() &&
+          tts.header_row->table_style->row_height.has_value()) {
+        tmpl_hdr_row_height = *tts.header_row->table_style->row_height;
+      }
+      if (tts.structural.all_headers.has_value() && tts.structural.all_headers->table_style.has_value() &&
+          tts.structural.all_headers->table_style->row_height.has_value()) {
+        tmpl_hdr_row_height = *tts.structural.all_headers->table_style->row_height;
+      }
+    }
     for (size_t ri = 0; ri < header_grid.rows.size(); ++ri) {
       auto &header_row = header_grid.rows[ri];
       Length max_row_height{0};
@@ -473,7 +487,7 @@ size_t Renderer::render_from_strings(const std::string &spec_json, const std::st
           if (m.height > max_row_height) { max_row_height = m.height; }
         }
       }
-      header_grid.row_heights.push_back(max_row_height);
+      header_grid.row_heights.push_back(tmpl_hdr_row_height.emu > 0 ? tmpl_hdr_row_height : max_row_height);
     }
 
     // Second pass: ensure vMerge groups have enough combined height.

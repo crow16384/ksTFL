@@ -58,6 +58,47 @@ test_that("template numeric font_size is applied as points; string form unchange
                    label = "numeric and 'pt'-string font_size render identically")
 })
 
+test_that("template body/header row_height are applied when set (F04b); auto keeps measured", {
+  skip_if_not_installed("jsonlite")
+  dirs <- local_docx_dirs()
+  base <- jsonlite::fromJSON(system.file("templates", "Default.json", package = "ksTFL"),
+                             simplifyVector = FALSE)
+  trh <- function(x) sort(unique(unlist(regmatches(x, gregexpr('w:trHeight w:val="[0-9]+"', x)))))
+  df1 <- data.frame(a = c("x", "y"), stringsAsFactors = FALSE)
+
+  tpl40 <- base
+  tpl40$tableStyle$body$row$row_height   <- "40pt"
+  tpl40$tableStyle$header$row$row_height <- "20pt"
+  f <- file.path(dirs$out, "t_rh.json")
+  writeLines(jsonlite::toJSON(tpl40, auto_unbox = TRUE, null = "null"), f)
+
+  p <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                   set_document(hasData = TRUE, docTemplate = f)),
+                 "tpl_rh", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  x <- docx_part_text(p)
+  # 40pt = 800 twips, 20pt = 400 twips
+  expect_true(grepl('w:trHeight w:val="800"', x, fixed = TRUE), info = paste(trh(x), collapse = " "))
+  expect_true(grepl('w:trHeight w:val="400"', x, fixed = TRUE), info = paste(trh(x), collapse = " "))
+
+  # explicit spec row_h atom must still WIN over the template value
+  p2 <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                   add_style("rh2", s_table_style(row_height = "2pt")) |>
+                   compute_cols(TRUE, c_style(a, "rh2")) |>
+                   set_document(hasData = TRUE, docTemplate = f)),
+                 "tpl_rh_atom", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  x2 <- docx_part_text(p2)
+  expect_true(grepl('w:trHeight w:val="40"', x2, fixed = TRUE),
+              label = "spec row_height atom beats template row_height")
+
+  # bundled default: row_height "auto" -> nothing changes vs plain Default render
+  p3 <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                   set_document(hasData = TRUE)),
+                 "tpl_rh_default", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  x3 <- docx_part_text(p3)
+  expect_false(grepl('w:trHeight w:val="800"', x3, fixed = TRUE),
+               label = "auto template height stays measured (no regression)")
+})
+
 test_that("write_doc() warns and falls back to Default for an unknown template name", {
   dirs <- local_docx_dirs()
   expect_warning(
