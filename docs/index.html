@@ -120,7 +120,10 @@ Clinical Tables, Figures, and Listings —<br>from R code to validated DOCX, in 
 <div class="section level2">
 <h2 id="what-the-output-looks-like">What the output looks like<a class="anchor" aria-label="anchor" href="#what-the-output-looks-like"></a>
 </h2>
-<p>Every page below was rendered by ksTFL itself from short, commented example programs. Click any page to open it full size.</p>
+<p>Five verbs stand between a data frame and a submission-ready document:</p>
+<pre><code>create_*()  -&gt;  define / add_* / compute_*  -&gt;  create_report()  -&gt;  write_doc()  -&gt;  .docx
+  specify            style &amp; compose            validate &amp; merge          render</code></pre>
+<p>No external tools, no Word macros, no “final_v7_reallyfinal.docx”. Every page below was rendered by ksTFL itself from short, commented example programs. Click any page to open it full size.</p>
 <div class="ksgallery">
 <a class="ksdemo" href="home/show-demography.png" target="_blank" rel="noopener"> <img src="home/show-demography.png" alt="Demography table with grouped treatment-arm headers"><figcaption>
 Demography table with grouped column headers for each treatment arm
@@ -145,50 +148,58 @@ A concentration-time profile and its parameter table, composed as one page of a 
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<p>This script is all it takes — and yes, <code>iris</code> really is enough:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL/">ksTFL</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 1. Initialize a table specification</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cyl</span>, <span class="va">mpg</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># any messy source becomes one tidy summary frame - your usual R, nothing exotic</span></span>
+<span><span class="va">summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/split.html" class="external-link">split</a></span><span class="op">(</span><span class="va">iris</span>, <span class="va">iris</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>Species <span class="op">=</span> <span class="va">g</span><span class="op">$</span><span class="va">Species</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, N <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span>,</span>
+<span>             SL_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">Sepal.Length</span><span class="op">)</span>, SL_sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">Sepal.Length</span><span class="op">)</span>,</span>
+<span>             PL_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">Petal.Length</span><span class="op">)</span>, PL_sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd</a></span><span class="op">(</span><span class="va">g</span><span class="op">$</span><span class="va">Petal.Length</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 2. Add document content</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Motor Trend Car Road Tests"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Number of Cylinders: #ByGroup1"</span>, styleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_blue"</span>, <span class="st">"tw_50"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Source: 1974 Motor Trend US magazine"</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SL_mean</span>, <span class="va">SL_sd</span><span class="op">)</span>, <span class="st">"Sepal"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PL_mean</span>, <span class="va">PL_sd</span><span class="op">)</span>, <span class="st">"Petal"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SL_mean</span>, <span class="va">PL_mean</span><span class="op">)</span>,</span>
+<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"mean"</span><span class="op">)</span>, valueStyleRef <span class="op">=</span> <span class="st">"ar"</span>, format <span class="op">=</span> <span class="st">"%.2f"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">PL_mean</span> <span class="op">&lt;</span> <span class="fl">2.5</span>,</span>
+<span>               <span class="fu"><a href="reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PL_mean</span>, <span class="va">PL_sd</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_green"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Iris, Measured Flower by Flower"</span>, styleRef <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Fisher (1936). Green: petals so distinct the species name themselves."</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="reference/set_document.html">set_document</a></span><span class="op">(</span>contentWidth <span class="op">=</span> <span class="st">"70%"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># 3. Define column properties</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">hp</span>, <span class="va">wt</span><span class="op">)</span>,</span>
-<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Miles/(US) gallon"</span>, <span class="st">"Horsepower"</span>, <span class="st">"Weight (1000 lbs)"</span><span class="op">)</span>,</span>
-<span>              valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">cyl</span>, isGrouping <span class="op">=</span> <span class="cn">TRUE</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 4. Conditional row styling: red-highlight powerful engines</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="va">spec</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">hp</span> <span class="op">&gt;</span> <span class="fl">200</span>, <span class="fu"><a href="reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">hp</span>, styleRef <span class="op">=</span> <span class="st">"fc_red"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># 5. Assemble and render to DOCX</span></span>
-<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"demo"</span>, outDir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>The result is a print-ready Word document: grouped by cylinder count, right-aligned numbers, an italic title, and red horsepowers — no post-editing in Word.</p>
+<span><span class="fu"><a href="reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="fu"><a href="reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"iris_summary"</span><span class="op">)</span></span></code></pre></div>
+<p><a class="ksdemo" href="home/quickstart-iris.png" target="_blank" rel="noopener" style="max-width: 720px; display: block; margin: 1.2rem auto 0.6rem;"> <img src="home/quickstart-iris.png" alt="Rendered iris summary table"></a></p>
+<p>That’s a print-ready Word document — but look at what the lines actually <em>did</em>:</p>
+<ul>
+<li>
+<strong>Two lines grouped the columns</strong> under <code>Sepal</code> and <code>Petal</code> banners. Real reports live on this kind of hierarchy — you just declared it, no merged-cell surgery in Word.</li>
+<li>
+<strong>One line set the number style</strong> for both <code>mean</code> columns at once: right-aligned, exactly two decimals. It applies to whatever those columns become later; the format rides with the definition, not the data.</li>
+<li>
+<strong>One line painted setosa’s petals green</strong> — <code>compute_cols(condition, action)</code> is a rule, not a manual edit: <em>any</em> row where mean petal length falls below 2.5 gets the style, now and in every future run of this pipeline. The rule reads like a sentence because ksTFL evaluates it like one.</li>
+<li>
+<strong>The document framed itself</strong>: title, footnote, a 70%-width body — all part of the same object; <code><a href="reference/write_doc.html">write_doc()</a></code> drops the <code>.docx</code> into your working directory and that’s the end of your involvement.</li>
+</ul>
+<p>Run the script, open the file, compare it with the screenshot — that gap between “analysis finished” and “report ready” you’ve been living with? Just closed.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>ksTFL ships <strong>pre-compiled binaries</strong> for R 4.5 and R 4.6 on Windows, Ubuntu/Debian, Fedora/RHEL, and macOS (ARM) — no compilers or system libraries needed for most users.</p>
 <p>The simplest method, works on every platform:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
 <span>  repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"https://crow16384.r-universe.dev"</span>, <span class="st">"https://cloud.r-project.org"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Windows binaries are also available directly:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"ksTFL"</span>,</span>
 <span>  repos <span class="op">=</span> <span class="st">"https://crow16384.github.io/ksTFL-release"</span>,</span>
 <span>  type  <span class="op">=</span> <span class="st">"binary"</span><span class="op">)</span></span></code></pre></div>
 <p>Or download finished packages (<code>.zip</code>, <code>.tar.gz</code>, <code>.tgz</code>) from the <a href="https://github.com/crow16384/ksTFL-release/releases" class="external-link">release repository</a> and install with <code>install.packages(file, repos = NULL)</code>.</p>
 <p>Building from source requires a C++20 compiler and R development tools (Rtools on Windows, Xcode Command Line Tools on macOS, <code>build-essential</code> on Linux):</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"crow16384/ksTFL"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -196,17 +207,19 @@ A concentration-time profile and its parameter table, composed as one page of a 
 </h2>
 <ul>
 <li>
-<strong>Templates</strong> — bundled corporate layouts (<code>Navy_Pro</code>, <code>Carbon_Dark</code>, <code>Listings</code>, …); switch one option and the whole document family changes its look. Your own JSON template can live next to the report and travel with it.</li>
+<strong>One look for the whole company.</strong> Corporate layouts come built in — pick a template and every table, figure and listing in the run instantly wears the same face: same fonts, same margins, same navy header. Hand a client a submission where nothing drifts from page to page.</li>
 <li>
-<strong>Font management</strong> — the package finds fonts installed on your system and falls back to metric-compatible open-source alternatives (Liberation family) when a proprietary one is missing, so a report paginates the same on any machine.</li>
+<strong>It writes around your missing fonts.</strong> The package reads the fonts on your machine and quietly substitutes a metric-compatible open-source one when a proprietary font (Arial, Times New Roman, …) isn’t there. The report lays out the same whether you ran it on your laptop or on a Linux build server.</li>
 <li>
-<strong>Replay</strong> — <code><a href="reference/save_report.html">save_report()</a></code> keeps a specification bundle; <code><a href="reference/replay_report.html">replay_report()</a></code> rebuilds the exact DOCX on another machine, later, without the original analysis session. Ideal for validation and QA.</li>
+<strong>A report that re-builds itself.</strong> Every output saves its specification, so you can regenerate the <em>exact</em> same Word document months later, on another machine, without touching the original analysis. Auditors love this; so do you, at 2 a.m. before a submission.</li>
 <li>
-<strong>Table of contents</strong> — one option prepends a clickable ToC page to a report.</li>
+<strong>Highlight what matters, by rule.</strong> Color a cell red when a value crosses a threshold, bold the first row of every group, drop a section header where the category changes — described once, applied forever, never by hand in Word.</li>
 <li>
-<strong>RStudio add-ins</strong> — a template editor and a style picker, so layout work does not require memorizing option names.</li>
+<strong>Rich text inside cells.</strong> Bold, italic, superscripts, subscripts and line breaks right in your values and titles (<code>H&lt;sub&gt;2&lt;/sub&gt;O</code>, <code>p&lt;0.05&lt;sup&gt;*&lt;/sup&gt;</code>), the way the final document needs them.</li>
 <li>
-<strong>Multilingual</strong> — any Unicode text: Cyrillic, CJK, and Greek letters share the same page with ordinary cell values.</li>
+<strong>Point and click, if you like.</strong> RStudio add-ins give you a template editor and a style picker, so you can compose layouts visually instead of memorizing option names.</li>
+<li>
+<strong>Any language, all at once.</strong> Cyrillic, CJK, Greek letters and ordinary text share a page without turning into boxes.</li>
 </ul>
 </div>
 <div class="section level2">

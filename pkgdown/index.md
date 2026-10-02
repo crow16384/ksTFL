@@ -30,8 +30,16 @@ Under the hood, a built-in **rendering engine** with text shaping converts decla
 
 ## What the output looks like
 
-Every page below was rendered by ksTFL itself from short, commented example
-programs. Click any page to open it full size.
+Five verbs stand between a data frame and a submission-ready document:
+
+```
+create_*()  ->  define / add_* / compute_*  ->  create_report()  ->  write_doc()  ->  .docx
+  specify            style & compose            validate & merge          render
+```
+
+No external tools, no Word macros, no "final_v7_reallyfinal.docx". Every page below
+was rendered by ksTFL itself from short, commented example programs.
+Click any page to open it full size.
 
 <div class="ksgallery">
 
@@ -69,36 +77,53 @@ programs. Click any page to open it full size.
 
 ## Quick start
 
+This script is all it takes — and yes, `iris` really is enough:
+
 ```r
 library(ksTFL)
 
-# 1. Initialize a table specification
-spec <- create_table(mtcars, cols = c(cyl, mpg, hp, wt))
+# any messy source becomes one tidy summary frame - your usual R, nothing exotic
+summary <- do.call(rbind, lapply(split(iris, iris$Species), function(g)
+  data.frame(Species = g$Species[1], N = nrow(g),
+             SL_mean = mean(g$Sepal.Length), SL_sd = sd(g$Sepal.Length),
+             PL_mean = mean(g$Petal.Length), PL_sd = sd(g$Petal.Length))))
 
-# 2. Add document content
-spec <- spec |>
-  add_title("Motor Trend Car Road Tests", styleRef = "i") |>
-  add_subtitle("Number of Cylinders: #ByGroup1", styleRef = f_combine("fc_blue", "tw_50")) |>
-  add_footnote("Source: 1974 Motor Trend US magazine")
+spec <- create_table(summary) |>
+  add_span_header(c(SL_mean, SL_sd), "Sepal", stubOrder = 1) |>
+  add_span_header(c(PL_mean, PL_sd), "Petal", stubOrder = 1) |>
+  define_cols(c(SL_mean, PL_mean),
+              label = c("mean", "mean"), valueStyleRef = "ar", format = "%.2f") |>
+  compute_cols(PL_mean < 2.5,
+               c_style(c(PL_mean, PL_sd), styleRef = f_combine("fc_green", "b"))) |>
+  add_title("Iris, Measured Flower by Flower", styleRef = "b") |>
+  add_footnote("Fisher (1936). Green: petals so distinct the species name themselves.") |>
+  set_document(contentWidth = "70%")
 
-# 3. Define column properties
-spec <- spec |>
-  define_cols(c(mpg, hp, wt),
-              label = c("Miles/(US) gallon", "Horsepower", "Weight (1000 lbs)"),
-              valueStyleRef = "ac") |>
-  define_cols(cyl, isGrouping = TRUE, isVisible = FALSE)
-
-# 4. Conditional row styling: red-highlight powerful engines
-spec <- spec |>
-  compute_cols(hp > 200, c_style(hp, styleRef = "fc_red"))
-
-# 5. Assemble and render to DOCX
-report <- create_report(spec)
-write_doc(report, name = "demo", outDir = tempdir())
+write_doc(create_report(spec), name = "iris_summary")
 ```
 
-The result is a print-ready Word document: grouped by cylinder count, right-aligned
-numbers, an italic title, and red horsepowers — no post-editing in Word.
+<a class="ksdemo" href="home/quickstart-iris.png" target="_blank" rel="noopener"
+   style="max-width: 720px; display: block; margin: 1.2rem auto 0.6rem;">
+  <img src="home/quickstart-iris.png" alt="Rendered iris summary table" />
+</a>
+
+That's a print-ready Word document — but look at what the lines actually *did*:
+
+- **Two lines grouped the columns** under `Sepal` and `Petal` banners. Real reports
+  live on this kind of hierarchy — you just declared it, no merged-cell surgery in Word.
+- **One line set the number style** for both `mean` columns at once: right-aligned,
+  exactly two decimals. It applies to whatever those columns become later; the format
+  rides with the definition, not the data.
+- **One line painted setosa's petals green** — `compute_cols(condition, action)` is a
+  rule, not a manual edit: *any* row where mean petal length falls below 2.5 gets the
+  style, now and in every future run of this pipeline. The rule reads like a sentence
+  because ksTFL evaluates it like one.
+- **The document framed itself**: title, footnote, a 70%-width body — all part of the
+  same object; `write_doc()` drops the `.docx` into your working directory and that's
+  the end of your involvement.
+
+Run the script, open the file, compare it with the screenshot — that gap between
+"analysis finished" and "report ready" you've been living with? Just closed.
 
 ## Installation
 
@@ -133,20 +158,29 @@ remotes::install_github("crow16384/ksTFL")
 
 ## What else it can do
 
-- **Templates** — bundled corporate layouts (`Navy_Pro`, `Carbon_Dark`, `Listings`, …);
-  switch one option and the whole document family changes its look. Your own JSON
-  template can live next to the report and travel with it.
-- **Font management** — the package finds fonts installed on your system and falls
-  back to metric-compatible open-source alternatives (Liberation family) when a
-  proprietary one is missing, so a report paginates the same on any machine.
-- **Replay** — `save_report()` keeps a specification bundle; `replay_report()`
-  rebuilds the exact DOCX on another machine, later, without the original analysis
-  session. Ideal for validation and QA.
-- **Table of contents** — one option prepends a clickable ToC page to a report.
-- **RStudio add-ins** — a template editor and a style picker, so layout work does
-  not require memorizing option names.
-- **Multilingual** — any Unicode text: Cyrillic, CJK, and Greek letters share the
-  same page with ordinary cell values.
+- **One look for the whole company.** Corporate layouts come built in — pick a
+  template and every table, figure and listing in the run instantly wears the same
+  face: same fonts, same margins, same navy header. Hand a client a submission where
+  nothing drifts from page to page.
+- **It writes around your missing fonts.** The package reads the fonts on your
+  machine and quietly substitutes a metric-compatible open-source one when a
+  proprietary font (Arial, Times New Roman, …) isn't there. The report lays out the
+  same whether you ran it on your laptop or on a Linux build server.
+- **A report that re-builds itself.** Every output saves its specification, so you
+  can regenerate the *exact* same Word document months later, on another machine,
+  without touching the original analysis. Auditors love this; so do you, at 2 a.m.
+  before a submission.
+- **Highlight what matters, by rule.** Color a cell red when a value crosses a
+  threshold, bold the first row of every group, drop a section header where the
+  category changes — described once, applied forever, never by hand in Word.
+- **Rich text inside cells.** Bold, italic, superscripts, subscripts and line breaks
+  right in your values and titles (`H<sub>2</sub>O`, `p<0.05<sup>*</sup>`), the way
+  the final document needs them.
+- **Point and click, if you like.** RStudio add-ins give you a template editor and a
+  style picker, so you can compose layouts visually instead of memorizing option
+  names.
+- **Any language, all at once.** Cyrillic, CJK, Greek letters and ordinary text share
+  a page without turning into boxes.
 
 ## Documentation & resources
 

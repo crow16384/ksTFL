@@ -40,6 +40,15 @@ code {
     font-variant-ligatures: none;
 }
 
+/* code blocks: compact across the whole site (anchored + code element, because
+   pkgdown/bslib set pre/code font-size with id-level specificity) */
+main#main pre,
+main#main pre code,
+div.sourceCode pre,
+div.sourceCode pre code {
+    font-size: 0.82rem;
+}
+
 /* ── Document identity: serif headings + numbered sections ─
  * Articles read like a report: H2 gets "n.", H3 gets "n.m" —
  * via CSS counters, so nothing in the vignette sources changes. */
