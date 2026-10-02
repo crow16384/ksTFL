@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 options(pkgdown.internet = FALSE)
 ```
 
-<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700"/>
+<img src="figures/ksTFL-logo-hero.gif" alt="ksTFL logo" width="700"/>
 
 ## Introduction
 
@@ -583,10 +583,15 @@ spec <- create_table(mtcars) |>
 spec <- create_table(mtcars) |>
   set_document(hasData = TRUE, docTemplate = "Carbon_Dark")
 
-# Use a custom external template (JSON file). IMPORTANT: pass an ABSOLUTE
-# path — a relative path is silently treated as a bundled name, fails the
-# lookup, and falls back to the "Default" template on replay from another
-# working directory. (Any template JSON works, including a copy of a bundled
+# Use a custom external template (JSON file). An ABSOLUTE path always works. A
+# RELATIVE path is checked against your working directory at authoring time and
+# stored verbatim; at render time it is resolved against the render working
+# directory first and, when not found there, against the directory of the saved
+# spec JSON (and its parent) — so replaying a saved report from another folder
+# still finds a template that sits next to the saved spec. Only when every
+# candidate misses does the package warn and fall back to the "Default"
+# template. For portable scripts, keep the template next to the report output
+# or use a bundled name. (Any template JSON works, including a copy of a bundled
 # one, which is what this example does.)
 my_tpl <- file.path(tempdir(), "my_custom_template.json")
 file.copy(system.file("templates", "Navy_Pro.json", package = "ksTFL"), my_tpl)

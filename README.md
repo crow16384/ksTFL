@@ -2,7 +2,7 @@
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-<img src="man/figures/logo.svg" alt="ksTFL logo" width="700" />
+<img src="man/figures/ksTFL-logo-hero.gif" alt="ksTFL logo" width="700" />
 
 ## Overview
 
@@ -519,7 +519,7 @@ Configure global defaults that apply to all specs in a session:
 | `figureWidth` | `"6in"` | Character | Default figure width (e.g., `"70%"`, `"6.5in"`, `"16.51cm"`) |
 | `figureHeight` | `"4in"` | Character | Default figure height (same format as `figureWidth`) |
 | `figureDevice` | `"cairo"` | Character | Graphics device for ggplot2 rendering: `"cairo"` (default; paths-only SVG, MS Word-safe, needs Cairo), `"svg"` (svglite text-SVG — renders wrong in Word; warns once), `"png"`, `"jpeg"`. Missing packages fall back cairo -> svg -> png with a one-time warning. |
-| `figureScaleMode` | `"fixed"` | Character | Figure scaling: `"fixed"`, `"fitWidth"` (scale to page width), `"fitPage"` |
+| `figureScaleMode` | `"fixed"` | Character | Figure scaling: `"fixed"` (exact figureWidth/figureHeight; missing side inferred from 6:4), `"fitWidth"` (stretch to content width using the W/H aspect), `"fitPage"` (largest same-aspect box fitting the area), `"fitKeepAR"` (read the source image's own aspect from its header and fit it distortion-free; W/H ignored) |
 | `insertTOC` | `FALSE` | Logical | Prepend a Table of Contents page (requires `toclevel` on titles) |
 | `tocTitle` | `"Table of Contents"` | Character | TOC page heading; use `""` to omit |
 | `output_directory` | `"."` | Character | Default output directory for rendered documents |

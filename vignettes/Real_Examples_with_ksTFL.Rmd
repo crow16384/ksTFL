@@ -36,7 +36,7 @@ knitr::opts_chunk$set(
 options(pkgdown.internet = FALSE)
 ```
 
-<img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700"/>
+<img src="figures/ksTFL-logo-hero.gif" alt="ksTFL logo" width="700"/>
 
 ## Purpose
 
@@ -1098,7 +1098,12 @@ create_report(spec_fig_compact, spec_tbl) %>%
   write_doc("table_under_figure_compact", toc = TRUE)
 ```
 
-Alternatively, use `figureScaleMode = "fitWidth"` to scale the figure proportionally to the available width while respecting a height constraint.
+To scale figures differently, choose another `figureScaleMode`:
+`"fitWidth"` stretches the figure to the page content width using the
+`figureWidth`/`figureHeight` aspect (NOT the source image's own proportions);
+`"fitKeepAR"` instead reads the embedded image's intrinsic aspect ratio and fits
+it into the body area without distortion (`figureWidth`/`figureHeight` are
+ignored in this mode, with a warning).
 
 ## Example 7 - Gap between Spanning Header Lines
 
