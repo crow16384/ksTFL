@@ -3,7 +3,8 @@
 TFL_report object to JSON (plus any required data/figure files) and
 immediately renders it to a DOCX file in a single call."><meta property="og:description" content="Convenience wrapper around save_report() and the internal DOCX renderer that saves a
 TFL_report object to JSON (plus any required data/figure files) and
-immediately renders it to a DOCX file in a single call."><meta property="og:image" content="https://crow16384.github.io/ksTFL/logo.svg"></head><body>
+immediately renders it to a DOCX file in a single call."><meta property="og:image" content="https://crow16384.github.io/ksTFL/logo.svg"><!-- Editorial serif for the site's "document" identity (source of headings,
+     blockquotes, hero tagline); falls back to Georgia/Times offline. --><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&amp;display=swap" rel="stylesheet"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -180,12 +181,12 @@ documented API function named <code>write_doc()</code>.</p>
 <span class="r-in"><span><span class="va">doc_path</span> <span class="op">&lt;-</span> <span class="fu">write_doc</span><span class="op">(</span><span class="fu"><a href="create_report.html">create_report</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span>, name <span class="op">=</span> <span class="st">"mtcars_demo"</span>,</span></span>
 <span class="r-in"><span>                      outDir <span class="op">=</span> <span class="va">out</span>, metaPath <span class="op">=</span> <span class="va">meta</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Report saved successfully</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Spec file: a85105af452d36f7.json</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Data files saved to: /tmp/RtmpoXN2cK/kstfl_meta</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> DOCX rendered: <a href="file:///tmp/RtmpoXN2cK/kstfl_out/mtcars_demo.docx"><span style="color: #0000BB;">/tmp/RtmpoXN2cK/kstfl_out/mtcars_demo.docx</span></a> (1 page)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   [OK] mtcars_demo -&gt; /tmp/RtmpoXN2cK/kstfl_out/mtcars_demo.docx</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Spec file: d5472eeda745e547.json</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Data files saved to: /tmp/RtmpKCgaVq/kstfl_meta</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> DOCX rendered: <span style="color: #0000BB;">/tmp/RtmpKCgaVq/kstfl_out/mtcars_demo.docx</span> (1 page)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   [OK] mtcars_demo -&gt; /tmp/RtmpKCgaVq/kstfl_out/mtcars_demo.docx</span>
 <span class="r-in"><span><span class="va">doc_path</span>   <span class="co"># full path of the generated .docx</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpoXN2cK/kstfl_out/mtcars_demo.docx"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpKCgaVq/kstfl_out/mtcars_demo.docx"</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
 <span class="r-in"><span><span class="co"># Session defaults instead of per-call arguments --------------------------</span></span></span>
