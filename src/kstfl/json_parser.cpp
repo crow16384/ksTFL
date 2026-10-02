@@ -146,6 +146,13 @@ static FontProps parse_font_props(const json &j) {
 
   // font_size can be "9pt" or just a number
   auto fs = jutil::opt<std::string>(j, "font_size");
+  if (!fs.has_value()) {
+    // Bare JSON number: unitless, interpreted as POINTS (F04a fix).
+    auto fsn = jutil::opt<double>(j, "font_size");
+    if (fsn.has_value()) {
+      fp.font_size = *fsn;
+    }
+  }
   if (fs.has_value()) {
     // Strip "pt" and parse as double
     std::string s = *fs;

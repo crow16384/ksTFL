@@ -32,6 +32,32 @@ test_that("write_doc() with a bundled overrideTemplate changes layout vs Default
                label = "override template visibly changes the document")
 })
 
+test_that("template numeric font_size is applied as points; string form unchanged (F04a)", {
+  skip_if_not_installed("jsonlite")
+  dirs <- local_docx_dirs()
+  base <- jsonlite::fromJSON(system.file("templates", "Default.json", package = "ksTFL"),
+                             simplifyVector = FALSE)
+  sz_of <- function(x) unique(unlist(regmatches(x, gregexpr('w:sz w:val="[0-9]+"', x))))
+  # baseline titles size (string) - sanity: distinct value present
+  tpl_num <- base;  tpl_num$textStyles$titles$font$font_size <- 20     # JSON number
+  tpl_str <- base;  tpl_str$textStyles$titles$font$font_size <- "20pt" # string twin
+  f_num <- file.path(dirs$out, "t_num.json"); f_str <- file.path(dirs$out, "t_str.json")
+  writeLines(jsonlite::toJSON(tpl_num, auto_unbox = TRUE, null = "null"), f_num)
+  writeLines(jsonlite::toJSON(tpl_str, auto_unbox = TRUE, null = "null"), f_str)
+  df1 <- data.frame(a = c("x", "y"), stringsAsFactors = FALSE)
+  p_num <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                       set_document(hasData = TRUE, docTemplate = f_num)),
+                     "tpl_num_fs", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  p_str <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                       set_document(hasData = TRUE, docTemplate = f_str)),
+                     "tpl_str_fs", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  x_num <- docx_part_text(p_num); x_str <- docx_part_text(p_str)
+  # 20pt -> half-point units -> 40
+  expect_true(any(grepl('w:sz w:val="40"', sz_of(x_num))), info = paste(sz_of(x_num), collapse = " "))
+  expect_identical(sort(sz_of(x_num)), sort(sz_of(x_str)),
+                   label = "numeric and 'pt'-string font_size render identically")
+})
+
 test_that("write_doc() warns and falls back to Default for an unknown template name", {
   dirs <- local_docx_dirs()
   expect_warning(
