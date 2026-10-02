@@ -188,6 +188,31 @@ test_that("relative docTemplate replays via dirname(spec_json) from another cwd 
   expect_false(grepl('w:sz w:val="60"', x2, fixed = TRUE))
 })
 
+test_that("continuousSection joins page-count estimate (F06)", {
+  # render_docx_impl() returns the computed page total directly (cli console
+  # text is not capture.output-able in scripted sessions - see atoms note above)
+  df1 <- data.frame(a = c("x", "y"), stringsAsFactors = FALSE)
+  t1  <- create_table(df1) |> add_title("T1") |> set_document(hasData = TRUE)
+  t2  <- create_table(df1) |> add_title("T2") |> set_document(hasData = TRUE)
+  t2c <- create_table(df1) |> add_title("T2") |>
+    set_document(hasData = TRUE, continuousSection = TRUE)
+  dirs <- local_docx_dirs()
+  tpl <- ksTFL:::.resolve_template_value("Default")
+
+  count_pages <- function(rep, tag) {
+    saved <- save_report(rep, docFileName = tag, outDir = dirs$out, metaPath = dirs$meta)
+    ksTFL:::render_docx_impl(
+      spec_json_path = file.path(dirs$meta, saved$spec_file),
+      template_json_path = tpl,
+      output_path = file.path(dirs$out, paste0(tag, ".docx")),
+      font_dirs = NULL, fallback_font = "", verbose = FALSE)
+  }
+  expect_equal(count_pages(create_report(t1, t2), "f06_split"), 2L,
+               label = "two separate sections = 2 pages (unchanged)")
+  expect_equal(count_pages(create_report(t1, t2c), "f06_cont"), 1L,
+               label = "continuous join merges the seam = 1 page")
+})
+
 test_that("write_doc() warns and falls back to Default for an unknown template name", {
   dirs <- local_docx_dirs()
   expect_warning(

@@ -615,18 +615,36 @@ size_t Renderer::render_from_strings(const std::string &spec_json, const std::st
   // Compute total page count across all specs.
   // Table specs use paginator counts; Text/Figure specs always emit one
   // section page in document.xml.
+  // F06: continuousSection=TRUE means Word FLOWS this spec onto the page the
+  // previous spec ended on (no forced break) — an independent per-spec count
+  // over-counts by exactly those seams.  Short content (figures, text, small
+  // tables — the documented use of continuousSection) then fits the seam page;
+  // subtract one page per joined spec.  Long continuous tables that overflow
+  // their own estimate still surface as a count mismatch vs Word/pdfinfo,
+  // which is the detection signal this number exists for.
   size_t total_pages = doc.metadata.insert_toc ? 1 : 0;
-  for (const auto &spec : doc.specs) {
-    if (spec.document.doc_type == DocType::Table && spec.document.has_data) {
-      auto it = all_pages.find(spec.key);
-      if (it != all_pages.end()) {
-        total_pages += it->second.total_pages;
+  {
+    bool has_previous_spec = false;   // anything emitted before this spec
+    for (const auto &spec : doc.specs) {
+      size_t spec_pages = 0;
+      if (spec.document.doc_type == DocType::Table && spec.document.has_data) {
+        auto it = all_pages.find(spec.key);
+        if (it != all_pages.end()) {
+          spec_pages = it->second.total_pages;
+        } else {
+          // Fallback safety: table section is still emitted as one page.
+          spec_pages = 1;
+        }
       } else {
-        // Fallback safety: table section is still emitted as one page.
-        total_pages += 1;
+        spec_pages = 1;
       }
-    } else {
-      total_pages += 1;
+
+      if (spec.document.continuous_section && has_previous_spec && spec_pages >= 1) {
+        // The spec's first page merges with the previous spec's last page.
+        spec_pages -= 1;
+      }
+      total_pages += spec_pages;
+      has_previous_spec = true;
     }
   }
 
