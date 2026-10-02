@@ -208,6 +208,9 @@ NULL
 #' @noRd
 .const_pattern_border_width <- "^[0-9]+(\\.[0-9]+)?pt$"
 
+#  document: footnote placement modes for footnotePlace (set_document, tfl_set_options)
+.const_footnote_places <- c("doc_footer", "repeated", "last_page")
+
 #' Pattern for row height (allows pt, cm, in, mm, or auto)
 #' @noRd
 .const_pattern_row_height <- "^([0-9]+(\\.[0-9]+)?(pt|in|cm|mm)|auto)$"

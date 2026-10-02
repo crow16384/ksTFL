@@ -49,13 +49,16 @@ test_that("c_glue() glue_col/text interaction: parser precedence + hard rejectio
   df <- data.frame(a = "x", b = "y")
   spec <- create_table(df)
 
-  # DOCUMENTED CURRENT BEHAVIOR (finding F14): inside compute_cols the action is
+  # DOCUMENTED BEHAVIOR (finding F14, fixed U1): inside compute_cols the action is
   # parsed from the captured call, NOT by evaluating c_glue(); when BOTH
-  # glue_col and text are given the builder-level "not both" guard never runs
-  # and the parser silently prefers glue_col, discarding text.
+  # glue_col and text are given the parser prefers glue_col (text discarded)
+  # and warns at action-parse time (create_report; the guard is made real in
+  # the parse path — precedence unchanged).
   s_both <- compute_cols(spec, a == "x",
                          c_glue(a, "after", glue_col = b, text = "z"))
-  sr <- create_report(s_both)[[1]]$styleRows
+  rep_both <- expect_warning(create_report(s_both),
+                             "both|wins", ignore.case = TRUE)
+  sr <- rep_both[[1]]$styleRows
   act <- jsonlite::fromJSON(sr[1], simplifyVector = FALSE)$glue[[1]]
   expect_equal(act$glue_col, "b")
   expect_false("text" %in% names(act))
@@ -90,6 +93,18 @@ test_that("c_glue() accepts each valid source form without error", {
     "glue_valid2", outDir = tempdir(), metaPath = tempdir(), verbose = FALSE)
   expect_docx_valid(p1)
   expect_docx_valid(p2)
+})
+
+test_that("set_document footnotePlace accepts the three modes and rejects typos", {
+  df <- data.frame(a = "x", b = "y")
+  for (m in c("doc_footer", "repeated", "last_page")) {
+    expect_no_error(set_document(create_table(df), hasData = TRUE, footnotePlace = m))
+  }
+  # F05b: previously any string passed (C++ silently fell back to repeated)
+  expect_error(set_document(create_table(df), hasData = TRUE, footnotePlace = "page"),
+               "footnotePlace")
+  expect_error(set_document(create_table(df), hasData = TRUE, footnotePlace = "docFooter"),
+               "footnotePlace")
 })
 
 test_that("c_addrow() validates value_from resolution", {

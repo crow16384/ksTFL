@@ -1075,6 +1075,13 @@ c_clear <- function(cols) {
   glue_col_expr <- matched_args[["glue_col"]]
   text_expr     <- matched_args[["text"]]
 
+  if (!is.null(glue_col_expr) && !is.null(text_expr)) {
+    cli::cli_warn(c(
+      "{.fn c_glue} received both {.arg glue_col} and {.arg text}; {.arg glue_col} wins.",
+      i = "Remove one of them to silence this warning."
+    ))
+  }
+
   glue_col <- NULL
   text_val  <- NULL
 

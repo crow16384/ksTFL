@@ -2848,7 +2848,12 @@ set_document <- function(spec, isContinues = NULL, continuousSection = NULL,
   
   # Validate
   .validate_params(params, "document", "set_document")
-  
+
+  if (!is.null(footnotePlace)) {
+    checkmate::assert_choice(footnotePlace, choices = .const_footnote_places,
+                             .var.name = "footnotePlace")
+  }
+
   if (!is.null(contentWidth)) {
     .validate_pattern(contentWidth, .const_pattern_content_width, 
                       "contentWidth", "set_document",
