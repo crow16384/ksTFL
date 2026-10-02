@@ -96,7 +96,10 @@ spec <- create_table(summary) |>
   compute_cols(PL_mean < 2.5,
                c_style(c(PL_mean, PL_sd), styleRef = f_combine("fc_green", "b"))) |>
   add_title("Iris, Measured Flower by Flower", styleRef = "b") |>
-  add_footnote("Fisher (1936). Green: petals so distinct the species name themselves.") |>
+  add_subtitle("Mean separation of the three species", styleRef = "i") |>
+  add_header("Fisher Herbarium", "IRIS STUDY", "Page {PAGE} of {NUMPAGES}") |>
+  add_footer("Collected 1936", "", format(Sys.Date(), "Compiled %Y-%m-%d")) |>
+  add_footnote("Fisher (1936). Green: petals so distinct the species almost name themselves.") |>
   set_document(contentWidth = "70%")
 
 write_doc(create_report(spec), name = "iris_summary")
@@ -107,20 +110,32 @@ write_doc(create_report(spec), name = "iris_summary")
   <img src="home/quickstart-iris.png" alt="Rendered iris summary table" />
 </a>
 
-That's a print-ready Word document — but look at what the lines actually *did*:
+That's a print-ready Word document — but look at what those lines actually *did*:
 
-- **Two lines grouped the columns** under `Sepal` and `Petal` banners. Real reports
-  live on this kind of hierarchy — you just declared it, no merged-cell surgery in Word.
-- **One line set the number style** for both `mean` columns at once: right-aligned,
-  exactly two decimals. It applies to whatever those columns become later; the format
-  rides with the definition, not the data.
-- **One line painted setosa's petals green** — `compute_cols(condition, action)` is a
-  rule, not a manual edit: *any* row where mean petal length falls below 2.5 gets the
-  style, now and in every future run of this pipeline. The rule reads like a sentence
-  because ksTFL evaluates it like one.
-- **The document framed itself**: title, footnote, a 70%-width body — all part of the
-  same object; `write_doc()` drops the `.docx` into your working directory and that's
-  the end of your involvement.
+- **`add_span_header()` grouped the columns** under `Sepal` and `Petal` banners,
+  each stretched over its own `mean` / `SD` pair. This is the header lattice
+  reviewers expect in a real report — and you declared it in two lines instead of
+  merging cells by hand in Word. Pass the same `stubOrder` to siblings and a higher
+  one to the umbrella above them: the geometry is your call, the drawing is ksTFL's.
+- **`define_cols()` set the look of whole column families at once** — `valueStyleRef = "ar"`
+  right-aligns both means, `format = "%.2f"` pins every number to two decimals. The
+  style rides with the *definition*, so it survives whatever the data become next
+  quarter; no per-cell babysitting.
+- **`compute_cols()` is where it gets fun**: *"when `PL_mean < 2.5`, apply `c_style()`
+  with the `fc_green` + `b` atoms"* is not an edit, it is a rule. Setosa's petals
+  turn green now, and every future run re-dyes them automatically — thresholds,
+  colors, and groups stay in the code where they can be reviewed, not lost in a
+  Word session nobody remembers. The style itself is snapped together from built-in
+  atoms via `f_combine()`: over 120 ready-made pieces (fonts, colors, indents,
+  borders), zero custom style boilerplate.
+- **`add_title()` / `add_subtitle()` / `add_header()` / `add_footer()` wrote the document's
+  paperwork** — including a live `Page {PAGE} of {NUMPAGES}` counter that updates
+  itself when the report re-paginates. What you see in the screenshot's top and
+  bottom bands is exactly the three-slot header/footer API, no Word section wizardry.
+- **`set_document(contentWidth = "70%")` sized the table** to a comfortable reading
+  column, and **`create_report()` + `write_doc()`** did the rest: validation, style
+  consolidation, shaping, pagination — `iris_summary.docx` lands in your working
+  directory, done.
 
 Run the script, open the file, compare it with the screenshot — that gap between
 "analysis finished" and "report ready" you've been living with? Just closed.
