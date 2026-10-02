@@ -35,34 +35,34 @@ programs. Click any page to open it full size.
 
 <div class="ksgallery">
 
-<a class="ksdemo" href="home/demo-span-headers.png" target="_blank" rel="noopener">
-  <img src="home/demo-span-headers.png" alt="Demography table with grouped treatment-arm headers" />
+<a class="ksdemo" href="home/show-demography.png" target="_blank" rel="noopener">
+  <img src="home/show-demography.png" alt="Demography table with grouped treatment-arm headers" />
   <figcaption>Demography table with grouped column headers for each treatment arm</figcaption>
 </a>
 
-<a class="ksdemo" href="home/demo-ae-summary.png" target="_blank" rel="noopener">
-  <img src="home/demo-ae-summary.png" alt="Adverse event summary table" />
-  <figcaption>Adverse-event summary across dose groups, with counts and percentages</figcaption>
+<a class="ksdemo" href="home/show-ae-complex.png" target="_blank" rel="noopener">
+  <img src="home/show-ae-complex.png" alt="Adverse events by system organ class and period" />
+  <figcaption>Adverse events by system organ class, term, and relationship — grouped by study period</figcaption>
 </a>
 
-<a class="ksdemo" href="home/demo-figure.png" target="_blank" rel="noopener">
-  <img src="home/demo-figure.png" alt="Scatter plot embedded in a report page" />
-  <figcaption>A ggplot2 scatter plot embedded in the report, fitted to the page exactly</figcaption>
+<a class="ksdemo" href="home/show-forest.png" target="_blank" rel="noopener">
+  <img src="home/show-forest.png" alt="Risk difference forest plot across organ classes" />
+  <figcaption>A risk-difference forest plot filling the page, with significance colouring and value annotations</figcaption>
 </a>
 
-<a class="ksdemo" href="home/demo-report-sections.png" target="_blank" rel="noopener">
-  <img src="home/demo-report-sections.png" alt="Multi-section report page" />
-  <figcaption>Sections of a larger report flowing page to page, titles and footnotes placed exactly where you ask</figcaption>
+<a class="ksdemo" href="home/show-two-tables.png" target="_blank" rel="noopener">
+  <img src="home/show-two-tables.png" alt="Two summary tables on one page" />
+  <figcaption>Two related tables — exposure and discontinuations — flowing together on a single page</figcaption>
 </a>
 
-<a class="ksdemo" href="home/demo-styled-status.png" target="_blank" rel="noopener">
-  <img src="home/demo-styled-status.png" alt="Table with conditionally colored values" />
-  <figcaption>Values highlighted automatically — the colors follow the data, not manual editing</figcaption>
+<a class="ksdemo" href="home/show-lab-styled.png" target="_blank" rel="noopener">
+  <img src="home/show-lab-styled.png" alt="Laboratory table with conditionally colored values" />
+  <figcaption>Laboratory safety on a navy template — abnormality rates highlighted automatically as they cross a threshold</figcaption>
 </a>
 
-<a class="ksdemo" href="home/demo-disposition.png" target="_blank" rel="noopener">
-  <img src="home/demo-disposition.png" alt="Subject disposition table" />
-  <figcaption>Subject disposition inside a combined report of tables, text, and figures</figcaption>
+<a class="ksdemo" href="home/show-pk-page.png" target="_blank" rel="noopener">
+  <img src="home/show-pk-page.png" alt="Concentration-time figure with a parameter table on the same page" />
+  <figcaption>A concentration-time profile and its parameter table, composed as one page of a pharmacology report</figcaption>
 </a>
 
 </div>
