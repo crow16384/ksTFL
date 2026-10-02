@@ -148,6 +148,46 @@ test_that("cellDefaults.vertical_alignment applies when nothing higher sets vali
               label = "untouched cells fall back to cellDefaults bottom")
 })
 
+test_that("relative docTemplate replays via dirname(spec_json) from another cwd (F03)", {
+  skip_if_not_installed("jsonlite")
+  dirs <- local_docx_dirs()
+  base <- jsonlite::fromJSON(system.file("templates", "Default.json", package = "ksTFL"),
+                             simplifyVector = FALSE)
+  base$textStyles$titles$font$font_size <- "30pt"   # marker -> w:sz 60
+  # template lives in meta dir; author from that dir so the relative path passes
+  tpl_file <- file.path(dirs$meta, "F03Tpl.json")
+  writeLines(jsonlite::toJSON(base, auto_unbox = TRUE, null = "null"), tpl_file)
+
+  df1 <- data.frame(a = c("x", "y"), stringsAsFactors = FALSE)
+  old <- getwd(); on.exit(setwd(old), add = TRUE)
+  setwd(dirs$meta)
+  spec <- create_table(df1) |> add_title("T") |>
+    set_document(hasData = TRUE, docTemplate = "F03Tpl.json")
+  rep <- create_report(spec)
+  saved <- save_report(rep, docFileName = "f03", outDir = dirs$out, metaPath = dirs$meta)
+  setwd(dirs$out)   # render from a DIFFERENT cwd; template not there
+
+  out_docx <- file.path(dirs$out, "f03_replay.docx")
+  expect_warning(
+    ksTFL:::render_docx(spec_json = file.path(dirs$meta, saved$spec_file),
+                         template_json = NULL, output_path = out_docx, verbose = FALSE),
+    NA)  # F03 fix: no warn+Default fallback anymore — resolves relative to the spec
+  x <- docx_part_text(out_docx)
+  expect_true(grepl('w:sz w:val="60"', x, fixed = TRUE),
+              label = "relative template resolved from dirname(spec_json)")
+
+  # if the template file is gone from BOTH cwd and spec dir, warn + Default as before
+  file.remove(tpl_file)
+  expect_warning(
+    ksTFL:::render_docx(spec_json = file.path(dirs$meta, saved$spec_file),
+                         template_json = NULL,
+                         output_path = file.path(dirs$out, "f03_missing.docx"),
+                         verbose = FALSE),
+    "not found|Default", ignore.case = TRUE)
+  x2 <- docx_part_text(file.path(dirs$out, "f03_missing.docx"))
+  expect_false(grepl('w:sz w:val="60"', x2, fixed = TRUE))
+})
+
 test_that("write_doc() warns and falls back to Default for an unknown template name", {
   dirs <- local_docx_dirs()
   expect_warning(

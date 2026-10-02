@@ -1,7 +1,14 @@
+#' Absolute-path detector for template strings (POSIX, Windows drive, UNC)
+#' @keywords internal
+#' @noRd
+.is_absolute_path <- function(x) {
+  grepl("^/", x) || grepl("^[A-Za-z]:[\\\\/]", x) || grepl("^\\\\\\\\", x)
+}
+
 #' Resolve a single template value to an absolute JSON path
 #' @keywords internal
 #' @noRd
-.resolve_template_value <- function(doc_template, spec_key = NULL) {
+.resolve_template_value <- function(doc_template, spec_key = NULL, base_dirs = NULL) {
   key_hint <- if (!is.null(spec_key)) paste0("[", spec_key, "] ") else ""
 
   if (!is.null(doc_template) && nzchar(doc_template)) {
@@ -11,6 +18,19 @@
     if (is_file_path) {
       if (file.exists(doc_template)) {
         return(normalizePath(doc_template))
+      }
+      # Portable replay (F03): a relative path stored in the spec may no longer
+      # match the render cwd. Retry it against base_dirs (e.g. the directory of
+      # the spec JSON) BEFORE falling back: converts a former warn+Default
+      # failure into a success; cwd hits stay untouched.
+      if (!.is_absolute_path(doc_template)) {
+        for (bd in base_dirs) {
+          if (is.null(bd) || !nzchar(bd)) next
+          candidate <- file.path(bd, doc_template)
+          if (file.exists(candidate)) {
+            return(normalizePath(candidate))
+          }
+        }
       }
       cli::cli_warn(c(
         paste0(key_hint, "External template file {.path ", doc_template, "} not found."),
@@ -53,11 +73,13 @@
 .resolve_template_paths_by_spec <- function(spec_json_path) {
   spec_data <- jsonlite::fromJSON(spec_json_path, simplifyVector = FALSE)
   spec_keys <- setdiff(names(spec_data), "_metadata")
+  base_dirs <- unique(c(dirname(normalizePath(spec_json_path, mustWork = FALSE)),
+                        dirname(dirname(normalizePath(spec_json_path, mustWork = FALSE)))))
 
   out <- list()
   for (k in spec_keys) {
     doc_template <- spec_data[[k]][["attribs"]][["documentStyle"]][["docTemplate"]]
-    out[[k]] <- .resolve_template_value(doc_template, spec_key = k)
+    out[[k]] <- .resolve_template_value(doc_template, spec_key = k, base_dirs = base_dirs)
   }
   out
 }
