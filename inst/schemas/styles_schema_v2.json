@@ -680,9 +680,10 @@
             "font_size": {
               "type": [
                 "null",
-                "string"
+                "string",
+                "number"
               ],
-              "description": "Font size in points."
+              "description": "Font size in points: \"9pt\" string or bare number (points)."
             },
             "bold": {
               "type": "boolean",

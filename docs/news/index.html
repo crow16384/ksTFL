@@ -56,9 +56,49 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.12.0" id="kstfl-0120">ksTFL 0.12.0<a class="anchor" aria-label="anchor" href="#kstfl-0120"></a></h2>
+<div class="section level3">
+<h3 id="figures-0-12-0">Figures<a class="anchor" aria-label="anchor" href="#figures-0-12-0"></a></h3>
+<ul><li>Figure device default is now <code>"cairo"</code>: <code><a href="../reference/create_figure.html">create_figure()</a></code> renders ggplot objects as paths-only SVG via , which embeds correctly in Microsoft Word. The device falls back cairo -&gt; svg -&gt; png with a one-time warning when a backend is unavailable, so builds never break; an explicit <code>figureDevice = "svg"</code> (text-SVG) warns once about Word mis-rendering.</li>
+<li>New <code>figureScaleMode = "fitKeepAR"</code>: the embedded image’s intrinsic aspect ratio is read from its header (PNG IHDR, JPEG SOFn, SVG width/height or viewBox) and the picture is fitted into the page body area without distortion. <code>figureWidth</code>/<code>figureHeight</code> are ignored in this mode (warning). Unreadable headers fall back to the fitWidth behavior with a warning.</li>
+<li>Renderer warns once per session when <code>fixed</code> mode stretches a source image whose aspect clearly differs from the final box.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-and-test-suite-0-12-0">Documentation and test suite<a class="anchor" aria-label="anchor" href="#documentation-and-test-suite-0-12-0"></a></h3>
+<ul><li>Roxygen blocks across the package were corrected and expanded; the package site articles (vignettes) were revised to match verified behavior.</li>
+<li>Test suite upgraded: new behavioral/e2e/regression files (validation errors, actions render, order semantics, DOCX structure/semantics, meta lifecycle, templates/fonts/atoms, condition helpers, stubOrder direction, Cairo device) pin previously unpinned behavior.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="templates-silent-keys-became-effective-0-12-0">Templates (silent keys became effective)<a class="anchor" aria-label="anchor" href="#templates-silent-keys-became-effective-0-12-0"></a></h3>
+<ul><li>
+<code>tableStyle.header.row.row_height</code> / <code>tableStyle.body.row.row_height</code> are now applied as the row height (spec-level <code>row_h*</code> styles and structural rows still take precedence; the bundled <code>"auto"</code> keeps measured heights).</li>
+<li>
+<code>tableStyle.cellDefaults.vertical_alignment</code> is now applied as the lowest-precedence cell vertical alignment.</li>
+<li>Bare numeric <code>font_size</code> in template JSON is interpreted as points (it was silently ignored before). Malformed strings still error.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="pagination--footnotes-0-12-0">Pagination / footnotes<a class="anchor" aria-label="anchor" href="#pagination--footnotes-0-12-0"></a></h3>
+<ul><li>
+<code>footnotePlace = "doc_footer"</code> now keeps the footnote even without <code><a href="../reference/add_footer.html">add_footer()</a></code> — the Word footer part is created automatically.</li>
+<li>
+<code><a href="../reference/write_doc.html">write_doc()</a></code> page-count message subtracts continuousSection seams, so the printed number matches the rendered document for short joined content.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="validation-and-actions-0-12-0">Validation and actions<a class="anchor" aria-label="anchor" href="#validation-and-actions-0-12-0"></a></h3>
+<ul><li>
+<code>set_document(footnotePlace = ...)</code> validates the value (previously typos silently fell back to <code>"repeated"</code>).</li>
+<li>
+<code><a href="../reference/c_glue.html">c_glue()</a></code> with both <code>glue_col</code> and <code>text</code> now warns inside the DSL (<code><a href="../reference/compute_cols.html">compute_cols()</a></code>); precedence is unchanged — <code>glue_col</code> wins.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="template-paths-0-12-0">Template paths<a class="anchor" aria-label="anchor" href="#template-paths-0-12-0"></a></h3>
+<ul><li>A relative <code>docTemplate</code> stored in a spec is resolved against the render cwd first and then retried against the saved spec directory — replaying a report from another folder no longer falls back to <code>Default</code>.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.11.9" id="kstfl-0119">ksTFL 0.11.9<a class="anchor" aria-label="anchor" href="#kstfl-0119"></a></h2>
 <ul><li>Minor code clean-up</li>
-<li>Documenation updates</li>
+<li>Documentation updates</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.11.8" id="kstfl-0118">ksTFL 0.11.8<a class="anchor" aria-label="anchor" href="#kstfl-0118"></a></h2>

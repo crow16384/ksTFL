@@ -2,6 +2,11 @@
 
 ## Figures
 
+* Figure device default is now `"cairo"`: `create_figure()` renders ggplot
+  objects as paths-only SVG via \pkg{Cairo}, which embeds correctly in
+  Microsoft Word. The device falls back cairo -> svg -> png with a one-time
+  warning when a backend is unavailable, so builds never break; an explicit
+  `figureDevice = "svg"` (text-SVG) warns once about Word mis-rendering.
 * New `figureScaleMode = "fitKeepAR"`: the embedded image's intrinsic aspect
   ratio is read from its header (PNG IHDR, JPEG SOFn, SVG width/height or
   viewBox) and the picture is fitted into the page body area without
@@ -9,6 +14,15 @@
   Unreadable headers fall back to the fitWidth behavior with a warning.
 * Renderer warns once per session when `fixed` mode stretches a source image
   whose aspect clearly differs from the final box.
+
+## Documentation and test suite
+
+* Roxygen blocks across the package were corrected and expanded; the package
+  site articles (vignettes) were revised to match verified behavior.
+* Test suite upgraded: new behavioral/e2e/regression files (validation errors,
+  actions render, order semantics, DOCX structure/semantics, meta lifecycle,
+  templates/fonts/atoms, condition helpers, stubOrder direction, Cairo device)
+  pin previously unpinned behavior.
 
 ## Templates (silent keys became effective)
 

@@ -85,7 +85,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-10-01</h4>
+            <h4 data-toc-skip class="date">2026-10-02</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Real_Examples_with_ksTFL.Rmd" class="external-link"><code>vignettes/Real_Examples_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Real_Examples_with_ksTFL.Rmd</code></div>
@@ -93,7 +93,7 @@ Development Team</h4>
 
     
     
-<p><img src="figures/ksTFL-logo.svg" alt="ksTFL logo" width="700"></p>
+<p><img src="figures/ksTFL-logo-hero.gif" alt="ksTFL logo" width="700"></p>
 <div class="section level2">
 <h2 id="purpose">Purpose<a class="anchor" aria-label="anchor" href="#purpose"></a>
 </h2>
@@ -1223,9 +1223,15 @@ them. To keep them together on one page, reduce the
 <span></span>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig_compact</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_under_figure_compact"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>Alternatively, use <code>figureScaleMode = "fitWidth"</code> to scale
-the figure proportionally to the available width while respecting a
-height constraint.</p>
+<p>To scale figures differently, choose another
+<code>figureScaleMode</code>: <code>"fitWidth"</code> stretches the
+figure to the page content width using the
+<code>figureWidth</code>/<code>figureHeight</code> aspect (NOT the
+source image’s own proportions); <code>"fitKeepAR"</code> instead reads
+the embedded image’s intrinsic aspect ratio and fits it into the body
+area without distortion
+(<code>figureWidth</code>/<code>figureHeight</code> are ignored in this
+mode, with a warning).</p>
 </div>
 </div>
 <div class="section level2">
