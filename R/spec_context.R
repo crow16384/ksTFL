@@ -1673,7 +1673,9 @@ c.tfl_style_combine <- function(..., recursive = FALSE) {
 #'   Invisible columns do NOT participate in width recalculation; only visible columns are included.
 #'   Cannot set `colWidth` for invisible columns (error raised if attempted).
 #' @param isGrouping Whether column defines groups (length 1 or length of cols; \code{NA} skips that position)
-#' @param isPaging Whether column defines pages (length 1 or length of cols; \code{NA} skips that position)
+#' @param isPaging Whether column defines pages (length 1 or length of cols; \code{NA} skips that position).
+#'   Value changes force a HARD page break (a new page starts even when the
+#'   current one has room). See also \code{isGrouping}.
 #' @param labelStyleRef List of style names to be applied. Provided styles will be merged with last-win strategy for report. 
 #'   Can be: single string (recycled), character vector from \code{\link{f_combine}} (recycled), 
 #'   or list of \code{\link{f_combine}} results or \code{NA} sentinels (one-to-one mapping to columns).
@@ -2735,7 +2737,11 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   One of `"doc_footer"` (place inside the Word footer, below footer rows),
 #'   `"repeated"` (place under the table on every page),
 #'   or `"last_page"` (place under the table on the last page only).
-#'   Default `"repeated"`.
+#'   Default `"repeated"`. Any other value is rejected.
+#'   NOTE: `"doc_footer"` renders the footnote into the section's footer part,
+#'   which the package creates only when the spec has footer content — pair it
+#'   with `add_footer()`, otherwise the footnote text has nowhere to go
+#'   (a footer-less `doc_footer` silently drops the note in current versions).
 #' @param hasData Logical. Whether this spec has data to render. Set to `TRUE`
 #'   for tables with data rows. When `FALSE`, the body text (if any) is
 #'   rendered instead.
@@ -2746,8 +2752,14 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #' @param docTemplate Character. Template to use for rendering. Accepts either:
 #'   \itemize{
 #'     \item Name of a bundled template (see [tfl_list_templates()]).
-#'     \item Full path to a custom styles JSON file.
+#'     \item Path to a custom styles JSON file (absolute or relative).
 #'   }
+#'   A RELATIVE path is checked at authoring time against the session working
+#'   directory and stored verbatim in the spec; at render time it resolves
+#'   against the RENDER working directory. Replaying a saved report from a
+#'   different directory therefore warns and falls back to `Default` —
+#'   for portable scripts prefer absolute paths, bundled names, or keep the
+#'   render cwd at the template's location.
 #' @param figureWidth Figure width with units, e.g. `"6in"`, `"70%"`,
 #'   `"16.51cm"`. Only relevant for `docType = "Figure"`.
 #' @param figureHeight Figure height with units. Same syntax as `figureWidth`.
@@ -2763,6 +2775,14 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   box stretched to the page content width, aspect ratio taken from
 #'   figureWidth/figureHeight — NOT from the source image), or `"fitPage"`
 #'   (largest box of that same aspect ratio fitting the content area).
+#'   IMPORTANT: no mode inspects the embedded image — the source file's own
+#'   proportions are only honored when `figureWidth`/`figureHeight` match
+#'   them. Set explicit W/H equal to the source aspect ratio to avoid
+#'   distortion (or use ggplot objects, which are exported at the requested
+#'   size). For Figure specs the rendering CAPTION is the `add_subtitle()`
+#'   text, positioned by the template key `figureStyle.caption.position`
+#'   (`"above"` — default — or `"below"` the image); `add_title()` always
+#'   stays above the image and cannot act as a caption.
 #' 
 #' @return Updated spec object
 #' @export
