@@ -2755,10 +2755,11 @@ add_span_header <- function(spec, cols, label, stubOrder = NULL, id = NULL,
 #'   }
 #'   A RELATIVE path is checked at authoring time against the session working
 #'   directory and stored verbatim in the spec; at render time it resolves
-#'   against the RENDER working directory. Replaying a saved report from a
-#'   different directory therefore warns and falls back to `Default` —
-#'   for portable scripts prefer absolute paths, bundled names, or keep the
-#'   render cwd at the template's location.
+#'   against the RENDER working directory first and, when not found there,
+#'   against the directory of the spec JSON (and its parent) — so replaying a
+#'   saved report from another directory finds the template as long as it sits
+#'   next to the saved spec. Only if every candidate misses does the package
+#'   warn and fall back to `Default`.
 #' @param figureWidth Figure width with units, e.g. `"6in"`, `"70%"`,
 #'   `"16.51cm"`. Only relevant for `docType = "Figure"`.
 #' @param figureHeight Figure height with units. Same syntax as `figureWidth`.
