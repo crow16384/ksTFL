@@ -878,6 +878,16 @@ static StylesTemplate parse_template_internal(const json &root) {
     // cellDefaults
     if (tbl.contains("cellDefaults") && tbl["cellDefaults"].is_object()) {
       const auto &cd = tbl["cellDefaults"];
+      // vertical_alignment base for all cells (F04d): parsed here, applied as the
+      // lowest-precedence step of the cell style cascade. Only recognized values
+      // set the option; anything else leaves it unset (= Word default, unchanged).
+      auto cd_va = jutil::opt<std::string>(cd, "vertical_alignment");
+      if (cd_va.has_value()) {
+        const std::string &v = *cd_va;
+        if (v == "top") tmpl.table_style.default_cell_vertical_alignment = VerticalAlignment::Top;
+        else if (v == "center") tmpl.table_style.default_cell_vertical_alignment = VerticalAlignment::Center;
+        else if (v == "bottom") tmpl.table_style.default_cell_vertical_alignment = VerticalAlignment::Bottom;
+      }
       if (cd.contains("cell_margins") && cd["cell_margins"].is_object()) {
         const auto &cm = cd["cell_margins"];
         auto mt = jutil::opt<std::string>(cm, "top");

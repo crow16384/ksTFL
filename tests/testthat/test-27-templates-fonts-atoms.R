@@ -99,6 +99,55 @@ test_that("template body/header row_height are applied when set (F04b); auto kee
                label = "auto template height stays measured (no regression)")
 })
 
+test_that("cellDefaults.vertical_alignment applies when nothing higher sets valign (F04d)", {
+  skip_if_not_installed("jsonlite")
+  dirs <- local_docx_dirs()
+  base <- jsonlite::fromJSON(system.file("templates", "Default.json", package = "ksTFL"),
+                             simplifyVector = FALSE)
+  va_of <- function(x) sort(unique(unlist(regmatches(x, gregexpr('w:vAlign w:val="[a-z]+"', x)))))
+
+  # strip valign from all higher cascade levels (row defaults + structural),
+  # leave cellDefaults.vertical_alignment = top
+  tpl <- base
+  tpl$tableStyle$header$row$vertical_alignment <- NULL
+  tpl$tableStyle$body$row$vertical_alignment   <- NULL
+  tpl$tableStyle$structural$allHeaders$vertical_alignment <- NULL
+  tpl$tableStyle$structural$tableBody$vertical_alignment  <- NULL
+  tpl$tableStyle$cellDefaults$vertical_alignment <- "top"
+  f <- file.path(dirs$out, "t_cdva.json")
+  writeLines(jsonlite::toJSON(tpl, auto_unbox = TRUE, null = "null"), f)
+
+  df1 <- data.frame(a = c("x", "y"), stringsAsFactors = FALSE)
+  p <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                   set_document(hasData = TRUE, docTemplate = f)),
+                 "tpl_cdva", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  expect_identical(va_of(docx_part_text(p)), 'w:vAlign w:val="top"',
+                   label = "cellDefaults valign reaches the DOCX when nothing overrides it")
+
+  # bundled Default unchanged: every cell still center (structural wins)
+  p2 <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                   set_document(hasData = TRUE)),
+                 "tpl_cdva_default", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  expect_identical(va_of(docx_part_text(p2)), 'w:vAlign w:val="center"',
+                   label = "Default template valign cascade unchanged (zero golden diff)")
+
+  # cell-level va atom must still beat cellDefaults
+  tpl2 <- tpl
+  tpl2$tableStyle$cellDefaults$vertical_alignment <- "bottom"
+  f2 <- file.path(dirs$out, "t_cdva2.json")
+  writeLines(jsonlite::toJSON(tpl2, auto_unbox = TRUE, null = "null"), f2)
+  p3 <- write_doc(create_report(create_table(df1) |> add_title("T") |>
+                   add_style("vat", s_table_style(vertical_alignment = "top")) |>
+                   compute_cols(TRUE, c_style(a, "vat")) |>
+                   set_document(hasData = TRUE, docTemplate = f2)),
+                 "tpl_cdva_atom", outDir = dirs$out, metaPath = dirs$meta, verbose = FALSE)
+  x3 <- docx_part_text(p3)
+  expect_true(grepl('w:vAlign w:val="top"', x3, fixed = TRUE),
+              label = "spec va atom wins over cellDefaults")
+  expect_true(grepl('w:vAlign w:val="bottom"', x3, fixed = TRUE),
+              label = "untouched cells fall back to cellDefaults bottom")
+})
+
 test_that("write_doc() warns and falls back to Default for an unknown template name", {
   dirs <- local_docx_dirs()
   expect_warning(

@@ -173,6 +173,7 @@ StyleDef StyleResolver::resolve_header_cell_style(const ColumnSpec &col, const S
   // 6. Stub labelStyleRef
   if (stub && stub->label_style_ref.has_value()) { apply_style_ref_inplace(result, *stub->label_style_ref); }
 
+  apply_cell_defaults_valign(result);
   return result;
 }
 
@@ -214,6 +215,7 @@ StyleDef StyleResolver::resolve_body_cell_style(const ColumnSpec &col, const std
   // 8. Add-row styleRef
   if (addrow_style_ref.has_value()) { apply_style_ref_inplace(result, *addrow_style_ref); }
 
+  apply_cell_defaults_valign(result);
   return result;
 }
 
@@ -236,7 +238,20 @@ StyleDef StyleResolver::resolve_base_header_style() const {
     result.merge_from(*tmpl_.table_style.structural.all_headers);
   }
 
+  apply_cell_defaults_valign(result);
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// cellDefaults.vertical_alignment (F04d): the LOWEST-precedence template valign.
+// Applied last and only when nothing above set an explicit value.
+// ---------------------------------------------------------------------------
+
+void StyleResolver::apply_cell_defaults_valign(StyleDef &result) const {
+  if (!tmpl_.table_style.default_cell_vertical_alignment.has_value()) return;
+  if (!result.table_style.has_value()) { result.table_style = TableCellProps{}; }
+  auto &va = result.table_style->vertical_alignment;
+  if (!va.has_value()) va = tmpl_.table_style.default_cell_vertical_alignment;
 }
 
 // ---------------------------------------------------------------------------

@@ -93,6 +93,10 @@ private:
   const StylesTemplate &tmpl_;
   const StyleMap &spec_styles_;
 
+  /// Apply tableStyle.cellDefaults.vertical_alignment as the lowest-precedence
+  /// cell valign (F04d): only fills it when no higher cascade step set a value.
+  void apply_cell_defaults_valign(StyleDef &result) const;
+
   /// Resolve a named template text style key (e.g., "titles", "figureCaption").
   const StyleDef *find_template_text_style(const std::string &key) const;
 

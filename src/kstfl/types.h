@@ -367,6 +367,8 @@ struct TableStyleConfig {
   std::optional<Length> default_cell_margin_bottom;
   std::optional<Length> default_cell_margin_left;
   std::optional<Length> default_cell_margin_right;
+  // tableStyle.cellDefaults.vertical_alignment: lowest-precedence base valign (F04d)
+  std::optional<VerticalAlignment> default_cell_vertical_alignment;
 
   Structural structural;
 };
