@@ -2,7 +2,7 @@
 #' @keywords internal
 #' @noRd
 .is_absolute_path <- function(x) {
-  grepl("^/", x) || grepl("^[A-Za-z]:[\\\\/]", x) || grepl("^\\\\\\\\", x)
+  grepl("^/", x) || grepl("^[A-Za-z]:", x) || grepl("^\\\\", x)
 }
 
 #' Resolve a single template value to an absolute JSON path
