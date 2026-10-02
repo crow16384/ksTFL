@@ -89,7 +89,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-10-02</h4>
+            <h4 data-toc-skip class="date">2026-10-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Real_Examples_with_ksTFL.Rmd" class="external-link"><code>vignettes/Real_Examples_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Real_Examples_with_ksTFL.Rmd</code></div>
@@ -109,8 +109,11 @@ what comes out.</p>
 <p>The examples are ordered by complexity: we start with a demographics
 table that introduces core concepts (invisible columns, conditional
 formatting, section headers), then move on to multi-language support,
-complex spanning headers, data listings with grouping, and finally
-figure output.</p>
+complex spanning headers, data listings with grouping, figure-plus-table
+pages, and dedicated showcase examples: a safety forest figure (Example
+8), a two-table report page (Example 9), and a template-skinned
+laboratory table (Example 10). These same outputs are the demo tiles on
+the package site home page.</p>
 <p>All code chunks use <code>eval = FALSE</code>; the rendered PDFs were
 pre-generated and are embedded below. To reproduce an example locally,
 run the shown code in an R session with ksTFL loaded and the session
@@ -118,13 +121,12 @@ setup above applied (the examples use the magrittr pipe
 <code>%&gt;%</code>, so attach <code>dplyr</code> or
 <code>magrittr</code> as in the setup block).</p>
 <blockquote>
-<p><strong>Data note</strong>: Examples 1 and 5 build their input
-completely in the shown code (and Example 5 runs on
-<code>mtcars</code>). In the other examples the input frame
-(<code>data</code>, <code>tbl</code>, <code>lab_listing</code>,
-<code>pk</code>, <code>summary_tbl</code>, <code>demo_data</code>) is
-displayed as printed output only — it stands for the result of upstream
-analysis programs (ADaM-style summaries). To reproduce those, rebuild an
+<p><strong>Data note</strong>: Examples 1, 5, 8 and 10 build their input
+completely in the shown code (Example 5 runs on <code>mtcars</code>). In
+the other examples the input frame (<code>data</code>, <code>tbl</code>,
+<code>lab_listing</code>, <code>demo_data</code>) is displayed as
+printed output only — it stands for the result of upstream analysis
+programs (ADaM-style summaries). To reproduce those, rebuild an
 equivalent frame from the printed rows (column names and order are what
 the spec code consumes); the focus here is the ksTFL specification
 layer, not statistics.</p>
@@ -204,151 +206,123 @@ frame can carry metadata columns that the rendering engine never prints
 but uses to control formatting.</li>
 <li>
 <strong><code><a href="../reference/c_addrow.html">c_addrow()</a></code></strong> — inserts bold section
-headers (Age, Sex, Race) above the first row of each group, pulling
-values directly from the hidden <code>SECTION</code> column.</li>
+headers (Age, Sex, Race, Ethnicity) above the first row of each group,
+pulling the text straight from the hidden <code>SECTION</code>
+column.</li>
 <li>
 <strong><code><a href="../reference/c_merge.html">c_merge()</a></code> + <code><a href="../reference/c_glue.html">c_glue()</a></code></strong> — on
-p-value rows the treatment columns are merged into one cell and the
-p-value is appended, creating the typical “p = 0.041” display.</li>
+p-value rows the treatment columns merge into one cell and the p-value
+is appended, giving the familiar “p = 0.041” display.</li>
 <li>
-<strong><code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code></strong> — forces a page break
-before the “Race” section for readability.</li>
+<strong>Inline markup</strong> —
+<code>&lt;sup&gt;a&lt;/sup&gt;</code> renders the footnote reference
+marker on the population line, inside the text passed to
+<code><a href="../reference/add_title.html">add_title()</a></code>.</li>
+<li>
+<strong><code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code></strong> — forces a break before
+the last section so the long tail of the table opens on a fresh
+page.</li>
 <li>
 <strong>Spacer rows</strong> — <code>c_addrow("below")</code> with
-<code>row_h4</code> adds visual separation between sections.</li>
+<code>row_h4</code> separates the sections visually.</li>
 </ul>
 <div class="section level3">
 <h3 id="input-data">Input data<a class="anchor" aria-label="anchor" href="#input-data"></a>
 </h3>
-<p>The data frame has three demographic sections (Age, Sex, Race), each
-containing summary statistics and an optional p-value stored in the
-<code>MODELVAL</code> column. Note that <code>MODELVAL</code> is only
-populated on the p-value rows — it is <code>NA</code> everywhere else,
-which is how we target those rows in <code><a href="../reference/compute_cols.html">compute_cols()</a></code>. The
-<code>SECTION_ID</code> column is derived from the grouping and used for
+<p>The frame has four sections, each ending with a p-value row.
+<code>MODELVAL</code> is populated only on those rows — <code>NA</code>
+elsewhere — which is how <code><a href="../reference/compute_cols.html">compute_cols()</a></code> targets them.
+<code>SECTION_ID</code> is derived from the grouping and drives the
 spacing and page-break logic:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
-<span>  SECTION <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Age (years)"</span>, <span class="fl">6</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Sex"</span>, <span class="fl">3</span><span class="op">)</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Race"</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  STAT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"n"</span>, <span class="st">"Mean (SD)"</span>, <span class="st">"Median"</span>, <span class="st">"Q1; Q3"</span>, <span class="st">"Min; Max"</span>, <span class="st">"p-value (ANOVA)"</span>,</span>
-<span>    <span class="st">"Female"</span>, <span class="st">"Male"</span>, <span class="st">"p-value (Fisher)"</span>,</span>
-<span>    <span class="st">"White"</span>, <span class="st">"Asian"</span>, <span class="st">"Black"</span>, <span class="st">"p-value (Fisher)"</span></span>
-<span>  <span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  SECTION <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Age (years)"</span>, <span class="fl">6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Sex"</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Race"</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>              <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"Ethnicity"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  STAT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"Mean (SD)"</span>, <span class="st">"Median"</span>, <span class="st">"Q1; Q3"</span>, <span class="st">"Min; Max"</span>, <span class="st">"p-value (ANOVA)"</span>,</span>
+<span>           <span class="st">"Female"</span>, <span class="st">"Male"</span>, <span class="st">"p-value (Fisher)"</span>,</span>
+<span>           <span class="st">"White"</span>, <span class="st">"Asian"</span>, <span class="st">"Black or African American"</span>, <span class="st">"p-value (Fisher)"</span>,</span>
+<span>           <span class="st">"Hispanic or Latino"</span>, <span class="st">"Not Hispanic or Latino"</span>, <span class="st">"p-value (Fisher)"</span><span class="op">)</span>,</span>
 <span>  DRUGX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"160"</span>, <span class="st">"55.2 (12.4)"</span>, <span class="st">"54.0"</span>, <span class="st">"47.0; 64.0"</span>, <span class="st">"18; 82"</span>, <span class="st">""</span>,</span>
 <span>            <span class="st">"88 (55.0%)"</span>, <span class="st">"72 (45.0%)"</span>, <span class="st">""</span>,</span>
-<span>            <span class="st">"130 (81.2%)"</span>, <span class="st">"18 (11.2%)"</span>, <span class="st">"12 (7.5%)"</span>, <span class="st">""</span><span class="op">)</span>,</span>
+<span>            <span class="st">"130 (81.2%)"</span>, <span class="st">"18 (11.2%)"</span>, <span class="st">"12 (7.5%)"</span>, <span class="st">""</span>,</span>
+<span>            <span class="st">"21 (13.1%)"</span>, <span class="st">"139 (86.9%)"</span>, <span class="st">""</span><span class="op">)</span>,</span>
 <span>  PLCB  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"158"</span>, <span class="st">"56.0 (11.9)"</span>, <span class="st">"55.0"</span>, <span class="st">"48.0; 63.0"</span>, <span class="st">"20; 81"</span>, <span class="st">""</span>,</span>
 <span>            <span class="st">"90 (57.0%)"</span>, <span class="st">"68 (43.0%)"</span>, <span class="st">""</span>,</span>
-<span>            <span class="st">"124 (78.5%)"</span>, <span class="st">"22 (13.9%)"</span>, <span class="st">"12 (7.6%)"</span>, <span class="st">""</span><span class="op">)</span>,</span>
-<span>  TOTAL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"318"</span>, <span class="st">"55.6 (12.1)"</span>, <span class="st">"54.0"</span>, <span class="st">"47.5; 63.5"</span>, <span class="st">"18; 82"</span>, <span class="st">""</span>,</span>
+<span>            <span class="st">"124 (78.5%)"</span>, <span class="st">"22 (13.9%)"</span>, <span class="st">"12 (7.6%)"</span>, <span class="st">""</span>,</span>
+<span>            <span class="st">"18 (11.4%)"</span>, <span class="st">"140 (88.6%)"</span>, <span class="st">""</span><span class="op">)</span>,</span>
+<span>  TOTAL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"318"</span>, <span class="st">"55.6 (12.1)"</span>, <span class="st">"54.5"</span>, <span class="st">"47.5; 63.5"</span>, <span class="st">"18; 82"</span>, <span class="st">""</span>,</span>
 <span>            <span class="st">"178 (56.0%)"</span>, <span class="st">"140 (44.0%)"</span>, <span class="st">""</span>,</span>
-<span>            <span class="st">"254 (79.9%)"</span>, <span class="st">"40 (12.6%)"</span>, <span class="st">"24 (7.5%)"</span>, <span class="st">""</span><span class="op">)</span>,</span>
+<span>            <span class="st">"254 (79.9%)"</span>, <span class="st">"40 (12.6%)"</span>, <span class="st">"24 (7.5%)"</span>, <span class="st">""</span>,</span>
+<span>            <span class="st">"39 (12.3%)"</span>, <span class="st">"279 (87.7%)"</span>, <span class="st">""</span><span class="op">)</span>,</span>
 <span>  MODELVAL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"0.041"</span>,</span>
 <span>               <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"&gt;0.999"</span>,</span>
-<span>               <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"0.772"</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">SECTION</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>SECTION_ID <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">cur_group_id</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The first few rows of <code>raw</code>:</p>
-<pre><code># A tibble: 13 × 7
-   SECTION      STAT             DRUGX          PLCB           TOTAL          MODELVAL SECTION_ID
-   &lt;chr&gt;        &lt;chr&gt;            &lt;chr&gt;          &lt;chr&gt;          &lt;chr&gt;          &lt;chr&gt;         &lt;int&gt;
- 1 Age (years)  n                160            158            318            NA                1
- 2 Age (years)  Mean (SD)        55.2 (12.4)    56.0 (11.9)    55.6 (12.1)    NA                1
- 3 Age (years)  Median           54.0           55.0           54.0           NA                1
- 4 Age (years)  Q1; Q3           47.0; 64.0     48.0; 63.0     47.5; 63.5     NA                1
- 5 Age (years)  Min; Max         18; 82         20; 81         18; 82         NA                1
- 6 Age (years)  p-value (ANOVA)                                               0.041             1
- 7 Sex          Female           88 (55.0%)     90 (57.0%)     178 (56.0%)    NA                2
- 8 Sex          Male             72 (45.0%)     68 (43.0%)     140 (44.0%)    NA                2
- 9 Sex          p-value (Fisher)                                              &gt;0.999            2
-10 Race         White            130 (81.2%)    124 (78.5%)    254 (79.9%)    NA                3
-11 Race         Asian            18 (11.2%)     22 (13.9%)     40 (12.6%)     NA                3
-12 Race         Black            12 (7.5%)      12 (7.6%)      24 (7.5%)      NA                3
-13 Race         p-value (Fisher)                                              0.772             3</code></pre>
+<span>               <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"0.772"</span>,</span>
+<span>               <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="st">"0.664"</span><span class="op">)</span>,</span>
+<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">raw</span><span class="op">$</span><span class="va">SECTION_ID</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html" class="external-link">duplicated</a></span><span class="op">(</span><span class="va">raw</span><span class="op">$</span><span class="va">SECTION</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>The resulting frame:</p>
+<pre><code>   SECTION                      STAT                    DRUGX         PLCB         TOTAL
+1  Age (years)                  n                       160           158          318
+2  Age (years)                  Mean (SD)               55.2 (12.4)   56.0 (11.9)  55.6 (12.1)
+3  Age (years)                  Median                  54.0          55.0         54.5
+4  Age (years)                  Q1; Q3                  47.0; 64.0    48.0; 63.0   47.5; 63.5
+5  Age (years)                  Min; Max                18; 82        20; 81       18; 82
+6  Age (years)                  p-value (ANOVA)                                     0.041
+7  Sex                          Female                  88 (55.0%)    90 (57.0%)   178 (56.0%)
+8  Sex                          Male                    72 (45.0%)    68 (43.0%)   140 (44.0%)
+9  Sex                          p-value (Fisher)                                    &gt;0.999
+10 Race                         White                   130 (81.2%)   124 (78.5%)  254 (79.9%)
+11 Race                         Asian                   18 (11.2%)    22 (13.9%)   40 (12.6%)
+12 Race                         Black or African Am.    12 (7.5%)     12 (7.6%)    24 (7.5%)
+13 Race                         p-value (Fisher)                                    0.772
+14 Ethnicity                    Hispanic or Latino      21 (13.1%)    18 (11.4%)   39 (12.3%)
+15 Ethnicity                    Not Hispanic or Latino  139 (86.9%)   140 (88.6%)  279 (87.7%)
+16 Ethnicity                    p-value (Fisher)                                    0.664</code></pre>
 </div>
 <div class="section level3">
 <h3 id="building-the-specification">Building the specification<a class="anchor" aria-label="anchor" href="#building-the-specification"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">raw</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># --- Titles and footnotes ---</span></span>
-<span>  <span class="co"># Multi-line title: table number on first line, description on second.</span></span>
-<span>  <span class="co"># toclevel = 1 makes this entry appear in the Table of Contents.</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S1"</span>,</span>
-<span>      <span class="st">"Demographic and Baseline Characteristics"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S1"</span>, <span class="st">"Demographic and Baseline Characteristics"</span><span class="op">)</span>,</span>
 <span>    toclevel <span class="op">=</span> <span class="fl">1</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="co"># Secondary title in italics for the analysis population label</span></span>
-<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Full Analysis Set"</span>, styleRef <span class="op">=</span> <span class="st">"font_italic"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="st">"Values are shown as n (%), mean (SD), median, or quartiles."</span>,</span>
-<span>    <span class="st">"P-values shown for section-level inferential tests."</span></span>
-<span>  <span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># --- Column definitions ---</span></span>
-<span>  <span class="co"># Hide helper columns: they won't appear in the document, but remain</span></span>
-<span>  <span class="co"># available for compute_cols() conditions. This is the "invisible column"</span></span>
-<span>  <span class="co"># pattern — SECTION drives group headers, SECTION_ID drives spacing and</span></span>
-<span>  <span class="co"># page breaks, MODELVAL carries p-values for conditional formatting.</span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Full Analysis Set&lt;sup&gt;a&lt;/sup&gt;"</span>, styleRef <span class="op">=</span> <span class="st">"font_italic"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"&lt;sup&gt;a&lt;/sup&gt; Values are shown as n (%), mean (SD), median, or quartiles; "</span>,</span>
+<span>           <span class="st">"percentages are based on the number of subjects in the treatment arm."</span><span class="op">)</span>,</span>
+<span>    styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SECTION</span>, <span class="va">SECTION_ID</span>, <span class="va">MODELVAL</span><span class="op">)</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># The statistics column: left-aligned header, values indented one level</span></span>
-<span>  <span class="co"># to sit beneath the bold section headers inserted by c_addrow() below.</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">STAT</span>,</span>
-<span>    label     <span class="op">=</span> <span class="st">"Parameter&lt;br&gt;  Statistic"</span>,</span>
+<span>    label <span class="op">=</span> <span class="st">"Parameter&lt;br&gt;  Statistic"</span>,</span>
 <span>    labelStyleRef <span class="op">=</span> <span class="st">"text_left"</span>,</span>
 <span>    valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># Treatment-arm columns: centred values, equal width, with N in the header.</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">DRUGX</span>, <span class="va">PLCB</span>, <span class="va">TOTAL</span><span class="op">)</span>,</span>
-<span>    label     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DrugX&lt;br&gt;(N=160)"</span>, <span class="st">"Placebo&lt;br&gt;(N=158)"</span>, <span class="st">"Total&lt;br&gt;(N=318)"</span><span class="op">)</span>,</span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"DrugX&lt;br&gt;(N=160)"</span>, <span class="st">"Placebo&lt;br&gt;(N=158)"</span>, <span class="st">"Total&lt;br&gt;(N=318)"</span><span class="op">)</span>,</span>
 <span>    valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span>,</span>
-<span>    colWidth  <span class="op">=</span> <span class="st">"16%"</span></span>
+<span>    colWidth <span class="op">=</span> <span class="st">"16%"</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># --- Conditional row actions (compute_cols) ---</span></span>
-<span></span>
-<span>  <span class="co"># 1. Section headers: for the first row of each SECTION</span></span>
-<span>  <span class="co">#    group, insert a bold header row above it, pulling the</span></span>
-<span>  <span class="co">#    text from the hidden SECTION column.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">SECTION</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">SECTION</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># 2. P-value rows: when MODELVAL is not NA, merge the DrugX and Placebo</span></span>
-<span>  <span class="co">#    cells into one (with a thin top border and centred italic text),</span></span>
-<span>  <span class="co">#    italicise the STAT label, and append the p-value after the merged cell.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">MODELVAL</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">DRUGX</span>, <span class="va">PLCB</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"text_center"</span>, <span class="st">"bt_th"</span>, <span class="st">"i"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">STAT</span>, <span class="st">"i"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">DRUGX</span>, <span class="st">"after"</span>, glue_col <span class="op">=</span> <span class="va">MODELVAL</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># 3. Spacers: insert a thin empty row below each section for visual separation</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">lastOf</span><span class="op">(</span><span class="va">SECTION_ID</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"below"</span>, styleRef <span class="op">=</span> <span class="st">"row_h4"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># 4. Page break: force a new page before the Race section (group 3)</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="va">SECTION_ID</span> <span class="op">==</span> <span class="fl">3</span> <span class="op">&amp;</span> <span class="fu">firstOf</span><span class="op">(</span><span class="va">SECTION_ID</span><span class="op">)</span>,</span>
+<span>    <span class="va">SECTION_ID</span> <span class="op">==</span> <span class="fl">4</span> <span class="op">&amp;</span> <span class="fu">firstOf</span><span class="op">(</span><span class="va">SECTION_ID</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_pageBreak.html">c_pageBreak</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span></span>
-<span>  <span class="co"># Document-level settings: narrow content area, no extra spacing</span></span>
 <span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span></span>
 <span>    contentWidth <span class="op">=</span> <span class="st">"75%"</span>,</span>
 <span>    topEmptyLine <span class="op">=</span> <span class="st">"0pt"</span>,</span>
@@ -359,7 +333,7 @@ spacing and page-break logic:</p>
 <h3 id="render">Render<a class="anchor" aria-label="anchor" href="#render"></a>
 </h3>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"example_01"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_01'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="rendered-output">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output"></a>
@@ -375,12 +349,12 @@ spacing and page-break logic:</p>
 ksTFL’s design principles is that <strong>content and styling are
 separate</strong>: you can switch to a completely different visual theme
 by changing a single parameter on an already-built spec, without
-touching any of the data or conditional logic:</p>
+touching any data or conditional logic:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec</span>, docTemplate <span class="op">=</span> <span class="st">'Navy_Pro'</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"example_01_navy"</span><span class="op">)</span></span></code></pre></div>
-<p>The same table is now rendered with the “Navy_Pro” template —
-different fonts, colours, and border styles, but identical content and
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_01_navy'</span><span class="op">)</span></span></code></pre></div>
+<p>The same table now wears the <code>Navy_Pro</code> template —
+different fonts, colours, and borders, identical content and
 structure:</p>
 <p><a href="example_01_navy.pdf">Open example_01_navy.pdf</a></p>
 <iframe src="example_01_navy.pdf" title="example_01_navy.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
@@ -390,30 +364,27 @@ structure:</p>
 <li>
 <strong>Invisible columns</strong> — <code>SECTION</code>,
 <code>SECTION_ID</code>, and <code>MODELVAL</code> never appear in the
-document, yet they drive all conditional logic. This is the core
-“metadata column” pattern.</li>
+document, yet they drive all the conditional logic.</li>
 <li>
 <strong><code>c_addrow(value_from = ...)</code></strong> pulls text
-from a hidden column into a dynamically inserted header row — no manual
-string duplication needed.</li>
+from a hidden column into a inserted header row — no manual string
+duplication.</li>
 <li>
 <strong><code><a href="../reference/c_merge.html">c_merge()</a></code> + <code><a href="../reference/c_glue.html">c_glue()</a></code></strong>
-combine cells and append content from another column in a single
-<code><a href="../reference/compute_cols.html">compute_cols()</a></code> call, producing the merged p-value
-display.</li>
+combine cells and append content from another column in one
+<code><a href="../reference/compute_cols.html">compute_cols()</a></code> call.</li>
 <li>
-<strong><code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code></strong> gives fine-grained
-control over pagination.</li>
+<strong>Inline <code>&lt;sup&gt;</code> markup</strong> carries the
+footnote reference into the title.</li>
 <li>
-<strong>Template switching</strong> —
-<code>set_document(docTemplate = ...)</code> re-skins the entire output
-without modifying the spec pipeline.</li>
+<strong><code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code></strong> and
+<strong><code>row_h4</code> spacers</strong> give precise control over
+pagination and whitespace.</li>
+<li>
+<strong>Template switching</strong> re-skins the whole output via
+one option. ## Example 2 — Demographics table (UTF-8 encoding
+support)</li>
 </ul>
-</div>
-</div>
-<div class="section level2">
-<h2 id="example-2-demographics-table-utf-8-encoding-support">Example 2 — Demographics table (UTF-8 encoding support)<a class="anchor" aria-label="anchor" href="#example-2-demographics-table-utf-8-encoding-support"></a>
-</h2>
 <p>Clinical trials run in many countries, and regulatory submissions
 often require documents in local languages. ksTFL has full UTF-8 support
 — titles, footnotes, column labels, and data values can all contain
@@ -422,6 +393,7 @@ non-Latin characters without any special configuration.</p>
 Example 1, but entirely in Russian. The code also serves as a detailed
 walkthrough of the spec-building pipeline, with comments explaining
 every step.</p>
+</div>
 <div class="section level3">
 <h3 id="input-data-1">Input data<a class="anchor" aria-label="anchor" href="#input-data-1"></a>
 </h3>
@@ -773,6 +745,130 @@ between the “Any AE” summary and per-SOC detail.</li>
 </div>
 </div>
 <div class="section level2">
+<h2 id="example-3b">Example 3b — Adverse events with subjects and events per period<a class="anchor" aria-label="anchor" href="#example-3b"></a>
+</h2>
+<p>The previous AE example counts <em>subjects</em>. Regulators often
+want the companion view that also reports <em>events</em> — how many
+subjects experienced an AE and how many times it recurred — split
+between the on-treatment and follow-up periods. Same vocabulary, one
+more dimension of headers.</p>
+<p>Demonstrated here:</p>
+<ul>
+<li>
+<strong>Paired sub-columns per period</strong> — <code>n (%)</code>
+and <code>E</code> sit together under three period banners
+(<code>Treatment Period</code>, <code>Follow-up</code>,
+<code>Total</code>), all beneath one <code>Drug A</code> umbrella:
+<code>stubOrder = 1</code> for the siblings, <code>2</code> for the
+banner above them.</li>
+<li>
+<strong>Nested indentation</strong> — preferred-term rows take
+<code>indent_1</code>, causality rows <code>indent_2</code>, straight
+from the flat frame.</li>
+<li>
+<strong>Emphasis without extra columns</strong> — the “Any adverse
+event” block is bolded and “Related” rows coloured by
+<code><a href="../reference/compute_cols.html">compute_cols()</a></code>.</li>
+<li>
+<strong>A landscape page for one table only</strong> —
+<code>set_page_style(p_page(...))</code> rotates this spec while the
+rest of the report stays portrait.</li>
+</ul>
+<div class="section level3">
+<h3 id="input-data-3">Input data<a class="anchor" aria-label="anchor" href="#input-data-3"></a>
+</h3>
+<pre><code>   SOC                          TERM                 REL             TRT_N   TRT_E
+1  Any adverse event                                       18 (50.0%)    32
+2  Any adverse event             Not related               10 (27.8%)    15
+3  Any adverse event             Related                    8 (22.2%)    17
+4  Infections and infestations   Nasopharyngitis            5 (13.9%)     6
+5  Infections and infestations   Nasopharyngitis Not related 2 (5.6%)     2
+6  Infections and infestations   Nasopharyngitis Related     3 (8.3%)     4
+7  Infections and infestations   Rhinitis                   3 (8.3%)      4
+8  Gastrointestinal disorders    Nausea                     4 (11.1%)     5
+9  Gastrointestinal disorders    Diarrhoea                  3 (8.3%)      4
+10 Nervous system disorders      Headache                  4 (11.1%)      7
+   ... 7 more rows; plus FU_N, FU_E, TOT_N, TOT_E for the other periods</code></pre>
+</div>
+<div class="section level3">
+<h3 id="code-2">Code<a class="anchor" aria-label="anchor" href="#code-2"></a>
+</h3>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">make_ae_row</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">soc</span>, <span class="va">term</span>, <span class="va">rel</span>, <span class="va">trt_n</span>, <span class="va">trt_e</span>, <span class="va">fu_n</span>, <span class="va">fu_e</span>, <span class="va">tot_n</span>, <span class="va">tot_e</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>SOC <span class="op">=</span> <span class="va">soc</span>, TERM <span class="op">=</span> <span class="va">term</span>, REL <span class="op">=</span> <span class="va">rel</span>,</span>
+<span>             TRT_N <span class="op">=</span> <span class="va">trt_n</span>, TRT_E <span class="op">=</span> <span class="va">trt_e</span>, FU_N <span class="op">=</span> <span class="va">fu_n</span>, FU_E <span class="op">=</span> <span class="va">fu_e</span>,</span>
+<span>             TOT_N <span class="op">=</span> <span class="va">tot_n</span>, TOT_E <span class="op">=</span> <span class="va">tot_e</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">ae_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Any adverse event"</span>, <span class="st">""</span>, <span class="st">""</span>,      <span class="st">"18 (50.0%)"</span>, <span class="fl">32</span>, <span class="st">"9 (25.0%)"</span>, <span class="fl">14</span>, <span class="st">"22 (61.1%)"</span>, <span class="fl">46</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Any adverse event"</span>, <span class="st">""</span>, <span class="st">"Not related"</span>, <span class="st">"10 (27.8%)"</span>, <span class="fl">15</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span>, <span class="st">"12 (33.3%)"</span>, <span class="fl">20</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Any adverse event"</span>, <span class="st">""</span>, <span class="st">"Related"</span>,     <span class="st">"8 (22.2%)"</span>, <span class="fl">17</span>, <span class="st">"5 (13.9%)"</span>, <span class="fl">9</span>, <span class="st">"10 (27.8%)"</span>, <span class="fl">26</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Nasopharyngitis"</span>, <span class="st">""</span>,  <span class="st">"5 (13.9%)"</span>, <span class="fl">6</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"6 (16.7%)"</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Nasopharyngitis"</span>, <span class="st">"Not related"</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Nasopharyngitis"</span>, <span class="st">"Related"</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Rhinitis"</span>, <span class="st">""</span>,    <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Infections and infestations"</span>, <span class="st">"Rhinitis"</span>, <span class="st">"Related"</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">3</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>, <span class="st">"Nausea"</span>, <span class="st">""</span>,        <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"5 (13.9%)"</span>, <span class="fl">6</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>, <span class="st">"Nausea"</span>, <span class="st">"Related"</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>, <span class="st">"Diarrhoea"</span>, <span class="st">""</span>,     <span class="st">"3 (8.3%)"</span>, <span class="fl">4</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">6</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Nervous system disorders"</span>, <span class="st">"Headache"</span>, <span class="st">""</span>,        <span class="st">"4 (11.1%)"</span>, <span class="fl">7</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">3</span>, <span class="st">"5 (13.9%)"</span>, <span class="fl">10</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Nervous system disorders"</span>, <span class="st">"Headache"</span>, <span class="st">"Related"</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">6</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">3</span>, <span class="st">"4 (11.1%)"</span>, <span class="fl">9</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Skin and subcutaneous tissue disorders"</span>, <span class="st">"Rash"</span>, <span class="st">""</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Musculoskeletal disorders"</span>, <span class="st">"Myalgia"</span>, <span class="st">""</span>,        <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"1 (2.8%)"</span>, <span class="fl">1</span>, <span class="st">"3 (8.3%)"</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Hepatobiliary disorders"</span>, <span class="st">"ALT increased"</span>, <span class="st">""</span>,    <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"0 (0.0%)"</span>, <span class="fl">0</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  <span class="fu">make_ae_row</span><span class="op">(</span><span class="st">"Hepatobiliary disorders"</span>, <span class="st">"ALT increased"</span>, <span class="st">"Related"</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span>, <span class="st">"0 (0.0%)"</span>, <span class="fl">0</span>, <span class="st">"2 (5.6%)"</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">ae_tbl</span><span class="op">$</span><span class="va">SECT</span> <span class="op">&lt;-</span> <span class="va">ae_tbl</span><span class="op">$</span><span class="va">SOC</span></span>
+<span><span class="va">ae_tbl</span><span class="op">$</span><span class="va">IS_ANY</span> <span class="op">&lt;-</span> <span class="va">ae_tbl</span><span class="op">$</span><span class="va">SOC</span> <span class="op">==</span> <span class="st">"Any adverse event"</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">ae_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S3.1b"</span>,</span>
+<span>              <span class="st">"Adverse Events by System Organ Class, Preferred Term, and Relationship"</span><span class="op">)</span>,</span>
+<span>            toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Drug A (N=36); Safety Population"</span>, styleRef <span class="op">=</span> <span class="st">"font_italic"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"AEs are coded with MedDRA; relationship assessed by the investigator."</span>,</span>
+<span>               styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SECT</span>, <span class="va">IS_ANY</span><span class="op">)</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SOC</span>, <span class="va">TERM</span>, <span class="va">REL</span><span class="op">)</span>,</span>
+<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"System Organ Class"</span>, <span class="st">"Preferred Term"</span>, <span class="st">"Causality"</span><span class="op">)</span>,</span>
+<span>              labelStyleRef <span class="op">=</span> <span class="st">"text_left"</span>, colWidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"20%"</span>, <span class="st">"18%"</span>, <span class="st">"12%"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">SOC</span><span class="op">)</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">SOC</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">TERM</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">TERM</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">TERM</span> <span class="op">!=</span> <span class="st">""</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">TERM</span>, styleRef <span class="op">=</span> <span class="st">"indent_1"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">REL</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">REL</span> <span class="op">!=</span> <span class="st">""</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">REL</span>, styleRef <span class="op">=</span> <span class="st">"indent_2"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_N</span>, <span class="va">TRT_E</span>, <span class="va">FU_N</span>, <span class="va">FU_E</span>, <span class="va">TOT_N</span>, <span class="va">TOT_E</span><span class="op">)</span>,</span>
+<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n (%)"</span>, <span class="st">"n"</span>, <span class="st">"n (%)"</span>, <span class="st">"n"</span>, <span class="st">"n (%)"</span>, <span class="st">"n"</span><span class="op">)</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_N</span>, <span class="va">TRT_E</span><span class="op">)</span>, <span class="st">"Treatment Period"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">FU_N</span>, <span class="va">FU_E</span><span class="op">)</span>,   <span class="st">"Follow-up"</span>,       stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TOT_N</span>, <span class="va">TOT_E</span><span class="op">)</span>, <span class="st">"Total"</span>,           stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_N</span>, <span class="va">TRT_E</span>, <span class="va">FU_N</span>, <span class="va">FU_E</span>, <span class="va">TOT_N</span>, <span class="va">TOT_E</span><span class="op">)</span>,</span>
+<span>                  <span class="st">"Drug A"</span>, stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">IS_ANY</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">REL</span> <span class="op">==</span> <span class="st">"Related"</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TERM</span>, <span class="va">REL</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"fc_rust"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span></span>
+<span>    page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
+<span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
+<span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>docTemplate <span class="op">=</span> <span class="st">"Regulatory_Arial"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_03b_ae_periods'</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="rendered-output-3">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-3"></a>
+</h3>
+<p><a href="example_03b_ae_periods.pdf">Open
+example_03b_ae_periods.pdf</a></p>
+<iframe src="example_03b_ae_periods.pdf" title="example_03b_ae_periods.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+</iframe>
+</div>
+</div>
+<div class="section level2">
 <h2 id="example-4-data-listing-with-automatic-two-level-toc">Example 4 — Data listing with automatic two-level TOC<a class="anchor" aria-label="anchor" href="#example-4-data-listing-with-automatic-two-level-toc"></a>
 </h2>
 <p>Data listings present individual patient records with minimal
@@ -802,7 +898,7 @@ headers 90° to save horizontal space for the many narrow lab-parameter
 columns.</li>
 </ul>
 <div class="section level3">
-<h3 id="input-data-3">Input data<a class="anchor" aria-label="anchor" href="#input-data-3"></a>
+<h3 id="input-data-4">Input data<a class="anchor" aria-label="anchor" href="#input-data-4"></a>
 </h3>
 <pre><code># A tibble: 550 × 16
         ID AGE SEX     TRT    VISIT       DATE   ALT  ALTNR   AST  ASTNR BILI BILINR  HGB  HGBNR  PH WBCU
@@ -823,9 +919,9 @@ columns.</li>
 15 SUBJ002  39   F  Drug A  Visit 3 2024-03-10  42.0   high  11.9 normal 0.52 normal 13.0 normal 6.8    -</code></pre>
 </div>
 <div class="section level3">
-<h3 id="code-2">Code<a class="anchor" aria-label="anchor" href="#code-2"></a>
+<h3 id="code-3">Code<a class="anchor" aria-label="anchor" href="#code-3"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_lbl_01</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">lab_listing</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    </span>
 <span>    <span class="co"># --- Title and dynamic subtitle ---</span></span>
@@ -933,7 +1029,7 @@ columns.</li>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_lbl_01</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"example_04_list"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-3">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-3"></a>
+<h3 id="rendered-output-4">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-4"></a>
 </h3>
 <p><a href="example_04_list.pdf">Open example_04_list.pdf</a></p>
 <iframe src="example_04_list.pdf" title="example_04_list.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
@@ -951,7 +1047,7 @@ reader always sees the identifying context.</p>
 <p>For example, adding a column break at <code>PH</code> splits the
 listing into two column groups — Bilirubin through Nitrites on the first
 page, and pH through White Blood Cells on the second:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_lbl_02</span> <span class="op">&lt;-</span> <span class="va">spec_lbl_01</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="co"># Add a column break at PH — all columns from PH onward move to a new page.</span></span>
 <span>  <span class="co"># The Treatment, Visit, and Date columns (isID = TRUE) repeat automatically.</span></span>
@@ -984,9 +1080,9 @@ from the <code>toclevel</code> values set in titles.</p>
 <p>This example creates three ggplot2 figures and writes them into a
 single landscape document with a TOC page.</p>
 <div class="section level3">
-<h3 id="code-3">Code<a class="anchor" aria-label="anchor" href="#code-3"></a>
+<h3 id="code-4">Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- Figure 1: Fuel efficiency scatter plot from mtcars ---</span></span>
@@ -1090,7 +1186,7 @@ single landscape document with a TOC page.</p>
 <span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">t.fig.report</span>, <span class="st">"example_05_figures_single_doc_toc"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-4">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-4"></a>
+<h3 id="rendered-output-5">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-5"></a>
 </h3>
 <p>The resulting document contains a TOC page listing all three figures,
 followed by one page per figure. Each figure fills the landscape page
@@ -1102,145 +1198,128 @@ example_05_figures_single_doc_toc.pdf</a></p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-6---table-under-the-figure">Example 6 - Table under the figure<a class="anchor" aria-label="anchor" href="#example-6---table-under-the-figure"></a>
+<h2 id="example-06">Example 6 — Concentration-time figure with a parameter table<a class="anchor" aria-label="anchor" href="#example-06"></a>
 </h2>
-<p>In clinical reporting, you often need to place a summary table
-directly under a figure (e.g., a PK concentration-time plot followed by
-a summary statistics table). This pattern uses two specs — one for the
-figure and one for the table — combined in a single report with
-<code>continuousSection = TRUE</code> on both to suppress page breaks
-between them.</p>
+<p>A frequent CSR pattern is a summary table printed directly beneath
+its figure — a PK concentration-time profile followed by its derived
+parameters. Two specs (figure + table) merge into a single report;
+<code>continuousSection</code> lets them share one page instead of
+starting a new one.</p>
 <p><strong>Key design principles:</strong></p>
 <ul>
 <li>
-<strong>Figure subtitle</strong> — by default now appears
-<strong>above</strong> the figure image, between the title and the plot.
-You can override this with template-level configuration or per-spec
-settings if needed.</li>
+<strong>One report, two documents</strong> —
+<code>create_report(spec_fig, spec_tbl)</code> merges figure and table
+into one <code>.docx</code>; each keeps its own titles and footnotes, so
+the Table of Contents can list both entries.</li>
 <li>
-<strong>Continuous section breaks</strong> — both the figure and
-table specs must have <code>continuousSection = TRUE</code> to flow
-together without a page break.</li>
+<strong>Continuous flow</strong> — both specs carry
+<code>continuousSection = TRUE</code>, so the table follows the figure
+on the same landscape sheet.</li>
 <li>
-<strong>Spacing and sizing</strong> — you are responsible for
-ensuring the combined height of figure + table + titles/footnotes fits
-within the page. Use <code>figureHeight</code> parameter to adjust the
-plot size if needed.</li>
+<strong>Sizing</strong> — <code>figureHeight</code> is dialed so
+figure + table + titles + footnote all fit; without the flag Word breaks
+to a new page once the combined height exceeds one sheet.</li>
 <li>
-<strong>Table title</strong> — you can omit the table title (letting
-the figure subtitle serve as visual context) or add an explicit title to
-the table spec for clarity.</li>
+<strong><code>&lt;br&gt;</code> in column labels</strong> —
+<code>Cmax (ng/mL)&lt;br&gt;mean (SD)</code> stacks the statistic over
+the unit for a compact header.</li>
 </ul>
 <div class="section level3">
 <h3 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
 </h3>
-<pre><code>&gt; pk
-# A tibble: 21 × 3
-    TIME TRT       CONC
-   &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;
- 1   0   Placebo      0
- 2   0.5 Placebo     14
- 3   1   Placebo     25
- 4   2   Placebo     20
- 5   4   Placebo     11
- 6   8   Placebo      6
- 7  12   Placebo      3
- 8   0   Low Dose     0
- 9   0.5 Low Dose    22
-10   1   Low Dose    39
-# ℹ 11 more rows
-&gt; summary_tbl
-# A tibble: 3 × 3
-  TRT        Cmax  Tmax
-  &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;
-1 High Dose    52     1
-2 Low Dose     39     1
-3 Placebo      25     1</code></pre>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">times</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">24</span><span class="op">)</span></span>
+<span><span class="va">pk</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo"</span>, <span class="st">"Drug X 50 mg"</span>, <span class="st">"Drug X 100 mg"</span>, <span class="st">"Drug X 200 mg"</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">trt</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">peak</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/switch.html" class="external-link">switch</a></span><span class="op">(</span><span class="va">trt</span>, <span class="st">"Placebo"</span> <span class="op">=</span> <span class="fl">0</span>, <span class="st">"Drug X 50 mg"</span> <span class="op">=</span> <span class="fl">21</span>, <span class="st">"Drug X 100 mg"</span> <span class="op">=</span> <span class="fl">43</span>, <span class="st">"Drug X 200 mg"</span> <span class="op">=</span> <span class="fl">66</span><span class="op">)</span></span>
+<span>  <span class="va">ka</span> <span class="op">&lt;-</span> <span class="fl">1.35</span>; <span class="va">ke</span> <span class="op">&lt;-</span> <span class="fl">0.16</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>TRT <span class="op">=</span> <span class="va">trt</span>, TIME <span class="op">=</span> <span class="va">times</span>,</span>
+<span>             CONC <span class="op">=</span> <span class="kw">if</span> <span class="op">(</span><span class="va">peak</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">times</span><span class="op">)</span>, <span class="fl">0.4</span>, <span class="fl">1.4</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span>                    <span class="kw">else</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">peak</span> <span class="op">*</span> <span class="op">(</span><span class="va">ke</span><span class="op">/</span><span class="op">(</span><span class="va">ka</span><span class="op">-</span><span class="va">ke</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">ke</span><span class="op">*</span><span class="va">times</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">ka</span><span class="op">*</span><span class="va">times</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">6.2</span> <span class="op">+</span></span>
+<span>                               <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">times</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">1.6</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>             stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">pk</span><span class="op">$</span><span class="va">TRT</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">pk</span><span class="op">$</span><span class="va">TRT</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo"</span>, <span class="st">"Drug X 50 mg"</span>, <span class="st">"Drug X 100 mg"</span>, <span class="st">"Drug X 200 mg"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pk</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">TIME</span>, <span class="va">CONC</span>, colour <span class="op">=</span> <span class="va">TRT</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, colour <span class="op">=</span> <span class="st">"grey70"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">1.7</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"grey55"</span>, <span class="st">"#74A7CF"</span>, <span class="st">"#2166AC"</span>, <span class="st">"#B2182B"</span><span class="op">)</span>, name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="va">times</span>, name <span class="op">=</span> <span class="st">"Time after dose, hours"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"Plasma concentration, ng/mL"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">9</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, legend.position <span class="op">=</span> <span class="st">"right"</span>,</span>
+<span>        legend.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7.2</span><span class="op">)</span>, axis.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7.5</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">summary_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  TRT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">pk</span><span class="op">$</span><span class="va">TRT</span><span class="op">)</span>,</span>
+<span>  CMAX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1.1 (0.4)"</span>, <span class="st">"21.6 (3.2)"</span>, <span class="st">"43.2 (5.8)"</span>, <span class="st">"65.9 (8.4)"</span><span class="op">)</span>,</span>
+<span>  TMAX <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"4.0"</span>, <span class="st">"1.0"</span>, <span class="st">"1.0"</span>, <span class="st">"1.0"</span><span class="op">)</span>,</span>
+<span>  AUC  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"16.8 (6.1)"</span>, <span class="st">"151.2 (24.6)"</span>, <span class="st">"302.4 (41.9)"</span>, <span class="st">"463.1 (58.2)"</span><span class="op">)</span>,</span>
+<span>  HL   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"-"</span>, <span class="st">"5.2 (0.9)"</span>, <span class="st">"4.9 (0.8)"</span>, <span class="st">"5.1 (1.1)"</span><span class="op">)</span>,</span>
+<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>The generated concentration data (36 rows; <code>TRT</code> has four
+levels):</p>
+<pre><code>   TIME TRT              CONC
+1   0.0 Placebo           0.6
+2   0.5 Placebo           0.6
+3   1.0 Placebo           0.7
+...
+10  0.0 Drug X 50 mg      0.9
+11  0.5 Drug X 50 mg      7.0
+12  1.0 Drug X 50 mg     10.7
+...
+28  0.0 Drug X 200 mg     0.1
+29  0.5 Drug X 200 mg    22.3
+30  1.0 Drug X 200 mg    33.6</code></pre>
 </div>
 <div class="section level3">
-<h3 id="code-4">Code<a class="anchor" aria-label="anchor" href="#code-4"></a>
+<h3 id="code-5">Code<a class="anchor" aria-label="anchor" href="#code-5"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pk</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">TIME</span>, <span class="va">CONC</span>, colour <span class="op">=</span> <span class="va">TRT</span>, shape <span class="op">=</span> <span class="va">TRT</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">0.9</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.8</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">4</span>, <span class="fl">8</span>, <span class="fl">12</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Time (h)"</span>, y <span class="op">=</span> <span class="st">"Concentration (ng/mL)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"bottom"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S3.1"</span>, <span class="st">"Mean PK Concentration–Time Profile"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"PK Analysis Set"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span>, figureHeight <span class="op">=</span> <span class="st">'3in'</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec_fig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S6.1"</span>, <span class="st">"Mean Plasma Concentration-Time Profiles"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Day 15, fasted conditions; PK Analysis Set"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
+<span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
+<span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span>, figureHeight <span class="op">=</span> <span class="st">"3.2in"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec_tbl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">TRT</span>, label <span class="op">=</span> <span class="st">"Treatment"</span>, isID <span class="op">=</span> <span class="cn">TRUE</span>, colWidth <span class="op">=</span> <span class="st">"40%"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Cmax</span>, label <span class="op">=</span> <span class="st">"C[max]"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Tmax</span>, label <span class="op">=</span> <span class="st">"T[max] (h)"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"C[max] = maximum concentration; T[max] = time of C[max]."</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_under_figure"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table S6.1  Pharmacokinetic Summary Parameters"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">TRT</span>, label <span class="op">=</span> <span class="st">"Treatment"</span>, colWidth <span class="op">=</span> <span class="st">"28%"</span>, valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">CMAX</span>, <span class="va">TMAX</span>, <span class="va">AUC</span>, <span class="va">HL</span><span class="op">)</span>,</span>
+<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Cmax (ng/mL)&lt;br&gt;mean (SD)"</span>, <span class="st">"Tmax (h)"</span>, <span class="st">"AUC0-24&lt;br&gt;mean (SD)"</span>, <span class="st">"t1/2 (h)&lt;br&gt;mean (SD)"</span><span class="op">)</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Non-compartmental analysis; placebo values include assay background."</span>,</span>
+<span>               styleRef <span class="op">=</span> <span class="st">"fc_gray"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_06_pk'</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="rendered-output-5">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-5"></a>
+<h3 id="rendered-output-6">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-6"></a>
 </h3>
-<p><a href="example_03.1_table_under_figure.pdf">Open
-table_under_figure.pdf</a></p>
-<iframe src="example_03.1_table_under_figure.pdf" title="table_under_figure.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+<p><a href="example_06_pk.pdf">Open example_06_pk.pdf</a></p>
+<iframe src="example_06_pk.pdf" title="example_06_pk.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
 </div>
 <div class="section level3">
-<h3 id="variation-adding-an-explicit-table-title">Variation: adding an explicit table title<a class="anchor" aria-label="anchor" href="#variation-adding-an-explicit-table-title"></a>
+<h3 id="variation-let-them-split-across-pages">Variation: let them split across pages<a class="anchor" aria-label="anchor" href="#variation-let-them-split-across-pages"></a>
 </h3>
-<p>If you want the table to have its own title (in addition to the
-figure), simply add a title to the table spec:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec_tbl_titled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">summary_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S3.1"</span>, <span class="st">"PK Summary Parameters"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">TRT</span>, label <span class="op">=</span> <span class="st">"Treatment"</span>, isID <span class="op">=</span> <span class="cn">TRUE</span>, colWidth <span class="op">=</span> <span class="st">"40%"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Cmax</span>, label <span class="op">=</span> <span class="st">"C[max]"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">Tmax</span>, label <span class="op">=</span> <span class="st">"T[max] (h)"</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"%.1f"</span>, valueStyleRef <span class="op">=</span> <span class="st">"text_center"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"C[max] = maximum concentration; T[max] = time of C[max]."</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig</span>, <span class="va">spec_tbl_titled</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_under_figure_titled"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>This creates two separate entries in the Table of Contents: one for
-the figure and one for the table.</p>
-</div>
-<div class="section level3">
-<h3 id="troubleshooting-when-figure-and-table-dont-fit">Troubleshooting: When figure and table don’t fit<a class="anchor" aria-label="anchor" href="#troubleshooting-when-figure-and-table-dont-fit"></a>
-</h3>
-<p>If the combined height of the figure, table, and all titles/footnotes
-exceeds the page height, Word will force an automatic page break between
-them. To keep them together on one page, reduce the
-<code>figureHeight</code>:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec_fig_compact</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S3.1"</span>, <span class="st">"Mean PK Concentration–Time Profile"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"PK Analysis Set"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>    <span class="co"># Reduce from 3in to 2in to leave more room for the table on the same page</span></span>
-<span>    <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span>, figureHeight <span class="op">=</span> <span class="st">'2in'</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig_compact</span>, <span class="va">spec_tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">"table_under_figure_compact"</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>To scale figures differently, choose another
-<code>figureScaleMode</code>: <code>"fitWidth"</code> stretches the
-figure to the page content width using the
-<code>figureWidth</code>/<code>figureHeight</code> aspect (NOT the
-source image’s own proportions); <code>"fitKeepAR"</code> instead reads
-the embedded image’s intrinsic aspect ratio and fits it into the body
-area without distortion
-(<code>figureWidth</code>/<code>figureHeight</code> are ignored in this
-mode, with a warning).</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="example-7---gap-between-spanning-header-lines">Example 7 - Gap between Spanning Header Lines<a class="anchor" aria-label="anchor" href="#example-7---gap-between-spanning-header-lines"></a>
-</h2>
+<p>The only thing keeping figure and table on one page is
+<code>continuousSection</code> on both specs. Turn it off and the table
+flows to a fresh page:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec_fig_split</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec_fig</span>, continuousSection <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">spec_tbl_split</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span><span class="va">spec_tbl</span>, continuousSection <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_fig_split</span>, <span class="va">spec_tbl_split</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_06_split'</span>, toc <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Prefer to keep one page instead? Lower <code>figureHeight</code> on
+the figure spec so the table fits in the space that remains. ## Example
+7 — Gap between Spanning Header Lines {#example-07}</p>
 <p>Sometimes it is necessary to include a visual gap between spanning
 column groups so it is clear which columns belong to which header. This
 can be achieved by adding empty dummy columns to the dataset, but it can
@@ -1259,7 +1338,7 @@ the following dataset:</p>
 <code>TRT_A1</code> and <code>TRT_B1</code>, and ‘Group 2’ covering
 <code>TRT_A2</code> and <code>TRT_B2</code>.</p>
 <p>If we do this in the usual way:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1286,7 +1365,7 @@ we can use built-in atomic styles to replace the cell bottom border with
 a paragraph bottom border. The paragraph border only underlines the text
 of each spanning header individually, creating a visible gap between the
 two groups:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">demo_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table 14.1.1"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Summary of Demographic and Baseline Characteristics"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1314,6 +1393,316 @@ other:</p>
 spanning_headers_gap.pdf</a></p>
 <iframe src="spanning_headers_gap.pdf" title="spanning_headers_gap.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
 </iframe>
+</div>
+</div>
+<div class="section level2">
+<h2 id="example-08">Example 8 — Risk-difference forest figure<a class="anchor" aria-label="anchor" href="#example-08"></a>
+</h2>
+<p>A safety exhibit is not always a table. A risk-difference forest plot
+across system organ classes lets a reader take in the whole safety
+picture on one landscape page — and ksTFL embeds ggplot objects exactly
+as it embeds files.</p>
+<p>Demonstrated here:</p>
+<ul>
+<li>
+<strong><code><a href="../reference/create_figure.html">create_figure()</a></code> on a ggplot object</strong>
+with <code>figureDevice = "cairo"</code> — the figure renders to
+paths-only SVG so Microsoft Word shows it exactly as R does.</li>
+<li>
+<strong><code>figureScaleMode = "fitKeepAR"</code></strong> — the
+plot keeps its own aspect ratio and is fitted to the largest box the
+page allows, filling the landscape sheet without distortion.</li>
+<li>
+<strong>Titles and footnotes live on the spec, not inside the
+plot</strong> — the same <code><a href="../reference/add_title.html">add_title()</a></code> /
+<code><a href="../reference/add_subtitle.html">add_subtitle()</a></code> / <code><a href="../reference/add_footnote.html">add_footnote()</a></code> API used for
+tables works for figures, so a report mixes tables and figures under one
+consistent look.</li>
+</ul>
+<div class="section level3">
+<h3 id="data-1">Data<a class="anchor" aria-label="anchor" href="#data-1"></a>
+</h3>
+<p>CI bounds and the significance category are derived, exactly as the
+chunk shows, so nothing is hand-typed (plot order is the reversed
+factor):</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">soc8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Gastrointestinal disorders"</span>,<span class="st">"Infections and infestations"</span>,</span>
+<span>          <span class="st">"Nervous system disorders"</span>,<span class="st">"Skin and subcutaneous tissue disorders"</span>,</span>
+<span>          <span class="st">"Musculoskeletal and connective tissue disorders"</span>,<span class="st">"Hepatobiliary disorders"</span>,</span>
+<span>          <span class="st">"Cardiac disorders"</span>,<span class="st">"Endocrine disorders"</span>,<span class="st">"Psychiatric disorders"</span>,</span>
+<span>          <span class="st">"Respiratory, thoracic and mediastinal disorders"</span>,<span class="st">"Renal and urinary disorders"</span>,</span>
+<span>          <span class="st">"Vascular disorders"</span>,<span class="st">"Metabolism and nutrition disorders"</span>,<span class="st">"Eye disorders"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7L</span><span class="op">)</span></span>
+<span><span class="va">n8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">soc8</span><span class="op">)</span></span>
+<span><span class="va">ae_rd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  SOC <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">soc8</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">soc8</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  RD <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n8</span>, <span class="op">-</span><span class="fl">4.5</span>, <span class="fl">5.0</span><span class="op">)</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  SE <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="va">n8</span>, <span class="fl">1.4</span>, <span class="fl">2.6</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  EV_PL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">4</span><span class="op">:</span><span class="fl">26</span>, <span class="va">n8</span>, <span class="cn">TRUE</span><span class="op">)</span>, EV_DR <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">6</span><span class="op">:</span><span class="fl">31</span>, <span class="va">n8</span>, <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ae_rd</span><span class="op">$</span><span class="va">LO</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">RD</span> <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">ae_rd</span><span class="op">$</span><span class="va">SE</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">RD</span> <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">ae_rd</span><span class="op">$</span><span class="va">SE</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">ae_rd</span><span class="op">$</span><span class="va">SIG</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">LO</span> <span class="op">&gt;</span> <span class="fl">0</span>, <span class="st">"Favors Drug A"</span>,</span>
+<span>            <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span> <span class="op">&lt;</span> <span class="fl">0</span>, <span class="st">"Favors Placebo"</span>, <span class="st">"Not significant"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<pre><code>   SOC                                          RD   SE EV_PL EV_DR    LO   HI
+1  Gastrointestinal disorders                  -3.6 2.00     7      17  -7.5  0.3
+2  Infections and infestations                  2.8 2.14    17       7  -1.4  7.0
+3  Nervous system disorders                    -2.3 1.50    20      14  -5.2  0.6
+4  Skin and subcutaneous tissue disorders      -2.9 2.60    11      20  -8.0  2.2
+5  Musculoskeletal and connective tissue       -0.1 2.50    14      18  -5.0  4.8
+6  Hepatobiliary disorders                     -2.9 2.60     9      13  -8.0  2.2
+7  Cardiac disorders                            4.7 1.73     7      27   1.3  8.1
+8  Endocrine disorders                         -1.3 1.78     5      26  -5.6  3.0
+9  Psychiatric disorders                        3.0 1.78    26      14  -0.5  6.5
+10 Respiratory, thoracic and mediastinal       -2.2 2.60     9      29  -7.3  2.9
+11 Renal and urinary disorders                 -3.8 1.43    14      26  -6.6 -1.0
+12 Vascular disorders                         -3.4 2.09     7      18  -7.5  0.7
+13 Metabolism and nutrition disorders         -0.7 1.48    24       8  -3.6  2.2
+14 Eye disorders                               4.9 1.93    25      30   1.1  8.7</code></pre>
+</div>
+<div class="section level3">
+<h3 id="code-6">Code<a class="anchor" aria-label="anchor" href="#code-6"></a>
+</h3>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">ae_rd</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">RD</span>, y <span class="op">=</span> <span class="va">SOC</span>, colour <span class="op">=</span> <span class="va">SIG</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span>, colour <span class="op">=</span> <span class="st">"grey50"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">LO</span>, xmax <span class="op">=</span> <span class="va">HI</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.14</span>, linewidth <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2.2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%+.1f  [%+.1f, %+.1f]"</span>, <span class="va">RD</span>, <span class="va">LO</span>, <span class="va">HI</span><span class="op">)</span>,</span>
+<span>                x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1.6</span><span class="op">)</span>, hjust <span class="op">=</span> <span class="fl">0</span>, size <span class="op">=</span> <span class="fl">2.1</span>,</span>
+<span>            colour <span class="op">=</span> <span class="st">"grey20"</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">LO</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1.6</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">ae_rd</span><span class="op">$</span><span class="va">HI</span><span class="op">)</span> <span class="op">+</span> <span class="fl">13.0</span><span class="op">)</span>,</span>
+<span>                     breaks <span class="op">=</span> <span class="fu">scales</span><span class="fu">::</span><span class="fu"><a href="https://scales.r-lib.org/reference/pretty_breaks.html" class="external-link">pretty_breaks</a></span><span class="op">(</span>n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html" class="external-link">scale_colour_manual</a></span><span class="op">(</span>values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Favors Drug A"</span> <span class="op">=</span> <span class="st">"#B2182B"</span>,</span>
+<span>                                 <span class="st">"Favors Placebo"</span> <span class="op">=</span> <span class="st">"#2166AC"</span>,</span>
+<span>                                 <span class="st">"Not significant"</span> <span class="op">=</span> <span class="st">"grey55"</span><span class="op">)</span>, name <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Risk difference vs placebo, percentage points (95% CI)"</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">8</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>panel.grid.minor <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, panel.grid.major.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>        panel.border <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_rect</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"grey60"</span>, linewidth <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span>,</span>
+<span>        axis.text.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">6.8</span>, colour <span class="op">=</span> <span class="st">"grey15"</span><span class="op">)</span>,</span>
+<span>        axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span>, axis.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7.5</span><span class="op">)</span>,</span>
+<span>        legend.position <span class="op">=</span> <span class="st">"bottom"</span>, legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>        legend.text <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">7</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_figure.html">create_figure</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Figure S8.1"</span>, <span class="st">"Treatment-Emergent Adverse Events by System Organ Class"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Risk difference with 95% CI; Safety Population"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"AEs reported at &gt;= 5% in either arm. Positive values indicate higher incidence with Drug A."</span>,</span>
+<span>               styleRef <span class="op">=</span> <span class="st">"fc_gray"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
+<span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
+<span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>figureScaleMode <span class="op">=</span> <span class="st">"fitKeepAR"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_08_forest'</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="rendered-output-7">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-7"></a>
+</h3>
+<p><a href="example_08_forest.pdf">Open example_08_forest.pdf</a></p>
+<iframe src="example_08_forest.pdf" title="example_08_forest.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+</iframe>
+</div>
+</div>
+<div class="section level2">
+<h2 id="example-09">Example 9 — Two related tables on one page<a class="anchor" aria-label="anchor" href="#example-09"></a>
+</h2>
+<p>Exposure and discontinuation summaries are natural neighbors in a CSR
+— both describe <em>how long, and why,</em> subjects stayed on
+treatment. This example renders them as one continuous page: two
+complete table specs, each with its own span lattice, subtitle, and
+footnote, merged through continuous-section pagination control.</p>
+<p>Demonstrated here:</p>
+<ul>
+<li>
+<strong>Two span lattices in one document</strong> — “Subjects” and
+“Exposure on treatment” banners in Table S9.1; four arm banners plus a
+“Treatment Arm” umbrella in Table S9.2 (siblings share
+<code>stubOrder</code>, the umbrella sits one level above).</li>
+<li>
+<strong>Rule-driven emphasis</strong> — the Total row and the “Any
+reason” row are bolded through <code><a href="../reference/compute_cols.html">compute_cols()</a></code> /
+<code><a href="../reference/c_style.html">c_style()</a></code>.</li>
+<li>
+<strong><code>continuousSection = TRUE</code></strong> — the second
+table starts right after the first ends instead of on a new page.</li>
+<li>
+<strong><code>&lt;br&gt;</code> in span labels</strong> — arm names
+stack over their <code>(N = ...)</code> line inside a spanning
+header.</li>
+</ul>
+<div class="section level3">
+<h3 id="data-2">Data<a class="anchor" aria-label="anchor" href="#data-2"></a>
+</h3>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">exp9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  GRP <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo"</span>, <span class="st">"Drug X 50 mg"</span>, <span class="st">"Drug X 100 mg"</span>, <span class="st">"Total"</span><span class="op">)</span>,</span>
+<span>  RAND <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"42"</span>, <span class="st">"22"</span>, <span class="st">"22"</span>, <span class="st">"86"</span><span class="op">)</span>,</span>
+<span>  DOSED <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"42 (100)"</span>, <span class="st">"22 (100)"</span>, <span class="st">"22 (100)"</span>, <span class="st">"86 (100)"</span><span class="op">)</span>,</span>
+<span>  MEAN_WK <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"16.2 (4.1)"</span>, <span class="st">"15.8 (4.6)"</span>, <span class="st">"16.4 (4.0)"</span>, <span class="st">"16.1 (4.2)"</span><span class="op">)</span>,</span>
+<span>  MED_WK  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"17.1 (2.9-22.4)"</span>, <span class="st">"16.8 (2.1-22.2)"</span>, <span class="st">"17.5 (3.4-22.6)"</span>, <span class="st">"17.1 (2.1-22.6)"</span><span class="op">)</span>,</span>
+<span>  CUM_PAT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"680"</span>, <span class="st">"348"</span>, <span class="st">"361"</span>, <span class="st">"1389"</span><span class="op">)</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dsc9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  REASON <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Any reason"</span>, <span class="st">"Adverse event"</span>, <span class="st">"Withdrawal of consent"</span>,</span>
+<span>             <span class="st">"Lost to follow-up"</span>, <span class="st">"Lack of efficacy"</span>, <span class="st">"Investigator decision"</span>,</span>
+<span>             <span class="st">"Protocol deviation"</span>, <span class="st">"Other"</span><span class="op">)</span>,</span>
+<span>  PLN <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"9 (21.4%)"</span>, <span class="st">"2 (4.8%)"</span>, <span class="st">"4 (9.5%)"</span>, <span class="st">"3 (7.1%)"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"0 (0.0%)"</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  D50 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"5 (22.7%)"</span>, <span class="st">"3 (13.6%)"</span>, <span class="st">"1 (4.5%)"</span>, <span class="st">"1 (4.5%)"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"0 (0.0%)"</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  D100 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"6 (27.3%)"</span>, <span class="st">"4 (18.2%)"</span>, <span class="st">"1 (4.5%)"</span>, <span class="st">"0 (0.0%)"</span>, <span class="st">"0 (0.0%)"</span>, <span class="st">"1 (4.5%)"</span>, <span class="st">"0 (0.0%)"</span>, <span class="st">"0 (0.0%)"</span><span class="op">)</span>,</span>
+<span>  TOT <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"20 (23.3%)"</span>, <span class="st">"9 (10.5%)"</span>, <span class="st">"6 (7.0%)"</span>, <span class="st">"4 (4.7%)"</span>, <span class="st">"0 (0.0%)"</span>, <span class="st">"1 (1.2%)"</span>, <span class="st">"0 (0.0%)"</span>, <span class="st">"0 (0.0%)"</span><span class="op">)</span>,</span>
+<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="code-7">Code<a class="anchor" aria-label="anchor" href="#code-7"></a>
+</h3>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec_exposure</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">exp9</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">GRP</span>, label <span class="op">=</span> <span class="st">"Treatment Group"</span>, colWidth <span class="op">=</span> <span class="st">"26%"</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span>, labelStyleRef <span class="op">=</span> <span class="st">"al"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">RAND</span>, <span class="va">DOSED</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Randomized"</span>, <span class="st">"Dosed, n (%)"</span><span class="op">)</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"ac"</span>, colWidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"12%"</span>, <span class="st">"14%"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">MEAN_WK</span>, label <span class="op">=</span> <span class="st">"Mean, weeks (SD)"</span>, valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">MED_WK</span>, label <span class="op">=</span> <span class="st">"Median (min-max)"</span>, valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">CUM_PAT</span>, label <span class="op">=</span> <span class="st">"Total, patient-weeks"</span>, valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">RAND</span>, <span class="va">DOSED</span><span class="op">)</span>, <span class="st">"Subjects"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">MEAN_WK</span>, <span class="va">MED_WK</span>, <span class="va">CUM_PAT</span><span class="op">)</span>, <span class="st">"Exposure on treatment"</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">GRP</span> <span class="op">==</span> <span class="st">"Total"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table S9.1  Duration of Exposure"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Safety population; double-blind period only"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Time on randomized treatment from first dose to last dose or discontinuation, whichever came first; dose interruptions are included."</span>,</span>
+<span>               styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
+<span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
+<span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec_disposition</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">dsc9</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">REASON</span>, label <span class="op">=</span> <span class="st">"Reason for discontinuation"</span>, colWidth <span class="op">=</span> <span class="st">"34%"</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span>, labelStyleRef <span class="op">=</span> <span class="st">"al"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span>, <span class="va">D50</span>, <span class="va">D100</span>, <span class="va">TOT</span><span class="op">)</span>, label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n (%)"</span>, <span class="st">"n (%)"</span>, <span class="st">"n (%)"</span>, <span class="st">"n (%)"</span><span class="op">)</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span><span class="op">)</span>,  <span class="st">"Placebo (N = 42)"</span>,        stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">D50</span><span class="op">)</span>,  <span class="st">"Drug X 50 mg (N = 22)"</span>,   stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">D100</span><span class="op">)</span>, <span class="st">"Drug X 100 mg (N = 22)"</span>,  stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TOT</span><span class="op">)</span>,  <span class="st">"Total (N = 86)"</span>,          stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span>, <span class="va">D50</span>, <span class="va">D100</span>, <span class="va">TOT</span><span class="op">)</span>, <span class="st">"Treatment Arm"</span>, stubOrder <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">REASON</span> <span class="op">==</span> <span class="st">"Any reason"</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="st">"Table S9.2  Summary of Discontinuations"</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"First reason recorded per subject"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"Subjects discontinuing for an adverse event are not re-counted under subsequent reasons; the reason rows cross-foot to the 'Any reason' total."</span>,</span>
+<span>               styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span>, <span class="st">"i"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
+<span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
+<span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>continuousSection <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_exposure</span>, <span class="va">spec_disposition</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_09_two_tables'</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="rendered-output-8">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-8"></a>
+</h3>
+<p><a href="example_09_two_tables.pdf">Open
+example_09_two_tables.pdf</a></p>
+<iframe src="example_09_two_tables.pdf" title="example_09_two_tables.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+</iframe>
+</div>
+</div>
+<div class="section level2">
+<h2 id="example-10">Example 10 — Laboratory safety with threshold highlighting<a class="anchor" aria-label="anchor" href="#example-10"></a>
+</h2>
+<p>Laboratory shift tables compare many parameters across arms, and the
+eye needs abnormality rates that cross a decision line to stand up by
+themselves. Here that happens with plain arithmetic conditions — and the
+whole page wears the <code>Navy_Pro</code> corporate template to show
+how one option re-skins everything.</p>
+<p>Demonstrated here:</p>
+<ul>
+<li>
+<strong>Conditions on the formatted text itself</strong> —
+<code>as.numeric(sub(...))</code> inside <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
+pulls the percentage out of “4 (18.2%)” strings and fires
+<code>c_style(f_combine("fc_rust", "b"))</code> once the threshold is
+crossed. Rules read the displayed value, not a hidden helper
+column.</li>
+<li>
+<strong>Parameter section headers</strong> —
+<code>firstOf(PARAM)</code> on the hidden <code>PARAM</code> column, the
+invisible-column pattern of Example 1 at another scale.</li>
+<li>
+<strong><code>docTemplate = "Navy_Pro"</code></strong> — navy header
+bands and different typography arrive from one option; the spec code is
+untouched.</li>
+<li>
+<strong><code>&lt;sup&gt;a&lt;/sup&gt;</code> marker</strong> in the
+subtitle, referenced by the footnote — inline markup across titles,
+subtitles, and notes alike.</li>
+</ul>
+<div class="section level3">
+<h3 id="data-3">Data<a class="anchor" aria-label="anchor" href="#data-3"></a>
+</h3>
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">lab_shifts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  PARAM <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Alanine aminotransferase, U/L"</span>,</span>
+<span>                <span class="st">"Aspartate aminotransferase, U/L"</span>,</span>
+<span>                <span class="st">"Gamma-glutamyl transferase, U/L"</span>,</span>
+<span>                <span class="st">"Creatinine, umol/L"</span>,</span>
+<span>                <span class="st">"Hemoglobin, g/L"</span>,</span>
+<span>                <span class="st">"Potassium, mmol/L"</span>,</span>
+<span>                <span class="st">"Glucose, mmol/L (fasting)"</span>,</span>
+<span>                <span class="st">"INR, ratio"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  DIRECTION <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mean (SD)"</span>, <span class="st">"Subjects above ULN / below LLN"</span><span class="op">)</span>, <span class="fl">8</span><span class="op">)</span>,</span>
+<span>  PLN <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"34.2 (8.1)"</span>, <span class="st">"1 (2.4%)"</span>, <span class="st">"31.8 (7.6)"</span>, <span class="st">"0 (0.0%)"</span>,</span>
+<span>          <span class="st">"29.4 (11.2)"</span>, <span class="st">"1 (2.4%)"</span>, <span class="st">"78.1 (12.4)"</span>, <span class="st">"2 (4.8%)"</span>,</span>
+<span>          <span class="st">"141.2 (9.8)"</span>, <span class="st">"0 (0.0%)"</span>, <span class="st">"4.32 (0.28)"</span>, <span class="st">"1 (2.4%)"</span>,</span>
+<span>          <span class="st">"5.41 (0.62)"</span>, <span class="st">"3 (7.1%)"</span>, <span class="st">"1.02 (0.09)"</span>, <span class="st">"0 (0.0%)"</span><span class="op">)</span>,</span>
+<span>  D50 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"35.1 (9.0)"</span>, <span class="st">"2 (9.1%)"</span>, <span class="st">"32.9 (8.4)"</span>, <span class="st">"1 (4.5%)"</span>,</span>
+<span>          <span class="st">"33.8 (14.6)"</span>, <span class="st">"3 (13.6%)"</span>, <span class="st">"79.6 (13.8)"</span>, <span class="st">"3 (13.6%)"</span>,</span>
+<span>          <span class="st">"140.1 (10.2)"</span>, <span class="st">"0 (0.0%)"</span>, <span class="st">"4.28 (0.31)"</span>, <span class="st">"2 (9.1%)"</span>,</span>
+<span>          <span class="st">"5.62 (0.71)"</span>, <span class="st">"5 (22.7%)"</span>, <span class="st">"1.04 (0.11)"</span>, <span class="st">"0 (0.0%)"</span><span class="op">)</span>,</span>
+<span>  D100 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"37.9 (10.4)"</span>, <span class="st">"4 (18.2%)"</span>, <span class="st">"36.2 (9.9)"</span>, <span class="st">"3 (13.6%)"</span>,</span>
+<span>           <span class="st">"38.1 (16.9)"</span>, <span class="st">"5 (22.7%)"</span>, <span class="st">"81.9 (15.1)"</span>, <span class="st">"4 (18.2%)"</span>,</span>
+<span>           <span class="st">"139.4 (11.0)"</span>, <span class="st">"1 (4.5%)"</span>, <span class="st">"4.21 (0.33)"</span>, <span class="st">"1 (4.5%)"</span>,</span>
+<span>           <span class="st">"5.88 (0.83)"</span>, <span class="st">"7 (31.8%)"</span>, <span class="st">"1.07 (0.12)"</span>, <span class="st">"1 (4.5%)"</span><span class="op">)</span>,</span>
+<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="code-8">Code<a class="anchor" aria-label="anchor" href="#code-8"></a>
+</h3>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">lab_shifts</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">PARAM</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">DIRECTION</span>, label <span class="op">=</span> <span class="st">"Laboratory parameter"</span>, colWidth <span class="op">=</span> <span class="st">"38%"</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"indent_1"</span>, labelStyleRef <span class="op">=</span> <span class="st">"al"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">PLN</span>, <span class="va">D50</span>, <span class="va">D100</span><span class="op">)</span>,</span>
+<span>              label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Placebo (n = 42)"</span>, <span class="st">"Drug X 50 mg (n = 22)"</span>, <span class="st">"Drug X 100 mg (n = 22)"</span><span class="op">)</span>,</span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">"ac"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">PARAM</span><span class="op">)</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">PARAM</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"%"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">".*\\((.*)\\).*"</span>, <span class="st">"\\1"</span>, <span class="va">D100</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">13</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">D100</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_rust"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"%"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">".*\\((.*)\\).*"</span>, <span class="st">"\\1"</span>, <span class="va">D50</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">10</span>,</span>
+<span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">D50</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_rust"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S10.1"</span>, <span class="st">"Shifts in Clinical Laboratory Values"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Safety population; values in SI units&lt;sup&gt;a&lt;/sup&gt;"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"&lt;sup&gt;a&lt;/sup&gt; Red: &gt;= 10% of subjects with confirmed central-lab abnormalities in the corresponding arm. ULN/LLN per site local ranges, re-read centrally."</span>,</span>
+<span>               styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
+<span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>
+<span>                                      left <span class="op">=</span> <span class="st">"0.55in"</span>, right <span class="op">=</span> <span class="st">"0.55in"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/set_document.html">set_document</a></span><span class="op">(</span>contentWidth <span class="op">=</span> <span class="st">"94%"</span>, docTemplate <span class="op">=</span> <span class="st">"Navy_Pro"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="st">'example_10_navy_lab'</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="rendered-output-9">Rendered output<a class="anchor" aria-label="anchor" href="#rendered-output-9"></a>
+</h3>
+<p><a href="example_10_navy_lab.pdf">Open
+example_10_navy_lab.pdf</a></p>
+<iframe src="example_10_navy_lab.pdf" title="example_10_navy_lab.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;">
+</iframe>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

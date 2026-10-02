@@ -15,7 +15,11 @@ resource_files:
   - example_04_list.pdf
   - example_04_list_colbr.pdf
   - example_05_figures_single_doc_toc.pdf
-  - example_03.1_table_under_figure.pdf
+  - example_03b_ae_periods.pdf
+  - example_06_pk.pdf
+  - example_08_forest.pdf
+  - example_09_two_tables.pdf
+  - example_10_navy_lab.pdf
   - spanning_headers_gap.pdf
   - figures/
 vignette: >
@@ -48,7 +52,10 @@ document — so you can see exactly what goes in and what comes out.
 The examples are ordered by complexity: we start with a demographics table that
 introduces core concepts (invisible columns, conditional formatting, section
 headers), then move on to multi-language support, complex spanning headers, data
-listings with grouping, and finally figure output.
+listings with grouping, figure-plus-table pages, and dedicated showcase
+examples: a safety forest figure (Example 8), a two-table report page
+(Example 9), and a template-skinned laboratory table (Example 10). These
+same outputs are the demo tiles on the package site home page.
 
 All code chunks use `eval = FALSE`; the rendered PDFs were pre-generated and are
 embedded below. To reproduce an example locally, run the shown code in an R
@@ -56,9 +63,9 @@ session with ksTFL loaded and the session setup above applied (the examples
 use the magrittr pipe `%>%`, so attach `dplyr` or `magrittr` as in the setup
 block).
 
-> **Data note**: Examples 1 and 5 build their input completely in the shown
-> code (and Example 5 runs on `mtcars`). In the other examples the input frame
-> (`data`, `tbl`, `lab_listing`, `pk`, `summary_tbl`, `demo_data`) is displayed
+> **Data note**: Examples 1, 5, 8 and 10 build their input completely in the
+> shown code (Example 5 runs on `mtcars`). In the other examples the input
+> frame (`data`, `tbl`, `lab_listing`, `demo_data`) is displayed
 > as printed output only — it stands for the result of upstream analysis
 > programs (ADaM-style summaries). To reproduce those, rebuild an equivalent
 > frame from the printed rows (column names and order are what the spec code
@@ -115,163 +122,131 @@ tfl_set_options(
 ## Example 1 — Demographics table with conditional formatting {#example-01}
 
 Demographics tables are among the most common deliverables in clinical
-reporting. They summarise baseline patient characteristics by treatment arm and
-typically include section headers, summary statistics, and inferential test
-results.
+reporting. They summarise baseline patient characteristics by treatment arm
+and typically include section headers, summary statistics, and inferential
+test results.
 
 This example shows how ksTFL handles all of that declaratively. The key
 techniques demonstrated here are:
 
--   **Invisible helper columns** — `SECTION`, `SECTION_ID`, and `MODELVAL` are
-    kept out of the rendered document but drive conditional logic via
+-   **Invisible helper columns** — `SECTION`, `SECTION_ID`, and `MODELVAL`
+    are kept out of the rendered document but drive conditional logic via
     `compute_cols()`. This is a core ksTFL pattern: your data frame can carry
-    metadata columns that the rendering engine never prints but uses to control
-    formatting.
--   **`c_addrow()`** — inserts bold section headers (Age, Sex, Race) above the
-    first row of each group, pulling values directly from the hidden `SECTION`
-    column.
--   **`c_merge()` + `c_glue()`** — on p-value rows the treatment columns are
-    merged into one cell and the p-value is appended, creating the typical "p =
-    0.041" display.
--   **`c_pageBreak()`** — forces a page break before the "Race" section for
-    readability.
--   **Spacer rows** — `c_addrow("below")` with `row_h4` adds visual separation
-    between sections.
+    metadata columns that the rendering engine never prints but uses to
+    control formatting.
+-   **`c_addrow()`** — inserts bold section headers (Age, Sex, Race,
+    Ethnicity) above the first row of each group, pulling the text straight
+    from the hidden `SECTION` column.
+-   **`c_merge()` + `c_glue()`** — on p-value rows the treatment columns
+    merge into one cell and the p-value is appended, giving the familiar
+    “p = 0.041” display.
+-   **Inline markup** — `<sup>a</sup>` renders the footnote reference
+    marker on the population line, inside the text passed to `add_title()`.
+-   **`c_pageBreak()`** — forces a break before the last section so the
+    long tail of the table opens on a fresh page.
+-   **Spacer rows** — `c_addrow("below")` with `row_h4` separates the
+    sections visually.
 
 ### Input data
 
-The data frame has three demographic sections (Age, Sex, Race), each containing
-summary statistics and an optional p-value stored in the `MODELVAL` column. Note
-that `MODELVAL` is only populated on the p-value rows — it is `NA` everywhere
-else, which is how we target those rows in `compute_cols()`. The `SECTION_ID`
-column is derived from the grouping and used for spacing and page-break logic:
+The frame has four sections, each ending with a p-value row. `MODELVAL` is
+populated only on those rows — `NA` elsewhere — which is how
+`compute_cols()` targets them. `SECTION_ID` is derived from the grouping and
+drives the spacing and page-break logic:
 
 ```{r example_01_data, eval = FALSE}
-raw <- tibble(
-  SECTION = c(
-    rep("Age (years)", 6),
-    rep("Sex", 3),
-    rep("Race", 4)
-  ),
-  STAT = c(
-    "n", "Mean (SD)", "Median", "Q1; Q3", "Min; Max", "p-value (ANOVA)",
-    "Female", "Male", "p-value (Fisher)",
-    "White", "Asian", "Black", "p-value (Fisher)"
-  ),
+raw <- data.frame(
+  SECTION = c(rep("Age (years)", 6), rep("Sex", 3), rep("Race", 4),
+              rep("Ethnicity", 3)),
+  STAT = c("n", "Mean (SD)", "Median", "Q1; Q3", "Min; Max", "p-value (ANOVA)",
+           "Female", "Male", "p-value (Fisher)",
+           "White", "Asian", "Black or African American", "p-value (Fisher)",
+           "Hispanic or Latino", "Not Hispanic or Latino", "p-value (Fisher)"),
   DRUGX = c("160", "55.2 (12.4)", "54.0", "47.0; 64.0", "18; 82", "",
             "88 (55.0%)", "72 (45.0%)", "",
-            "130 (81.2%)", "18 (11.2%)", "12 (7.5%)", ""),
+            "130 (81.2%)", "18 (11.2%)", "12 (7.5%)", "",
+            "21 (13.1%)", "139 (86.9%)", ""),
   PLCB  = c("158", "56.0 (11.9)", "55.0", "48.0; 63.0", "20; 81", "",
             "90 (57.0%)", "68 (43.0%)", "",
-            "124 (78.5%)", "22 (13.9%)", "12 (7.6%)", ""),
-  TOTAL = c("318", "55.6 (12.1)", "54.0", "47.5; 63.5", "18; 82", "",
+            "124 (78.5%)", "22 (13.9%)", "12 (7.6%)", "",
+            "18 (11.4%)", "140 (88.6%)", ""),
+  TOTAL = c("318", "55.6 (12.1)", "54.5", "47.5; 63.5", "18; 82", "",
             "178 (56.0%)", "140 (44.0%)", "",
-            "254 (79.9%)", "40 (12.6%)", "24 (7.5%)", ""),
+            "254 (79.9%)", "40 (12.6%)", "24 (7.5%)", "",
+            "39 (12.3%)", "279 (87.7%)", ""),
   MODELVAL = c(NA, NA, NA, NA, NA, "0.041",
                NA, NA, ">0.999",
-               NA, NA, NA, "0.772")
-) %>%
-  group_by(SECTION) %>%
-  mutate(SECTION_ID = cur_group_id()) %>%
-  ungroup()
+               NA, NA, NA, "0.772",
+               NA, NA, "0.664"),
+  stringsAsFactors = FALSE)
+raw$SECTION_ID <- as.integer(cumsum(!duplicated(raw$SECTION)))
 ```
 
-The first few rows of `raw`:
+The resulting frame:
 
-```         
-# A tibble: 13 × 7
-   SECTION      STAT             DRUGX          PLCB           TOTAL          MODELVAL SECTION_ID
-   <chr>        <chr>            <chr>          <chr>          <chr>          <chr>         <int>
- 1 Age (years)  n                160            158            318            NA                1
- 2 Age (years)  Mean (SD)        55.2 (12.4)    56.0 (11.9)    55.6 (12.1)    NA                1
- 3 Age (years)  Median           54.0           55.0           54.0           NA                1
- 4 Age (years)  Q1; Q3           47.0; 64.0     48.0; 63.0     47.5; 63.5     NA                1
- 5 Age (years)  Min; Max         18; 82         20; 81         18; 82         NA                1
- 6 Age (years)  p-value (ANOVA)                                               0.041             1
- 7 Sex          Female           88 (55.0%)     90 (57.0%)     178 (56.0%)    NA                2
- 8 Sex          Male             72 (45.0%)     68 (43.0%)     140 (44.0%)    NA                2
- 9 Sex          p-value (Fisher)                                              >0.999            2
-10 Race         White            130 (81.2%)    124 (78.5%)    254 (79.9%)    NA                3
-11 Race         Asian            18 (11.2%)     22 (13.9%)     40 (12.6%)     NA                3
-12 Race         Black            12 (7.5%)      12 (7.6%)      24 (7.5%)      NA                3
-13 Race         p-value (Fisher)                                              0.772             3
+```
+   SECTION                      STAT                    DRUGX         PLCB         TOTAL
+1  Age (years)                  n                       160           158          318
+2  Age (years)                  Mean (SD)               55.2 (12.4)   56.0 (11.9)  55.6 (12.1)
+3  Age (years)                  Median                  54.0          55.0         54.5
+4  Age (years)                  Q1; Q3                  47.0; 64.0    48.0; 63.0   47.5; 63.5
+5  Age (years)                  Min; Max                18; 82        20; 81       18; 82
+6  Age (years)                  p-value (ANOVA)                                     0.041
+7  Sex                          Female                  88 (55.0%)    90 (57.0%)   178 (56.0%)
+8  Sex                          Male                    72 (45.0%)    68 (43.0%)   140 (44.0%)
+9  Sex                          p-value (Fisher)                                    >0.999
+10 Race                         White                   130 (81.2%)   124 (78.5%)  254 (79.9%)
+11 Race                         Asian                   18 (11.2%)    22 (13.9%)   40 (12.6%)
+12 Race                         Black or African Am.    12 (7.5%)     12 (7.6%)    24 (7.5%)
+13 Race                         p-value (Fisher)                                    0.772
+14 Ethnicity                    Hispanic or Latino      21 (13.1%)    18 (11.4%)   39 (12.3%)
+15 Ethnicity                    Not Hispanic or Latino  139 (86.9%)   140 (88.6%)  279 (87.7%)
+16 Ethnicity                    p-value (Fisher)                                    0.664
 ```
 
 ### Building the specification
 
 ```{r example_01_spec, eval = FALSE}
 spec <- create_table(raw) %>%
-
-  # --- Titles and footnotes ---
-  # Multi-line title: table number on first line, description on second.
-  # toclevel = 1 makes this entry appear in the Table of Contents.
   add_title(
-    c("Table S1",
-      "Demographic and Baseline Characteristics"),
+    c("Table S1", "Demographic and Baseline Characteristics"),
     toclevel = 1
   ) %>%
-  # Secondary title in italics for the analysis population label
-  add_title("Full Analysis Set", styleRef = "font_italic") %>%
-  add_footnote(c(
-    "Values are shown as n (%), mean (SD), median, or quartiles.",
-    "P-values shown for section-level inferential tests."
-  )) %>%
-
-  # --- Column definitions ---
-  # Hide helper columns: they won't appear in the document, but remain
-  # available for compute_cols() conditions. This is the "invisible column"
-  # pattern — SECTION drives group headers, SECTION_ID drives spacing and
-  # page breaks, MODELVAL carries p-values for conditional formatting.
+  add_title("Full Analysis Set<sup>a</sup>", styleRef = "font_italic") %>%
+  add_footnote(
+    paste0("<sup>a</sup> Values are shown as n (%), mean (SD), median, or quartiles; ",
+           "percentages are based on the number of subjects in the treatment arm."),
+    styleRef = f_combine("fs_8", "fc_gray")
+  ) %>%
   define_cols(c(SECTION, SECTION_ID, MODELVAL), isVisible = FALSE) %>%
-
-  # The statistics column: left-aligned header, values indented one level
-  # to sit beneath the bold section headers inserted by c_addrow() below.
   define_cols(STAT,
-    label     = "Parameter<br>  Statistic",
+    label = "Parameter<br>  Statistic",
     labelStyleRef = "text_left",
     valueStyleRef = "indent_1"
   ) %>%
-
-  # Treatment-arm columns: centred values, equal width, with N in the header.
   define_cols(c(DRUGX, PLCB, TOTAL),
-    label     = c("DrugX<br>(N=160)", "Placebo<br>(N=158)", "Total<br>(N=318)"),
+    label = c("DrugX<br>(N=160)", "Placebo<br>(N=158)", "Total<br>(N=318)"),
     valueStyleRef = "text_center",
-    colWidth  = "16%"
+    colWidth = "16%"
   ) %>%
-
-  # --- Conditional row actions (compute_cols) ---
-
-  # 1. Section headers: for the first row of each SECTION
-  #    group, insert a bold header row above it, pulling the
-  #    text from the hidden SECTION column.
   compute_cols(
     firstOf(SECTION),
     c_addrow("above", value_from = SECTION, styleRef = "font_bold")
   ) %>%
-
-  # 2. P-value rows: when MODELVAL is not NA, merge the DrugX and Placebo
-  #    cells into one (with a thin top border and centred italic text),
-  #    italicise the STAT label, and append the p-value after the merged cell.
   compute_cols(
     !is.na(MODELVAL),
     c_merge(c(DRUGX, PLCB), styleRef = f_combine("text_center", "bt_th", "i")),
     c_style(STAT, "i"),
     c_glue(DRUGX, "after", glue_col = MODELVAL)
   ) %>%
-
-  # 3. Spacers: insert a thin empty row below each section for visual separation
   compute_cols(
     lastOf(SECTION_ID),
     c_addrow("below", styleRef = "row_h4")
   ) %>%
-
-  # 4. Page break: force a new page before the Race section (group 3)
   compute_cols(
-    SECTION_ID == 3 & firstOf(SECTION_ID),
+    SECTION_ID == 4 & firstOf(SECTION_ID),
     c_pageBreak()
   ) %>%
-
-  # Document-level settings: narrow content area, no extra spacing
   set_document(
     contentWidth = "75%",
     topEmptyLine = "0pt",
@@ -282,7 +257,7 @@ spec <- create_table(raw) %>%
 ### Render
 
 ```{r example_01_render, eval = FALSE}
-create_report(spec) %>% write_doc("example_01")
+create_report(spec) %>% write_doc('example_01')
 ```
 
 ### Rendered output
@@ -294,17 +269,17 @@ create_report(spec) %>% write_doc("example_01")
 ### Switching style templates
 
 The example above uses the default embedded style template. One of ksTFL's
-design principles is that **content and styling are separate**: you can switch
-to a completely different visual theme by changing a single parameter on an
-already-built spec, without touching any of the data or conditional logic:
+design principles is that **content and styling are separate**: you can
+switch to a completely different visual theme by changing a single parameter
+on an already-built spec, without touching any data or conditional logic:
 
 ```{r example_01_navy, eval = FALSE}
 spec <- set_document(spec, docTemplate = 'Navy_Pro')
-create_report(spec) %>% write_doc("example_01_navy")
+create_report(spec) %>% write_doc('example_01_navy')
 ```
 
-The same table is now rendered with the "Navy_Pro" template — different fonts,
-colours, and border styles, but identical content and structure:
+The same table now wears the `Navy_Pro` template — different fonts,
+colours, and borders, identical content and structure:
 
 [Open example_01_navy.pdf](example_01_navy.pdf)
 
@@ -312,18 +287,16 @@ colours, and border styles, but identical content and structure:
 
 **Key take-aways from this example:**
 
--   **Invisible columns** — `SECTION`, `SECTION_ID`, and `MODELVAL` never appear
-    in the document, yet they drive all conditional logic. This is the core
-    "metadata column" pattern.
+-   **Invisible columns** — `SECTION`, `SECTION_ID`, and `MODELVAL` never
+    appear in the document, yet they drive all the conditional logic.
 -   **`c_addrow(value_from = ...)`** pulls text from a hidden column into a
-    dynamically inserted header row — no manual string duplication needed.
--   **`c_merge()` + `c_glue()`** combine cells and append content from another
-    column in a single `compute_cols()` call, producing the merged p-value
-    display.
--   **`c_pageBreak()`** gives fine-grained control over pagination.
--   **Template switching** — `set_document(docTemplate = ...)` re-skins the
-    entire output without modifying the spec pipeline.
-
+    inserted header row — no manual string duplication.
+-   **`c_merge()` + `c_glue()`** combine cells and append content from
+    another column in one `compute_cols()` call.
+-   **Inline `<sup>` markup** carries the footnote reference into the title.
+-   **`c_pageBreak()`** and **`row_h4` spacers** give precise control over
+    pagination and whitespace.
+-   **Template switching** re-skins the whole output via one option.
 ## Example 2 — Demographics table (UTF-8 encoding support)
 
 Clinical trials run in many countries, and regulatory submissions often require
@@ -677,6 +650,121 @@ create_report(spec) %>% write_doc("example_03_ae")
 
 <iframe src="example_03_ae.pdf" title="example_03_ae.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
+## Example 3b — Adverse events with subjects and events per period {#example-3b}
+
+The previous AE example counts *subjects*. Regulators often want the
+companion view that also reports *events* — how many subjects experienced
+an AE and how many times it recurred — split between the on-treatment and
+follow-up periods. Same vocabulary, one more dimension of headers.
+
+Demonstrated here:
+
+-   **Paired sub-columns per period** — `n (%)` and `E` sit together under
+    three period banners (`Treatment Period`, `Follow-up`, `Total`), all
+    beneath one `Drug A` umbrella: `stubOrder = 1` for the siblings, `2` for
+    the banner above them.
+-   **Nested indentation** — preferred-term rows take `indent_1`, causality
+    rows `indent_2`, straight from the flat frame.
+-   **Emphasis without extra columns** — the “Any adverse event” block
+    is bolded and “Related” rows coloured by `compute_cols()`.
+-   **A landscape page for one table only** — `set_page_style(p_page(...))`
+    rotates this spec while the rest of the report stays portrait.
+
+### Input data
+
+```
+   SOC                          TERM                 REL             TRT_N   TRT_E
+1  Any adverse event                                       18 (50.0%)    32
+2  Any adverse event             Not related               10 (27.8%)    15
+3  Any adverse event             Related                    8 (22.2%)    17
+4  Infections and infestations   Nasopharyngitis            5 (13.9%)     6
+5  Infections and infestations   Nasopharyngitis Not related 2 (5.6%)     2
+6  Infections and infestations   Nasopharyngitis Related     3 (8.3%)     4
+7  Infections and infestations   Rhinitis                   3 (8.3%)      4
+8  Gastrointestinal disorders    Nausea                     4 (11.1%)     5
+9  Gastrointestinal disorders    Diarrhoea                  3 (8.3%)      4
+10 Nervous system disorders      Headache                  4 (11.1%)      7
+   ... 7 more rows; plus FU_N, FU_E, TOT_N, TOT_E for the other periods
+```
+
+### Code
+
+```{r example_03b_data, eval = FALSE}
+make_ae_row <- function(soc, term, rel, trt_n, trt_e, fu_n, fu_e, tot_n, tot_e) {
+  data.frame(SOC = soc, TERM = term, REL = rel,
+             TRT_N = trt_n, TRT_E = trt_e, FU_N = fu_n, FU_E = fu_e,
+             TOT_N = tot_n, TOT_E = tot_e, stringsAsFactors = FALSE)
+}
+ae_tbl <- rbind(
+  make_ae_row("Any adverse event", "", "",      "18 (50.0%)", 32, "9 (25.0%)", 14, "22 (61.1%)", 46),
+  make_ae_row("Any adverse event", "", "Not related", "10 (27.8%)", 15, "4 (11.1%)", 5, "12 (33.3%)", 20),
+  make_ae_row("Any adverse event", "", "Related",     "8 (22.2%)", 17, "5 (13.9%)", 9, "10 (27.8%)", 26),
+  make_ae_row("Infections and infestations", "Nasopharyngitis", "",  "5 (13.9%)", 6, "2 (5.6%)", 2, "6 (16.7%)", 8),
+  make_ae_row("Infections and infestations", "Nasopharyngitis", "Not related", "2 (5.6%)", 2, "1 (2.8%)", 1, "3 (8.3%)", 3),
+  make_ae_row("Infections and infestations", "Nasopharyngitis", "Related", "3 (8.3%)", 4, "1 (2.8%)", 1, "3 (8.3%)", 5),
+  make_ae_row("Infections and infestations", "Rhinitis", "",    "3 (8.3%)", 4, "1 (2.8%)", 1, "4 (11.1%)", 5),
+  make_ae_row("Infections and infestations", "Rhinitis", "Related", "2 (5.6%)", 3, "1 (2.8%)", 1, "3 (8.3%)", 4),
+  make_ae_row("Gastrointestinal disorders", "Nausea", "",        "4 (11.1%)", 5, "1 (2.8%)", 1, "5 (13.9%)", 6),
+  make_ae_row("Gastrointestinal disorders", "Nausea", "Related", "3 (8.3%)", 4, "1 (2.8%)", 1, "4 (11.1%)", 5),
+  make_ae_row("Gastrointestinal disorders", "Diarrhoea", "",     "3 (8.3%)", 4, "2 (5.6%)", 2, "4 (11.1%)", 6),
+  make_ae_row("Nervous system disorders", "Headache", "",        "4 (11.1%)", 7, "2 (5.6%)", 3, "5 (13.9%)", 10),
+  make_ae_row("Nervous system disorders", "Headache", "Related", "3 (8.3%)", 6, "2 (5.6%)", 3, "4 (11.1%)", 9),
+  make_ae_row("Skin and subcutaneous tissue disorders", "Rash", "", "2 (5.6%)", 2, "1 (2.8%)", 1, "3 (8.3%)", 3),
+  make_ae_row("Musculoskeletal disorders", "Myalgia", "",        "2 (5.6%)", 2, "1 (2.8%)", 1, "3 (8.3%)", 3),
+  make_ae_row("Hepatobiliary disorders", "ALT increased", "",    "2 (5.6%)", 2, "0 (0.0%)", 0, "2 (5.6%)", 2),
+  make_ae_row("Hepatobiliary disorders", "ALT increased", "Related", "2 (5.6%)", 2, "0 (0.0%)", 0, "2 (5.6%)", 2)
+)
+ae_tbl$SECT <- ae_tbl$SOC
+ae_tbl$IS_ANY <- ae_tbl$SOC == "Any adverse event"
+```
+
+```{r example_03b_spec, eval = FALSE}
+spec <- create_table(ae_tbl) %>%
+  add_title(c("Table S3.1b",
+              "Adverse Events by System Organ Class, Preferred Term, and Relationship"),
+            toclevel = 1) %>%
+  add_title("Drug A (N=36); Safety Population", styleRef = "font_italic") %>%
+  add_footnote("AEs are coded with MedDRA; relationship assessed by the investigator.",
+               styleRef = f_combine("fs_8", "fc_gray")) %>%
+  define_cols(c(SECT, IS_ANY), isVisible = FALSE) %>%
+  define_cols(c(SOC, TERM, REL),
+              label = c("System Organ Class", "Preferred Term", "Causality"),
+              labelStyleRef = "text_left", colWidth = c("20%", "18%", "12%")) %>%
+  compute_cols(firstOf(SOC),
+               c_addrow("above", value_from = SOC, styleRef = "font_bold")) %>%
+  compute_cols(firstOf(TERM) & !is.na(TERM) & TERM != "",
+               c_style(TERM, styleRef = "indent_1")) %>%
+  compute_cols(!is.na(REL) & REL != "",
+               c_style(REL, styleRef = "indent_2")) %>%
+  define_cols(c(TRT_N, TRT_E, FU_N, FU_E, TOT_N, TOT_E),
+              label = c("n (%)", "n", "n (%)", "n", "n (%)", "n"),
+              valueStyleRef = "text_center") %>%
+  add_span_header(c(TRT_N, TRT_E), "Treatment Period", stubOrder = 1) %>%
+  add_span_header(c(FU_N, FU_E),   "Follow-up",       stubOrder = 1) %>%
+  add_span_header(c(TOT_N, TOT_E), "Total",           stubOrder = 1) %>%
+  add_span_header(c(TRT_N, TRT_E, FU_N, FU_E, TOT_N, TOT_E),
+                  "Drug A", stubOrder = 2) %>%
+  compute_cols(IS_ANY,
+               c_style(everything(), styleRef = "font_bold")) %>%
+  compute_cols(REL == "Related",
+               c_style(c(TERM, REL), styleRef = "fc_rust")) %>%
+  set_page_style(
+    page = p_page(size = "A4", orientation = "landscape",
+                  margins = p_margins(top = "0.6in", bottom = "0.6in",
+                                      left = "0.55in", right = "0.55in"))
+  ) %>%
+  set_document(docTemplate = "Regulatory_Arial")
+```
+
+```{r example_03b_render, eval = FALSE}
+create_report(spec) %>% write_doc('example_03b_ae_periods')
+```
+
+### Rendered output
+
+[Open example_03b_ae_periods.pdf](example_03b_ae_periods.pdf)
+
+<iframe src="example_03b_ae_periods.pdf" title="example_03b_ae_periods.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 ## Example 4 — Data listing with automatic two-level TOC
 
 Data listings present individual patient records with minimal aggregation. They
@@ -993,119 +1081,126 @@ by one page per figure. Each figure fills the landscape page thanks to
 
 <iframe src="example_05_figures_single_doc_toc.pdf" title="example_05_figures_single_doc_toc.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
-## Example 6 - Table under the figure
+## Example 6 — Concentration-time figure with a parameter table {#example-06}
 
-In clinical reporting, you often need to place a summary table directly under a figure (e.g., a PK concentration-time plot followed by a summary statistics table). This pattern uses two specs — one for the figure and one for the table — combined in a single report with `continuousSection = TRUE` on both to suppress page breaks between them.
+A frequent CSR pattern is a summary table printed directly beneath its
+figure — a PK concentration-time profile followed by its derived
+parameters. Two specs (figure + table) merge into a single report;
+`continuousSection` lets them share one page instead of starting a new one.
 
 **Key design principles:**
 
-- **Figure subtitle** — by default now appears **above** the figure image, between the title and the plot. You can override this with template-level configuration or per-spec settings if needed.
-- **Continuous section breaks** — both the figure and table specs must have `continuousSection = TRUE` to flow together without a page break.
-- **Spacing and sizing** — you are responsible for ensuring the combined height of figure + table + titles/footnotes fits within the page. Use `figureHeight` parameter to adjust the plot size if needed.
-- **Table title** — you can omit the table title (letting the figure subtitle serve as visual context) or add an explicit title to the table spec for clarity.
+- **One report, two documents** — `create_report(spec_fig, spec_tbl)`
+  merges figure and table into one `.docx`; each keeps its own titles and
+  footnotes, so the Table of Contents can list both entries.
+- **Continuous flow** — both specs carry `continuousSection = TRUE`, so
+  the table follows the figure on the same landscape sheet.
+- **Sizing** — `figureHeight` is dialed so figure + table + titles +
+  footnote all fit; without the flag Word breaks to a new page once the
+  combined height exceeds one sheet.
+- **`<br>` in column labels** — `Cmax (ng/mL)<br>mean (SD)` stacks the
+  statistic over the unit for a compact header.
 
 ### Data
 
+```{r example_06_data, eval = FALSE}
+times <- c(0, 0.5, 1, 2, 4, 6, 8, 12, 24)
+pk <- do.call(rbind, lapply(c("Placebo", "Drug X 50 mg", "Drug X 100 mg", "Drug X 200 mg"), function(trt) {
+  peak <- switch(trt, "Placebo" = 0, "Drug X 50 mg" = 21, "Drug X 100 mg" = 43, "Drug X 200 mg" = 66)
+  ka <- 1.35; ke <- 0.16
+  data.frame(TRT = trt, TIME = times,
+             CONC = if (peak == 0) round(runif(length(times), 0.4, 1.4), 1)
+                    else round(peak * (ke/(ka-ke)) * (exp(-ke*times) - exp(-ka*times)) * 6.2 +
+                               rnorm(length(times), 0, 1.6), 1),
+             stringsAsFactors = FALSE)
+}))
+pk$TRT <- factor(pk$TRT, levels = c("Placebo", "Drug X 50 mg", "Drug X 100 mg", "Drug X 200 mg"))
+
+p6 <- ggplot(pk, aes(TIME, CONC, colour = TRT)) +
+  geom_hline(yintercept = 0, colour = "grey70") +
+  geom_line(linewidth = 0.7) +
+  geom_point(size = 1.7) +
+  scale_colour_manual(values = c("grey55", "#74A7CF", "#2166AC", "#B2182B"), name = NULL) +
+  scale_x_continuous(breaks = times, name = "Time after dose, hours") +
+  scale_y_continuous(name = "Plasma concentration, ng/mL") +
+  theme_bw(base_size = 9) +
+  theme(panel.grid.minor = element_blank(), legend.position = "right",
+        legend.text = element_text(size = 7.2), axis.text = element_text(size = 7.5))
+
+summary_tbl <- data.frame(
+  TRT = levels(pk$TRT),
+  CMAX = c("1.1 (0.4)", "21.6 (3.2)", "43.2 (5.8)", "65.9 (8.4)"),
+  TMAX = c("4.0", "1.0", "1.0", "1.0"),
+  AUC  = c("16.8 (6.1)", "151.2 (24.6)", "302.4 (41.9)", "463.1 (58.2)"),
+  HL   = c("-", "5.2 (0.9)", "4.9 (0.8)", "5.1 (1.1)"),
+  stringsAsFactors = FALSE)
 ```
-> pk
-# A tibble: 21 × 3
-    TIME TRT       CONC
-   <dbl> <chr>    <dbl>
- 1   0   Placebo      0
- 2   0.5 Placebo     14
- 3   1   Placebo     25
- 4   2   Placebo     20
- 5   4   Placebo     11
- 6   8   Placebo      6
- 7  12   Placebo      3
- 8   0   Low Dose     0
- 9   0.5 Low Dose    22
-10   1   Low Dose    39
-# ℹ 11 more rows
-> summary_tbl
-# A tibble: 3 × 3
-  TRT        Cmax  Tmax
-  <chr>     <dbl> <dbl>
-1 High Dose    52     1
-2 Low Dose     39     1
-3 Placebo      25     1
+
+The generated concentration data (36 rows; `TRT` has four levels):
+
+```
+   TIME TRT              CONC
+1   0.0 Placebo           0.6
+2   0.5 Placebo           0.6
+3   1.0 Placebo           0.7
+...
+10  0.0 Drug X 50 mg      0.9
+11  0.5 Drug X 50 mg      7.0
+12  1.0 Drug X 50 mg     10.7
+...
+28  0.0 Drug X 200 mg     0.1
+29  0.5 Drug X 200 mg    22.3
+30  1.0 Drug X 200 mg    33.6
 ```
 
 ### Code
 
-```{r example03.1, eval=FALSE}
-p <- ggplot2::ggplot(pk, ggplot2::aes(TIME, CONC, colour = TRT, shape = TRT)) +
-    ggplot2::geom_line(linewidth = 0.9) +
-    ggplot2::geom_point(size = 2.8) +
-    ggplot2::scale_x_continuous(breaks = c(0, 0.5, 1, 2, 4, 8, 12)) +
-    ggplot2::labs(x = "Time (h)", y = "Concentration (ng/mL)") +
-    ggplot2::theme_bw(base_size = 11) +
-    ggplot2::theme(legend.position = "bottom")
-
-spec_fig <- create_figure(p) %>%
-    add_title(c("Figure S3.1", "Mean PK Concentration–Time Profile"), toclevel = 1) %>%
-    add_subtitle("PK Analysis Set") %>%
-    set_document(continuousSection = TRUE, figureHeight = '3in')
+```{r example_06_spec, eval = FALSE}
+spec_fig <- create_figure(p6) %>%
+  add_title(c("Figure S6.1", "Mean Plasma Concentration-Time Profiles"), toclevel = 1) %>%
+  add_subtitle("Day 15, fasted conditions; PK Analysis Set") %>%
+  set_page_style(page = p_page(size = "A4", orientation = "landscape",
+                  margins = p_margins(top = "0.6in", bottom = "0.6in",
+                                      left = "0.55in", right = "0.55in"))) %>%
+  set_document(continuousSection = TRUE, figureHeight = "3.2in")
 
 spec_tbl <- create_table(summary_tbl) %>%
-  define_cols(TRT, label = "Treatment", isID = TRUE, colWidth = "40%") %>%
-  define_cols(Cmax, label = "C[max]", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%
-  define_cols(Tmax, label = "T[max] (h)", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%
-  add_footnote("C[max] = maximum concentration; T[max] = time of C[max].") %>%
+  add_title("Table S6.1  Pharmacokinetic Summary Parameters", toclevel = 1) %>%
+  define_cols(TRT, label = "Treatment", colWidth = "28%", valueStyleRef = "indent_1") %>%
+  define_cols(c(CMAX, TMAX, AUC, HL),
+              label = c("Cmax (ng/mL)<br>mean (SD)", "Tmax (h)", "AUC0-24<br>mean (SD)", "t1/2 (h)<br>mean (SD)"),
+              valueStyleRef = "text_center") %>%
+  add_footnote("Non-compartmental analysis; placebo values include assay background.",
+               styleRef = "fc_gray") %>%
   set_document(continuousSection = TRUE)
+```
 
+```{r example_06_render, eval = FALSE}
 create_report(spec_fig, spec_tbl) %>%
-  write_doc("table_under_figure", toc = TRUE)
+  write_doc('example_06_pk', toc = TRUE)
 ```
 
 ### Rendered output
 
-[Open table_under_figure.pdf](example_03.1_table_under_figure.pdf)
+[Open example_06_pk.pdf](example_06_pk.pdf)
 
-<iframe src="example_03.1_table_under_figure.pdf" title="table_under_figure.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+<iframe src="example_06_pk.pdf" title="example_06_pk.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
-### Variation: adding an explicit table title
+### Variation: let them split across pages
 
-If you want the table to have its own title (in addition to the figure), simply add a title to the table spec:
+The only thing keeping figure and table on one page is `continuousSection`
+on both specs. Turn it off and the table flows to a fresh page:
 
-```{r example06_with_title, eval = FALSE}
-spec_tbl_titled <- create_table(summary_tbl) %>%
-  add_title(c("Table S3.1", "PK Summary Parameters"), toclevel = 1) %>%
-  define_cols(TRT, label = "Treatment", isID = TRUE, colWidth = "40%") %>%
-  define_cols(Cmax, label = "C[max]", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%
-  define_cols(Tmax, label = "T[max] (h)", type = "numeric", format = "%.1f", valueStyleRef = "text_center") %>%
-  add_footnote("C[max] = maximum concentration; T[max] = time of C[max].") %>%
-  set_document(continuousSection = TRUE)
-
-create_report(spec_fig, spec_tbl_titled) %>%
-  write_doc("table_under_figure_titled", toc = TRUE)
+```{r example_06_split, eval = FALSE}
+spec_fig_split <- set_document(spec_fig, continuousSection = FALSE)
+spec_tbl_split <- set_document(spec_tbl, continuousSection = FALSE)
+create_report(spec_fig_split, spec_tbl_split) %>%
+  write_doc('example_06_split', toc = TRUE)
 ```
 
-This creates two separate entries in the Table of Contents: one for the figure and one for the table.
-
-### Troubleshooting: When figure and table don't fit
-
-If the combined height of the figure, table, and all titles/footnotes exceeds the page height, Word will force an automatic page break between them. To keep them together on one page, reduce the `figureHeight`:
-
-```{r example06_smaller_figure, eval = FALSE}
-spec_fig_compact <- create_figure(p) %>%
-    add_title(c("Figure S3.1", "Mean PK Concentration–Time Profile"), toclevel = 1) %>%
-    add_subtitle("PK Analysis Set") %>%
-    # Reduce from 3in to 2in to leave more room for the table on the same page
-    set_document(continuousSection = TRUE, figureHeight = '2in')
-
-create_report(spec_fig_compact, spec_tbl) %>%
-  write_doc("table_under_figure_compact", toc = TRUE)
-```
-
-To scale figures differently, choose another `figureScaleMode`:
-`"fitWidth"` stretches the figure to the page content width using the
-`figureWidth`/`figureHeight` aspect (NOT the source image's own proportions);
-`"fitKeepAR"` instead reads the embedded image's intrinsic aspect ratio and fits
-it into the body area without distortion (`figureWidth`/`figureHeight` are
-ignored in this mode, with a warning).
-
-## Example 7 - Gap between Spanning Header Lines
+Prefer to keep one page instead? Lower `figureHeight` on the figure spec so
+the table fits in the space that remains.
+## Example 7 — Gap between Spanning Header Lines {#example-07}
 
 Sometimes it is necessary to include a visual gap between spanning column groups
 so it is clear which columns belong to which header. This can be achieved by
@@ -1186,4 +1281,295 @@ With this approach the groups are visually separated from each other:
 
 <iframe src="spanning_headers_gap.pdf" title="spanning_headers_gap.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
+
+## Example 8 — Risk-difference forest figure {#example-08}
+
+A safety exhibit is not always a table. A risk-difference forest plot across
+system organ classes lets a reader take in the whole safety picture on one
+landscape page — and ksTFL embeds ggplot objects exactly as it embeds
+files.
+
+Demonstrated here:
+
+-   **`create_figure()` on a ggplot object** with `figureDevice = "cairo"`
+    — the figure renders to paths-only SVG so Microsoft Word shows it
+    exactly as R does.
+-   **`figureScaleMode = "fitKeepAR"`** — the plot keeps its own aspect
+    ratio and is fitted to the largest box the page allows, filling the
+    landscape sheet without distortion.
+-   **Titles and footnotes live on the spec, not inside the plot** — the
+    same `add_title()` / `add_subtitle()` / `add_footnote()` API used for
+    tables works for figures, so a report mixes tables and figures under one
+    consistent look.
+
+### Data
+
+CI bounds and the significance category are derived, exactly as the chunk
+shows, so nothing is hand-typed (plot order is the reversed factor):
+
+```{r example_08_data, eval = FALSE}
+soc8 <- c("Gastrointestinal disorders","Infections and infestations",
+          "Nervous system disorders","Skin and subcutaneous tissue disorders",
+          "Musculoskeletal and connective tissue disorders","Hepatobiliary disorders",
+          "Cardiac disorders","Endocrine disorders","Psychiatric disorders",
+          "Respiratory, thoracic and mediastinal disorders","Renal and urinary disorders",
+          "Vascular disorders","Metabolism and nutrition disorders","Eye disorders")
+set.seed(7L)
+n8 <- length(soc8)
+ae_rd <- data.frame(
+  SOC = factor(soc8, levels = rev(soc8)),
+  RD = round(runif(n8, -4.5, 5.0), 1),
+  SE = round(runif(n8, 1.4, 2.6), 2),
+  EV_PL = sample(4:26, n8, TRUE), EV_DR = sample(6:31, n8, TRUE))
+ae_rd$LO <- round(ae_rd$RD - 1.96 * ae_rd$SE, 1)
+ae_rd$HI <- round(ae_rd$RD + 1.96 * ae_rd$SE, 1)
+ae_rd$SIG <- ifelse(ae_rd$LO > 0, "Favors Drug A",
+            ifelse(ae_rd$HI < 0, "Favors Placebo", "Not significant"))
+```
+
+```
+   SOC                                          RD   SE EV_PL EV_DR    LO   HI
+1  Gastrointestinal disorders                  -3.6 2.00     7      17  -7.5  0.3
+2  Infections and infestations                  2.8 2.14    17       7  -1.4  7.0
+3  Nervous system disorders                    -2.3 1.50    20      14  -5.2  0.6
+4  Skin and subcutaneous tissue disorders      -2.9 2.60    11      20  -8.0  2.2
+5  Musculoskeletal and connective tissue       -0.1 2.50    14      18  -5.0  4.8
+6  Hepatobiliary disorders                     -2.9 2.60     9      13  -8.0  2.2
+7  Cardiac disorders                            4.7 1.73     7      27   1.3  8.1
+8  Endocrine disorders                         -1.3 1.78     5      26  -5.6  3.0
+9  Psychiatric disorders                        3.0 1.78    26      14  -0.5  6.5
+10 Respiratory, thoracic and mediastinal       -2.2 2.60     9      29  -7.3  2.9
+11 Renal and urinary disorders                 -3.8 1.43    14      26  -6.6 -1.0
+12 Vascular disorders                         -3.4 2.09     7      18  -7.5  0.7
+13 Metabolism and nutrition disorders         -0.7 1.48    24       8  -3.6  2.2
+14 Eye disorders                               4.9 1.93    25      30   1.1  8.7
+```
+
+### Code
+
+```{r example_08_spec, eval = FALSE}
+p <- ggplot(ae_rd, aes(x = RD, y = SOC, colour = SIG)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "grey50") +
+  geom_errorbar(aes(xmin = LO, xmax = HI), width = 0.14, linewidth = 0.5) +
+  geom_point(size = 2.2) +
+  geom_text(aes(label = sprintf("%+.1f  [%+.1f, %+.1f]", RD, LO, HI),
+                x = max(ae_rd$HI) + 1.6), hjust = 0, size = 2.1,
+            colour = "grey20", show.legend = FALSE) +
+  scale_x_continuous(limits = c(min(ae_rd$LO) - 1.6, max(ae_rd$HI) + 13.0),
+                     breaks = scales::pretty_breaks(n = 6)) +
+  scale_colour_manual(values = c("Favors Drug A" = "#B2182B",
+                                 "Favors Placebo" = "#2166AC",
+                                 "Not significant" = "grey55"), name = NULL) +
+  labs(x = "Risk difference vs placebo, percentage points (95% CI)", y = NULL) +
+  theme_bw(base_size = 8) +
+  theme(panel.grid.minor = element_blank(), panel.grid.major.y = element_blank(),
+        panel.border = element_rect(colour = "grey60", linewidth = 0.4),
+        axis.text.y = element_text(size = 6.8, colour = "grey15"),
+        axis.text.x = element_text(size = 7), axis.title = element_text(size = 7.5),
+        legend.position = "bottom", legend.title = element_blank(),
+        legend.text = element_text(size = 7))
+
+spec <- create_figure(p) %>%
+  add_title(c("Figure S8.1", "Treatment-Emergent Adverse Events by System Organ Class"), toclevel = 1) %>%
+  add_subtitle("Risk difference with 95% CI; Safety Population") %>%
+  add_footnote("AEs reported at >= 5% in either arm. Positive values indicate higher incidence with Drug A.",
+               styleRef = "fc_gray") %>%
+  set_page_style(page = p_page(size = "A4", orientation = "landscape",
+                  margins = p_margins(top = "0.6in", bottom = "0.6in",
+                                      left = "0.55in", right = "0.55in"))) %>%
+  set_document(figureScaleMode = "fitKeepAR")
+```
+
+```{r example_08_render, eval = FALSE}
+create_report(spec) %>% write_doc('example_08_forest')
+```
+
+### Rendered output
+
+[Open example_08_forest.pdf](example_08_forest.pdf)
+
+<iframe src="example_08_forest.pdf" title="example_08_forest.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+
+## Example 9 — Two related tables on one page {#example-09}
+
+Exposure and discontinuation summaries are natural neighbors in a CSR —
+both describe *how long, and why,* subjects stayed on treatment. This
+example renders them as one continuous page: two complete table specs, each
+with its own span lattice, subtitle, and footnote, merged through
+continuous-section pagination control.
+
+Demonstrated here:
+
+-   **Two span lattices in one document** — “Subjects” and
+    “Exposure on treatment” banners in Table S9.1; four arm banners plus a
+    “Treatment Arm” umbrella in Table S9.2 (siblings share `stubOrder`, the
+    umbrella sits one level above).
+-   **Rule-driven emphasis** — the Total row and the “Any reason” row
+    are bolded through `compute_cols()` / `c_style()`.
+-   **`continuousSection = TRUE`** — the second table starts right after
+    the first ends instead of on a new page.
+-   **`<br>` in span labels** — arm names stack over their `(N = ...)`
+    line inside a spanning header.
+
+### Data
+
+```{r example_09_data, eval = FALSE}
+exp9 <- data.frame(
+  GRP = c("Placebo", "Drug X 50 mg", "Drug X 100 mg", "Total"),
+  RAND = c("42", "22", "22", "86"),
+  DOSED = c("42 (100)", "22 (100)", "22 (100)", "86 (100)"),
+  MEAN_WK = c("16.2 (4.1)", "15.8 (4.6)", "16.4 (4.0)", "16.1 (4.2)"),
+  MED_WK  = c("17.1 (2.9-22.4)", "16.8 (2.1-22.2)", "17.5 (3.4-22.6)", "17.1 (2.1-22.6)"),
+  CUM_PAT = c("680", "348", "361", "1389"), stringsAsFactors = FALSE)
+
+dsc9 <- data.frame(
+  REASON = c("Any reason", "Adverse event", "Withdrawal of consent",
+             "Lost to follow-up", "Lack of efficacy", "Investigator decision",
+             "Protocol deviation", "Other"),
+  PLN = c("9 (21.4%)", "2 (4.8%)", "4 (9.5%)", "3 (7.1%)", rep("0 (0.0%)", 4)),
+  D50 = c("5 (22.7%)", "3 (13.6%)", "1 (4.5%)", "1 (4.5%)", rep("0 (0.0%)", 4)),
+  D100 = c("6 (27.3%)", "4 (18.2%)", "1 (4.5%)", "0 (0.0%)", "0 (0.0%)", "1 (4.5%)", "0 (0.0%)", "0 (0.0%)"),
+  TOT = c("20 (23.3%)", "9 (10.5%)", "6 (7.0%)", "4 (4.7%)", "0 (0.0%)", "1 (1.2%)", "0 (0.0%)", "0 (0.0%)"),
+  stringsAsFactors = FALSE)
+```
+
+### Code
+
+```{r example_09_spec, eval = FALSE}
+spec_exposure <- create_table(exp9) %>%
+  define_cols(GRP, label = "Treatment Group", colWidth = "26%",
+              valueStyleRef = "indent_1", labelStyleRef = "al") %>%
+  define_cols(c(RAND, DOSED), label = c("Randomized", "Dosed, n (%)"),
+              valueStyleRef = "ac", colWidth = c("12%", "14%")) %>%
+  define_cols(MEAN_WK, label = "Mean, weeks (SD)", valueStyleRef = "ac") %>%
+  define_cols(MED_WK, label = "Median (min-max)", valueStyleRef = "ac") %>%
+  define_cols(CUM_PAT, label = "Total, patient-weeks", valueStyleRef = "ac") %>%
+  add_span_header(c(RAND, DOSED), "Subjects", stubOrder = 1) %>%
+  add_span_header(c(MEAN_WK, MED_WK, CUM_PAT), "Exposure on treatment", stubOrder = 1) %>%
+  compute_cols(GRP == "Total", c_style(everything(), styleRef = "font_bold")) %>%
+  add_title("Table S9.1  Duration of Exposure", toclevel = 1) %>%
+  add_subtitle("Safety population; double-blind period only", styleRef = "i") %>%
+  add_footnote("Time on randomized treatment from first dose to last dose or discontinuation, whichever came first; dose interruptions are included.",
+               styleRef = f_combine("fs_8", "fc_gray")) %>%
+  set_page_style(page = p_page(size = "A4", orientation = "landscape",
+                  margins = p_margins(top = "0.6in", bottom = "0.6in",
+                                      left = "0.55in", right = "0.55in"))) %>%
+  set_document(continuousSection = TRUE)
+
+spec_disposition <- create_table(dsc9) %>%
+  define_cols(REASON, label = "Reason for discontinuation", colWidth = "34%",
+              valueStyleRef = "indent_1", labelStyleRef = "al") %>%
+  define_cols(c(PLN, D50, D100, TOT), label = c("n (%)", "n (%)", "n (%)", "n (%)"),
+              valueStyleRef = "ac") %>%
+  add_span_header(c(PLN),  "Placebo (N = 42)",        stubOrder = 1) %>%
+  add_span_header(c(D50),  "Drug X 50 mg (N = 22)",   stubOrder = 1) %>%
+  add_span_header(c(D100), "Drug X 100 mg (N = 22)",  stubOrder = 1) %>%
+  add_span_header(c(TOT),  "Total (N = 86)",          stubOrder = 1) %>%
+  add_span_header(c(PLN, D50, D100, TOT), "Treatment Arm", stubOrder = 2) %>%
+  compute_cols(REASON == "Any reason", c_style(everything(), styleRef = "font_bold")) %>%
+  add_title("Table S9.2  Summary of Discontinuations", toclevel = 1) %>%
+  add_subtitle("First reason recorded per subject", styleRef = "i") %>%
+  add_footnote("Subjects discontinuing for an adverse event are not re-counted under subsequent reasons; the reason rows cross-foot to the 'Any reason' total.",
+               styleRef = f_combine("fs_8", "fc_gray", "i")) %>%
+  set_page_style(page = p_page(size = "A4", orientation = "landscape",
+                  margins = p_margins(top = "0.6in", bottom = "0.6in",
+                                      left = "0.55in", right = "0.55in"))) %>%
+  set_document(continuousSection = TRUE)
+```
+
+```{r example_09_render, eval = FALSE}
+create_report(spec_exposure, spec_disposition) %>%
+  write_doc('example_09_two_tables')
+```
+
+### Rendered output
+
+[Open example_09_two_tables.pdf](example_09_two_tables.pdf)
+
+<iframe src="example_09_two_tables.pdf" title="example_09_two_tables.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
+
+## Example 10 — Laboratory safety with threshold highlighting {#example-10}
+
+Laboratory shift tables compare many parameters across arms, and the eye
+needs abnormality rates that cross a decision line to stand up by
+themselves. Here that happens with plain arithmetic conditions — and the
+whole page wears the `Navy_Pro` corporate template to show how one option
+re-skins everything.
+
+Demonstrated here:
+
+-   **Conditions on the formatted text itself** — `as.numeric(sub(...))`
+    inside `compute_cols()` pulls the percentage out of “4 (18.2%)” strings
+    and fires `c_style(f_combine("fc_rust", "b"))` once the threshold is
+    crossed. Rules read the displayed value, not a hidden helper column.
+-   **Parameter section headers** — `firstOf(PARAM)` on the hidden `PARAM`
+    column, the invisible-column pattern of Example 1 at another scale.
+-   **`docTemplate = "Navy_Pro"`** — navy header bands and different
+    typography arrive from one option; the spec code is untouched.
+-   **`<sup>a</sup>` marker** in the subtitle, referenced by the footnote
+    — inline markup across titles, subtitles, and notes alike.
+
+### Data
+
+```{r example_10_data, eval = FALSE}
+lab_shifts <- data.frame(
+  PARAM = rep(c("Alanine aminotransferase, U/L",
+                "Aspartate aminotransferase, U/L",
+                "Gamma-glutamyl transferase, U/L",
+                "Creatinine, umol/L",
+                "Hemoglobin, g/L",
+                "Potassium, mmol/L",
+                "Glucose, mmol/L (fasting)",
+                "INR, ratio"), each = 2),
+  DIRECTION = rep(c("Mean (SD)", "Subjects above ULN / below LLN"), 8),
+  PLN = c("34.2 (8.1)", "1 (2.4%)", "31.8 (7.6)", "0 (0.0%)",
+          "29.4 (11.2)", "1 (2.4%)", "78.1 (12.4)", "2 (4.8%)",
+          "141.2 (9.8)", "0 (0.0%)", "4.32 (0.28)", "1 (2.4%)",
+          "5.41 (0.62)", "3 (7.1%)", "1.02 (0.09)", "0 (0.0%)"),
+  D50 = c("35.1 (9.0)", "2 (9.1%)", "32.9 (8.4)", "1 (4.5%)",
+          "33.8 (14.6)", "3 (13.6%)", "79.6 (13.8)", "3 (13.6%)",
+          "140.1 (10.2)", "0 (0.0%)", "4.28 (0.31)", "2 (9.1%)",
+          "5.62 (0.71)", "5 (22.7%)", "1.04 (0.11)", "0 (0.0%)"),
+  D100 = c("37.9 (10.4)", "4 (18.2%)", "36.2 (9.9)", "3 (13.6%)",
+           "38.1 (16.9)", "5 (22.7%)", "81.9 (15.1)", "4 (18.2%)",
+           "139.4 (11.0)", "1 (4.5%)", "4.21 (0.33)", "1 (4.5%)",
+           "5.88 (0.83)", "7 (31.8%)", "1.07 (0.12)", "1 (4.5%)"),
+  stringsAsFactors = FALSE)
+```
+
+### Code
+
+```{r example_10_spec, eval = FALSE}
+spec <- create_table(lab_shifts) %>%
+  define_cols(PARAM, isVisible = FALSE) %>%
+  define_cols(DIRECTION, label = "Laboratory parameter", colWidth = "38%",
+              valueStyleRef = "indent_1", labelStyleRef = "al") %>%
+  define_cols(c(PLN, D50, D100),
+              label = c("Placebo (n = 42)", "Drug X 50 mg (n = 22)", "Drug X 100 mg (n = 22)"),
+              valueStyleRef = "ac") %>%
+  compute_cols(firstOf(PARAM),
+               c_addrow("above", value_from = PARAM, styleRef = "font_bold")) %>%
+  compute_cols(as.numeric(sub("%", "", sub(".*\\((.*)\\).*", "\\1", D100))) >= 13,
+               c_style(D100, styleRef = f_combine("fc_rust", "b"))) %>%
+  compute_cols(as.numeric(sub("%", "", sub(".*\\((.*)\\).*", "\\1", D50))) >= 10,
+               c_style(D50, styleRef = f_combine("fc_rust", "b"))) %>%
+  add_title(c("Table S10.1", "Shifts in Clinical Laboratory Values"), toclevel = 1) %>%
+  add_subtitle("Safety population; values in SI units<sup>a</sup>", styleRef = "i") %>%
+  add_footnote("<sup>a</sup> Red: >= 10% of subjects with confirmed central-lab abnormalities in the corresponding arm. ULN/LLN per site local ranges, re-read centrally.",
+               styleRef = f_combine("fs_8", "fc_gray")) %>%
+  set_page_style(page = p_page(size = "A4", orientation = "landscape",
+                  margins = p_margins(top = "0.6in", bottom = "0.6in",
+                                      left = "0.55in", right = "0.55in"))) %>%
+  set_document(contentWidth = "94%", docTemplate = "Navy_Pro")
+```
+
+```{r example_10_render, eval = FALSE}
+create_report(spec) %>% write_doc('example_10_navy_lab')
+```
+
+### Rendered output
+
+[Open example_10_navy_lab.pdf](example_10_navy_lab.pdf)
+
+<iframe src="example_10_navy_lab.pdf" title="example_10_navy_lab.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 

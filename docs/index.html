@@ -123,26 +123,21 @@ Clinical Tables, Figures, and Listings —<br>from R code to validated DOCX, in 
 <p>Five verbs stand between a data frame and a submission-ready document:</p>
 <pre><code>create_*()  -&gt;  define / add_* / compute_*  -&gt;  create_report()  -&gt;  write_doc()  -&gt;  .docx
   specify            style &amp; compose            validate &amp; merge          render</code></pre>
-<p>No external tools, no Word macros, no “final_v7_reallyfinal.docx”. One table, one figure, one listing — or all of them, dozens per run, assembled into a single report whose clickable table of contents writes itself. And the endless argument with Word over pagination simply ends: pages break where your spec says they should break, not where Word decides to, so the layout you validated today is the layout on screen a year from now. Every page below was rendered by ksTFL itself. Click any page to open it full size.</p>
+<p>No external tools, no Word macros, no “final_v7_reallyfinal.docx”. One table, one figure, one listing — or all of them, dozens per run, assembled into a single report whose clickable table of contents writes itself. And the endless argument with Word over pagination simply ends: pages break where your spec says they should break, not where Word decides to, so the layout you validated today is the layout on screen a year from now. Every page below was rendered by ksTFL itself. Click a page to open it full size; click its caption to jump to the example walked through line by line in <a href="articles/Real_Examples_with_ksTFL.html">Real Examples</a>.</p>
 <div class="ksgallery">
-<a class="ksdemo" href="home/show-demography.png" target="_blank" rel="noopener"> <img src="home/show-demography.png" alt="Demography table with grouped treatment-arm headers"><figcaption>
-Demography table with grouped column headers for each treatment arm
-</figcaption><p></p></a>
-<a class="ksdemo" href="home/show-ae-complex.png" target="_blank" rel="noopener"> <img src="home/show-ae-complex.png" alt="Adverse events by system organ class and period"><figcaption>
-Adverse events by system organ class, term, and relationship — grouped by study period
-</figcaption><p></p></a>
-<a class="ksdemo" href="home/show-forest.png" target="_blank" rel="noopener"> <img src="home/show-forest.png" alt="Risk difference forest plot across organ classes"><figcaption>
-A risk-difference forest plot filling the page, with significance colouring and value annotations
-</figcaption><p></p></a>
-<a class="ksdemo" href="home/show-two-tables.png" target="_blank" rel="noopener"> <img src="home/show-two-tables.png" alt="Two summary tables on one page"><figcaption>
-Two related tables — exposure and discontinuations — flowing together on a single page
-</figcaption><p></p></a>
-<a class="ksdemo" href="home/show-lab-styled.png" target="_blank" rel="noopener"> <img src="home/show-lab-styled.png" alt="Laboratory table with conditionally colored values"><figcaption>
-Laboratory safety on a navy template — abnormality rates highlighted automatically as they cross a threshold
-</figcaption><p></p></a>
-<a class="ksdemo" href="home/show-pk-page.png" target="_blank" rel="noopener"> <img src="home/show-pk-page.png" alt="Concentration-time figure with a parameter table on the same page"><figcaption>
-A concentration-time profile and its parameter table, composed as one page of a pharmacology report
-</figcaption><p></p></a>
+<figure class="ksdemo"><a class="ksdemo-zoom" href="home/show-demography.png" target="_blank" rel="noopener"> <img src="home/show-demography.png" alt="Demography table with grouped treatment-arm headers"></a>
+<figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-01">Demography table: grouped headers, merged p-value cells, section rules</a>
+</figcaption></figure><figure class="ksdemo"><a class="ksdemo-zoom" href="home/show-ae-complex.png" target="_blank" rel="noopener"> <img src="home/show-ae-complex.png" alt="Adverse events by system organ class and period"></a>
+<figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-3b">Adverse events: subjects and events per period under stacked banners</a>
+</figcaption></figure><figure class="ksdemo"><a class="ksdemo-zoom" href="home/show-forest.png" target="_blank" rel="noopener"> <img src="home/show-forest.png" alt="Risk difference forest plot across organ classes"></a>
+<figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-08">Risk-difference forest plot filling a landscape page</a>
+</figcaption></figure><figure class="ksdemo"><a class="ksdemo-zoom" href="home/show-two-tables.png" target="_blank" rel="noopener"> <img src="home/show-two-tables.png" alt="Two summary tables on one page"></a>
+<figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-09">Exposure and discontinuation tables flowing together on one page</a>
+</figcaption></figure><figure class="ksdemo"><a class="ksdemo-zoom" href="home/show-lab-styled.png" target="_blank" rel="noopener"> <img src="home/show-lab-styled.png" alt="Laboratory table with conditionally colored values"></a>
+<figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-10">Laboratory safety on the navy template — thresholds highlight themselves</a>
+</figcaption></figure><figure class="ksdemo"><a class="ksdemo-zoom" href="home/show-pk-page.png" target="_blank" rel="noopener"> <img src="home/show-pk-page.png" alt="Concentration-time figure with a parameter table"></a>
+<figcaption><a class="ksdemo-link" href="articles/Real_Examples_with_ksTFL.html#example-06">A concentration-time profile and its parameter table as one page</a>
+</figcaption></figure>
 </div>
 </div>
 <div class="section level2">

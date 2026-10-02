@@ -313,9 +313,9 @@ main#main img[src*="logo"] {
     color: #fff;
 }
 
-/* Demo gallery: rendered pages as "printed sheets". Tiles are real links
-   (open the full-resolution page), so they must be honest about it:
-   zoom cursor, no fake interactive chrome. */
+/* Demo gallery: rendered pages as "printed sheets". Each tile is a figure with
+   TWO honest affordances: the image is a zoom link (opens full size), and the
+   caption is a navigation link (jumps to the worked example in the vignette). */
 .ksgallery {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -331,16 +331,23 @@ main#main img[src*="logo"] {
     .ksgallery { grid-template-columns: 1fr; }
 }
 
+figure.ksdemo,
 a.ksdemo {
     margin: 0;
     text-align: center;
     text-decoration: none;
     color: inherit;
     display: block;
-    cursor: zoom-in;
 }
 
-a.ksdemo img {
+.ksdemo .ksdemo-zoom {
+    display: block;
+    cursor: zoom-in;
+    color: inherit;
+    text-decoration: none;
+}
+
+.ksdemo img {
     width: 100%;
     margin: 0;
     border: 1px solid #d8dee4;
@@ -349,20 +356,47 @@ a.ksdemo img {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+.ksdemo .ksdemo-zoom:hover img,
 a.ksdemo:hover img {
     transform: translateY(-3px);
     box-shadow: 0 8px 22px rgba(16, 24, 40, 0.2);
 }
 
-a.ksdemo:hover figcaption {
-    color: #2166AC;
-}
-
-a.ksdemo figcaption {
+.ksdemo figcaption {
     font-size: 0.92rem;
-    color: #3d4650;
     margin-top: 0.7rem;
     line-height: 1.5;
+}
+
+/* the caption link: reads as a link without shouting */
+.ksdemo figcaption a.ksdemo-link,
+a.ksdemo figcaption a {
+    color: #3d4650;
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(33, 102, 172, 0.55);
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.ksdemo figcaption a.ksdemo-link::after {
+    content: " \2192";              /* →  */
+    font-weight: 700;
+    color: #2166AC;
+    opacity: 0.55;
+}
+
+.ksdemo figcaption a.ksdemo-link:hover,
+.ksdemo figcaption a.ksdemo-link:focus-visible {
+    color: #2166AC;
+    border-bottom-color: #2166AC;
+}
+
+.ksdemo figcaption a.ksdemo-link:hover::after {
+    opacity: 1;
+}
+
+/* quick-start tile (whole tile is one link there) */
+a.ksdemo:hover figcaption {
+    color: #2166AC;
 }
 
 /* ── Footer: page band like a running footer ────────────── */
@@ -483,6 +517,21 @@ pre::-webkit-scrollbar-thumb:hover {
 
 [data-bs-theme="dark"] .ksdemo figcaption {
     color: #aab6c2;
+}
+
+[data-bs-theme="dark"] .ksdemo figcaption a.ksdemo-link,
+[data-bs-theme="dark"] a.ksdemo figcaption a {
+    color: #c3ccd6;
+    border-bottom-color: rgba(74, 158, 222, 0.5);
+}
+
+[data-bs-theme="dark"] .ksdemo figcaption a.ksdemo-link::after {
+    color: #4A9EDE;
+}
+
+[data-bs-theme="dark"] .ksdemo figcaption a.ksdemo-link:hover {
+    color: #4A9EDE;
+    border-bottom-color: #4A9EDE;
 }
 
 [data-bs-theme="dark"] aside nav#toc h2 {
