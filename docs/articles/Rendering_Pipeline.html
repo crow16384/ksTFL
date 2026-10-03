@@ -89,7 +89,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-10-02</h4>
+            <h4 data-toc-skip class="date">2026-10-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Rendering_Pipeline.Rmd" class="external-link"><code>vignettes/Rendering_Pipeline.Rmd</code></a></small>
       <div class="d-none name"><code>Rendering_Pipeline.Rmd</code></div>
@@ -97,13 +97,14 @@ Development Team</h4>
 
     
     
-<p>This document describes the complete C++ renderer architecture used
-by ksTFL to convert JSON report specifications into deterministic DOCX
-output.</p>
+<p>ksTFL converts JSON report specifications into deterministic DOCX
+output with a C++ renderer. This document maps its modules, pipeline
+phases, and data structures.</p>
 <div class="section level2">
 <h2 id="end-to-end-architecture">1. End-to-End Architecture<a class="anchor" aria-label="anchor" href="#end-to-end-architecture"></a>
 </h2>
 <pre><code>R API
+  -&gt; R layer serializes spec/template/data to JSON (jsonlite)
   -&gt; src/rcpp_bindings.cpp
   -&gt; kstfl::Renderer
 
@@ -112,6 +113,8 @@ Renderer pipeline
 
 Core modules
   json_parser.cpp      : spec/template/data parsing
+  units.cpp            : Length parsing and EMU/dxa conversion backbone
+  style_types.cpp      : style-merge machinery + OOXML enum lookup tables
   style_resolver.cpp   : style cascade + page/width resolution
   logical_table.cpp    : header grid + logical row stream + styleRows actions
   font_scanner.cpp     : system font discovery + fallback resolution
@@ -137,6 +140,13 @@ Core modules
 <ul>
 <li>Renderer::render()</li>
 <li>Renderer::render_from_strings()</li>
+</ul>
+</li>
+<li>src/cpp_tests.cpp
+<ul>
+<li>In-package C++ self-tests (units, inline_parser, xml_writer, format
+validator), driven from testthat via <code>.Call</code>
+</li>
 </ul>
 </li>
 </ul>
@@ -176,15 +186,16 @@ model)</li>
 <ul>
 <li>LogicalTableBuilder::build()</li>
 <li>build_header_grid(), build_data_rows()</li>
-<li>apply_dedupe(), apply_style_rows(),
-detect_grouping_boundaries()</li>
+<li>apply_dedupe() runs as its own pass; apply_style_rows() then
+interleaves c_clear, c_glue, c_merge, c_style, c_addrow, and c_pageBreak
+by sequence number; detect_grouping_boundaries()</li>
 </ul>
 </li>
 <li>src/kstfl/inline_parser.cpp
 <ul>
 <li>inline markup extraction
-(<code>&lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;br&gt; &lt;sup&gt; &lt;sub&gt;</code>
-etc.) feeding vertAlign/bold/italic runs to the emitter</li>
+(<code>&lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;s&gt; &lt;br&gt; &lt;sup&gt; &lt;sub&gt; &lt;p&gt;</code>)
+feeding vertAlign/bold/italic/strike runs to the emitter</li>
 </ul>
 </li>
 </ul>
@@ -197,7 +208,8 @@ etc.) feeding vertAlign/bold/italic runs to the emitter</li>
 <ul>
 <li>Platform-specific system font directory enumeration</li>
 <li>FreeType-based font family/style classification</li>
-<li>Global font path map (populated once at package load)</li>
+<li>Global font path map (populated at package load, re-populated by
+tfl_rescan_fonts())</li>
 <li>Target font resolution with fallback assignment</li>
 </ul>
 </li>
@@ -227,10 +239,21 @@ support</li>
 <h3 id="docx-emission-and-packaging">2.5 DOCX emission and packaging<a class="anchor" aria-label="anchor" href="#docx-emission-and-packaging"></a>
 </h3>
 <ul>
-<li>src/kstfl/docx_emitter.cpp (top-level emission)</li>
-<li>src/kstfl/docx_document.cpp, docx_page.cpp, docx_table.cpp,
-docx_styles.cpp, docx_rels.cpp, docx_content_types.cpp, docx_media.cpp,
-docx_toc.cpp</li>
+<li>src/kstfl/docx_emitter.cpp (top-level emission orchestration)</li>
+<li>Document parts: src/kstfl/docx_document.cpp, docx_content.cpp,
+docx_page.cpp, docx_table.cpp, docx_styles.cpp, docx_sections.cpp,
+docx_layout.cpp, docx_drawing.cpp, docx_toc.cpp</li>
+<li>src/kstfl/docx_metadata.cpp
+<ul>
+<li>[Content_Types].xml, .rels, document rels, font table, settings</li>
+</ul>
+</li>
+<li>src/kstfl/docx_packager.cpp
+<ul>
+<li>Assembles and writes all parts through ZipWriter (media files
+included)</li>
+</ul>
+</li>
 <li>src/kstfl/xml_writer.cpp</li>
 <li>src/kstfl/zip_writer.cpp</li>
 </ul>
@@ -270,37 +293,38 @@ docx_toc.cpp</li>
 │   3b) Model                                                           │
 │      LogicalTableBuilder::build()                                     │
 │      - header grid + vMerge metadata                                  │
-│      - logical data rows                                               │
-│      - styleRows actions (c_style, c_clear, c_merge, c_glue,          │
-│        c_addrow, c_pageBreak)                                         │
+│      - logical data rows                                              │
+│      - dedupe pass, then styleRows actions in sequence order:         │
+│        c_clear, c_glue, c_merge, c_style, c_addrow, c_pageBreak       │
 │                                                                       │
 │   3c) Measure                                                         │
 │      Header rows: vMerge-aware 2-pass height balancing                │
 │      Body cells: TextMeasurer::measure_plain()                        │
-│      - inline markup parsing                                           │
-│      - HarfBuzz shaping                                                │
+│      - inline markup parsing                                          │
+│      - HarfBuzz shaping                                               │
 │      - deterministic wrapping and line-height math                    │
 │                                                                       │
 │   3d) Paginate                                                        │
 │      Paginator::paginate()                                            │
-│      - build_segments(): split by isColBreak, repeat isID columns     │
+│      - build_segments(): split before isColBreak columns, drop        │
+│        invisible columns, repeat isID columns in every segment        │
 │      - compute_row_heights(): baseline full-table heights             │
-│      - compute_segment_column_widths(): segment width scaling          │
+│      - compute_segment_column_widths(): segment width scaling         │
 │      - compute_segment_row_heights(): per-segment row heights         │
 │      - compute static blocks: titles/subtitles/header/footer/notes    │
 │      - vertical fill + LastPage post-pass (deterministic mode only)   │
-│      - row-break mode keeps natural flow; no LastPage reshuffling      │
+│      - row-break mode keeps natural flow; no LastPage reshuffling     │
 │                                                                       │
-│   3e) Dedupe restoration                                               │
+│   3e) Dedupe restoration                                              │
 │      Restore deduped values at page boundaries                        │
 └───────────────────────────────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────┐
 │ Phase 4: Emit and package DOCX                                        │
-│   DocxEmitter::emit()                                                  │
+│   DocxEmitter::emit()                                                 │
 │   - document.xml, styles.xml, rels, header/footer parts               │
-│   - page/section assembly, table/header/body emission                  │
-│   - optional TOC                                                       │
+│   - page/section assembly, table/header/body emission                 │
+│   - optional TOC                                                      │
 │   ZipWriter: package all OOXML parts into .docx                       │
 └───────────────────────────────────────────────────────────────────────┘</code></pre>
 </div>
@@ -311,7 +335,8 @@ docx_toc.cpp</li>
 <ul>
 <li>
 <strong>Units and geometry</strong>: <code>Length</code>,
-<code>PageConfig</code>, <code>Margins</code>
+<code>PageConfig</code>, <code>PageMargins</code>,
+<code>PageMarginsOverride</code>
 </li>
 <li>
 <strong>Style system</strong>: <code>FontProps</code>,
@@ -368,13 +393,17 @@ exact.</li>
 <li>Warning thresholds compare against the physical page body height,
 while pagination still uses a safety margin for conservative
 fitting.</li>
+<li>Page totals returned to R subtract one page per continuousSection
+seam, since a joined spec does not start a new page.</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="style-resolution-cascade">7. Style Resolution Cascade<a class="anchor" aria-label="anchor" href="#style-resolution-cascade"></a>
 </h2>
-<p>The renderer applies styles in this effective order (later layers
-override earlier ones unless marked structural/non-overridable):</p>
+<p>The renderer applies styles in this effective order. Every later
+layer overrides earlier ones field-by-field — including the structural
+layer, which is applied early in the merge chain rather than enforced
+last:</p>
 <ol style="list-style-type: decimal">
 <li>Template default text style</li>
 <li>Region style (tableHeader, tableBody, titles, subtitles,
@@ -385,7 +414,12 @@ footnotes)</li>
 <li>Row action style (styleRows c_style)</li>
 <li>Merge/action style overrides</li>
 <li>AddRow style overrides</li>
+<li>tableStyle.cellDefaults.vertical_alignment — fills vertical
+alignment only when no higher layer set it (lowest precedence)</li>
 </ol>
+<p>Inline markup (<code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>,
+<code>&lt;sup&gt;</code>, …) applies as run-level overrides at emission,
+on top of the resolved cell style.</p>
 </div>
 <div class="section level2">
 <h2 id="rc-integration">8. R/C++ Integration<a class="anchor" aria-label="anchor" href="#rc-integration"></a>
@@ -395,6 +429,11 @@ footnotes)</li>
 <ul>
 <li>render_docx_impl(…)</li>
 <li>render_docx_from_strings_impl(…)</li>
+<li>init_font_registry_impl(fallback_font_dir, extra_dirs) — scans font
+directories and fills the global path map; called at package load
+(.onLoad) and by tfl_rescan_fonts()</li>
+<li>get_font_dirs_impl() — returns the directories found by the last
+scan</li>
 </ul>
 </li>
 <li>Registration in src/init.cpp and src/RcppExports.cpp.</li>
@@ -412,11 +451,11 @@ footnotes)</li>
 <code>operator&lt;=&gt;</code> (three-way comparison) for
 <code>Length</code>
 </li>
-<li>Concepts (<code>Mergeable</code>) constraining style merge
-templates</li>
+<li>Concepts (<code>Mergeable</code>) constraining style merge templates
+(style_types.cpp)</li>
 <li>
 <code>constexpr std::array</code> lookup tables for OOXML enum
-conversions</li>
+conversions (style_types.cpp)</li>
 <li>
 <code>std::ranges::sort</code>, <code>std::ranges::any_of</code>,
 <code>std::ranges::transform</code>
@@ -426,8 +465,9 @@ conversions</li>
 <li>
 <code>std::to_chars</code> for double formatting</li>
 <li>
-<code>[[nodiscard]]</code> on all pure/value-returning
-functions</li>
+<code>[[nodiscard]]</code> on value-returning functions in the
+layout/style core (style_resolver.h, text_measurer.h, types.h); not
+applied uniformly across every header yet</li>
 </ul>
 </li>
 <li>Core dependencies:
@@ -452,6 +492,13 @@ functions</li>
 <code>src/Makevars</code> always compiles vendored HarfBuzz,
 FreeType, and minizip sources under <code>src/vendor/</code>
 </li>
+<li>Vendored libraries build as single-compilation-unit wrappers
+(<code>ft_all.c</code>, the <code>harfbuzz.cc</code> amalgamation,
+<code>mz_all.c</code>); HarfBuzz is trimmed with
+HB_NO_SUBSET/HB_NO_COLOR/HB_NO_PAINT/ HB_NO_STYLE and compiled as
+C++17</li>
+<li>nlohmann/json is header-only, pulled in via the vendor include
+path</li>
 <li>No <code>pkg-config</code> probe or system-library fallback is used
 on Linux</li>
 <li>Windows continues to use <code>src/Makevars.win</code> with

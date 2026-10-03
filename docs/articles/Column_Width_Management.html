@@ -89,7 +89,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-10-02</h4>
+            <h4 data-toc-skip class="date">2026-10-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Column_Width_Management.Rmd" class="external-link"><code>vignettes/Column_Width_Management.Rmd</code></a></small>
       <div class="d-none name"><code>Column_Width_Management.Rmd</code></div>
@@ -127,8 +127,7 @@ how widths are calculated:</p>
 <strong>LOCKED Columns</strong> (width explicitly set via
 <code>colWidth</code>)
 <ul>
-<li>Maintain their exact specified width (any unit: %, cm, in, mm,
-pt)</li>
+<li>Maintain their exact specified width (unit: %, cm, or in)</li>
 <li>Fixed during automatic recalculation</li>
 <li>Can use relative (%) or absolute (cm, in) units</li>
 </ul>
@@ -160,15 +159,15 @@ weights</li>
 <p>When you create a table, ksTFL automatically:</p>
 <ol style="list-style-type: decimal">
 <li>Analyzes each column’s data type and content</li>
-<li>Estimates visual width based on:
-<ul>
-<li>Maximum value length</li>
-<li>Column name length</li>
-<li>Label length (if provided)</li>
-</ul>
-</li>
+<li>Estimates visual width from the widest rendered cell (numeric values
+measured after the auto-guessed <code>%d</code> / <code>%.df</code>
+format), the longest line of the column name, and of the label —
+whichever is longest. Frames over 10,000 rows are deterministically
+sampled for the measurement.</li>
 <li>Distributes widths proportionally so they sum to 100%</li>
-<li>Applies minimum width constraints (0.5% for relative widths)</li>
+<li>Clamps each column to the 5%–60% band, renormalizes to 100%, and
+rounds to one decimal with drift correction (the largest column absorbs
+the rounding remainder)</li>
 </ol>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL/">ksTFL</a></span><span class="op">)</span></span>
@@ -190,11 +189,11 @@ weights</li>
 <h3 id="the-autocolwidth-option">The <code>autoColWidth</code> Option<a class="anchor" aria-label="anchor" href="#the-autocolwidth-option"></a>
 </h3>
 <p>The <code>autoColWidth</code> option (default: <code>TRUE</code>)
-controls whether widths are automatically recalculated when you lock
-columns:</p>
+controls whether widths are automatically recalculated when you lock a
+column or change a column’s visibility:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check current setting</span></span>
-<span><span class="fu"><a href="../reference/tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"autoColWidth"</span><span class="op">)</span>  <span class="co"># TRUE by default</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="../reference/tfl_get_option.html">tfl_get_option</a></span><span class="op">(</span><span class="st">"autoColWidth"</span><span class="op">)</span><span class="op">)</span>  <span class="co"># TRUE by default</span></span>
 <span></span>
 <span><span class="co"># Disable for manual width management</span></span>
 <span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span>autoColWidth <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -236,6 +235,11 @@ space:</p>
 <span><span class="co"># - patient_id: 20% (LOCKED)</span></span>
 <span><span class="co"># - treatment_group: 25% (LOCKED)</span></span>
 <span><span class="co"># - age, weight_kg: share remaining 45% proportionally</span></span></code></pre></div>
+<p>Flag columns (<code>isPaging</code>, <code>isGrouping</code>,
+<code>isColBreak</code>) recalculate like any other unlocked column —
+lock their widths if size matters. In column-break segments, ID columns
+keep their width while the remaining segment columns are rescaled to
+fill the segment.</p>
 </div>
 <div class="section level3">
 <h3 id="mixing-relative-and-absolute-units">Mixing Relative and Absolute Units<a class="anchor" aria-label="anchor" href="#mixing-relative-and-absolute-units"></a>
@@ -243,16 +247,19 @@ space:</p>
 <p>You can mix percentage widths with absolute units:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"2.5cm"</span><span class="op">)</span> <span class="op">|&gt;</span>      <span class="co"># Fixed width (doesn't reduce % space)</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">patient_id</span>, colWidth <span class="op">=</span> <span class="st">"20%"</span><span class="op">)</span>   <span class="co"># Takes 20% of available</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"2.5cm"</span><span class="op">)</span> <span class="op">|&gt;</span>      <span class="co"># Fixed width, kept exactly</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">patient_id</span>, colWidth <span class="op">=</span> <span class="st">"20%"</span><span class="op">)</span>   <span class="co"># 20% of the space left over</span></span>
 <span></span>
 <span><span class="co"># Result:</span></span>
 <span><span class="co"># - id: 2.5cm (LOCKED, absolute)</span></span>
 <span><span class="co"># - patient_id: 20% (LOCKED, relative)</span></span>
-<span><span class="co"># - Other columns: share remaining 80% proportionally</span></span></code></pre></div>
-<p><strong>Important:</strong> Fixed-unit columns (cm, in, mm, pt) don’t
-reduce the available percentage space—only locked percentage columns
-do.</p>
+<span><span class="co"># - Other columns: share the remaining percentage pool proportionally</span></span></code></pre></div>
+<p><strong>Important:</strong> Fixed-unit columns (cm, in) keep their
+exact width at render. They do not shrink the percentage pool that the
+R-layer recalculation works with, but the renderer resolves every
+percentage column against the space left <em>after</em> the fixed
+columns are placed — a percentage width is a share of the remaining
+area, not of the full page.</p>
 </div>
 </div>
 <div class="section level2">
@@ -276,18 +283,23 @@ correction</li>
 <div class="section level3">
 <h3 id="example-walkthrough">Example Walkthrough<a class="anchor" aria-label="anchor" href="#example-walkthrough"></a>
 </h3>
+<p>With the sample data above (100 rows), <code><a href="../reference/create_table.html">create_table()</a></code>
+measures the content and produces this distribution:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Initial auto-distribution (example values):</span></span>
-<span><span class="co"># id: 15%, patient_id: 25%, age: 20%, weight_kg: 20%, treatment_group: 20%</span></span>
+<code class="sourceCode R"><span><span class="co"># Initial auto-distribution (measured for this dataset):</span></span>
+<span><span class="co"># id: 7.5%, patient_id: 25.0%, age: 7.5%, weight_kg: 22.5%, treatment_group: 37.5%</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"10%"</span><span class="op">)</span></span>
 <span>  </span>
 <span><span class="co"># After locking id at 10%:</span></span>
 <span><span class="co"># - Available space: 100% - 10% = 90%</span></span>
-<span><span class="co"># - Unlocked weights: patient_id=25, age=20, weight_kg=20, treatment_group=20 (sum=85)</span></span>
-<span><span class="co"># - Normalized: patient_id=26.5%, age=21.2%, weight_kg=21.2%, treatment_group=21.2%</span></span>
-<span><span class="co"># - Result sums to 100.1% (rounding), drift corrected to largest column</span></span></code></pre></div>
+<span><span class="co"># - Unlocked weights: patient_id=25.0, age=7.5, weight_kg=22.5, treatment_group=37.5 (sum=92.5)</span></span>
+<span><span class="co"># - Normalized into 90%: patient_id=24.3%, age=7.3%, weight_kg=21.9%, treatment_group=36.5%</span></span>
+<span><span class="co"># - Total is exactly 100.0% after drift correction</span></span></code></pre></div>
+<p>Note how content-aware the initial split is: the narrow numeric
+<code>id</code> and <code>age</code> columns keep 7.5%, while the long
+text column <code>treatment_group</code> takes 37.5%.</p>
 </div>
 <div class="section level3">
 <h3 id="drift-correction">Drift Correction<a class="anchor" aria-label="anchor" href="#drift-correction"></a>
@@ -299,7 +311,8 @@ correction:</p>
 <li>Calculates total rounding error (drift)</li>
 <li>Adds/subtracts drift from the largest unlocked column</li>
 </ul>
-<p>This guarantees valid output while maintaining proportions.</p>
+<p>The sum is exact; the largest unlocked column absorbs the
+correction.</p>
 </div>
 </div>
 <div class="section level2">
@@ -327,15 +340,18 @@ columns:</strong></p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span>, colWidth <span class="op">=</span> <span class="st">"15%"</span><span class="op">)</span></span>
 <span>  </span>
-<span><span class="co"># Error message:</span></span>
-<span><span class="co"># "Cannot set colWidth for invisible column 'id'"</span></span></code></pre></div>
+<span><span class="co"># Error message (verbatim):</span></span>
+<span><span class="co"># Cannot set `colWidth` for invisible column "id"</span></span>
+<span><span class="co"># x Column "id" has `isVisible = FALSE`</span></span>
+<span><span class="co"># i Invisible columns automatically have `colWidth = "0.0cm"`</span></span></code></pre></div>
 <p><strong>Why?</strong> Invisible columns are always “0.0cm”—setting a
 width would be contradictory.</p>
 </div>
 <div class="section level3">
 <h3 id="using-invisible-columns-for-logic">Using Invisible Columns for Logic<a class="anchor" aria-label="anchor" href="#using-invisible-columns-for-logic"></a>
 </h3>
-<p>Invisible columns are perfect for conditional formatting:</p>
+<p>Invisible columns exist mainly for this: driving conditional
+formatting.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"highlight_yellow"</span>,</span>
@@ -393,50 +409,77 @@ widths externally</li>
 <h2 id="validation-and-constraints">Validation and Constraints<a class="anchor" aria-label="anchor" href="#validation-and-constraints"></a>
 </h2>
 <div class="section level3">
-<h3 id="minimum-width-thresholds">Minimum Width Thresholds<a class="anchor" aria-label="anchor" href="#minimum-width-thresholds"></a>
+<h3 id="width-floors-and-the-unlocked-reserve">Width Floors and the Unlocked Reserve<a class="anchor" aria-label="anchor" href="#width-floors-and-the-unlocked-reserve"></a>
 </h3>
-<p>ksTFL enforces minimum widths to prevent unreadable columns:</p>
-<p><strong>Relative widths (%):</strong> - Minimum: 0.5%</p>
-<p><strong>Absolute widths (cm, in, mm, pt):</strong> - Minimum: 0.2cm
-(~0.08in)</p>
+<p>Two different constants apply to widths:</p>
+<ul>
+<li>Relative widths (%) you set yourself: minimum 0.5%</li>
+<li>Absolute widths (cm, in) you set yourself: minimum 0.2cm
+(~0.08in)</li>
+<li>
+<code>minColWidth</code> (default 0.5%): the space the validator
+reserves for each column that stays UNLOCKED when you lock another
+one</li>
+</ul>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># This will error:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"0.1%"</span><span class="op">)</span>  <span class="co"># Below 0.5% minimum</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"0.1%"</span><span class="op">)</span>  <span class="co"># Below the fixed 0.5% floor</span></span>
 <span>  </span>
-<span><span class="co"># Error: "Column width '0.1%' is below minimum allowed"</span></span></code></pre></div>
+<span><span class="co"># Error message (verbatim):</span></span>
+<span><span class="co"># Column width "0.1%" is below minimum allowed</span></span>
+<span><span class="co"># x Relative widths must be at least 0.5%</span></span>
+<span><span class="co"># i Proposed: 0.1%</span></span></code></pre></div>
+<p>The floor for a width you type is fixed at 0.5% —
+<code>minColWidth</code> does not lower it. What
+<code>minColWidth</code> controls is the space check below.</p>
 </div>
 <div class="section level3">
 <h3 id="space-constraint-validation">Space Constraint Validation<a class="anchor" aria-label="anchor" href="#space-constraint-validation"></a>
 </h3>
 <p>ksTFL prevents you from locking widths that leave insufficient space
-for other columns:</p>
+for the columns that stay unlocked:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># 5 columns with minColWidth = 0.5% (default)</span></span>
-<span><span class="co"># Minimum space needed for 4 unlocked columns: 4 × 0.5% = 2%</span></span>
+<code class="sourceCode R"><span><span class="co"># 5 columns, minColWidth = 0.5% (default):</span></span>
+<span><span class="co"># the 4 unlocked columns need 4 x 0.5% = 2% of the space.</span></span>
 <span></span>
 <span><span class="co"># This will error:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"99%"</span><span class="op">)</span>  <span class="co"># Leaves only 1% for 4 columns</span></span>
 <span>  </span>
-<span><span class="co"># Error: "Cannot set column 'id' to '99%'"</span></span>
-<span><span class="co"># "This would leave insufficient space for the remaining 4 unlocked columns"</span></span>
-<span><span class="co"># "Maximum allowed relative width for id: 98.0%"</span></span></code></pre></div>
+<span><span class="co"># Error message (verbatim):</span></span>
+<span><span class="co"># Cannot set column `id` to "99%"</span></span>
+<span><span class="co"># x This would leave insufficient space for the remaining 4 unlocked</span></span>
+<span><span class="co">#   columns to meet the minimum width of 0.5%.</span></span>
+<span><span class="co"># i After this change, 4 columns need 2% total. Remaining space available: 1%.</span></span>
+<span><span class="co"># i Maximum allowed relative width for `id`: 98.0%</span></span>
+<span><span class="co"># i Reduce the proposed width or adjust other locked widths</span></span></code></pre></div>
+<p>Rule of thumb: while any column stays unlocked, locked relative
+widths must sum to at most 99.5% — the validator keeps the
+<code>minColWidth</code> reserve for the last unlocked column, and the
+error names your exact allowed maximum.</p>
 </div>
 <div class="section level3">
-<h3 id="adjusting-minimum-width">Adjusting Minimum Width<a class="anchor" aria-label="anchor" href="#adjusting-minimum-width"></a>
+<h3 id="using-mincolwidth">Using <code>minColWidth</code><a class="anchor" aria-label="anchor" href="#using-mincolwidth"></a>
 </h3>
-<p>You can customize the minimum width threshold:</p>
+<p>Raise or lower the per-unlocked-column reserve to trade strictness
+against layout freedom:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Allow tighter columns (use with caution)</span></span>
+<code class="sourceCode R"><span><span class="co"># A 12-column frame: locking one column at 95% would leave 5% for 11</span></span>
+<span><span class="co"># unlocked columns, each needing 0.5% (5.5% total) — rejected.</span></span>
+<span><span class="va">wide_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">100</span><span class="op">:</span><span class="fl">999</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">wide_data</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"COL"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span>minColWidth <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">wide_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">COL1</span>, colWidth <span class="op">=</span> <span class="st">"95%"</span><span class="op">)</span>  <span class="co"># errors: max allowed is 94.5%</span></span>
+<span></span>
+<span><span class="co"># Relax the reserve and the same lock goes through:</span></span>
 <span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span>minColWidth <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">wide_data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">COL1</span>, colWidth <span class="op">=</span> <span class="st">"95%"</span><span class="op">)</span>  <span class="co"># OK</span></span>
 <span></span>
-<span><span class="co"># Now you can use narrower relative widths</span></span>
-<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">id</span>, colWidth <span class="op">=</span> <span class="st">"95%"</span><span class="op">)</span>  <span class="co"># More space for this column</span></span>
-<span></span>
-<span><span class="co"># Reset to default</span></span>
-<span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span>minColWidth <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span>minColWidth <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>  <span class="co"># restore default</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -472,7 +515,7 @@ for other columns:</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">patient_id</span>, <span class="va">age</span>, <span class="va">weight_kg</span>, <span class="va">treatment_group</span><span class="op">)</span>,</span>
-<span>    colWidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"8%"</span>, <span class="st">"22%"</span>, <span class="st">"15%"</span>, <span class="st">"18%"</span>, <span class="st">"37%"</span><span class="op">)</span></span>
+<span>    colWidth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10%"</span>, <span class="st">"25%"</span>, <span class="st">"20%"</span>, <span class="st">"20%"</span>, <span class="st">"25%"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span>  <span class="co"># Sum = 100% exactly</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/tfl_set_options.html">tfl_set_options</a></span><span class="op">(</span>autoColWidth <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
@@ -500,39 +543,52 @@ for other columns:</p>
 <div class="section level3">
 <h3 id="issue-insufficient-space-for-remaining-columns">Issue: “Insufficient space for remaining columns”<a class="anchor" aria-label="anchor" href="#issue-insufficient-space-for-remaining-columns"></a>
 </h3>
-<p><strong>Cause:</strong> Locked columns leave &lt;
-<code>minColWidth</code> % per unlocked column</p>
-<p><strong>Solutions:</strong> 1. Reduce the locked width you’re trying
-to set 2. Lower <code>minColWidth</code> via
-<code>tfl_set_options(minColWidth = 0.3)</code> 3. Lock more columns
-explicitly to reduce unlocked count 4. Make some columns invisible to
-exclude them</p>
+<p><strong>Cause:</strong> A locked width leaves less than
+<code>minColWidth</code> % for each column that stays unlocked.</p>
+<p><strong>Solutions:</strong></p>
+<ol style="list-style-type: decimal">
+<li>Reduce the locked width you’re trying to set</li>
+<li>Lower <code>minColWidth</code> via
+<code>tfl_set_options(minColWidth = 0.3)</code>
+</li>
+<li>Lock more columns explicitly to reduce the unlocked count</li>
+</ol>
+<p>Invisibility does not help here — the reserve counts every column in
+the spec, visible or not.</p>
 </div>
 <div class="section level3">
-<h3 id="issue-widths-dont-sum-to-exactly-100">Issue: Widths don’t sum to exactly 100%<a class="anchor" aria-label="anchor" href="#issue-widths-dont-sum-to-exactly-100"></a>
+<h3 id="issue-a-width-shifts-by-more-than-a-tenth-of-a-percent-after-recalculation">Issue: A width shifts by more than a tenth of a percent after
+recalculation<a class="anchor" aria-label="anchor" href="#issue-a-width-shifts-by-more-than-a-tenth-of-a-percent-after-recalculation"></a>
 </h3>
-<p><strong>Cause:</strong> Rounding errors from drift correction</p>
+<p><strong>Cause:</strong> Drift correction. The largest unlocked column
+absorbs the whole rounding correction so the total stays exactly 100%;
+with many unlocked columns that correction can exceed 0.1% on one
+column.</p>
 <p><strong>Solution:</strong> This is expected and handled
-automatically. Drift is always ≤ 0.1% and applied to the largest column.
-The rendered output will be correct.</p>
+automatically. The rendered output is correct.</p>
 </div>
 <div class="section level3">
 <h3 id="issue-cant-set-width-for-invisible-column">Issue: Can’t set width for invisible column<a class="anchor" aria-label="anchor" href="#issue-cant-set-width-for-invisible-column"></a>
 </h3>
 <p><strong>Cause:</strong> Trying to use <code>colWidth</code> with
 <code>isVisible = FALSE</code></p>
-<p><strong>Solution:</strong> Remove <code>colWidth</code>
-parameter—invisible columns are always “0.0cm”</p>
+<p><strong>Solution:</strong> Remove the <code>colWidth</code> argument
+— an invisible column is rendered at “0.0cm” and takes no space, so a
+width on it would be meaningless.</p>
 </div>
 <div class="section level3">
 <h3 id="issue-widths-change-unexpectedly-after-define_cols">Issue: Widths change unexpectedly after define_cols()<a class="anchor" aria-label="anchor" href="#issue-widths-change-unexpectedly-after-define_cols"></a>
 </h3>
 <p><strong>Cause:</strong> Auto-recalculation triggered by locking a
-column</p>
-<p><strong>Solution:</strong> - This is expected behavior when
-<code>autoColWidth = TRUE</code> - Disable with
-<code>tfl_set_options(autoColWidth = FALSE)</code> for manual control -
-Or lock all columns explicitly</p>
+width or toggling a column’s visibility.</p>
+<p><strong>Solution:</strong></p>
+<ul>
+<li>This is expected behavior when <code>autoColWidth = TRUE</code>
+</li>
+<li>Disable with <code>tfl_set_options(autoColWidth = FALSE)</code> for
+manual control</li>
+<li>Or lock all columns explicitly</li>
+</ul>
 </div>
 </div>
 <div class="section level2">
@@ -546,9 +602,14 @@ user-facing width inspection and control.</p>
 </blockquote>
 <p>ksTFL stores width metadata internally in
 <code>spec$.metadata$colWidths</code>. This is used by the package
-itself to: - Recalculate widths without re-parsing width strings - Track
-which columns are locked vs. unlocked - Preserve initial proportions for
-normalization</p>
+itself to:</p>
+<ul>
+<li>Keep the numeric unit, value, lock flag, and initial weight per
+column so renormalization runs from metadata rather than display
+strings</li>
+<li>Track which columns are locked vs. unlocked</li>
+<li>Preserve initial proportions for normalization</li>
+</ul>
 <p>You do not need to read or write this field directly. Use
 <code>print(spec)</code> to inspect current widths and
 <code>define_cols(spec, col, colWidth = ...)</code> to modify them.</p>

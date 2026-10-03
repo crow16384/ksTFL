@@ -104,8 +104,8 @@ Development Team</h4>
 <p>This vignette presents real-world clinical reporting examples built
 with ksTFL. Each example walks through the complete pipeline — from raw
 input data, through the R code that constructs the specification object,
-to the final rendered document — so you can see exactly what goes in and
-what comes out.</p>
+to the final rendered document — so you can see how each ingredient maps
+to the final page.</p>
 <p>The examples are ordered by complexity: we start with a demographics
 table that introduces core concepts (invisible columns, conditional
 formatting, section headers), then move on to multi-language support,
@@ -124,11 +124,15 @@ setup above applied (the examples use the magrittr pipe
 <p><strong>Data note</strong>: Examples 1, 5, 8 and 10 build their input
 completely in the shown code (Example 5 runs on <code>mtcars</code>). In
 the other examples the input frame (<code>data</code>, <code>tbl</code>,
-<code>demo_data</code>) is displayed as printed output only — it stands
-for the result of upstream analysis programs (ADaM-style summaries). To
-reproduce those, rebuild an equivalent frame from the printed rows
-(column names and order are what the spec code consumes); the focus here
-is the ksTFL specification layer, not statistics.</p>
+<code>demo_data</code>, <code>lab_listing</code>) is displayed as
+printed output only — it stands for the result of upstream analysis
+programs (ADaM-style summaries). To reproduce those, rebuild an
+equivalent frame from the printed rows (column names and order are what
+the spec code consumes; where a tibble print is truncated, the note says
+so); the focus here is the ksTFL specification layer, not statistics.
+Example 4 further assumes normal-range flags live in columns named
+<code>&lt;param&gt;NR</code> with values “high”/“normal”/“low” — the
+convention its <code>ends_with("NR")</code> rules rely on.</p>
 </blockquote>
 </div>
 <div class="section level2">
@@ -147,6 +151,10 @@ define the document (with inline comments explaining each step)</li>
 <strong>Rendered output</strong> — the resulting document embedded
 as PDF</li>
 </ol>
+<p>Example 7 adds a styling technique worth stealing on its own:
+paragraph borders (<code>pb</code>) instead of cell borders
+(<code>bt</code>/<code>bb</code>) under spanning headers, built by
+combining atoms with <code><a href="../reference/f_combine.html">f_combine()</a></code>.</p>
 <p>A shared <strong>session setup</strong> block at the top configures
 page headers, footers, and output defaults so the examples can stay
 focused on their unique logic.</p>
@@ -162,7 +170,6 @@ for smaller, feature-by-feature patterns.</li>
 <a href="Styling_Guide_with_ksTFL.html">Styling Guide</a> and <a href="Advanced_StyleRows.html">Advanced StyleRows</a> when you need
 styling or row action details.</li>
 </ul>
-<hr>
 </div>
 <div class="section level2">
 <h2 id="session-setup-shared-across-examples">Session setup (shared across examples)<a class="anchor" aria-label="anchor" href="#session-setup-shared-across-examples"></a>
@@ -184,7 +191,6 @@ to repeat them:</p>
 <span>  output_directory <span class="op">=</span> <span class="st">'.'</span>,</span>
 <span>  footnotePlace <span class="op">=</span> <span class="st">"repeated"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<hr>
 </div>
 <div class="section level2">
 <h2 id="example-01">Example 1 — Demographics table with conditional formatting<a class="anchor" aria-label="anchor" href="#example-01"></a>
@@ -211,7 +217,8 @@ column.</li>
 <li>
 <strong><code><a href="../reference/c_merge.html">c_merge()</a></code> + <code><a href="../reference/c_glue.html">c_glue()</a></code></strong> — on
 p-value rows the treatment columns merge into one cell and the p-value
-is appended, giving the familiar “p = 0.041” display.</li>
+is appended, giving the familiar centered p-value cell spanning both
+arms (bare value, e.g. 0.041).</li>
 <li>
 <strong>Inline markup</strong> —
 <code>&lt;sup&gt;a&lt;/sup&gt;</code> renders the footnote reference
@@ -297,7 +304,8 @@ spacing and page-break logic:</p>
 <span><span class="co"># is declared from here on, never baked into the data.</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">raw</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span><span class="co"># Multi-line title: table number on line 1, description on line 2.</span></span>
-<span><span class="co"># toclevel = 1 makes the entry appear in the report's Table of Contents.</span></span>
+<span><span class="co"># toclevel = 1 tags the title for a Table of Contents (the TOC page is</span></span>
+<span><span class="co"># written when write_doc(toc = TRUE) is used — see Example 4).</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S1"</span>, <span class="st">"Demographic and Baseline Characteristics"</span><span class="op">)</span>,</span>
 <span>    toclevel <span class="op">=</span> <span class="fl">1</span></span>
@@ -342,7 +350,7 @@ spacing and page-break logic:</p>
 <span><span class="co"># 2. p-value rows, three actions in one rule, evaluated left to right:</span></span>
 <span><span class="co">#    merge DrugX+Placebo into one centered italic cell with a thin top</span></span>
 <span><span class="co">#    border, italicise the statistic label, then glue the p-value text</span></span>
-<span><span class="co">#    after the merged cell - the familiar "p = 0.041" display.</span></span>
+<span><span class="co">#    after the merged cell - the centered "0.041" display.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">MODELVAL</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">DRUGX</span>, <span class="va">PLCB</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"text_center"</span>, <span class="st">"bt_th"</span>, <span class="st">"i"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -434,7 +442,7 @@ one option.</li>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-2-demographics-table-utf-8-encoding-support">Example 2 — Demographics table (UTF-8 encoding support)<a class="anchor" aria-label="anchor" href="#example-2-demographics-table-utf-8-encoding-support"></a>
+<h2 id="example-02">Example 2 — Demographics table (UTF-8 encoding support)<a class="anchor" aria-label="anchor" href="#example-02"></a>
 </h2>
 <p>Clinical trials run in many countries, and regulatory submissions
 often require documents in local languages. ksTFL has full UTF-8 support
@@ -470,7 +478,7 @@ conditional row transforms → document settings. Reading the inline
 comments below alongside Example 1 will help you see the one-to-one
 correspondence:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">### Build the specification object</span></span>
+<code class="sourceCode R"><span><span class="co"># --- Build the specification object ---</span></span>
 <span></span>
 <span><span class="va">drg_N</span>   <span class="op">&lt;-</span> <span class="fl">16</span></span>
 <span><span class="va">plcb_N</span>  <span class="op">&lt;-</span> <span class="fl">17</span></span>
@@ -520,8 +528,9 @@ correspondence:</p>
 <span>                <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'Плацебо'</span>, <span class="st">'&lt;br&gt;(N='</span>, <span class="va">plcb_N</span>, <span class="st">')'</span><span class="op">)</span>,</span>
 <span>                <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">'Всего'</span>, <span class="st">'&lt;br&gt;(N='</span>, <span class="va">total_N</span>, <span class="st">')'</span><span class="op">)</span></span>
 <span>              <span class="op">)</span>,</span>
-<span>              <span class="co"># indent numbers from cell borders</span></span>
-<span>              valueStyleRef <span class="op">=</span> <span class="st">'indent_1'</span>,</span>
+<span>              <span class="co"># center arms; the everything() pass below layers 8 pt on</span></span>
+<span>              <span class="co"># top of these styles without touching alignment</span></span>
+<span>              valueStyleRef <span class="op">=</span> <span class="st">'text_center'</span>,</span>
 <span>              colWidth <span class="op">=</span> <span class="st">'15%'</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span>, valueStyleRef <span class="op">=</span> <span class="st">'fs_8'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
@@ -593,7 +602,7 @@ between the “Any AE” summary and per-SOC detail.</li>
 <div class="section level3">
 <h3 id="input-data-2">Input data<a class="anchor" aria-label="anchor" href="#input-data-2"></a>
 </h3>
-<pre><code># A tibble: 18 × 17
+<pre><code># A tibble: 18 × 17  (print truncated — the frame also carries GRAND_N, GRAND_E)
    SOC_GROUP SOC_PT  SEVERITY TRT_N TRT_E FU_0_6_N FU_0_6_E FU_GT6_N FU_GT6_E FU_0_8_N FU_0_8_E FU_GT8_N FU_GT8_E FU_TOTAL_N FU_TOTAL_E
    &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;    &lt;chr&gt;      &lt;chr&gt;     
  1 Any AE    "Any A… ""       142 … 327   56 (31.… 71       93 (51.… 122      77 (42.… 103      75 (41.… 90       121 (67.2) 193       
@@ -620,6 +629,9 @@ between the “Any AE” summary and per-SOC detail.</li>
 </h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- Build the table specification ---</span></span>
+<span><span class="co"># N = total subjects in the arm (define it wherever you keep study constants;</span></span>
+<span><span class="co"># the example uses the artifact value 180)</span></span>
+<span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">180</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span></span>
 <span>  <span class="co"># --- Custom styles ---</span></span>
@@ -692,8 +704,9 @@ between the “Any AE” summary and per-SOC detail.</li>
 <span>      <span class="va">FU_TOTAL_N</span>, <span class="va">FU_TOTAL_E</span>,</span>
 <span>      <span class="va">GRAND_N</span>, <span class="va">GRAND_E</span></span>
 <span>    <span class="op">)</span>,</span>
-<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n (%)"</span>, <span class="st">"E"</span><span class="op">)</span>, <span class="fl">7</span><span class="op">)</span>,</span>
-<span>    <span class="co">#labelStyleRef = f_combine("text_center","to_90"),</span></span>
+<span>    label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n (%)"</span>, <span class="st">"E"</span><span class="op">)</span>, <span class="fl">7</span><span class="op">)</span>,   <span class="co"># each metric pair: count(%) + events</span></span>
+<span>    <span class="co"># Rotate labels with f_combine("text_center", "to_90") if the page gets</span></span>
+<span>    <span class="co"># tight (see Example 4); this table fits without rotation.</span></span>
 <span>    labelStyleRef <span class="op">=</span> <span class="st">"text_center"</span>,</span>
 <span>    valueStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"text_center"</span>, <span class="st">"font_small"</span><span class="op">)</span>,</span>
 <span>    colWidth <span class="op">=</span> <span class="st">"4.3%"</span></span>
@@ -774,8 +787,8 @@ between the “Any AE” summary and per-SOC detail.</li>
 <span>    <span class="va">SOC_GROUP</span> <span class="op">==</span> <span class="st">"SOC1"</span> <span class="op">&amp;</span> <span class="fu">firstOf</span><span class="op">(</span><span class="va">SOC_GROUP</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_pageBreak.html">c_pageBreak</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="co"># Bold the SOC-level totals: rows where SEVERITY is blank represent</span></span>
-<span>  <span class="co"># the overall count for that SOC (not broken down by severity grade).</span></span>
+<span>  <span class="co"># Bold the SOC-level totals: rows where SEVERITY is blank are the</span></span>
+<span>  <span class="co"># SOC total across all grades (not broken down by severity).</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="va">SEVERITY</span> <span class="op">==</span> <span class="st">""</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">SOC_PT</span>, <span class="va">SEVERITY</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span></span>
@@ -795,7 +808,7 @@ between the “Any AE” summary and per-SOC detail.</li>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-4-data-listing-with-automatic-two-level-toc">Example 4 — Data listing with automatic two-level TOC<a class="anchor" aria-label="anchor" href="#example-4-data-listing-with-automatic-two-level-toc"></a>
+<h2 id="example-04">Example 4 — Data listing with automatic two-level TOC<a class="anchor" aria-label="anchor" href="#example-04"></a>
 </h2>
 <p>Data listings present individual patient records with minimal
 aggregation. They often run to hundreds of pages, so navigation features
@@ -816,8 +829,9 @@ create a nested TOC: listing title at level 1, per-subject entries at
 level 2.</li>
 <li>
 <strong>Value-dependent formatting</strong> —
-<code><a href="../reference/compute_cols.html">compute_cols()</a></code> flags pH values above 5.5 in red with a
-checkmark symbol.</li>
+<code><a href="../reference/compute_cols.html">compute_cols()</a></code> reads the hidden
+<code>&lt;param&gt;NR</code> flag columns and appends a green
+superscript L or red superscript H to out-of-range results.</li>
 <li>
 <strong>Rotated column labels</strong> — <code>to_90</code> rotates
 headers 90° to save horizontal space for the many narrow lab-parameter
@@ -903,43 +917,43 @@ columns.</li>
 <span>    <span class="co"># Flag abnormal ALT values: if ALTNR is Low append 'L' to the value, </span></span>
 <span>    <span class="co">#                           if is High append 'H' to the value</span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>            <span class="op">(</span><span class="va">ALTNR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>            <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ALTNR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">ALTNR</span> <span class="op">==</span> <span class="st">'low'</span>,</span>
 <span>            <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">ALT</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">ALT</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>            <span class="op">(</span><span class="va">ALTNR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>            <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ALTNR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">ALTNR</span> <span class="op">==</span> <span class="st">'high'</span>,</span>
 <span>            <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">ALT</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">ALT</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>        <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="co"># Repeat the same trick with other result </span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>        <span class="op">(</span><span class="va">ASTNR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ASTNR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">ASTNR</span> <span class="op">==</span> <span class="st">'low'</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">AST</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">AST</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>        <span class="op">(</span><span class="va">ASTNR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">ASTNR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">ASTNR</span> <span class="op">==</span> <span class="st">'high'</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">AST</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">AST</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>        <span class="op">(</span><span class="va">HGBNR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">HGBNR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">HGBNR</span> <span class="op">==</span> <span class="st">'low'</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">HGB</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">HGB</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>        <span class="op">(</span><span class="va">HGBNR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">HGBNR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">HGBNR</span> <span class="op">==</span> <span class="st">'high'</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">HGB</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">HGB</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>        <span class="op">(</span><span class="va">BILINR</span> <span class="op">==</span> <span class="st">'low'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">BILINR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">BILINR</span> <span class="op">==</span> <span class="st">'low'</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">BILI</span>, styleRef <span class="op">=</span> <span class="st">'fc_green'</span><span class="op">)</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">BILI</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;L&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>        <span class="op">(</span><span class="va">BILINR</span> <span class="op">==</span> <span class="st">'high'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu">replace_na</span><span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">BILINR</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">BILINR</span> <span class="op">==</span> <span class="st">'high'</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">BILI</span>, styleRef <span class="op">=</span> <span class="st">'fc_red'</span><span class="op">)</span>,</span>
 <span>        <span class="fu"><a href="../reference/c_glue.html">c_glue</a></span><span class="op">(</span><span class="va">BILI</span>, <span class="st">'after'</span>, text <span class="op">=</span> <span class="st">'&lt;sup&gt;H&lt;/sup&gt;'</span><span class="op">)</span></span>
 <span>    <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
@@ -971,8 +985,10 @@ the engine where to start a new column page. Columns marked with
 <code>isID = TRUE</code> repeat on every column-page, ensuring the
 reader always sees the identifying context.</p>
 <p>For example, adding a column break at <code>PH</code> splits the
-listing into two column groups — Bilirubin through Nitrites on the first
-page, and pH through White Blood Cells on the second:</p>
+listing into two column groups: the first page carries the identifying
+context (Treatment, Visit, Date) with ALT, AST, Bilirubin and
+Hemoglobin, the second continues with pH, Leukocytes and the urine
+panel:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec_lbl_02</span> <span class="op">&lt;-</span> <span class="va">spec_lbl_01</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="co"># Add a column break at PH — all columns from PH onward move to a new page.</span></span>
@@ -991,7 +1007,7 @@ example_04_list_colbr.pdf</a></p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="example-5-figures-and-combined-multi-spec-reports-with-toc">Example 5 — Figures and combined multi-spec reports with TOC<a class="anchor" aria-label="anchor" href="#example-5-figures-and-combined-multi-spec-reports-with-toc"></a>
+<h2 id="example-05">Example 5 — Figures and combined multi-spec reports with TOC<a class="anchor" aria-label="anchor" href="#example-05"></a>
 </h2>
 <p>ksTFL is not limited to tables. The <code><a href="../reference/create_figure.html">create_figure()</a></code>
 function wraps a ggplot2 object (or an image file path) into a
@@ -1143,9 +1159,10 @@ the Table of Contents can list both entries.</li>
 <code>continuousSection = TRUE</code>, so the table follows the figure
 on the same landscape sheet.</li>
 <li>
-<strong>Sizing</strong> — <code>figureHeight</code> is dialed so
-figure + table + titles + footnote all fit; without the flag Word breaks
-to a new page once the combined height exceeds one sheet.</li>
+<strong>Sizing</strong> — <code>figureHeight = "3.2in"</code> was
+dialed for this landscape sheet so figure + table + titles + footnote
+fit one page; on a different template or orientation, remeasure — Word
+breaks to a fresh sheet when the combined height exceeds one page.</li>
 <li>
 <strong><code>&lt;br&gt;</code> in column labels</strong> —
 <code>Cmax (ng/mL)&lt;br&gt;mean (SD)</code> stacks the statistic over
@@ -1317,9 +1334,11 @@ the following dataset:</p>
 <span>  <span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">PARAM</span>, dedupe <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span><span class="co"># Two disjoint bands: 'Group 1' over the first arm pair, 'Group 2' over</span></span>
-<span><span class="co"># the second. Their column sets never overlap, so the lattice stays flat.</span></span>
+<span><span class="co"># the second. Explicit stubOrder = 1 on BOTH keeps them on one header row</span></span>
+<span><span class="co"># (omitting it would auto-increment and stack a staircase). Column sets</span></span>
+<span><span class="co"># are disjoint, so sharing the row is legal.</span></span>
 <span>  <span class="co">### Spanning headers</span></span>
-<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A1</span>, <span class="va">TRT_B1</span><span class="op">)</span>, <span class="st">'Group 1'</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A1</span>, <span class="va">TRT_B1</span><span class="op">)</span>, <span class="st">'Group 1'</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">TRT_A2</span>, <span class="va">TRT_B2</span><span class="op">)</span>, <span class="st">'Group 2'</span>, stubOrder <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> </span></code></pre></div>
 <p>The bottom border of the spanning header row will be a solid line,
 making it difficult to see which columns actually belong to which
@@ -1512,14 +1531,14 @@ factor):</p>
 <p>Exposure and discontinuation summaries are natural neighbors in a CSR
 — both describe <em>how long, and why,</em> subjects stayed on
 treatment. This example renders them as one continuous page: two
-complete table specs, each with its own span lattice, subtitle, and
-footnote, merged through continuous-section pagination control.</p>
+complete table specs, each with its own spanning-header bands, subtitle,
+and footnote, merged through continuous-section pagination control.</p>
 <p>Demonstrated here:</p>
 <ul>
 <li>
-<strong>Two span lattices in one document</strong> — “Subjects” and
-“Exposure on treatment” banners in Table S9.1; four arm banners plus a
-“Treatment Arm” umbrella in Table S9.2 (siblings share
+<strong>Two spanning-header bandss in one document</strong> —
+“Subjects” and “Exposure on treatment” banners in Table S9.1; four arm
+banners plus a “Treatment Arm” umbrella in Table S9.2 (siblings share
 <code>stubOrder</code>, the umbrella sits one level above).</li>
 <li>
 <strong>Rule-driven emphasis</strong> — the Total row and the “Any
@@ -1533,6 +1552,8 @@ table starts right after the first ends instead of on a new page.</li>
 stack over their <code>(N = ...)</code> line inside a spanning
 header.</li>
 </ul>
+<p>All three reports (Examples 8-10) describe the same study and
+cohort.</p>
 <div class="section level3">
 <h3 id="data-2">Data<a class="anchor" aria-label="anchor" href="#data-2"></a>
 </h3>
@@ -1647,12 +1668,15 @@ how one option re-skins everything.</p>
 <p>Demonstrated here:</p>
 <ul>
 <li>
-<strong>Conditions on the formatted text itself</strong> —
+<strong>Conditions over formatted input</strong> — the input frame
+itself stores pre-formatted strings, and
 <code>as.numeric(sub(...))</code> inside <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
-pulls the percentage out of “4 (18.2%)” strings and fires
-<code>c_style(f_combine("fc_rust", "b"))</code> once the threshold is
-crossed. Rules read the displayed value, not a hidden helper
-column.</li>
+parses the percentage out of “4 (18.2%)” at rule time. Conditions always
+read the RAW data — here the raw data are already formatted, and no
+helper column is needed. The rule spans the whole column, so percentages
+inside mean (SD) rows can trip it too; add
+<code>&amp; DIRECTION == ...</code> to restrict it to rate rows if that
+matters.</li>
 <li>
 <strong>Parameter section headers</strong> —
 <code>firstOf(PARAM)</code> on the hidden <code>PARAM</code> column, the
@@ -1715,11 +1739,11 @@ subtitles, and notes alike.</li>
 <span><span class="co"># group start, straight from the hidden column.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">PARAM</span><span class="op">)</span>,</span>
 <span>               <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span><span class="st">"above"</span>, value_from <span class="op">=</span> <span class="va">PARAM</span>, styleRef <span class="op">=</span> <span class="st">"font_bold"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span><span class="co"># The interesting part: the condition PARSES THE DISPLAYED STRING -</span></span>
-<span><span class="co"># pulls the percentage out of "4 (18.2%)" and fires rust-bold when a</span></span>
-<span><span class="co"># prespecified threshold is crossed. Rules read the printed value,</span></span>
-<span><span class="co"># so they survive re-formatting without helper columns. Two arms,</span></span>
-<span><span class="co"># two thresholds, two rules.</span></span>
+<span><span class="co"># The interesting part: the condition PARSES THE FORMATTED INPUT -</span></span>
+<span><span class="co"># pulls the percentage out of "4 (18.2%)" and fires rust-bold above the</span></span>
+<span><span class="co"># threshold. Conditions read raw column values; here the raw values are</span></span>
+<span><span class="co"># analyst-formatted strings, so no hidden flag column is needed. Two</span></span>
+<span><span class="co"># arms, two thresholds, two rules.</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"%"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">".*\\((.*)\\).*"</span>, <span class="st">"\\1"</span>, <span class="va">D100</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">13</span>,</span>
 <span>               <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">D100</span>, styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fc_rust"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"%"</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">".*\\((.*)\\).*"</span>, <span class="st">"\\1"</span>, <span class="va">D50</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">10</span>,</span>
@@ -1729,7 +1753,7 @@ subtitles, and notes alike.</li>
 <span><span class="co"># footnote below - inline markup works across titles alike.</span></span>
 <span>  <span class="fu"><a href="../reference/add_title.html">add_title</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Table S10.1"</span>, <span class="st">"Shifts in Clinical Laboratory Values"</span><span class="op">)</span>, toclevel <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/add_subtitle.html">add_subtitle</a></span><span class="op">(</span><span class="st">"Safety population; values in SI units&lt;sup&gt;a&lt;/sup&gt;"</span>, styleRef <span class="op">=</span> <span class="st">"i"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"&lt;sup&gt;a&lt;/sup&gt; Red: &gt;= 10% of subjects with confirmed central-lab abnormalities in the corresponding arm. ULN/LLN per site local ranges, re-read centrally."</span>,</span>
+<span>  <span class="fu"><a href="../reference/add_footnote.html">add_footnote</a></span><span class="op">(</span><span class="st">"&lt;sup&gt;a&lt;/sup&gt; Red: &gt;= 13% (Drug X 100 mg) or &gt;= 10% (Drug X 50 mg) of subjects with confirmed central-lab abnormalities in the corresponding arm. ULN/LLN per site local ranges, re-read centrally."</span>,</span>
 <span>               styleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"fs_8"</span>, <span class="st">"fc_gray"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/set_page_style.html">set_page_style</a></span><span class="op">(</span>page <span class="op">=</span> <span class="fu"><a href="../reference/p_page.html">p_page</a></span><span class="op">(</span>size <span class="op">=</span> <span class="st">"A4"</span>, orientation <span class="op">=</span> <span class="st">"landscape"</span>,</span>
 <span>                  margins <span class="op">=</span> <span class="fu"><a href="../reference/p_margins.html">p_margins</a></span><span class="op">(</span>top <span class="op">=</span> <span class="st">"0.6in"</span>, bottom <span class="op">=</span> <span class="st">"0.6in"</span>,</span>

@@ -89,7 +89,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-10-02</h4>
+            <h4 data-toc-skip class="date">2026-10-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Font_Management.Rmd" class="external-link"><code>vignettes/Font_Management.Rmd</code></a></small>
       <div class="d-none name"><code>Font_Management.Rmd</code></div>
@@ -101,11 +101,10 @@ Development Team</h4>
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>ksTFL renders DOCX documents using a C++ engine that requires
-TrueType/OpenType font files for text measurement and pagination.
-Starting with version 0.7.0, the package <strong>automatically discovers
-fonts installed on the operating system</strong> at load time. If a
-required font is not available on the system, a metrically compatible
-open-source fallback is used.</p>
+TrueType/OpenType font files for text measurement and pagination. The
+package automatically discovers fonts installed on the operating system
+at load time. If a required font is not available on the system, a
+metrically compatible open-source fallback is used.</p>
 <p>This guide explains how font discovery works, which fallback fonts
 are bundled, and how to configure custom font directories.</p>
 </div>
@@ -115,9 +114,11 @@ are bundled, and how to configure custom font directories.</p>
 <p>When ksTFL is loaded, it performs four steps:</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Scan system directories.</strong> The C++ font scanner
-inspects platform-specific directories and reads family names and style
-flags from <code>.ttf</code>, <code>.otf</code>, and <code>.ttc</code>
-files.</p></li>
+walks the platform-specific directories recursively and reads family
+names and style flags from <code>.ttf</code>, <code>.otf</code>, and
+<code>.ttc</code> files. For a given family and style the first file
+found wins, which is why earlier-scanned directories take
+priority.</p></li>
 <li><p><strong>Scan user directories.</strong> If the R option
 <code>ksTFL.font_dirs</code> is set, those directories are scanned as
 well.</p></li>
@@ -149,19 +150,22 @@ found anywhere on the system.</p>
 <td><strong>Linux</strong></td>
 <td>
 <code>/usr/share/fonts</code>, <code>/usr/local/share/fonts</code>,
-<code>~/.local/share/fonts</code>, <code>~/.fonts</code>, plus any XDG
-data dirs</td>
+<code>~/.local/share/fonts</code>, <code>~/.fonts</code>, plus the
+<code>fonts/</code> subdirectory of each <code>$XDG_DATA_DIRS</code>
+entry</td>
 </tr>
 <tr class="even">
 <td><strong>macOS</strong></td>
 <td>
-<code>/System/Library/Fonts</code>, <code>/Library/Fonts</code>,
-<code>~/Library/Fonts</code>
+<code>/System/Library/Fonts</code>,
+<code>/System/Library/Fonts/Supplemental</code>,
+<code>/Library/Fonts</code>, <code>~/Library/Fonts</code>
 </td>
 </tr>
 <tr class="odd">
 <td><strong>Windows</strong></td>
-<td>System fonts directory (from registry), plus user fonts in
+<td>System fonts directory (from the OS API; typically
+<code>C:\Windows\Fonts</code>), plus user fonts in
 <code>%LOCALAPPDATA%\Microsoft\Windows\Fonts</code>
 </td>
 </tr>
@@ -221,17 +225,19 @@ fallback bundled with the package:</p>
 </table>
 <p>All bundled fonts are licensed under the SIL Open Font License
 1.1.</p>
-<p>If a font family requested in a spec (via
-<code>s_font(font_name = "...")</code>) is not a target font and is not
-found on the system, the engine falls back to Liberation Sans as the
-last resort.</p>
-<p>For convenience, ksTFL also ships built-in style atoms for the target
-font families: <code>font_arial</code>, <code>font_courier_new</code>,
+<p>The R layer accepts only these seven families in
+<code>s_font(font_name = ...)</code>: the six targets above plus
+<code>Liberation Sans</code>. If the renderer encounters a family it
+cannot resolve on disk (possible only in a hand-edited spec or template
+JSON), it falls back to the bundled Liberation Sans.</p>
+<p>For convenience, ksTFL also registers built-in style names for the
+target families: <code>font_arial</code>, <code>font_courier_new</code>,
 <code>font_times_new_roman</code>, <code>font_georgia</code>,
-<code>font_verdana</code>, and <code>font_trebuchet_ms</code>. These
-atoms set only <code>font_name</code>, so they can be safely combined
-with size, colour, alignment, and other style atoms via
-<code><a href="../reference/f_combine.html">f_combine()</a></code>.</p>
+<code>font_verdana</code>, and <code>font_trebuchet_ms</code>. These are
+strings you pass to style slots (<code>labelStyleRef</code>,
+<code>valueStyleRef</code>, <code>styleRef</code>) or to
+<code><a href="../reference/f_combine.html">f_combine()</a></code>; each sets only <code>font_name</code>, so they
+combine safely with size, colour, alignment, and other style atoms.</p>
 </div>
 <div class="section level2">
 <h2 id="checking-font-status">Checking Font Status<a class="anchor" aria-label="anchor" href="#checking-font-status"></a>
@@ -249,6 +255,9 @@ the current font resolution:</p>
 <span><span class="co">#&gt;   [fallback] Verdana              -&gt; Liberation Sans</span></span>
 <span><span class="co">#&gt;   [fallback] Trebuchet MS         -&gt; Liberation Sans</span></span>
 <span><span class="co">#&gt;   Scanned 5 directories</span></span></code></pre></div>
+<p>The counts depend on which proprietary fonts are installed and how
+many font directories exist on your machine; the report always lists all
+six targets with their resolution.</p>
 <p><strong>Reading the output:</strong></p>
 <ul>
 <li>
@@ -257,6 +266,10 @@ the system and will be used directly.</li>
 <li>
 <strong><code>[fallback]</code></strong> — The target font was not
 found; the bundled fallback is used instead.</li>
+<li>
+<strong><code>(not found)</code></strong> — Neither the family nor
+its fallback resolved on disk (rare; usually a broken or unreadable font
+file).</li>
 </ul>
 </div>
 <div class="section level2">
@@ -272,6 +285,8 @@ a network share or a project-local folder), point the
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>ksTFL.font_dirs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"/opt/company-fonts"</span>, <span class="st">"/mnt/shared/fonts"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://crow16384.github.io/ksTFL/">ksTFL</a></span><span class="op">)</span></span></code></pre></div>
+<p>This works only when the option is set before ksTFL is first loaded
+in the session; if the package is already loaded, use Option B.</p>
 </div>
 <div class="section level3">
 <h3 id="option-b-set-and-rescan-after-loading">Option B: Set and rescan after loading<a class="anchor" aria-label="anchor" href="#option-b-set-and-rescan-after-loading"></a>
@@ -297,21 +312,24 @@ directory paths.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install Georgia to /usr/local/share/fonts/georgia/ ... then:</span></span>
 <span><span class="fu"><a href="../reference/tfl_rescan_fonts.html">tfl_rescan_fonts</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; ksTFL font scan: 6 target(s) resolved, 0 using fallback</span></span>
-<span><span class="co">#&gt;   [ok]       Arial                -&gt; Arial</span></span>
-<span><span class="co">#&gt;   [ok]       Times New Roman      -&gt; Times New Roman</span></span>
-<span><span class="co">#&gt;   [ok]       Courier New          -&gt; Courier New</span></span>
+<span><span class="co">#&gt; ksTFL font scan: 1 target(s) resolved, 5 using fallback</span></span>
+<span><span class="co">#&gt;   [fallback] Arial                -&gt; Liberation Sans</span></span>
+<span><span class="co">#&gt;   [fallback] Times New Roman      -&gt; Liberation Serif</span></span>
+<span><span class="co">#&gt;   [fallback] Courier New          -&gt; Liberation Mono</span></span>
 <span><span class="co">#&gt;   [ok]       Georgia              -&gt; Georgia</span></span>
-<span><span class="co">#&gt;   [ok]       Verdana              -&gt; Verdana</span></span>
-<span><span class="co">#&gt;   [ok]       Trebuchet MS         -&gt; Trebuchet MS</span></span>
-<span><span class="co">#&gt;   Scanned 5 directories</span></span></code></pre></div>
+<span><span class="co">#&gt;   [fallback] Verdana              -&gt; Liberation Sans</span></span>
+<span><span class="co">#&gt;   [fallback] Trebuchet MS         -&gt; Liberation Sans</span></span>
+<span><span class="co">#&gt;   Scanned 6 directories</span></span></code></pre></div>
+<p>A machine shows all six <code>[ok]</code> only when every proprietary
+family is actually installed (Windows workstations typically are; bare
+Linux servers typically are not).</p>
 </div>
 <div class="section level2">
 <h2 id="startup-messages">Startup Messages<a class="anchor" aria-label="anchor" href="#startup-messages"></a>
 </h2>
 <p>When the package is attached, it prints a concise summary if any
 target fonts are using fallbacks:</p>
-<pre><code>ksTFL v0.7.0 - Clinical TFL Framework
+<pre><code>ksTFL v0.12.0 - Clinical TFL Framework
 For help, type: ??ksTFL
 Note: 3 font(s) using fallback: Georgia, Verdana, Trebuchet MS
 Run tfl_font_status() for details.</code></pre>
@@ -321,17 +339,20 @@ is shown.</p>
 <div class="section level2">
 <h2 id="interaction-with-write_doc">Interaction with <code>write_doc()</code><a class="anchor" aria-label="anchor" href="#interaction-with-write_doc"></a>
 </h2>
-<p>The <code><a href="../reference/write_doc.html">write_doc()</a></code> function (and
-<code><a href="../reference/replay_report.html">replay_report()</a></code>) automatically uses the font directories
-from the scanner cache. You can still pass additional per-call
-directories via the <code>font_dirs</code> argument:</p>
+<p><code><a href="../reference/write_doc.html">write_doc()</a></code> uses the font directories from the scanner
+cache. You can pass additional per-call directories via its
+<code>font_dirs</code> argument:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/write_doc.html">write_doc</a></span><span class="op">(</span><span class="va">report</span>, name <span class="op">=</span> <span class="st">"output"</span>,</span>
 <span>          outDir <span class="op">=</span> <span class="st">"results"</span>,</span>
 <span>          metaPath <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>          font_dirs <span class="op">=</span> <span class="st">"/path/to/extra-fonts"</span><span class="op">)</span></span></code></pre></div>
 <p>Per-call directories are appended to the scanner’s cached list for
-that render only — they do not modify the global font registry.</p>
+that render only — they do not modify the global font registry.
+<code><a href="../reference/replay_report.html">replay_report()</a></code> uses the same cache but has no
+<code>font_dirs</code> argument; register extra directories with
+<code>options(ksTFL.font_dirs = ...)</code> plus
+<code><a href="../reference/tfl_rescan_fonts.html">tfl_rescan_fonts()</a></code> before replaying.</p>
 </div>
 <div class="section level2">
 <h2 id="faq">FAQ<a class="anchor" aria-label="anchor" href="#faq"></a>
@@ -349,11 +370,15 @@ its directory to <code>ksTFL.font_dirs</code> and rescan:</p>
 <div class="section level3">
 <h3 id="q-can-i-use-custom-fonts-not-in-the-target-list">Q: Can I use custom fonts not in the target list?<a class="anchor" aria-label="anchor" href="#q-can-i-use-custom-fonts-not-in-the-target-list"></a>
 </h3>
-<p>Yes. Any font found during scanning is available to the renderer. Use
-the family name as it appears in the font’s metadata (e.g.,
-<code>s_font(font_name = "Fira Sans")</code>). If the font is in a
+<p>Not in <code><a href="../reference/s_font.html">s_font()</a></code>. The R layer accepts exactly seven
+families: Arial, Courier New, Times New Roman, Georgia, Verdana,
+Trebuchet MS, and Liberation Sans. Fonts the scanner discovers outside
+this set are visible to the internal resolver but cannot be named in a
+spec — pick the closest allowed family. The scanning directories still
+matter for the six target families: if one of them lives in a
 non-standard directory, add that directory to
-<code>ksTFL.font_dirs</code>.</p>
+<code>ksTFL.font_dirs</code> so the resolver finds the real font instead
+of the fallback.</p>
 </div>
 <div class="section level3">
 <h3 id="q-will-documents-look-different-on-systems-without-the-proprietary-fonts">Q: Will documents look different on systems without the proprietary

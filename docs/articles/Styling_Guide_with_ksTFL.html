@@ -89,7 +89,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-10-02</h4>
+            <h4 data-toc-skip class="date">2026-10-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Styling_Guide_with_ksTFL.Rmd" class="external-link"><code>vignettes/Styling_Guide_with_ksTFL.Rmd</code></a></small>
       <div class="d-none name"><code>Styling_Guide_with_ksTFL.Rmd</code></div>
@@ -102,16 +102,18 @@ Development Team</h4>
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>This guide covers the complete styling system in ksTFL:</p>
-<p>- <strong>Style primitives</strong> (<code>s_*</code> helpers) for
-fonts, paragraphs, spacing, indentation, tables, and borders</p>
-<p>- <strong>Declaring named styles</strong> with
-<code><a href="../reference/add_style.html">add_style()</a></code></p>
-<p>- <strong>Referencing and combining styles</strong> with style
-references and <code><a href="../reference/f_combine.html">f_combine()</a></code></p>
-<p>- <strong>Applying styles</strong> to columns, labels, stubs, and
-content</p>
-<p>- <strong>Best practices</strong> for maintainable, reusable style
-systems</p>
+<ul>
+<li><p><strong>Style primitives</strong> (<code>s_*</code> helpers) for
+fonts, paragraphs, spacing, indentation, tables, and borders</p></li>
+<li><p><strong>Declaring named styles</strong> with
+<code><a href="../reference/add_style.html">add_style()</a></code></p></li>
+<li><p><strong>Referencing and combining styles</strong> with style
+references and <code><a href="../reference/f_combine.html">f_combine()</a></code></p></li>
+<li><p><strong>Applying styles</strong> to columns, labels, stubs, and
+content</p></li>
+<li><p><strong>Best practices</strong> for maintainable, reusable style
+systems</p></li>
+</ul>
 <p>For runnable reporting examples integrating styles see <a href="Reporting_Examples_with_ksTFL.html">Reporting Examples</a>. For a
 quick start see <a href="Getting_Started_with_ksTFL.html">Getting
 Started</a>.</p>
@@ -130,22 +132,14 @@ composition, references, and maintainable conventions.</p>
 <div class="section level3">
 <h3 id="why-declarative-styles">Why declarative styles?<a class="anchor" aria-label="anchor" href="#why-declarative-styles"></a>
 </h3>
-<p>Professional clinical documents require:</p>
-<ul>
-<li><p><strong>Consistency</strong>: common elements should render the
-same way everywhere.</p></li>
-<li><p><strong>Maintainability</strong>: one style change should update
-every reference.</p></li>
-</ul>
-<p>- <strong>Composability</strong>: Build complex styles from simple
-building blocks (font + paragraph alignment + table background)</p>
-<p>- <strong>Separation of concerns</strong>: Define styles once, apply
-them many times without repeating details</p>
-<p>ksTFL uses a <strong>named style system</strong>: you declare styles
-with <code><a href="../reference/add_style.html">add_style()</a></code> giving each an <code>id</code>, then
-reference them by name where needed. Styles are composable
-(<code><a href="../reference/f_combine.html">f_combine()</a></code>) and consolidated automatically when you build
-reports.</p>
+<p>Clinical documents live or die on consistency: one font decision,
+applied everywhere. ksTFL uses a named style system — declare styles
+once with <code><a href="../reference/add_style.html">add_style()</a></code>, reference them by id, compose with
+<code><a href="../reference/f_combine.html">f_combine()</a></code>, and let <code><a href="../reference/create_report.html">create_report()</a></code>
+consolidate the combinations into final render-time styles. One
+definition change updates every reference, and complex looks (font +
+alignment + background) are assembled from small blocks rather than
+hand-written per table.</p>
 </div>
 <div class="section level3">
 <h3 id="best-practices-workflow">Best practices workflow<a class="anchor" aria-label="anchor" href="#best-practices-workflow"></a>
@@ -177,26 +171,45 @@ consolidation</li>
 <div class="section level2">
 <h2 id="style-primitives-s_-helpers">Style primitives (s_* helpers)<a class="anchor" aria-label="anchor" href="#style-primitives-s_-helpers"></a>
 </h2>
-<p>All style primitives begin with <code>s_</code> and must be used
-<strong>only inside <code><a href="../reference/add_style.html">add_style()</a></code></strong>. The helpers
-validate parameter names and values, raising informative errors if used
-incorrectly.</p>
+<p>Style primitives begin with <code>s_</code>. <code><a href="../reference/s_font.html">s_font()</a></code>,
+<code><a href="../reference/s_paragraph.html">s_paragraph()</a></code> and <code><a href="../reference/s_table_style.html">s_table_style()</a></code> go directly
+inside <code><a href="../reference/add_style.html">add_style()</a></code>; <code><a href="../reference/s_spacing.html">s_spacing()</a></code>,
+<code><a href="../reference/s_indents.html">s_indents()</a></code>, <code><a href="../reference/s_borders.html">s_borders()</a></code> and
+<code><a href="../reference/s_border.html">s_border()</a></code> nest one level deeper (inside
+<code><a href="../reference/s_paragraph.html">s_paragraph()</a></code>/<code><a href="../reference/s_table_style.html">s_table_style()</a></code>, or inside
+<code><a href="../reference/s_borders.html">s_borders()</a></code>). Calling any of them outside its context
+aborts with a clear message. They validate parameter values (colors,
+enums, length units) and abort with the allowed set in the message.
+Template JSON keys, by contrast, are silently ignored when unknown —
+check spelling there yourself.</p>
 <div class="section level3">
 <h3 id="s_font-font-properties">
 <code>s_font()</code> — Font properties<a class="anchor" aria-label="anchor" href="#s_font-font-properties"></a>
 </h3>
 <p>Control font appearance (name, size, weight, color, decorations).</p>
 <p><strong>Parameters</strong>:</p>
-<p>- <code>font_name</code>: Font family (e.g., “Arial”, “Courier New”,
-“Times New Roman”, “Georgia”)</p>
-<p>- <code>font_size</code>: Size with units (e.g., “12pt”, “11pt”) -
-<code>bold</code>: Logical (TRUE/FALSE)</p>
-<p>- <code>italic</code>: Logical (TRUE/FALSE)</p>
-<p>- <code>underline</code>: Logical (TRUE/FALSE)</p>
-<p>- <code>color</code>: Color as hex code (e.g., “#000000”, “#FF0000”)
-or color name (e.g., “red”, “black”, “blue”)</p>
-<p>- <code>highlight</code>: Background highlight color as hex code or
-color name</p>
+<ul>
+<li>
+<code>font_name</code>: Font family — one of the seven allowed
+names: “Arial”, “Times New Roman”, “Courier New”, “Georgia”, “Verdana”,
+“Trebuchet MS”, “Liberation Sans” (see Font Management)</li>
+<li>
+<code>font_size</code>: Size with units (e.g., “12pt”, “11pt”)</li>
+<li>
+<code>bold</code>: Logical (TRUE/FALSE)</li>
+<li>
+<code>italic</code>: Logical (TRUE/FALSE)</li>
+<li>
+<code>underline</code>: Logical (TRUE/FALSE)</li>
+<li>
+<code>strikethrough</code>: Logical (TRUE/FALSE)</li>
+<li>
+<code>color</code>: Color as hex code (e.g., “#000000”, “#FF0000”)
+or color name (e.g., “red”, “black”, “blue”)</li>
+<li>
+<code>highlight</code>: Background highlight color as hex code or
+color name</li>
+</ul>
 <p><strong>Example</strong>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
@@ -220,12 +233,24 @@ color name</p>
 <p>Control text alignment, spacing before/after, line spacing, and
 indentation.</p>
 <p><strong>Parameters</strong>:</p>
-<p>- <code>alignment</code>: Text alignment — “left”, “right”, “center”,
-“justify”, “distributed”</p>
-<p>- <code>spacing</code>: Spacing before/after (use
-<code>s_spacing(...)</code>)</p>
-<p>- <code>indents</code>: Left/right indentation, first-line indent
-(use <code>s_indents(...)</code>)</p>
+<ul>
+<li>
+<code>alignment</code>: Text alignment — “left”, “right”, “center”,
+“justify”, “distributed”</li>
+<li>
+<code>spacing</code>: Spacing before/after (use
+<code>s_spacing(...)</code>)</li>
+<li>
+<code>indents</code>: Left/right indentation, first-line indent (use
+<code>s_indents(...)</code>)</li>
+<li>
+<code>word_style</code>: base Word style to inherit from (“Normal”,
+“Heading 1”, “Heading 2”, “Title”, “Subtitle”, “No Spacing”, “Strong”,
+“Quote”, “Intense Quote”)</li>
+<li>
+<code>borders</code>: paragraph-level borders via
+<code>s_borders(...)</code> (see Paragraph-level borders below)</li>
+</ul>
 <p><strong>Example</strong>:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
@@ -248,11 +273,14 @@ indentation.</p>
 <strong>after</strong> a paragraph, and <strong>between
 lines</strong>.</p>
 <p><strong>Parameters</strong>:</p>
-<p>- <code>before</code>: Space before paragraph (e.g., “6pt”,
-“12pt”)</p>
-<p>- <code>after</code>: Space after paragraph (e.g., “6pt”, “12pt”)</p>
-<p>- <code>line_spacing</code>: Line spacing multiplier (e.g., 1.0, 1.5,
-2.0 for single/1.5-line/double spacing)</p>
+<ul>
+<li><p><code>before</code>: Space before paragraph (e.g., “6pt”,
+“12pt”)</p></li>
+<li><p><code>after</code>: Space after paragraph (e.g., “6pt”,
+“12pt”)</p></li>
+<li><p><code>line_spacing</code>: Line spacing multiplier (e.g., 1.0,
+1.5, 2.0 for single/1.5-line/double spacing)</p></li>
+</ul>
 <p><strong>Note</strong>: <code><a href="../reference/s_spacing.html">s_spacing()</a></code> is always used
 <strong>inside <code><a href="../reference/s_paragraph.html">s_paragraph()</a></code></strong>, never
 standalone.</p>
@@ -271,10 +299,12 @@ standalone.</p>
 <p>Controls left/right margins and first-line indentation within a
 paragraph.</p>
 <p><strong>Parameters</strong>:</p>
-<p>- <code>left</code>: Left indent (e.g., “10pt”, “1cm”)</p>
-<p>- <code>right</code>: Right indent (e.g., “10pt”)</p>
-<p>- <code>first_line</code>: First-line indent (e.g., “20pt” for
-hanging indent)</p>
+<ul>
+<li><p><code>left</code>: Left indent (e.g., “10pt”, “1cm”)</p></li>
+<li><p><code>right</code>: Right indent (e.g., “10pt”)</p></li>
+<li><p><code>first_line</code>: First-line indent (e.g., “20pt” for
+hanging indent)</p></li>
+</ul>
 <p><strong>Note</strong>: <code><a href="../reference/s_indents.html">s_indents()</a></code> is always used
 <strong>inside <code><a href="../reference/s_paragraph.html">s_paragraph()</a></code></strong>, never
 standalone.</p>
@@ -297,19 +327,24 @@ standalone.</p>
 <p>Control cell background, row height, vertical alignment, text
 orientation, and borders.</p>
 <p><strong>Parameters</strong>:</p>
-<p>- <code>background_color</code>: Cell background color (hex, e.g.,
-“#E8E8E8”)</p>
-<p>- <code>row_height</code>: Height of table row (e.g., “25pt”)</p>
-<p>- <code>topEmptyLine</code>: Optional empty spacer row after header
-(e.g., “6pt”, use <code>NULL</code> or <code>0pt</code> to disable)</p>
-<p>- <code>bottomEmptyLine</code>: Optional empty spacer row before the
-bottom border (e.g., “6pt”, use <code>NULL</code> or <code>0pt</code> to
-disable)</p>
-<p>- <code>vertical_alignment</code>: “top”, “center”, “bottom”</p>
-<p>- <code>text_orientation</code>: “horizontal”, “vertical_90”,
-“vertical_270”</p>
-<p>- <code>borders</code>: Border specification (use
-<code>s_borders(...)</code>)</p>
+<ul>
+<li><p><code>background_color</code>: Cell background color (hex, e.g.,
+“#E8E8E8”)</p></li>
+<li><p><code>row_height</code>: Height of table row (e.g.,
+“25pt”)</p></li>
+<li><p><code>topEmptyLine</code>: Optional empty spacer row after header
+(e.g., “6pt”, use <code>NULL</code> or <code>0pt</code> to
+disable)</p></li>
+<li><p><code>bottomEmptyLine</code>: Optional empty spacer row before
+the bottom border (e.g., “6pt”, use <code>NULL</code> or
+<code>0pt</code> to disable)</p></li>
+<li><p><code>vertical_alignment</code>: “top”, “center”,
+“bottom”</p></li>
+<li><p><code>text_orientation</code>: “horizontal”, “vertical_90”,
+“vertical_270”</p></li>
+<li><p><code>borders</code>: Border specification (use
+<code>s_borders(...)</code>)</p></li>
+</ul>
 <p><strong>Example</strong>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
@@ -338,12 +373,16 @@ disable)</p>
 <p>Define borders for all four sides of a cell. Each side takes
 <code><a href="../reference/s_border.html">s_border()</a></code> with line style, width, and color.</p>
 <p><strong>Parameters</strong> (each side):</p>
-<p>- <code>top</code>: Top border (use <code>s_border(...)</code>)</p>
-<p>- <code>bottom</code>: Bottom border (use
-<code>s_border(...)</code>)</p>
-<p>- <code>left</code>: Left border (use <code>s_border(...)</code>)</p>
-<p>- <code>right</code>: Right border (use
-<code>s_border(...)</code>)</p>
+<ul>
+<li><p><code>top</code>: Top border (use
+<code>s_border(...)</code>)</p></li>
+<li><p><code>bottom</code>: Bottom border (use
+<code>s_border(...)</code>)</p></li>
+<li><p><code>left</code>: Left border (use
+<code>s_border(...)</code>)</p></li>
+<li><p><code>right</code>: Right border (use
+<code>s_border(...)</code>)</p></li>
+</ul>
 <p><strong>Note</strong>: <code><a href="../reference/s_borders.html">s_borders()</a></code> can be used
 <strong>inside <code><a href="../reference/s_table_style.html">s_table_style()</a></code></strong> for cell-level
 borders, or <strong>inside <code><a href="../reference/s_paragraph.html">s_paragraph()</a></code></strong> for
@@ -355,11 +394,14 @@ paragraph-level borders.</p>
 </h3>
 <p>Defines a single border line with style, width, and color.</p>
 <p><strong>Parameters</strong>:</p>
-<p>- <code>color</code>: Color as hex code (e.g., “#000000”) or color
-name (e.g., “black”, “red”)</p>
-<p>- <code>width</code>: Line width (e.g., “1pt”, “2pt”, “0.5pt”)</p>
-<p>- <code>line_style</code>: “single”, “double”, “dashed”, “dotted”,
-“thick”, “none”</p>
+<ul>
+<li><p><code>color</code>: Color as hex code (e.g., “#000000”) or color
+name (e.g., “black”, “red”)</p></li>
+<li><p><code>width</code>: Line width (e.g., “1pt”, “2pt”,
+“0.5pt”)</p></li>
+<li><p><code>line_style</code>: “single”, “double”, “dashed”, “dotted”,
+“thick”, “none”</p></li>
+</ul>
 <p><strong>Example</strong>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
@@ -418,20 +460,27 @@ underlines the header label.</p>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>,</span>
 <span>  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"trt_a"</span>, <span class="st">"trt_b"</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"Treatment Arms"</span>,</span>
+<span>  stubOrder <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  labelStyleRef <span class="op">=</span> <span class="st">"span_underline"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Combine paragraph border atom with other styles</span></span>
+<span><span class="co"># (disjoint column set, so it can share stubOrder = 1 with the band above)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>,</span>
 <span>  cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"age"</span>, <span class="st">"sex"</span><span class="op">)</span>,</span>
 <span>  label <span class="op">=</span> <span class="st">"Demographics"</span>,</span>
+<span>  stubOrder <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  labelStyleRef <span class="op">=</span> <span class="fu"><a href="../reference/f_combine.html">f_combine</a></span><span class="op">(</span><span class="st">"b"</span>, <span class="st">"ac"</span>, <span class="st">"pb_th"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><strong>Key difference</strong>: structural borders
-(<code>header_top_border</code>, <code>header_bottom_border</code>)
-override cell-level borders on header rows but cannot affect paragraph
-borders. This makes paragraph borders useful when you need visual
-separators independent of the table’s structural framing.</p>
+<p><strong>Key difference</strong>: structural borders — template keys
+<code>tableStyle.structural.header_top_border</code> /
+<code>header_bottom_border</code> — replace the header row’s CELL
+borders outright and always win over <code>labelStyleRef</code>
+cell-border atoms. Paragraph borders (the
+<code>pb</code>/<code>pb_th</code> atoms, OOXML
+<code>&lt;w:pBdr&gt;</code>) live in the paragraph itself and are
+untouched by that override, which is why the spanning-header underline
+trick above survives templates with bold header rules.</p>
 <hr>
 </div>
 </div>
@@ -453,12 +502,14 @@ primitives.</p>
 <span>  <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#EFEFEF"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p><strong>Parameters</strong>:</p>
-<p>- <code>spec</code>: A <code>TFL_spec</code> object</p>
-<p>- <code>id</code>: Unique name for the style (e.g., “header_bold”,
-“numeric_right”)</p>
-<p>- <code>...</code>: One or more style primitives
+<ul>
+<li><p><code>spec</code>: A <code>TFL_spec</code> object</p></li>
+<li><p><code>id</code>: Unique name for the style (e.g., “header_bold”,
+“numeric_right”)</p></li>
+<li><p><code>...</code>: One or more style primitives
 (<code><a href="../reference/s_font.html">s_font()</a></code>, <code><a href="../reference/s_paragraph.html">s_paragraph()</a></code>,
-<code><a href="../reference/s_table_style.html">s_table_style()</a></code>, etc.)</p>
+<code><a href="../reference/s_table_style.html">s_table_style()</a></code>, etc.)</p></li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="example-define-a-complete-style">Example: Define a complete style<a class="anchor" aria-label="anchor" href="#example-define-a-complete-style"></a>
@@ -487,7 +538,9 @@ primitives.</p>
 <h3 id="multiple-calls-merge-with-last-win-strategy">Multiple calls merge with last-win strategy<a class="anchor" aria-label="anchor" href="#multiple-calls-merge-with-last-win-strategy"></a>
 </h3>
 <p>Calling <code><a href="../reference/add_style.html">add_style()</a></code> multiple times with the same
-<code>id</code> merges the styles (last-win semantics):</p>
+<code>id</code> merges the styles: a later call overrides only the
+properties it sets — everything else is preserved. For conflict
+resolution inside <code><a href="../reference/f_combine.html">f_combine()</a></code>, see below.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span></span>
 <span></span>
@@ -576,7 +629,10 @@ by id in various places:</p>
 <h2 id="combining-styles-with-f_combine">Combining styles with <code>f_combine()</code><a class="anchor" aria-label="anchor" href="#combining-styles-with-f_combine"></a>
 </h2>
 <p><code><a href="../reference/f_combine.html">f_combine()</a></code> lets you apply multiple styles to a single
-element without pre-defining a combined style.</p>
+element without pre-defining a combined style. When two combined styles
+set the same property, the LAST argument wins — so
+<code>f_combine("b", "nrm")</code> is not bold, and
+<code>f_combine("nrm", "b")</code> is. Argument order is semantic.</p>
 <div class="section level3">
 <h3 id="basic-usage">Basic usage<a class="anchor" aria-label="anchor" href="#basic-usage"></a>
 </h3>
@@ -656,16 +712,88 @@ element without pre-defining a combined style.</p>
 <h2 id="allowed-values-enumerations">Allowed values (enumerations)<a class="anchor" aria-label="anchor" href="#allowed-values-enumerations"></a>
 </h2>
 <div class="section level3">
+<h3 id="length-units-by-parameter-family">Length units by parameter family<a class="anchor" aria-label="anchor" href="#length-units-by-parameter-family"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="68%">
+<col width="31%">
+</colgroup>
+<thead><tr class="header">
+<th>Parameter family</th>
+<th>Accepted units</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Font size (<code>s_font(font_size = ...)</code>)</td>
+<td>
+<code>pt</code> only</td>
+</tr>
+<tr class="even">
+<td>Border width (<code>s_border(width = ...)</code>)</td>
+<td>
+<code>pt</code> only</td>
+</tr>
+<tr class="odd">
+<td>Paragraph spacing (<code>s_spacing</code>)</td>
+<td>
+<code>pt</code>, <code>cm</code>, <code>in</code>,
+<code>mm</code>
+</td>
+</tr>
+<tr class="even">
+<td>Indents (<code>s_indents</code>), margins
+(<code>p_margins</code>)</td>
+<td>
+<code>in</code>, <code>cm</code>, <code>mm</code>,
+<code>pt</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Row height (<code>row_height</code>)</td>
+<td>
+<code>pt</code>, <code>in</code>, <code>cm</code>, <code>mm</code>,
+or <code>"auto"</code>
+</td>
+</tr>
+<tr class="even">
+<td>Spacer rows
+(<code>topEmptyLine</code>/<code>bottomEmptyLine</code>)</td>
+<td>
+<code>pt</code>, <code>in</code>, <code>cm</code>,
+<code>mm</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Column widths (<code>colWidth</code>), content width
+(<code>contentWidth</code>)</td>
+<td>
+<code>%</code>, <code>in</code>, <code>cm</code>
+</td>
+</tr>
+<tr class="even">
+<td>Figure sizes
+(<code>figureWidth</code>/<code>figureHeight</code>)</td>
+<td>
+<code>%</code>, <code>in</code>, <code>cm</code>, <code>mm</code>,
+<code>pt</code>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level3">
 <h3 id="color-names">Color names<a class="anchor" aria-label="anchor" href="#color-names"></a>
 </h3>
 <p>Color parameters accept both <strong>hex codes</strong> (e.g.,
 <code>"#FF0000"</code>) and <strong>named colors</strong>:</p>
 <p><strong>Basic colors</strong>: black, white, red, green, blue,
-yellow, orange, purple, pink, brown, cyan, magenta, navy, teal, lime,
-maroon, olive, silver, gold, coral, salmon, turquoise, violet, indigo,
-khaki, lavender, plum, tan</p>
-<p><strong>Grayscale</strong>: grey10, grey20, grey30, grey40, grey60,
-grey70, grey80, grey90 (or gray with ‘a’)</p>
+yellow, orange, purple, pink, brown, gray/grey (medium, #808080), cyan,
+magenta, navy, teal, lightblue, lightgreen, lightred, lime, maroon,
+olive, silver, gold, coral, salmon, turquoise, violet, indigo, khaki,
+lavender, plum, tan</p>
+<p><strong>Grayscale</strong>: grey10 through grey90 in steps of 10 (or
+gray with ‘a’)</p>
 </div>
 <div class="section level3">
 <h3 id="font-names-common">Font names (common)<a class="anchor" aria-label="anchor" href="#font-names-common"></a>
@@ -795,7 +923,8 @@ are physically available on your machine is shown by
 <span>  <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"11pt"</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#CCCCCC"</span>, vertical_alignment <span class="op">=</span> <span class="st">"center"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Wider banner gets the higher order -&gt; renders ABOVE the sub-group band</span></span>
+<span><span class="co"># The umbrella band gets the HIGHER stubOrder -&gt; renders above the sub-group</span></span>
+<span><span class="co"># band (stacking order decides, not column width)</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_span_header.html">add_span_header</a></span><span class="op">(</span><span class="va">spec</span>, cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"var1"</span>, <span class="st">"var2"</span><span class="op">)</span>, label <span class="op">=</span> <span class="st">"Safety"</span>,</span>
 <span>  stubOrder <span class="op">=</span> <span class="fl">1</span>, labelStyleRef <span class="op">=</span> <span class="st">"level2_stub"</span><span class="op">)</span></span>
 <span></span>
@@ -856,11 +985,16 @@ consolidated.</p>
 <div class="section level3">
 <h3 id="styles-looking-different-in-renderer-than-expected">Styles looking different in renderer than expected<a class="anchor" aria-label="anchor" href="#styles-looking-different-in-renderer-than-expected"></a>
 </h3>
-<p><strong>Problem</strong>: Renderer may override or ignore certain
-style properties based on its own template system.</p>
-<p><strong>Solution</strong>: Test with simple styles first, then
-incrementally add properties. Contact your renderer maintainer for
-constraints.</p>
+<p><strong>Problem</strong>: the same property is set at several layers
+and a higher layer wins.</p>
+<p><strong>Solution</strong>: check the cascade — for one property, the
+row action (<code>c_style</code>) beats your <code>styleRef</code>,
+which beats the template row defaults, which beat the region style.
+Structural header borders always win over cell-border atoms on header
+rows; switch to the paragraph atoms (<code>pb</code>,
+<code>pb_th</code>) instead. When a property still will not move,
+<code><a href="../reference/save_report.html">save_report()</a></code> the spec and inspect the resolved style
+JSON.</p>
 <hr>
 </div>
 </div>
@@ -884,14 +1018,14 @@ transparent.</p>
 <div class="section level3">
 <h3 id="style-reference-resolution">Style reference resolution<a class="anchor" aria-label="anchor" href="#style-reference-resolution"></a>
 </h3>
-<p>Style references are resolved in this order:</p>
-<p>1. <strong>Named styles</strong> defined in the same spec with
-<code><a href="../reference/add_style.html">add_style()</a></code></p>
-<p>2. <strong>Built-in style atoms</strong> shipped with the package
-(e.g., <code>"b"</code>, <code>"tw_80"</code>,
-<code>"grp_hdr"</code>)</p>
-<p>3. <strong>Error</strong>: If reference not found,
-<code><a href="../reference/create_report.html">create_report()</a></code> will error with an informative message</p>
+<p>Every style name — whether you passed an id to
+<code><a href="../reference/add_style.html">add_style()</a></code> or an atom like <code>"b"</code>,
+<code>"tw_80"</code>, <code>"grp_hdr"</code> — resolves against the
+spec’s single style table, which starts pre-populated with the built-in
+atoms. Defining <code><a href="../reference/add_style.html">add_style()</a></code> with an atom’s name shadows the
+built-in. An unresolved name, user style or atom alike, aborts
+<code><a href="../reference/create_report.html">create_report()</a></code> with “Referenced styles not found in spec”
+and lists the missing ids.</p>
 <hr>
 </div>
 </div>
@@ -984,9 +1118,9 @@ grouped by category with colour-coded output in the console:</p>
 </tr>
 <tr class="odd">
 <td>
-<code>fs_7</code> … <code>fs_11</code>
+<code>fs_7</code> … <code>fs_12</code>
 </td>
-<td>Font size 7 pt … 11 pt</td>
+<td>Font size 7 pt … 12 pt</td>
 </tr>
 <tr class="even">
 <td><strong>Font — colour</strong></td>

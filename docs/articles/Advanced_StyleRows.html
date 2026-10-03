@@ -89,7 +89,7 @@
                         <h4 data-toc-skip class="author">ksTFL
 Development Team</h4>
             
-            <h4 data-toc-skip class="date">2026-10-02</h4>
+            <h4 data-toc-skip class="date">2026-10-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/crow16384/ksTFL/blob/HEAD/vignettes/Advanced_StyleRows.Rmd" class="external-link"><code>vignettes/Advanced_StyleRows.Rmd</code></a></small>
       <div class="d-none name"><code>Advanced_StyleRows.Rmd</code></div>
@@ -101,11 +101,12 @@ Development Team</h4>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This vignette explains the powerful conditional row styling system in
-ksTFL, centered around <code><a href="../reference/compute_cols.html">compute_cols()</a></code> and its action
-functions: <code><a href="../reference/c_style.html">c_style()</a></code>, <code><a href="../reference/c_merge.html">c_merge()</a></code>, and
-<code><a href="../reference/c_addrow.html">c_addrow()</a></code>. These tools enable sophisticated data-driven
-formatting without manual post-processing.</p>
+<p>This vignette covers conditional row formatting in ksTFL:
+<code><a href="../reference/compute_cols.html">compute_cols()</a></code> and its six action functions —
+<code><a href="../reference/c_style.html">c_style()</a></code>, <code><a href="../reference/c_merge.html">c_merge()</a></code>, <code><a href="../reference/c_addrow.html">c_addrow()</a></code>,
+<code><a href="../reference/c_glue.html">c_glue()</a></code>, <code><a href="../reference/c_clear.html">c_clear()</a></code>, and
+<code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code>. Rules are declared against the data and
+applied at render; no post-processing pass is needed.</p>
 </div>
 <div class="section level2">
 <h2 id="category-and-prerequisites">Category and prerequisites<a class="anchor" aria-label="anchor" href="#category-and-prerequisites"></a>
@@ -141,7 +142,7 @@ them later, which keeps the build pipeline easier to inspect.</li>
 </div>
 </div>
 <div class="section level2">
-<h2 id="the-three-action-functions">The Three Action Functions<a class="anchor" aria-label="anchor" href="#the-three-action-functions"></a>
+<h2 id="action-functions">Action Functions<a class="anchor" aria-label="anchor" href="#action-functions"></a>
 </h2>
 <div class="section level3">
 <h3 id="c_style-conditional-styling">
@@ -173,9 +174,9 @@ them later, which keeps the build pipeline easier to inspect.</li>
 <span>    <span class="va">response</span> <span class="op">==</span> <span class="st">"PD"</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">response</span>, styleRef <span class="op">=</span> <span class="st">"highlight_red"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><strong>Result:</strong> Rows where <code>response == "CR"</code>
-show green bold text; rows where <code>response == "PD"</code> show red
-bold text:</p>
+<p><strong>Result:</strong> The <code>response</code> cell shows green
+bold text on <code>CR</code> rows and red bold text on <code>PD</code>
+rows; other columns are untouched:</p>
 <div class="float">
 <img src="images/style-conditional-green-red-response.png" alt="style conditional green red response"><div class="figcaption">style conditional green red response</div>
 </div>
@@ -195,22 +196,24 @@ bold text:</p>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_groups</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,  <span class="co"># Not the first occurrence of this group value</span></span>
+<span>    <span class="op">!</span><span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,  <span class="co"># not the first row of each run of this group value</span></span>
 <span>    <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">group</span>, <span class="va">visit</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Result:</strong> When consecutive rows have the same
 <code>group</code>, their <code>group</code> and <code>visit</code>
-cells merge into one display cell showing the <code>group</code> value
-(the merged cell always keeps the text of the FIRST column in
-<code>cols</code>; the other columns’ values are not shown).</p>
+cells merge into one display cell showing the <code>group</code> value.
+The merged cell keeps the text of the leftmost column in the merged
+range (report column order), regardless of the order in which columns
+are listed in <code>cols</code>; the other columns’ values are not
+shown.</p>
 <div class="float">
 <img src="images/merge-group-visit-cells.png" alt="merge group visit cells"><div class="figcaption">merge group visit cells</div>
 </div>
 <p><strong>Note:</strong> The <code>cols</code> argument to
 <code><a href="../reference/c_merge.html">c_merge()</a></code> must resolve to at least two
 <strong>consecutive</strong> columns in the final report column order.
-The value shown in the merged cell is taken <strong>from the
-first</strong> column in the <code>cols</code> sequence.</p>
+Overlapping merges are not allowed: the second one is dropped with a
+warning.</p>
 </div>
 <div class="section level3">
 <h3 id="c_addrow-conditional-row-insertion">
@@ -223,9 +226,11 @@ first</strong> column in the <code>cols</code> sequence.</p>
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,  <span class="co"># First row of each group</span></span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span><span class="op">)</span>  <span class="co"># Insert an empty separator/header row above</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><strong>Result:</strong> An empty separator row is inserted above
-each new group. To copy a single column’s value into the inserted row
-use <code>value_from</code> (see later examples). Use
+<p><strong>Result:</strong> The inserted row is one full-width cell:
+empty text without <code>value_from</code>, styled by
+<code>styleRef</code> — with a style it reads as a band or section
+header. To copy a single column’s value into the inserted row use
+<code>value_from</code> (see later examples). Use
 <code>pos = "below"</code> to insert after the matching row instead.</p>
 <div class="float">
 <img src="images/addrow-separator-above-groups.png" alt="addrow separator above groups"><div class="figcaption">addrow separator above groups</div>
@@ -244,7 +249,9 @@ new page when a logical grouping or large block ends.</p>
 <span>    <span class="fu"><a href="../reference/c_pageBreak.html">c_pageBreak</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <p><strong>Result:</strong> The renderer will start a new page at rows
-matching the condition:</p>
+matching the condition. Each break ends the current table segment and
+the next segment repeats the column-header row. A match on the very
+first data row changes nothing — that row already starts the page.</p>
 <div class="float">
 <img src="images/pagebreak-at-group-start.png" alt="pagebreak at group start"><div class="figcaption">pagebreak at group start</div>
 </div>
@@ -278,6 +285,11 @@ inside the <code>cond</code> argument of <code><a href="../reference/compute_col
 <strong>They are not standalone exported functions</strong> — you cannot
 call them outside of <code><a href="../reference/compute_cols.html">compute_cols()</a></code>.</p>
 </blockquote>
+<p>Style references passed to actions can also name built-in atoms
+(<code>b</code>, <code>i</code>, <code>ar</code>, <code>indent_1</code>,
+<code>bg_mint</code>, <code>bt_th</code>, …; full catalog via
+<code><a href="../reference/tfl_print_style_atoms.html">tfl_print_style_atoms()</a></code> and in the <a href="Styling_Guide_with_ksTFL.html">Styling Guide</a>);
+<code><a href="../reference/f_combine.html">f_combine()</a></code> merges several atoms into one reference.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># You can reference any column directly in conditions</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -296,11 +308,14 @@ call them outside of <code><a href="../reference/compute_cols.html">compute_cols
 <code><a href="../reference/compute_cols.html">compute_cols()</a></code> conditions:</p>
 <ul>
 <li>
-<strong><code>firstOf(...)</code></strong>: Logical vector marking
-first occurrence of each value combination in specified columns</li>
+<strong><code>firstOf(...)</code></strong>: Logical vector TRUE at
+the first row of each RUN of equal values in the specified columns
+(run-length semantics). Sort the data upstream so each logical group is
+contiguous — a value that re-appears later starts a new run and matches
+again.</li>
 <li>
-<strong><code>lastOf(...)</code></strong>: Logical vector marking
-last occurrence of each value combination in specified columns</li>
+<strong><code>lastOf(...)</code></strong>: The same, TRUE at the
+last row of each run.</li>
 <li>
 <strong><code>firstRow()</code></strong>: Logical vector TRUE only
 at first row</li>
@@ -312,12 +327,15 @@ last row</li>
 numbers (1-based)</li>
 <li>
 <strong><code>everyNth(n)</code></strong>: Logical vector TRUE at
-every nth row</li>
+every nth row starting from row 1 (so <code>everyNth(2)</code> marks odd
+rows 1, 3, 5, …; use <code>rowNumber() %% 2 == 0</code> for the even
+rows)</li>
 <li>
-<strong><code>firstOfBlock(col, n, offset)</code></strong>: Returns
-logical vector marking first row of every n-th block defined by
-<code>col</code>
-</li>
+<strong><code>firstOfBlock(col, n = 1, offset = 0)</code></strong>:
+TRUE at the first row of every n-th RUN of <code>col</code> values,
+excluding the first run — <code>n = 1</code> marks the start of runs 2,
+3, 4, …; <code>n = 2</code> marks runs 3, 5, … Same sort precondition as
+<code>firstOf()</code>.</li>
 </ul>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Highlight first and last rows using helper functions</span></span>
@@ -343,7 +361,7 @@ logical vector marking first row of every n-th block defined by
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"gray_bg"</span>, <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#F5F5F5"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
-<span>    <span class="fu">everyNth</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,  <span class="co"># Every 2nd row starting from row 1</span></span>
+<span>    <span class="fu">everyNth</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>,  <span class="co"># marks odd rows: 1, 3, 5, ...</span></span>
 <span>    <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu">everything</span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"gray_bg"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
@@ -444,10 +462,6 @@ logical vector marking first row of every n-th block defined by
 <div class="float">
 <img src="images/merge-multi-column-grouping.png" alt="merge multi column grouping"><div class="figcaption">merge multi column grouping</div>
 </div>
-</div>
-<div class="section level3">
-<h3 id="conditional-display-column-content">Conditional Display Column Content<a class="anchor" aria-label="anchor" href="#conditional-display-column-content"></a>
-</h3>
 </div>
 <div class="section level3">
 <h3 id="merging-with-styling">Merging with Styling<a class="anchor" aria-label="anchor" href="#merging-with-styling"></a>
@@ -590,19 +604,29 @@ value to the display text of matching cells — useful for appending
 units, prefixing markers, or building composite labels without creating
 extra columns.</p>
 <p><strong>Parameters:</strong></p>
-<p>- <code>cols</code>: columns to modify (tidyselect)</p>
-<p>- <code>position</code>: <code>"before"</code> or
-<code>"after"</code> — where to attach the text</p>
-<p>- <code>glue_col</code>: unquoted name of a data column whose value
-to attach</p>
-<p>- <code>text</code>: a literal string (single value) to attach</p>
-<p>Exactly one of <code>glue_col</code> / <code>text</code> must be
-provided: calling <code><a href="../reference/c_glue.html">c_glue()</a></code> directly with both is an error,
-and inside <code><a href="../reference/compute_cols.html">compute_cols()</a></code> the parser keeps
-<code>glue_col</code> and silently drops <code>text</code> — supply one
-or the other.</p>
-<p>- <code>separator</code>: string inserted between original value and
-the glued text (default <code>NULL</code>)</p>
+<ul>
+<li>
+<code>cols</code>: columns to modify (tidyselect)</li>
+<li>
+<code>position</code>: <code>"before"</code> or <code>"after"</code>
+— where to attach the text</li>
+<li>
+<code>glue_col</code>: unquoted name of a data column whose value to
+attach</li>
+<li>
+<code>text</code>: a literal string (single value) to attach</li>
+<li>
+<code>separator</code>: string inserted between original value and
+the glued text (default <code>""</code>)</li>
+</ul>
+<p>Provide exactly one of <code>glue_col</code> / <code>text</code>. If
+both appear in a <code><a href="../reference/compute_cols.html">compute_cols()</a></code> call, the parser warns and
+keeps <code>glue_col</code>, ignoring <code>text</code>.</p>
+<p>Glue lands on the raw cell text: a cell suppressed by
+<code>dedupe</code> or merged as a non-leader renders blank and the
+glued part is skipped — target the merge leader. <code>cols</code> must
+match visible report columns; <code>glue_col</code> may reference a
+hidden one.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_units</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  parameter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Hemoglobin"</span>, <span class="st">"Glucose"</span>, <span class="st">"Cholesterol"</span><span class="op">)</span>,</span>
@@ -624,7 +648,6 @@ the glued text (default <code>NULL</code>)</p>
 <p><code><a href="../reference/c_glue.html">c_glue()</a></code> is fully compatible with <code><a href="../reference/c_style.html">c_style()</a></code>
 and <code><a href="../reference/c_merge.html">c_merge()</a></code> in the same <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
 call.</p>
-<hr>
 </div>
 <div class="section level2">
 <h2 id="c_clear-blank-cell-content-in-matching-rows">
@@ -632,8 +655,8 @@ call.</p>
 </h2>
 <p><code><a href="../reference/c_clear.html">c_clear()</a></code> renders specified cells as empty (blank) in
 matching rows without removing the column or affecting layout. Useful
-for conditional deduplication, when a <code>dedupe</code> parameter of
-<code>define_col()</code> is not enough.</p>
+for conditional deduplication, when the <code>dedupe</code> parameter of
+<code><a href="../reference/define_cols.html">define_cols()</a></code> is not enough.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  group  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Treatment A"</span>, <span class="st">"Treatment A"</span>, <span class="st">"Treatment A"</span>, <span class="st">"Placebo"</span>, <span class="st">"Placebo"</span><span class="op">)</span>,</span>
@@ -657,7 +680,6 @@ arrival order, so <code><a href="../reference/c_clear.html">c_clear()</a></code>
 the same call turns the glue into a full cell replacement, while
 <code><a href="../reference/c_glue.html">c_glue()</a></code> before <code><a href="../reference/c_clear.html">c_clear()</a></code> erases the glued
 result.</p>
-<hr>
 </div>
 <div class="section level2">
 <h2 id="combining-actions-together">Combining Actions Together<a class="anchor" aria-label="anchor" href="#combining-actions-together"></a>
@@ -758,32 +780,21 @@ they apply together, and keep style lookups cheap by reusing ids:</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="pre-filter-data-when-possible">3. Pre-Filter Data When Possible<a class="anchor" aria-label="anchor" href="#pre-filter-data-when-possible"></a>
+<h3 id="tighten-conditions-do-not-split-tables">3. Tighten Conditions, Do Not Split Tables<a class="anchor" aria-label="anchor" href="#tighten-conditions-do-not-split-tables"></a>
 </h3>
-<p>If conditions apply to a small subset, consider filtering data
-upfront:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># If only 5% of rows need special formatting:</span></span>
-<span><span class="co"># Consider creating separate tables and combining in report</span></span>
-<span></span>
-<span><span class="va">data_outliers</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">age</span> <span class="op">&gt;</span> <span class="fl">80</span><span class="op">)</span></span>
-<span><span class="va">data_normal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">age</span> <span class="op">&lt;=</span> <span class="fl">80</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">spec_outliers</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_outliers</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"outlier"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#FF0000"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="fu">everything</span><span class="op">(</span><span class="op">)</span>, styleRef <span class="op">=</span> <span class="st">"outlier"</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">spec_normal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_normal</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Combine in report</span></span>
-<span><span class="va">report</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec_normal</span>, <span class="va">spec_outliers</span><span class="op">)</span></span></code></pre></div>
+<p>Conditions are evaluated vectorized, one pass per block over whole
+columns — there is no per-row cost to optimize. If only a few rows need
+styling, make the condition selective (e.g. <code>age &gt; 80</code>),
+not the data: do not split one logical table across two specs for
+formatting reasons, because each spec becomes its own Word table in the
+report.</p>
 </div>
 <div class="section level3">
 <h3 id="style-consolidation">4. Style Consolidation<a class="anchor" aria-label="anchor" href="#style-consolidation"></a>
 </h3>
 <p>ksTFL automatically consolidates identical styles, but you can help
 by reusing style references:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ✅ Define once, use many times:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"critical"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#FF0000"</span>, bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -804,7 +815,7 @@ by reusing style references:</p>
 <h3 id="viewing-captured-actions">Viewing Captured Actions<a class="anchor" aria-label="anchor" href="#viewing-captured-actions"></a>
 </h3>
 <p>Inspect what <code><a href="../reference/compute_cols.html">compute_cols()</a></code> has stored:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>,</span>
@@ -819,7 +830,7 @@ by reusing style references:</p>
 <h3 id="testing-conditions-manually">Testing Conditions Manually<a class="anchor" aria-label="anchor" href="#testing-conditions-manually"></a>
 </h3>
 <p>Test conditions on your data frame before adding to spec:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Test your condition directly on the data before passing to compute_cols()</span></span>
 <span><span class="va">test_condition</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">data</span>, <span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">test_condition</span><span class="op">)</span>   <span class="co"># How many rows match?</span></span>
@@ -834,7 +845,7 @@ by reusing style references:</p>
 </h3>
 <p>Add <code><a href="../reference/compute_cols.html">compute_cols()</a></code> one at a time and inspect
 results:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Add first action</span></span>
@@ -854,7 +865,7 @@ results:</p>
 <div class="section level3">
 <h3 id="pattern-1-alternating-row-colors">Pattern 1: Alternating Row Colors<a class="anchor" aria-label="anchor" href="#pattern-1-alternating-row-colors"></a>
 </h3>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"gray_bg"</span>, <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#F5F5F5"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -863,14 +874,14 @@ results:</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="pattern-2-grouped-section-headers-with-merging">Pattern 2: Grouped Section Headers with Merging<a class="anchor" aria-label="anchor" href="#pattern-2-grouped-section-headers-with-merging"></a>
+<h3 id="pattern-2-group-separator-bands-with-cell-merging">Pattern 2: Group Separator Bands with Cell Merging<a class="anchor" aria-label="anchor" href="#pattern-2-group-separator-bands-with-cell-merging"></a>
 </h3>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_groups</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"group_header"</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span>, font_size <span class="op">=</span> <span class="st">"11pt"</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#D0D0D0"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="co"># Insert header row before each new group</span></span>
+<span>  <span class="co"># Insert a styled band row above each new group</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">firstOf</span><span class="op">(</span><span class="va">group</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"above"</span>, styleRef <span class="op">=</span> <span class="st">"group_header"</span><span class="op">)</span></span>
@@ -884,7 +895,7 @@ results:</p>
 <div class="section level3">
 <h3 id="pattern-3-conditional-highlighting-with-thresholds">Pattern 3: Conditional Highlighting with Thresholds<a class="anchor" aria-label="anchor" href="#pattern-3-conditional-highlighting-with-thresholds"></a>
 </h3>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_lab</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"low"</span>,    <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#0000FF"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"normal"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>color <span class="op">=</span> <span class="st">"#008000"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -905,14 +916,25 @@ results:</p>
 <div class="section level3">
 <h3 id="pattern-4-summary-rows-with-totals">Pattern 4: Summary Rows with Totals<a class="anchor" aria-label="anchor" href="#pattern-4-summary-rows-with-totals"></a>
 </h3>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_sales</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># The analyst frame carries a pre-computed per-region total in `total`</span></span>
+<span><span class="co"># (same value repeated on every row of the region).</span></span>
+<span><span class="va">data_totals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  region  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"South"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  product <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  revenue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">200</span>, <span class="fl">120</span><span class="op">)</span>,</span>
+<span>  total   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">250</span>, <span class="fl">320</span>, <span class="fl">320</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data_totals</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"total_row"</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
 <span>            <span class="fu"><a href="../reference/s_table_style.html">s_table_style</a></span><span class="op">(</span>background_color <span class="op">=</span> <span class="st">"#FFD700"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">total</span>, isVisible <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
 <span>    <span class="fu">lastOf</span><span class="op">(</span><span class="va">region</span><span class="op">)</span>,  <span class="co"># Last row of each region</span></span>
-<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span>, styleRef <span class="op">=</span> <span class="st">"total_row"</span><span class="op">)</span></span>
+<span>    <span class="co"># copy the region total into a full-width row below it</span></span>
+<span>    <span class="fu"><a href="../reference/c_addrow.html">c_addrow</a></span><span class="op">(</span>pos <span class="op">=</span> <span class="st">"below"</span>, value_from <span class="op">=</span> <span class="va">total</span>, styleRef <span class="op">=</span> <span class="st">"total_row"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -925,7 +947,7 @@ results:</p>
 <p>The condition expression must evaluate to a logical vector with
 exactly one element per data row, or a single logical scalar (recycled
 to all rows). Anything else errors at <code><a href="../reference/create_report.html">create_report()</a></code>:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ Wrong-length result: the condition may capture fine, but</span></span>
 <span><span class="co">#    create_report() aborts because it resolves lazily:</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -937,7 +959,7 @@ to all rows). Anything else errors at <code><a href="../reference/create_report.
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span>  <span class="co"># aborts: condition must return a length-20 logical</span></span></code></pre></div>
 <p>Scalar-returning aggregates DO work — they are recycled across
 rows:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"above_average"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>italic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span></span>
@@ -947,7 +969,7 @@ rows:</p>
 <p>Still, the recommended idiom is precomputing helper columns upstream
 — it is explicit, cacheable, and lets invisible columns drive several
 rules at once:</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span><span class="op">$</span><span class="va">age_above_avg</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">$</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">age</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -961,7 +983,7 @@ rules at once:</p>
 <h3 id="limitation-2-no-nested-c_-functions">Limitation 2: No Nested <code>c_*()</code> Functions<a class="anchor" aria-label="anchor" href="#limitation-2-no-nested-c_-functions"></a>
 </h3>
 <p>You can’t nest action functions:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ This is invalid: actions are siblings, not expressions that can be</span></span>
 <span><span class="co">#    nested inside each other's arguments. (Aborts at create_report():</span></span>
 <span><span class="co">#    the nested c_merge() has no compute_cols() context when resolved.)</span></span>
@@ -973,7 +995,7 @@ rules at once:</p>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Workaround:</strong> Use separate <code><a href="../reference/compute_cols.html">compute_cols()</a></code>
 calls:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"elderly"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_merge.html">c_merge</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">patient</span>, <span class="va">age</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -982,7 +1004,7 @@ calls:</p>
 <h3 id="limitation-3-style-references-must-exist">Limitation 3: Style References Must Exist<a class="anchor" aria-label="anchor" href="#limitation-3-style-references-must-exist"></a>
 </h3>
 <p><code>styleRef</code> must reference a previously defined style:</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># ❌ This will error at evaluation time (create_report validates all</span></span>
 <span><span class="co">#    referenced style ids):</span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -990,7 +1012,7 @@ calls:</p>
 <span><span class="fu"><a href="../reference/create_report.html">create_report</a></span><span class="op">(</span><span class="va">spec</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Workaround:</strong> Always define styles before using
 them:</p>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"elderly"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span>  <span class="co"># Define first</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"elderly"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -1003,7 +1025,7 @@ them:</p>
 <h3 id="using-with-define_cols">Using with <code>define_cols()</code><a class="anchor" aria-label="anchor" href="#using-with-define_cols"></a>
 </h3>
 <p><code><a href="../reference/compute_cols.html">compute_cols()</a></code> works alongside column definitions:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"elderly"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/define_cols.html">define_cols</a></span><span class="op">(</span><span class="va">age</span>, type <span class="op">=</span> <span class="st">"numeric"</span>, format <span class="op">=</span> <span class="st">"0.0"</span>, colWidth <span class="op">=</span> <span class="st">"15%"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1016,7 +1038,7 @@ them:</p>
 <h3 id="using-with-invisible-columns">Using with Invisible Columns<a class="anchor" aria-label="anchor" href="#using-with-invisible-columns"></a>
 </h3>
 <p>Reference invisible columns in conditions:</p>
-<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span><span class="op">$</span><span class="va">flag</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">spec</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -1031,7 +1053,7 @@ them:</p>
 <h3 id="using-in-multi-spec-reports">Using in Multi-Spec Reports<a class="anchor" aria-label="anchor" href="#using-in-multi-spec-reports"></a>
 </h3>
 <p>Each spec can have independent <code><a href="../reference/compute_cols.html">compute_cols()</a></code> logic:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/create_table.html">create_table</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="op">]</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/add_style.html">add_style</a></span><span class="op">(</span>id <span class="op">=</span> <span class="st">"elderly"</span>, <span class="fu"><a href="../reference/s_font.html">s_font</a></span><span class="op">(</span>bold <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&gt;</span> <span class="fl">60</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"elderly"</span><span class="op">)</span><span class="op">)</span></span>
@@ -1092,17 +1114,20 @@ based on conditions</li>
 <strong><code><a href="../reference/c_addrow.html">c_addrow()</a></code></strong>: Insert new rows
 dynamically (<code>pos = "above"</code> or <code>"below"</code>)</li>
 <li>
+<strong><code><a href="../reference/c_glue.html">c_glue()</a></code></strong>: Append or prepend a string
+or another column’s value to the display text of matching cells</li>
+<li>
 <strong><code><a href="../reference/c_pageBreak.html">c_pageBreak()</a></code></strong>: Insert a page break at
 the matching row</li>
 <li>
 <strong><code><a href="../reference/c_clear.html">c_clear()</a></code></strong>: Blank the rendered display
 text of specified cells in matching rows (deduplication)</li>
 <li>
-<strong>Evaluation context</strong>: Data environment with helper
-functions (<code>firstOf()</code>, <code>lastOf()</code>,
-<code>firstRow()</code>, <code>lastRow()</code>,
-<code>rowNumber()</code>, <code>everyNth()</code>,
-<code>firstOfBlock()</code>)</li>
+<strong>Evaluation context</strong>: condition-only helpers
+(<code>firstOf()</code>, <code>lastOf()</code>, <code>firstRow()</code>,
+<code>lastRow()</code>, <code>rowNumber()</code>,
+<code>everyNth()</code>, <code>firstOfBlock()</code>) resolved inside
+the spec data environment — not exported functions</li>
 <li>
 <strong>Performance</strong>: Minimize calls, use vectorized
 operations, consolidate styles</li>
