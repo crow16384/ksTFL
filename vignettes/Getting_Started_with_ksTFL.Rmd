@@ -284,8 +284,10 @@ spec_txt <- create_text()
 spec_txt <- add_body_text(spec_txt, "This analysis includes all subjects in the safety population.")
 ```
 
-**What happens**: - Empty spec with no data - Ready for narrative
-content via `add_body_text()`
+**What happens**:
+
+- Empty spec with no data
+- Ready for narrative content via `add_body_text()`
 
 ------------------------------------------------------------------------
 
