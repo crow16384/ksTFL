@@ -20,6 +20,8 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
+# Chunk graphics options are inert while eval = FALSE; they matter only
+# if you flip this vignette to eval = TRUE and knit it.
 knitr::opts_chunk$set(
   comment = "", collapse = TRUE, eval = FALSE,
   dev = "png",
@@ -62,7 +64,9 @@ pipeline locally:
 -   Tune columns and styles via `define_cols()` and `add_style()` (use
     `f_combine()` to reference combined styles).
 -   Assemble specs into a `TFL_report` with `create_report()` (this
-    consolidates style references and assigns `dataRef`).
+    consolidates style combinations, assigns `dataRef`, and aborts here if
+    any referenced style id was never defined with `add_style()` or an
+    atom).
 -   Render to a DOCX with `write_doc()` (one-step: saves JSON metadata
     and produces the final document).
 
@@ -151,17 +155,18 @@ Rendered output:
 ![rendered minimal table](images/rendered-minimal-table.png)
 
 > **A note on the `cols` parameter** — The `cols` argument in
-> `create_table()` specifies which columns are rendered in the document
-> and their left-to-right order. It acts purely as a *presentation
-> directive*: the underlying data frame is stored in full, so columns
-> omitted from `cols` are **not** dropped from the spec. They remain
-> available for conditional logic in `compute_cols()`. For instance, you
-> could exclude a helper column like `flag` from the report
-> (`cols = c(subject_id, age, sex, trt)`) yet still reference `flag` in
-> a `compute_cols()` condition to drive styling or value transformations.
-> This design means you never need to pre-filter or reorder your data
-> frame before passing it to ksTFL — `cols` handles column selection and
-> ordering in one place.
+> `create_table()` selects which columns are rendered and their
+> left-to-right order. The underlying data frame is stored in full, so
+> columns omitted from `cols` are not dropped from the data — they
+> remain available to `compute_cols()` **conditions**. For instance, you
+> can exclude a helper column like `flag` from the report
+> (`cols = c(subject_id, age, sex, trt)`) yet still test `flag` in a
+> condition. The limit is the other side of the pipeline: `define_cols()`
+> and the column arguments of the `c_*()` actions accept only columns
+> included in `cols`. To style or manipulate a helper field, keep it in
+> `cols` and hide it with `isVisible = FALSE`. You never need to
+> pre-filter or reorder the data frame before passing it to ksTFL —
+> `cols` handles selection and ordering in one place.
 
 ## 2 — Simple minimal figure
 
@@ -171,6 +176,12 @@ spec_min_fig <- add_title(spec_min_fig, "Example: Age vs SBP")
 print(spec_min_fig)
 # close example chunk
 ```
+
+Display size comes from `figureWidth`/`figureHeight` (defaults 6in x 4in,
+scale mode `fixed`) — not from the file's pixels; the default box stretches
+an image whose aspect ratio differs. To keep the source aspect ratio, set
+`set_document(figureScaleMode = "fitKeepAR")`, or pass `figureWidth` /
+`figureHeight` that match the image ratio.
 
 ```{r save_min_fig, eval = FALSE}
 # End-to-end: render the single-figure report to DOCX
@@ -224,11 +235,13 @@ Rendered output:
 ### Why `define_cols()`?
 
 After creating a table with `create_table()`, column properties are
-auto-detected from the data. However, you often need to: - Customize
-column labels for readability - Specify numeric formats (e.g., "%.2f"
-for 2 decimal places) - Control visibility, styling, or special
-behaviors (ID column, deduplicate, page breaks) - Lock or adjust column
-widths for better layout
+auto-detected from the data. However, you often need to:
+
+- Customize column labels for readability
+- Specify numeric formats (e.g., "%.2f" for 2 decimal places)
+- Control visibility, styling, or special behaviors (ID column,
+  deduplicate, page breaks)
+- Lock or adjust column widths for better layout
 
 `define_cols()` is the primary tool for these customizations. It
 supports both **single-column** and **batch updates**, with intelligent
@@ -294,11 +307,11 @@ print(spec_mapped)
 
 **Important**: The vector length must match exactly:
 
-\- Length 1: applies to all columns
+- Length 1: applies to all columns
 
-\- Length N (where N = number of columns): applies one-to-one
+- Length N (where N = number of columns): applies one-to-one
 
-\- Any other length: raises an error
+- Any other length: raises an error
 
 ### Example 4: Multiple `define_cols()` calls (chaining with `|>`)
 
@@ -323,11 +336,11 @@ print(spec_chain)
 
 This approach makes it easy to:
 
-\- Define labels first (human-readable column names)
+- Define labels first (human-readable column names)
 
-\- Then apply formatting (numeric/string types, decimals)
+- Then apply formatting (numeric/string types, decimals)
 
-\- Then apply special behavior flags (ID, deduplicate, etc.)
+- Then apply special behavior flags (ID, deduplicate, etc.)
 
 ------------------------------------------------------------------------
 
@@ -335,24 +348,34 @@ This approach makes it easy to:
 
 **Key function**: `set_document()`
 
--   `hasData`: Whether document contains data (important for Text specs)
+- `hasData`: Whether the spec carries data to render (auto-detected for
+  tables; `FALSE` renders body text instead). Never set it on a figure
+  spec — a figure with `hasData = TRUE` renders a blank page (known
+  open bug).
 
-\- `footnotePlace`: Control placement of titles, footnotes, and
-subtitles
+- `footnotePlace`: Where footnotes render — `"repeated"` (under the
+  table on every page, default), `"last_page"`, or `"doc_footer"`
+  (inside the Word footer part).
 
-\- `contentWidth`: Content width (e.g., "100%", "6.5in", "16.51cm")
+- `contentWidth`: Content width (e.g., "100%", "6.5in", "16.51cm")
 
-\- `isContinues`: Ignore page breaks between sections
+- `isContinues`: Show titles/subtitles only on the first page of a
+  multi-page output (default `FALSE` repeats them on every page). To run
+  a spec onto the same page as the previous one, use `continuousSection`
+  instead.
 
 **Example 1: hasData flag**
 
 ```{r example_set_document_prefix, eval = FALSE}
-spec <- create_table(demog_tbl) #automatically detects if dataframe has any rows
-# When data frame does not have any rows, the report will show the default body_text placeholder instead of empty table. 
-#body text can be manually specified
+spec <- create_table(demog_tbl)  # auto-detects whether the frame has rows
+# With zero rows the report automatically shows the body_text placeholder
+# ("No data to report") instead of an empty table. The placeholder text
+# can be set manually via add_body_text().
 
+# hasData = FALSE prints the body text INSTEAD of the table even when
+# rows exist — that is how the no-data fallback is forced manually:
 spec <- set_document(spec,
-  hasData = FALSE) #override autodetected value
+  hasData = FALSE)  # override the auto-detected value
 
 print(spec)
 ```
@@ -369,10 +392,10 @@ spec <- set_document(spec,
 
 **Notes**:
 
-\- Most defaults are sensible; you typically only need `set_document()`
+- Most defaults are sensible; you typically only need `set_document()`
 for content width
 
-\- Multiple calls merge with last-win strategy (later calls override
+- Multiple calls merge with last-win strategy (later calls override
 earlier ones)
 
 ------------------------------------------------------------------------
@@ -388,10 +411,11 @@ report_simple <- create_report(spec_min_table, spec_min_fig, spec_min_text)
 write_doc(report_simple, name = "report_simple")
 ```
 
-Notes: `create_report()` preserves input order and consolidates styles.
-Additionally, with `toc = TRUE` parameter the table of contents can be
-generated [in order this to work the titles in the input specs should be
-marked for toc entries - see `?add_title`]
+`create_report()` preserves input order and consolidates styles. Pass
+`toc = TRUE` to `write_doc()` to insert a Word TOC field: only titles
+tagged with `toclevel = 1..9` in `add_title()` become entries, and Word
+shows the list after you update the field (right-click > Update Field,
+or F9).
 
 ### Passing a named list of specs
 
@@ -423,9 +447,10 @@ extra_spec <- create_text() |> add_body_text("Appendix note.")
 report_mixed <- create_report(extra_spec, specs)
 ```
 
-Unnamed list elements fall back to `<outer_arg_name>_<i>` (e.g. `specs_1`,
-`specs_2`, …).  `TFL_report` objects inside a list are flattened with their
-original keys preserved.
+Unnamed list elements fall back to `<name>_<i>_<hash>` (e.g.
+`unl_1_094c8e9287e0be59`, where `unl` is the argument or object name).
+`TFL_report` objects inside a list are flattened with their original keys
+preserved.
 
 ------------------------------------------------------------------------
 
@@ -445,9 +470,9 @@ analyzes the data and distributes column widths proportionally:
 4.  **Default**: `autoColWidth = TRUE` in package options (can be
     changed with `tfl_set_options()`)
 
-**Example**: A table with columns `id` (short numeric), `description`
-(long text), `value` (numeric): - Auto-detected widths might be:
-`id = 20%`, `description = 50%`, `value = 30%`
+**Example**: for a table with columns `id` (short numeric),
+`description` (long text), `value` (numeric), auto-detected widths might
+land near `id = 20%`, `description = 50%`, `value = 30%`.
 
 ### Example 1: Accept auto-calculated widths
 
@@ -529,9 +554,11 @@ print(spec_mixed)
 
 ![colwidth mixed units](images/colwidth-mixed-units.png)
 
-**Important**: When mixing units (cm, in, pt) with percentages, **the
-absolute widths are reserved first**, then percentages are calculated
-from remaining space.
+**Important**: `colWidth` accepts `%`, `cm`, and `in` only. At render,
+absolute (cm/in) columns keep their exact width and every percentage
+column resolves against the space left *after* the absolute columns are
+placed — so "35%" means 35% of the remaining area, not of the full page.
+Budget widths in one unit when the exact layout matters.
 
 ### Example 5: Width validation and constraints
 
@@ -544,51 +571,38 @@ spec_valid <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_valid <- define_cols(spec_valid, ALT,
                           colWidth = "30%")  # OK: 30% is valid
 
-# INVALID: Cannot set 100% relative width (leaves no space for other columns)
-# This will raise an error:
+# INVALID: 100% leaves no room for the other two columns. The real error:
 # spec_valid <- define_cols(spec_valid, ALT, colWidth = "100%")
-# Error: relative width 100.0% exceeds maximum allowed 75.0% 
-#        (accounting for locked columns and minimum 0.5% for other columns)
+# Cannot set column `ALT` to "100%"
+# x This would leave insufficient space for the remaining 2 unlocked
+#   columns to meet the minimum width of 0.5%.
+# i After this change, 2 columns need 1% total. Remaining space available: 0%.
+# i Maximum allowed relative width for `ALT`: 99.0%
+# i Reduce the proposed width or adjust other locked widths
 
-# INVALID: Cannot set width below minimum threshold
+# INVALID: below the fixed per-column floor. The real error:
 # spec_valid <- define_cols(spec_valid, AST, colWidth = "0.2%")
-# Error: relative width 0.2% is below minimum 0.5%
-
-# Minimum width constraints (can be customized via package options):
-# - Relative widths (%): minimum 0.5%
-# - Fixed widths (cm, in, pt): minimum 0.2cm (~2mm, ~0.08in)
-
-# Configure minimum width via package options:
-tfl_set_options(minColWidth = 1.0)  # Set minimum relative width to 1.0%
-
-# Now 0.5% will fail, but 1.0% will succeed
-spec_valid <- define_cols(spec_valid, AST,
-                          colWidth = "1.0%")  # OK with new minimum
+# Column width "0.2%" is below minimum allowed
+# x Relative widths must be at least 0.5%
+# i Proposed: 0.2%
 
 print(spec_valid)
 ```
 
 **Width validation rules**:
 
-\- **Relative width (%)**: Must be ≥ `minColWidth` (default 0.5%)
+- The width you set has a fixed floor: 0.5% relative, 0.2cm absolute
+  (cm/in only — see Column Width Management for accepted units).
+- A lock must leave at least `minColWidth` (default 0.5%) for every
+  column that stays unlocked; the error names the exact maximum allowed.
+- `tfl_set_options(minColWidth = ...)` changes that reserve for the
+  *remaining unlocked columns* — it does not lower the 0.5% floor of the
+  width you type yourself.
+- Locked relative widths may sum to at most 99.5% while any column stays
+  unlocked.
 
-\- **Relative width (%)**: Cannot exceed max allowed considering locked
-columns and other column minimums
-
-\- **Fixed width**: Must be ≥ 0.2cm (all units: cm, in, pt, mm
-automatically converted)
-
-\- **Incompatible widths**: Cannot set width to 100% (would exclude all
-other columns)
-
-**Error messages** are detailed and show the maximum allowed width when
-you exceed limits:
-
-```         
-Error: relative width 100.0% exceeds maximum allowed 75.0% 
-       (accounting for 2 locked columns requiring 25% total, 
-        and minimum 0.5% for remaining 1 unlocked column)
-```
+Error messages are detailed and always show the maximum allowed width
+when you exceed a limit — the two blocks above are their verbatim output.
 
 ------------------------------------------------------------------------
 
@@ -624,10 +638,16 @@ Rendered output:
 
 ### Why spanning headers?
 
-In clinical tables, you often need to group related columns under a
-common header. For example: - "Baseline" spanning columns: `visit`,
-`sbp`, `dbp`, `pulse` - "Week 12" spanning columns: `sbp`, `dbp`,
-`pulse` (repeated measurements at different visits)
+In clinical tables you group related columns under a common header:
+"Baseline" over `visit`, `sbp`, `dbp`, `pulse`; "Week 12" over the
+repeated measures at the next visit.
+
+**`stubOrder` is the band row**: HIGHER numbers render HIGHER on the
+page, and `stubOrder = 1` sits directly above the column-label row.
+Give siblings on the same row the same `stubOrder` (their column sets
+must be disjoint) and the umbrella band above them a higher number.
+Omitting `stubOrder` assigns every call its own level — a staircase —
+so set it explicitly whenever more than one band exists.
 
 Spanning headers (called "spans" in ksTFL) are separate from column
 labels — they sit above the column labels and group multiple columns.
@@ -695,14 +715,14 @@ print(spec_tidysel)
 
 **Tidyselect expressions supported**:
 
-\- **Ranges**: `cols = age:weight` (all columns between age and weight)
+- **Ranges**: `cols = age:weight` (all columns between age and weight)
 
-\- **Helpers**: `cols = starts_with("age")`, `contains("baseline")`,
+- **Helpers**: `cols = starts_with("age")`, `contains("baseline")`,
 `matches("^w")`
 
-\- **Negation**: `cols = -id` (all columns except id)
+- **Negation**: `cols = -id` (all columns except id)
 
-\- **Combinations**: `cols = c(starts_with("age"), weight_baseline)`
+- **Combinations**: `cols = c(starts_with("age"), weight_baseline)`
 
 ### Example 2: Styled spanning headers
 
@@ -737,13 +757,13 @@ spec_spans_style <- add_span_header(spec_spans_style,
 
 Notes:
 
-\- `labelStyleRef` can be a single style name or multiple styles
+- `labelStyleRef` can be a single style name or multiple styles
 combined with `f_combine()`
 
-\- Span labels inherit the applied style, making grouped columns
+- Span labels inherit the applied style, making grouped columns
 visually distinct
 
-\- Styles must be defined before referencing them in `add_span_header()`
+- Styles must be defined before referencing them in `add_span_header()`
 
 ### Example 3: Paragraph borders on spanning headers
 
@@ -790,18 +810,19 @@ write_doc(rpt_stub, name = "tbl_stub", outDir = "./out", metaPath = tempdir())
 
 Styles are foundational in professional reporting:
 
-\- Define once, reference many times — consistency across your document
+- Define once, reference many times — consistency across your document
 
-\- Easy to update: change one style definition and all references
+- Easy to update: change one style definition and all references
 automatically pick up the change
 
-\- Composable: combine base styles (bold, red text) into complex styles
+- Composable: combine base styles (bold, red text) into complex styles
 for specific use cases
 
 ksTFL uses a **named style system**: you define styles with
 `add_style()` giving each an `id`, then reference them by name wherever
-you need them (`labelStyleRef`, `valueStyleRef`, `labelStyleRef` in
-stubs, etc.).
+styles attach: `labelStyleRef`/`valueStyleRef` in `define_cols()`,
+`labelStyleRef` in `add_span_header()`, and `styleRef` in the `c_*()`
+actions.
 
 ### Example 1: Define base styles
 
@@ -866,12 +887,12 @@ define_cols(age, label = "Age",
 
 **How `f_combine()` works**:
 
-\- Takes multiple style names as arguments
+- Takes multiple style names as arguments
 
-\- Returns a reference object that tells the package to merge those
+- Returns a reference object that tells the package to merge those
 styles
 
-\- Order matters for last-win conflict resolution (later arguments
+- Order matters for last-win conflict resolution (later arguments
 override earlier ones)
 
 ## 11 — Conditional row actions with `compute_cols()`
@@ -882,12 +903,12 @@ matching a condition.
 
 Common use cases:
 
-\- Style rows where a specific value occurs (e.g., first/last
+- Style rows where a specific value occurs (e.g., first/last
 occurrence, threshold-based)
 
-\- Merge columns in certain rows (e.g., group headers)
+- Merge columns in certain rows (e.g., group headers)
 
-\- Insert separator or summary rows programmatically
+- Insert separator or summary rows programmatically
 
 ### Example 1: Conditional styling
 
@@ -906,7 +927,8 @@ spec <- create_table(data) |>
   add_style(id = "group_header", s_font(bold = TRUE, color = "#0000FF")) |>
   add_style(id = "emphasize",    s_table_style(background_color = "#FFFFCC"))
 
-# Apply conditional styling: bold+blue for first occurrence of each group
+# Style the first row of each contiguous group run (firstOf is run-length
+# based — sort the data so each group is one block)
 spec <- spec |>
   compute_cols(firstOf(group), c_style(c(metric, count), styleRef = "group_header"))
 
@@ -1012,26 +1034,28 @@ spec <- spec |>
 
 **Key concepts**:
 
-\- **Conditions** are unevaluated expressions evaluated at report
+- **Conditions** are unevaluated expressions evaluated at report
 generation time (during `create_report()`)
 
-\- **Helper functions** (`firstOf()`, `lastOf()`, `firstRow()`,
+- **Helper functions** (`firstOf()`, `lastOf()`, `firstRow()`,
 `lastRow()`, `rowNumber()`, `everyNth()`, `firstOfBlock()`) are only
 available inside `compute_cols()` conditions — they are **not**
 standalone exported functions. See `vignette("Advanced_StyleRows")` for
 full details.
 
-\- **Multiple calls accumulate**: calling `compute_cols()` multiple
+- **Multiple calls accumulate**: calling `compute_cols()` multiple
 times on the same spec appends actions
 
-\- **Multiple actions in one call**: same row can have styling, merging,
+- **Multiple actions in one call**: same row can have styling, merging,
 and row insertion simultaneously
 
-\- **Overlapping conditions**: if multiple conditions match the same
-row, all actions apply (styling aggregates, merging rules apply) -
-**value_from**: Optional in `c_addrow()` — omit for empty separator rows
+- **Overlapping conditions**: when several conditions match one row,
+  all their actions apply — style properties combine (later block wins
+  on conflicts); overlapping merges warn and keep the first.
+- **value_from**: optional in `c_addrow()` — omit it for empty
+  separator rows.
 
-\- **Performance**: Conditions evaluated once per row during report
+- **Performance**: Conditions evaluated once per row during report
 assembly; style consolidation happens automatically
 
 ------------------------------------------------------------------------
@@ -1109,10 +1133,11 @@ debugging or CI pipelines), you can split the call into
 
 ### Why session options?
 
-In a real clinical reporting workflow, many tables/listings share: -
-Common headers (study name, database version, confidentiality notice) -
-Common footers (company name, page numbers, disclaimers) - Default body
-text (standard disclaimers or methodology notes)
+In a real clinical reporting workflow, many tables/listings share:
+
+- Common headers (study name, database version, confidentiality notice)
+- Common footers (company name, page numbers, disclaimers)
+- Default body text (standard disclaimers or methodology notes)
 
 Instead of adding these to every spec, use `tfl_set_options()` to set
 session defaults once. All specs created afterward inherit these
@@ -1150,18 +1175,20 @@ You can override session defaults on individual specs:
 spec_default <- create_table(data = labs_tbl, cols = c(subject_id, ALT, AST))
 spec_default <- add_title(spec_default, "Lab Results (using session defaults)")
 
-# Create another spec but override the header
+# Create another spec and add its own header row ON TOP of the defaults
 spec_override <- create_table(data = demog_tbl, cols = c(subject_id, age))
-spec_override <- add_header(spec_override, "Study XYZ", "Different Study", "CONFIDENTIAL")  # Overrides session default
-spec_override <- add_title(spec_override, "Demographics (custom header)")
+spec_override <- add_header(spec_override, "Study XYZ", "Different Study", "CONFIDENTIAL")
+spec_override <- add_title(spec_override, "Demographics (extra header)")
 
-print(spec_default)   # Uses session header from tfl_set_options
-print(spec_override)  # Uses custom header from add_header call
+print(spec_default)   # session header only
+print(spec_override)  # session header row + this extra header row
 # close example chunk
 ```
 
-**Rule**: Spec-level settings always take precedence over session
-defaults (last-win strategy).
+**Rule**: spec-level `add_header()`/`add_footer()` ADD rows on top of
+the session defaults — they do not replace them. To fully control
+headers for one program, call `tfl_reset_options()` first or set the
+defaults per run.
 
 ### Example 3: Check and reset session options
 
@@ -1189,13 +1216,9 @@ print(spec_reset)
 
 ## Final notes
 
-This vignette stays deliberately example-heavy. Reuse it when you want a compact
-pattern for a minimal spec, a multi-spec report, span headers, width tuning,
-or session-level defaults.
-
-**Running examples locally**: Set the top chunk `eval=TRUE` to generate
-sample data, then execute examples in order. All code uses exported
-functions only — no internal API manipulation needed.
+**Running examples locally**: set the top setup chunk `eval=TRUE` (it
+generates the sample data and writes the demo plot), then execute the
+chunks in order. All code uses exported functions only.
 
 For more details on function parameters, see the roxygen documentation:
 `?create_table`, `?define_cols`, `?add_style`, `?write_doc`, etc.
