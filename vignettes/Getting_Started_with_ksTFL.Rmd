@@ -39,57 +39,44 @@ for clinical Tables, Figures, and Text (TFLs). Unlike traditional table
 formatters (flextable, huxtable, officer), ksTFL separates *metadata
 generation* from *rendering*:
 
-\- **You define**: Document structure, content, column formats, and
-styles in R
+- You define the document structure, content, column formats, and styles
+  in R.
+- ksTFL generates a structured specification (JSON metadata + data
+  files).
+- The built-in C++ renderer turns it into a DOCX document with
+  deterministic HarfBuzz-based pagination, via `write_doc()` or
+  `replay_report()`.
 
-\- **ksTFL generates**: A structured specification (JSON metadata + data
-files)
+The split pays off in four ways: every table follows the same style
+templates, 50+ tables can be generated from one program with minimal
+code, specifications are version-controllable and auditable, and the
+renderer is separable from the R code that builds the spec.
 
-\- **Built-in C++ renderer**: Produces submission-quality DOCX documents
-with deterministic HarfBuzz-based pagination via `write_doc()` /
-`replay_report()`
+Reach for ksTFL when you need:
 
-This separation enables:
-
-\- **Consistency**: All tables follow the same style templates
-
-\- **Automation**: Generate 50+ tables with consistent formatting and
-minimal code
-
-\- **Reproducibility**: Specifications are version-controllable and
-auditable
-
-\- **Flexibility**: Swap renderers without changing your R code
-
-**When to use ksTFL:**
-
-\- Regulatory clinical reporting (FDA, EMA submissions) - Large-scale
-automated reporting (100+ tables from common data sources)
-
-\- Complex styling requirements (multi-level headers, spanning columns,
-conditional formatting) - When you need JSON metadata for downstream
-processing
+- Regulatory clinical reporting (FDA, EMA submissions).
+- Large-scale automated reporting (100+ tables from common data sources).
+- Complex table structures: multi-level headers, spanning columns,
+  conditional formatting.
+- JSON metadata artifacts for downstream processing.
 
 ## How to use this guide
 
-This is the foundation vignette and best starting point for new users. It
-introduces the core objects, the main function flow, and the smallest complete
-pipeline needed to create, assemble, and render reports confidently.
+This is the foundation vignette and the starting point for new users: core
+objects, main function flow, and the smallest complete pipeline.
 
-Recommended reading order after this vignette:
+Reading order after this vignette:
 
-1\. [Reporting Examples](Reporting_Examples_with_ksTFL.html) and
-[FAQ](FAQ_with_ksTFL.html) for the quickest practical follow-up.
-
-2\. [Styling Guide](Styling_Guide_with_ksTFL.html),
-[Column Width Management](Column_Width_Management.html), and
-[Advanced StyleRows](Advanced_StyleRows.html) for focused feature
-depth.
-
-3\. [Real Examples](Real_Examples_with_ksTFL.html) for fuller
-clinical-style outputs, then [Font Management](Font_Management.html)
-and [Rendering Pipeline](Rendering_Pipeline.html) when you need
-environment or renderer internals.
+1. [Reporting Examples](Reporting_Examples_with_ksTFL.html) and
+   [FAQ](FAQ_with_ksTFL.html) for the quickest practical follow-up.
+2. [Styling Guide](Styling_Guide_with_ksTFL.html),
+   [Column Width Management](Column_Width_Management.html), and
+   [Advanced StyleRows](Advanced_StyleRows.html) for focused feature
+   depth.
+3. [Real Examples](Real_Examples_with_ksTFL.html) for fuller
+   clinical-style outputs, then [Font Management](Font_Management.html)
+   and [Rendering Pipeline](Rendering_Pipeline.html) when you need
+   environment or renderer internals.
 
 ------------------------------------------------------------------------
 
@@ -97,22 +84,21 @@ environment or renderer internals.
 
 ### High-level pipeline
 
-```         
+```
 Data Frame / Image File
        ↓
 create_table() / create_figure() / create_text()
        ↓
-TFL_spec (customize with define_cols(), add_style(), add_title(), compute_cols())
+TFL_spec (customize with define_cols(), add_style(), add_span_header(),
+         add_title(), compute_cols(), set_page_style(), set_document())
        ↓
 create_report() (assemble specs, consolidate styles)
        ↓
 TFL_report
        ↓
-write_doc()  ← recommended: one-step save + render
-  or
-save_report() → replay_report()  ← two-step: inspect JSON before rendering
-       ↓
-Styled .docx (C++ engine, deterministic HarfBuzz pagination)
+write_doc() ────────────────→ Styled .docx
+save_report() → replay_report() ─┘  (two-step: inspect JSON first)
+(C++ engine, deterministic HarfBuzz pagination)
 ```
 
 ### Anatomy of a TFL spec
@@ -136,8 +122,6 @@ Each `TFL_spec` contains:
 
 ## Quick 5-minute example
 
-Get a working spec in 5 minutes:
-
 ```{r quick_pipeline, eval = FALSE}
 library(ksTFL)
 
@@ -155,7 +139,7 @@ spec <- define_cols(spec, c(mpg, cyl, hp),
   format = c("%.1f", "%.0f", "%.0f"),
   labelStyleRef = "header_bold") |>
 # 4. Add titles and footnotes
-add_title("Motor Trends Dataset") |>
+add_title("Motor Trend Car Road Tests") |>
 add_footnote("Data from mtcars (1974).")
 
 # 5. Inspect the spec
@@ -185,20 +169,21 @@ spec_tbl <- create_table(mtcars, cols = c(mpg, cyl, hp, wt))
 
 **What happens**:
 
-\- Data is shadow-copied into the spec's internal environment (not
+- Data is shadow-copied into the spec's internal environment (not
 modifiable)
 
-\- Columns are auto-analyzed (type detection, width calculation)
+- Columns are auto-analyzed (type detection, width calculation)
 
-\- A `TFL_spec` object is returned ready for customization
+- A `TFL_spec` object is returned ready for customization
 
 **Understanding the `cols` parameter**:
 
 The `cols` argument controls which columns appear in the rendered
 document and in what order — it does **not** filter or mutate the input
 data frame. Think of it as a *presentation lens*: the full dataset is
-still stored inside the spec, but only the columns listed in `cols` are
-emitted to the final report.
+still stored inside the spec (captured as a snapshot at `create_table()`
+time — later edits to the source data frame do not reach the spec), but
+only the columns listed in `cols` are emitted to the final report.
 
 This distinction matters when you use `compute_cols()` later in the
 pipeline. Because the original data frame is preserved intact,
@@ -228,6 +213,12 @@ left-to-right order in the rendered table, so `cols` doubles as a
 convenient column-reordering mechanism — no need to rearrange the
 underlying data frame.
 
+One caveat: the lens applies to CONDITIONS only. `define_cols()` and the
+column arguments of the `c_*()` actions can address only columns included
+in `cols` — an excluded column can be tested, never styled. To drive a
+helper field into actions, include it in `cols` and hide it with
+`isVisible = FALSE` instead of dropping it.
+
 ### Figure spec (from image file)
 
 ```{r create_figure_spec, eval = FALSE}
@@ -255,25 +246,34 @@ spec_fig <- create_figure(p, dpi = 150L) # dpi applies to raster devices only
 #   figureDevice = "png"/"jpeg"      -> raster (300 dpi by default)
 # If Cairo/svglite are missing, ksTFL falls back cairo -> svg -> png with a
 # one-time warning, so figure production never breaks on a dev machine.
+#
+# Two sizing knobs: session options figureWidth/figureHeight set the EXPORT
+# size for ggplot objects at create_figure() time; set_document(figureWidth =
+# ..., figureHeight = ...) sizes only the box the image is embedded into.
 # tfl_set_options(figureWidth = "8in", figureHeight = "5in", figureDevice = "png")
+#
+# The default scale mode "fixed" stretches whatever you embed into the
+# width/height box. To keep a file figure's own aspect ratio, use
+# set_document(figureScaleMode = "fitKeepAR") — it reads the intrinsic AR of
+# the PNG/JPEG/SVG and fits it into the body area.
 ```
 
 **What happens**:
 
-\- If a **file path** is given: it is validated (must exist and be
+- If a **file path** is given: it is validated (must exist and be
 readable); the file is used as-is
 
-\- If a **ggplot2 object** is given: rendered to a `tempdir()` file using
+- If a **ggplot2 object** is given: rendered to a `tempdir()` file using
 the package defaults (`figureWidth`, `figureHeight`, `figureDevice`). The
 default `figureDevice = "cairo"` goes through `Cairo::CairoSVG()` (paths-only,
 MS Word-safe vector); raster and `"svg"` devices go through
 `ggplot2::ggsave()`. The resulting path is stored in the spec.
 
-\- The `dpi` parameter applies to raster devices (`png`/`jpeg`); it is
+- The `dpi` parameter applies to raster devices (`png`/`jpeg`); it is
 ignored for the vector `cairo`/`svg` output. width/height/device are
 configured through package options.
 
-\- The image file is copied to `metaPath` when the report is saved
+- The image file is copied to `metaPath` when the report is saved
 
 ### Text spec (narrative content)
 
@@ -329,40 +329,40 @@ spec <- define_cols(spec, c(mpg, cyl, hp),
 
 **Key parameters**:
 
-\- `label`: Column header text
+- `label`: Column header text
 
-\- `type`: "numeric" or "string" (auto-detected if omitted)
+- `type`: "numeric" or "string" (auto-detected if omitted)
 
-\- `format`: Format string (e.g., "%.2f", "0.00")
+- `format`: Format string (e.g., "%.2f", "0.00")
 
-\- `colWidth`: Column width (e.g., "20%", "2cm") - When set, column is
-locked to that width - Other unlocked columns auto-recalculate to sum to
-100% - Disable auto-recalculation with
-`tfl_set_options(autoColWidth = FALSE)`
+- `colWidth`: Column width as a string with unit `"%"`, `"in"`, or
+  `"cm"` (e.g. `"20%"`, `"2cm"`). When set, the column is locked to that
+  width and the other unlocked columns auto-recalculate to sum to 100%.
+  Locked widths must leave at least 0.5% for the last unlocked column
+  (total locked <= 99.5%). Disable auto-recalculation with
+  `tfl_set_options(autoColWidth = FALSE)`.
+- `isVisible`: `TRUE` (default) or `FALSE`. A hidden column renders at
+  width "0.0cm", is excluded from width recalculation, and rejects any
+  `colWidth` set in the same call — set labels/widths first, hide last.
 
-\- `isVisible`: TRUE (default) or FALSE - Set to FALSE to hide column
-from output - Invisible columns show width "0.0cm" - Cannot set colWidth
-on invisible columns - Invisible columns excluded from width
-recalculation
+- `isID`: TRUE if column repeats on page breaks
 
-\- `isID`: TRUE if column repeats on page breaks
+- `dedupe`: TRUE to clear consecutive repeating values in a column
 
-\- `dedupe`: TRUE to clear consecutive repeating values in a column
-
-\- `isColBreak`: TRUE on a column that needs to be moved on the next
+- `isColBreak`: TRUE on a column that needs to be moved on the next
 page (break long tables)
 
-\- `labelStyleRef`: Style(s) to apply to column header
+- `labelStyleRef`: Style(s) to apply to column header
 
-\- `valueStyleRef`: Style(s) to apply to cell values
+- `valueStyleRef`: Style(s) to apply to cell values
 
 **Hiding Columns**:
 
-``` r
-# Hide a column (e.g., for conditional logic that doesn't display)
-spec <- create_table(data) |>
+```{r hiding_columns, eval = FALSE}
+dat <- data.frame(group_id = 1:3, value = c(1.5, 2.5, 3.5))
+spec <- create_table(dat) |>
   define_cols(group_id, isVisible = FALSE)
-  # Result: group_id is hidden, other columns recalculated to fill 100%
+# Result: group_id is hidden, other columns recalculated to fill 100%
 ```
 
 See [Reporting Examples](Reporting_Examples_with_ksTFL.html) for detailed
@@ -440,43 +440,48 @@ spec_ts <- add_span_header(spec_ts, cols = mpg:hp, label = "Engine block", stubO
 
 **Key concepts**:
 
-\- `cols`: Column names (from `spec$columns`) to span.
+- `cols`: Column names to span. Names resolve against the full data
+frame, then intersect with the spec's columns, so a column excluded via
+`create_table(cols = ...)` silently selects nothing.
 
 Accepts:
 
-\- **Unquoted names**: `c(mpg, cyl, hp)`
+- **Unquoted names**: `c(mpg, cyl, hp)`
 
-\- **Quoted names**: `c("mpg", "cyl", "hp")`
+- **Quoted names**: `c("mpg", "cyl", "hp")`
 
-\- **Ranges**: `mpg:hp`
+- **Ranges**: `mpg:hp`
 
-\- **Helpers**: `starts_with("c")`, `contains("w")`, `matches("^m")`
+- **Helpers**: `starts_with("c")`, `contains("w")`, `matches("^m")`
 
-\- **Negation**: `-mpg` (all columns except mpg)
+- **Negation**: `-mpg` (all columns except mpg)
 
-\- `label`: Spanning header text
+- `label`: Spanning header text
 
-\- `stubOrder`: Vertical stacking order — HIGHER numbers render HIGHER
+- `stubOrder`: Vertical stacking order — HIGHER numbers render HIGHER
 on the page. `stubOrder = 1` is the band directly above the column-label row,
 `stubOrder = 2` sits above it (0 and negatives are allowed too — every band
 still renders above the column labels; they only sort against each other by
 value). Auto-generated when `NULL`: each later call takes the next number and
-stacks above the earlier ones.
+stacks above the earlier ones — which builds a staircase, one band per call.
+Prefer an explicit `stubOrder` on every call: sibling bands that belong on the
+same row share a number (their column sets must not overlap).
 
-\- `labelStyleRef`: Style(s) for the header label
+- `labelStyleRef`: style id defined via `add_style()`, or style atoms
+  combined with `f_combine()` (see the Styling Guide), for the band label.
 
 **Rules**:
 
-\- Stubs at the **same** `stubOrder` cannot share columns (prevents
+- Stubs at the **same** `stubOrder` cannot share columns (prevents
 ambiguous headers)
 
-\- Stubs at **different** `stubOrder` values can overlap freely (enables
+- Stubs at **different** `stubOrder` values can overlap freely (enables
 hierarchical structure)
 
-\- Multiple stubs at the same order are allowed as long as their column
+- Multiple stubs at the same order are allowed as long as their column
 sets don't overlap
 
-\- Use `add_style()` to style stub labels or use embedded atomic styles
+- Use `add_style()` to style stub labels or use embedded atomic styles
 
 See [Styling Guide](Styling_Guide_with_ksTFL.html) for styling stubs.
 
@@ -490,8 +495,8 @@ Add document content layers:
 spec <- create_table(mtcars)
 
 # Titles and subtitles
-spec <- add_title(spec, "Demographics")
-spec <- add_subtitle(spec, "Motor Vehicle Analysis")
+spec <- add_title(spec, "Motor Trend Car Road Tests")
+spec <- add_subtitle(spec, "Analysis of 1974 road-test data")
 
 # Footnotes (document-level notes)
 spec <- add_footnote(spec, "Values are from 1974 Motor Trend magazine.")
@@ -508,21 +513,24 @@ spec <- add_body_text(spec, "This analysis includes all subjects in the safety p
 
 **Notes**:
 
-\- `add_header()` and `add_footer()` take up to 3 separate string
+- `add_header()` and `add_footer()` take up to 3 separate string
 arguments: left, center, right
 
-\- Placeholders like `{PAGE}` and `{NUMPAGES}` are filled in by the
+- Placeholders like `{PAGE}` and `{NUMPAGES}` are filled in by the
 renderer
 
-\- Multiple `add_header()` calls append additional header rows; use the
+- Multiple `add_header()` calls append additional header rows; use the
 `level` parameter to replace a specific row
 
-\- Multiple `add_footnote()` calls stack in order
+- Multiple `add_footnote()` calls stack in order
 
-\- `add_title()` and `add_subtitle()` accept an optional `toclevel`
-parameter (integer, `1` to `9`). When set, the title is included in the
-Table of Contents generated by `write_doc(toc = TRUE)`. See `?add_title`
-for details.
+- `add_title()` and `add_subtitle()` accept an optional `toclevel`
+  parameter (integer, `1` to `9`). When set, the title is included in the
+  Table of Contents generated by `write_doc(toc = TRUE)`. The TOC is a
+  Word field: entries are written at render, but Word populates the list
+  only after the field updates (F9, or print preview). Each
+  `add_title()`/`add_subtitle()` CALL contributes one entry — a
+  multi-line vector title stays a single entry.
 
 ------------------------------------------------------------------------
 
@@ -537,7 +545,7 @@ physical page layout:
 spec <- create_table(mtcars) |>
   set_page_style(
     page = p_page(
-      size        = "A4",        # "A4", "Letter", or "Legal"
+      size        = "A4",        # "A4", "A3", "Letter", "Legal", "Executive"
       orientation = "landscape",  # "portrait" or "landscape"
       margins     = p_margins(
         top    = "1in",
@@ -553,18 +561,21 @@ spec <- create_table(mtcars) |>
 
 **`p_page()` parameters**:
 
-\- `size`: Page size — `"A4"` (default), `"Letter"`, or `"Legal"`
-
-\- `orientation`: `"portrait"` (default) or `"landscape"`
-
-\- `margins`: A margins object from `p_margins()`
+- `size`: Page size — `"A4"` (default), `"A3"`, `"Letter"`, `"Legal"`, or
+  `"Executive"`.
+- `orientation`: `"portrait"` or `"landscape"`. When omitted, the
+  TEMPLATE's orientation applies — every bundled template except
+  `Classic_portrait` is landscape, so a bare `p_page(size = "A4")` still
+  comes out landscape.
+- `margins`: a margins object from `p_margins()`. The margin fields accept
+  dimension strings (`"1in"`, `"2.54cm"`, `"72pt"`, `"25.4mm"`).
 
 **`p_margins()` parameters** (all accept dimension strings like `"1in"`,
 `"2.54cm"`, `"72pt"`, `"25.4mm"`):
 
-\- `top`, `bottom`, `left`, `right`: Page margins
+- `top`, `bottom`, `left`, `right`: Page margins
 
-\- `header`, `footer`: Distance from page edge to header/footer content
+- `header`, `footer`: Distance from page edge to header/footer content
 
 ### Document templates
 
@@ -590,8 +601,10 @@ spec <- create_table(mtcars) |>
 # spec JSON (and its parent) — so replaying a saved report from another folder
 # still finds a template that sits next to the saved spec. Only when every
 # candidate misses does the package warn and fall back to the "Default"
-# template. For portable scripts, keep the template next to the report output
-# or use a bundled name. (Any template JSON works, including a copy of a bundled
+# template. For portable scripts, keep the template next to the saved spec
+# (the meta folder), where replay can always resolve it, or use a bundled
+# name. At authoring time the relative path must already exist in the
+# working directory — set_page_style() errors if it does not. (Any template JSON works, including a copy of a bundled
 # one, which is what this example does.)
 my_tpl <- file.path(tempdir(), "my_custom_template.json")
 file.copy(system.file("templates", "Navy_Pro.json", package = "ksTFL"), my_tpl)
@@ -613,68 +626,7 @@ files.
 
 ------------------------------------------------------------------------
 
-## Step 6: Combine specs into a report
-
-Assemble multiple specs with `create_report()`:
-
-```{r create_report, eval = FALSE}
-# Create multiple specs
-spec_table <- create_table(mtcars)
-spec_table <- add_title(spec_table, "Table 1: Demographics")
-
-spec_text <- create_text()
-spec_text <- add_body_text(spec_text, "Analysis performed in R.")
-
-# Combine into single report
-report <- create_report(spec_table, spec_text)
-
-# Inspect combined report
-print(report)
-```
-
-**What `create_report()` does**:
-
-1\. Flattens inputs — including plain `list` arguments (see below)
-
-2\. Validates structure
-
-3\. Consolidates combined styles (if any used `f_combine()`)
-
-4\. Assigns sequential `docOrder` (1, 2, 3, ...)
-
-5\. Creates `dataRef` names for new specs
-
-### Passing a named list of specs
-
-You can also build specs into a named list and pass the whole list at once —
-useful when the set of outputs is assembled dynamically:
-
-```{r create_report_list, eval = FALSE}
-specs <- list(
-  t_dm   = spec_table,
-  t_text = spec_text
-)
-
-report <- create_report(specs)
-# names(report): "t_dm_<hash>", "t_text_<hash>", "t_fig_<hash>"
-```
-
-List and variadic arguments may be freely mixed:
-
-```{r create_report_mixed, eval = FALSE}
-extra <- create_text() |> add_body_text("Appendix.")
-report <- create_report(extra, specs)
-```
-
-6\. Returns a `TFL_report` object
-
-**Result**: A single report combining all specs in input order.
-Additionally a Table of Contents can be auto-generated in such documents
-that allows to create a production ready TFL reports.
-
-------------------------------------------------------------------------
-
-## Step 7: Apply conditional row actions (compute_cols)
+## Step 6: Apply conditional row actions (compute_cols)
 
 Beyond global column styling, apply **conditional actions** to specific
 rows that match a condition:
@@ -694,31 +646,35 @@ spec <- compute_cols(spec, firstOf(cyl),
   c_addrow(pos = "above"))
 ```
 
-**Common use cases**: - **Highlight group headers**: Style first/last
-occurrence of a group - **Add separators**: Insert empty rows between
-groups - **Merge columns**: Create group headers by merging columns -
-**Conditional formatting**: Style rows meeting a threshold (e.g.,
-`value > 100`)
+**Common use cases**:
+
+- Highlight group headers: style the first/last row of each group run
+- Add separators: insert empty rows between groups
+- Merge columns: create group headers by merging adjacent columns
+- Conditional formatting: style rows meeting a threshold (e.g. `value > 100`)
 
 **Key action functions** (used inside `compute_cols()`):
 
 | Function                                            | Purpose                                           | Example                                       |
 | --------------------------------------------------- | ------------------------------------------------- | --------------------------------------------- |
-| `c_style(cols, styleRef)`                           | Apply style to columns in matching rows           | `c_style(c(mpg, hp), styleRef = "bold")`      |
-| `c_merge(cols, styleRef = NULL)`                    | Merge adjacent columns                            | `c_merge(c(col1, col2), styleRef = "header")` |
-| | `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below                            | `c_addrow(pos = "above")` for empty separator |
-| `c_glue(cols, side, glue_col/text, separator)`      | Append/prepend text to cell values                | `c_glue(PARAM, "after", glue_col = VISIT)`    |
-| `c_clear(cols)`                                     | Blank the rendered text of cells                  | `c_clear(label)` in total rows                |
+| `c_style(cols, styleRef)`                           | Apply style to columns in matching rows           | `c_style(c(mpg, hp), styleRef = "group_header")` |
+| `c_merge(cols, styleRef = NULL)`                    | Merge ADJACENT columns into one cell              | `c_merge(c(col1, col2), styleRef = "header")` |
+| `c_addrow(pos, value_from = NULL, styleRef = NULL)` | Insert row above/below                            | `c_addrow(pos = "above")` for empty separator |
+| `c_glue(cols, position, glue_col/text, separator)`  | Append/prepend text to VISIBLE cells              | `c_glue(PARAM, "after", glue_col = VISIT)`    |
+| `c_clear(cols)`                                     | Blank the rendered text of visible cells          | `c_clear(label)` in total rows                |
 | `c_pageBreak()`                                     | Insert a page break at the matching row (no args) | `c_pageBreak()`                               |
 
 **Condition syntax**:
 
 ```{r compute_cols_conditions, eval = FALSE}
-# Direct column comparison
-compute_cols(spec, cyl > 6, c_style(mpg, styleRef = "emphasize"))
+# Direct column comparison (mtcars has no 'group'/'zebra' styles —
+# define every styleRef before referencing it; create_report() aborts
+# on undefined references)
+spec <- add_style(spec, id = "high_power", s_font(bold = TRUE))
+compute_cols(spec, cyl > 6, c_style(mpg, styleRef = "high_power"))
 
 # String matching (in a clinical listing, e.g.: Parameter == "Pulse")
-compute_cols(spec, am == 1, c_style(mpg, styleRef = "numeric"))
+compute_cols(spec, am == 1, c_style(mpg, styleRef = "group_header"))
 
 # Helper functions available INSIDE compute_cols() conditions:
 #   firstOf(col1, col2, ...)  — TRUE at the first row of each RUN of equal
@@ -734,31 +690,95 @@ compute_cols(spec, am == 1, c_style(mpg, styleRef = "numeric"))
 
 compute_cols(spec, firstOf(cyl), c_style(c(mpg, hp), styleRef = "group_header"))
 compute_cols(spec, lastOf(cyl), c_addrow(pos = "below"))
-compute_cols(spec, everyNth(5), c_style(mpg, styleRef = "zebra"))
 
 # A scalar condition is allowed: compute_cols(spec, TRUE, ...) acts on all rows
 compute_cols(spec, TRUE, c_style(disp, styleRef = "group_header"))
-compute_cols(spec, lastOf(group), c_addrow(pos = "below"))
-compute_cols(spec, everyNth(5), c_style(mpg, styleRef = "zebra"))
 
 # Combine conditions with base logical operators
 compute_cols(spec, cyl == 8 & hp > 100, c_style(mpg, styleRef = "high_power"))
+
+# Aggregates are allowed as scalars: the condition below compares every row
+# against the whole-column mean (mean(cyl) > 4 evaluates once)
+compute_cols(spec, hp > mean(hp), c_style(hp, styleRef = "high_power"))
 ```
 
 **Key concepts**:
 
-\- Conditions are evaluated during `create_report()` — at that point,
-all data is available
-
-\- Multiple `compute_cols()` calls accumulate on the same spec
-
-\- Actions on the same row from different `compute_cols()` blocks are
-combined
-
-\- `value_from = NULL` in `c_addrow()` creates an empty separator row
+- Conditions are evaluated ONCE, when `create_report()` finalizes the
+  spec — call `compute_cols()` before assembling the report (see next
+  step)
+- Conditions always read RAW column values — glued, cleared, or deduped
+  display text never changes which rows match
+- A condition must be TRUE/FALSE per row (or one scalar); any NA aborts
+  `create_report()`, so guard with `!is.na(x)`
+- Multiple `compute_cols()` calls accumulate on the same spec; actions
+  combine in arrival order, later actions win on conflicting style
+  properties
+- `value_from = NULL` in `c_addrow()` creates an empty separator row
 
 For detailed examples see [Reporting Examples: Conditional Row
-Actions](Reporting_Examples_with_ksTFL.html#conditional-row-actions).
+Actions](Reporting_Examples_with_ksTFL.html#conditional-row-actions-with-compute_cols).
+
+------------------------------------------------------------------------
+
+## Step 7: Combine specs into a report
+
+Assemble multiple specs with `create_report()`:
+
+```{r create_report, eval = FALSE}
+# Create multiple specs
+spec_table <- create_table(mtcars)
+spec_table <- add_title(spec_table, "Table 1: Motor Trend Road Tests")
+
+spec_text <- create_text()
+spec_text <- add_body_text(spec_text, "Analysis performed in R.")
+
+# Combine into single report
+report <- create_report(spec_table, spec_text)
+
+# Inspect combined report
+print(report)
+```
+
+**What `create_report()` does**:
+
+1. Flattens inputs — including plain `list` arguments (see below)
+2. Validates structure
+3. Consolidates combined styles (if any used `f_combine()`)
+4. Assigns sequential `docOrder` (1, 2, 3, ...)
+5. Creates `dataRef` names for new specs
+6. Finalizes `compute_cols()` conditions and validates all style
+   references — an undefined `styleRef` id aborts here
+
+**Result**: a named list of specs (class `TFL_report`), in input order.
+
+### Passing a named list of specs
+
+You can also build specs into a named list and pass the whole list at
+once — useful when the set of outputs is assembled dynamically:
+
+```{r create_report_list, eval = FALSE}
+specs <- list(
+  t_dm   = spec_table,
+  t_text = spec_text
+)
+
+report <- create_report(specs)
+# names(report): "t_dm_<hash>", "t_text_<hash>"
+```
+
+List and variadic arguments may be freely mixed:
+
+```{r create_report_mixed, eval = FALSE}
+extra <- create_text() |> add_body_text("Appendix.")
+report <- create_report(extra, specs)
+```
+
+Report titles/subtitles marked with `toclevel` feed a Table of Contents
+page — see Step 8 (`write_doc(toc = TRUE)`).
+
+> **Order matters**: `compute_cols()` added AFTER `create_report()` has
+> no effect — the report snapshots and finalizes the specs it was given.
 
 ------------------------------------------------------------------------
 
@@ -780,16 +800,17 @@ doc_path <- write_doc(report,
 
 **Additional parameters**:
 
-\- `toc`: If `TRUE`, prepends a Table of Contents page (requires
-`toclevel` on titles - see `?add_title`)
+- `toc`: if `TRUE`, prepends a Word TOC field page. Entries come only
+  from titles/subtitles carrying `toclevel`; with none, the field updates
+  to an empty list. Default follows the `insertTOC` option.
+- `tocTitle`: heading above the TOC field (default `"Table of Contents"`).
+- `prettify`: if `TRUE`, writes human-readable JSON metadata (useful for
+  debugging). The DOCX bytes are identical either way.
+- `verbose`: if `TRUE`, prints renderer progress messages to the R
+  console.
 
-\- `tocTitle`: Heading above the TOC field (default
-`"Table of Contents"`)
-
-\- `prettify`: If `TRUE`, writes human-readable JSON (useful for
-debugging)
-
-\- `verbose`: If `TRUE`, prints renderer progress messages to R console
+`name` is passed without extension — `write_doc()` appends `.docx`, so
+`name = "demographics.docx"` would produce `demographics.docx.docx`.
 
 This is the recommended approach for production use. Set session
 defaults once:
@@ -830,11 +851,10 @@ replay_report(
 
 **`save_report()` output files**:
 
-\- `{metaPath}/{spec_hash}.json` — Main specification (consumed by
-renderer)
-
-\- `{metaPath}/{dataRef}.json` — Table data files (one per table spec) -
-Figure files copied to `metaPath` as-is
+- `{metaPath}/{spec_hash}.json` — main specification (consumed by the
+  renderer)
+- `{metaPath}/{dataRef}.json` — table data files (one per table spec)
+- Figure files copied into `metaPath`, original extension preserved
 
 ------------------------------------------------------------------------
 
@@ -865,14 +885,18 @@ submissions), you may need to prove that a specific DOCX was generated
 from a specific dataset at a specific time. The spec JSON + data JSON
 together form a complete, reproducible snapshot.
 
-**Re-rendering without R**: Once the JSON files exist, you can re-render
-the DOCX without any R objects or data frames — just the JSON files.
-This is useful for: - Regenerating a document after a template change -
-Rendering on a different machine or in a CI/CD pipeline - Reproducing an
-output months later
+**Re-rendering from stored metadata**: Once the JSON files exist,
+`replay_report()` re-renders the DOCX straight from them — no in-memory
+specs or data frames needed (it is still an R call, but it needs nothing
+from the original session). Useful for regenerating a document after a
+template change, rendering on a different machine or in a CI pipeline, or
+reproducing an output months later.
 
-**Version management**: Each `write_doc()` call writes a new hash-named
-spec file. You can keep multiple versions and compare them.
+**Version management**: each save writes a hash-named spec JSON;
+identical content reuses its hash and updates the existing entry instead
+of adding a version. The folder never prunes itself:
+`replay_report("name.docx")` always renders the newest indexed version,
+and `clean_reports(keep_versions = 1)` is the way to trim history.
 
 ### Managing metadata files
 
@@ -937,13 +961,14 @@ replay_report("tbl_demographics.docx", meta_dir = "./meta")
 When you create a table, widths are auto-calculated based on data
 characteristics:
 
-``` r
-# Auto-calculated widths (example)
-# id = 20%, description = 50%, value = 30%
-spec <- create_table(my_data)
+```{r auto_widths_example, eval = FALSE}
+# Auto-calculated widths depend on content. For mtcars:
+# mpg ~6.3%, cyl ~5.1%, ... (inspect with print(spec))
+spec <- create_table(mtcars)
 
-# Lock id to 15%; others recalculate to fill 85%
-spec <- define_cols(spec, id, colWidth = "15%")
+# Lock mpg to 15%; the other unlocked columns recalculate
+# proportionally to fill the remaining 85%
+spec <- define_cols(spec, mpg, colWidth = "15%")
 ```
 
 See [Reporting Examples](Reporting_Examples_with_ksTFL.html) for detailed
@@ -953,19 +978,24 @@ width customization.
 
 Each table spec gets a `dataRef` name for its data file:
 
-``` r
-# Auto-generated: "0001_abc123def456" (docOrder + hash)
-report <- create_report(spec_table1, spec_table2)
+```{r dataref_example, eval = FALSE}
+# dataRef keys look like "0001_abc123def456" (docOrder + hash):
+report <- create_report(
+  create_table(mtcars) |> add_title("Table 1"),
+  create_table(iris)   |> add_title("Table 2")
+)
+names(report)  # "0001_<hash>", "0002_<hash>"
 
-# Manual control not needed — handled automatically by write_doc()
+# Manual control is not needed — write_doc() handles it
 write_doc(report, name = "my_report", outDir = "./output", metaPath = "./meta")
 ```
 
 ------------------------------------------------------------------------
 
-## Session-wide defaults with `tfl_options`
+## Session-wide defaults with `tfl_set_options()`
 
-Set defaults once, inherited by all new specs:
+Set defaults once, inherited by all new specs. Defaults are snapshotted
+when each spec is created — set options BEFORE building specs:
 
 ```{r session_options, eval = FALSE}
 # Set session defaults
@@ -1040,7 +1070,7 @@ report <- create_report(spec) |>  write_doc('demographics')
 | **define_cols() with mismatched parameter lengths** | Length must be 1 (recycled) or match number of columns                              |
 | **Styles from f_combine() not consolidated**        | Call `create_report()` before `write_doc()`                                         |
 | **Multiple add_header() calls stack**               | Each call **appends** a new header level; use `level =` to replace a specific level |
-| **Figure file not found**                           | Check path is absolute or relative to current working directory                     |
+| **Figure file not found**                           | `create_figure()` errors immediately if the path is unreadable at call time — check the file exists and the path is right before saving |
 | **create_text() does not accept data**              | `create_text()` takes no arguments — add content via `add_body_text()`              |
 | **Overlapping stubs at same stubOrder**             | Error; use different `stubOrder` or non-overlapping column sets                     |
 
@@ -1097,6 +1127,13 @@ pane. This lets you highlight a pipeline expression (e.g.,
 `create_table(...) |> add_title(...)`) and instantly see what the spec
 looks like — a quick visual check without saving or rendering to DOCX.
 
+```{r addin_preview_selection, eval = FALSE}
+# Equivalent programmatic calls:
+tfl_spec_preview_selection()   # preview of the editor selection
+tfl_spec_preview_prompt()      # preview by object name (prompt)
+view_tfl_spec(spec)            # preview a spec object directly
+```
+
 ### TFL Spec Preview (by name)
 
 Same HTML preview, but instead of evaluating selected text the addin
@@ -1130,11 +1167,13 @@ You now understand ksTFL's core workflow. Next steps:
 1.  **Run the quick example** above with your own data
 2.  **Explore [Reporting Examples](Reporting_Examples_with_ksTFL.html)**
     for detailed patterns
-3.  **Read [Styling Guide](Styling_Guide_with_ksTFL.html)** for advanced
+3.  **Skim [FAQ](FAQ_with_ksTFL.html)** when something behaves
+    unexpectedly — short answers, no detour required
+4.  **Read [Styling Guide](Styling_Guide_with_ksTFL.html)** for advanced
     styling
-4.  **Read [Advanced StyleRows](Advanced_StyleRows.html)** for
+5.  **Read [Advanced StyleRows](Advanced_StyleRows.html)** for
     conditional formatting
-5.  **Check function docs**: `?create_table`, `?define_cols`,
+6.  **Check function docs**: `?create_table`, `?define_cols`,
     `?add_style`, `?write_doc`, `?list_reports`
 
 ------------------------------------------------------------------------
@@ -1158,7 +1197,7 @@ You now understand ksTFL's core workflow. Next steps:
 | Create table spec        | `create_table(data, cols = ...)`                                           | Auto-detects columns, types, widths                                                  |
 | Create figure spec       | `create_figure(plot_or_path, dpi = 300L)`                                  | File path or ggplot2 object; default device `cairo` (Word-safe paths-only SVG)      |
 | Create text spec         | `create_text()`                                                            | For narrative content only                                                           |
-| Set document properties  | `set_document(spec, hasData = ...)`                                        | Optional: configure content width, placement                                         |
+| Set document properties  | `set_document(spec, ...)`                                                  | Content width/placement, hasData, footnotePlace, isContinues, per-spec figure sizing (figureWidth/Height/Device/ScaleMode), docTemplate |
 | Customize columns        | `define_cols(spec, cols, ...)`                                             | Use `c()` for multiple columns                                                       |
 | Define styles            | `add_style(spec, id = "name", ...)`                                        | Use `s_font()`, `s_paragraph()`, `s_table_style()`                                   |
 | Add spanning header      | `add_span_header(spec, cols, label, ...)`                                  | Supports tidyselect; multi-level headers                                             |
@@ -1166,11 +1205,11 @@ You now understand ksTFL's core workflow. Next steps:
 | Add page headers/footers | `add_header()`, `add_footer()`                                             | 3 parts: left/center/right                                                           |
 | Conditional row actions  | `compute_cols(spec, cond, ...)`                                            | Use `c_style()`, `c_merge()`, `c_addrow()`, `c_glue()`, `c_clear()`, `c_pageBreak()` |
 | Set page style           | `set_page_style(spec, page = p_page(...))`                                 | Configure page size, orientation, margins                                            |
-| Page settings helper     | `p_page(size, orientation, margins)`                                       | `"A4"` / `"Letter"` / `"Legal"`, margins via `p_margins()`                           |
+| Page settings helper     | `p_page(size, orientation, margins)`                                       | `"A4"`/`"A3"`/`"Letter"`/`"Legal"`/`"Executive"`, margins via `p_margins()`         |
 | List templates           | `tfl_list_templates()`                                                     | Shows all bundled template names                                                     |
 | Discover style atoms     | `tfl_print_style_atoms()`                                                  | Prints all built-in style atoms grouped by category                                  |
 | Font status              | `tfl_font_status()`, `tfl_rescan_fonts()`                                  | Check or re-run font discovery                                                       |
-| Combine specs            | `create_report(spec1, spec2, ...)`                                         | Consolidates styles, assigns order                                                   |
+| Combine specs            | `create_report(spec1, spec2, ...)` or a named list                         | Consolidates styles, assigns order, finalizes compute_cols                           |
 | Save + render (one step) | `write_doc(report, name, ...)`                                             | Recommended: saves JSON + renders DOCX                                               |
 | Save only                | `save_report(report, ...)`                                                 | Writes JSON + data files for manual rendering                                        |
 | Render from JSON         | `replay_report(spec_json, meta_dir, output_path, overrideTemplate = NULL)` | C++ renderer: JSON → styled DOCX                                                     |
