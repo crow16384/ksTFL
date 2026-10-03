@@ -21,6 +21,7 @@ resource_files:
   - example_10_navy_lab.pdf
   - spanning_headers_gap.pdf
   - figures/
+  - images/
 vignette: >
   %\VignetteIndexEntry{Real Examples of Clinical Outputs using ksTFL}
   %\VignetteEncoding{UTF-8}
@@ -46,7 +47,7 @@ options(pkgdown.internet = FALSE)
 This vignette presents real-world clinical reporting examples built with ksTFL.
 Each example walks through the complete pipeline — from raw input data, through
 the R code that constructs the specification object, to the final rendered
-document — so you can see exactly what goes in and what comes out.
+document — so you can see how each ingredient maps to the final page.
 
 The examples are ordered by complexity: we start with a demographics table that
 introduces core concepts (invisible columns, conditional formatting, section
@@ -64,11 +65,14 @@ block).
 
 > **Data note**: Examples 1, 5, 8 and 10 build their input completely in the
 > shown code (Example 5 runs on `mtcars`). In the other examples the input
-> frame (`data`, `tbl`, `demo_data`) is displayed
+> frame (`data`, `tbl`, `demo_data`, `lab_listing`) is displayed
 > as printed output only — it stands for the result of upstream analysis
 > programs (ADaM-style summaries). To reproduce those, rebuild an equivalent
 > frame from the printed rows (column names and order are what the spec code
-> consumes); the focus here is the ksTFL specification layer, not statistics.
+> consumes; where a tibble print is truncated, the note says so); the focus
+> here is the ksTFL specification layer, not statistics. Example 4 further
+> assumes normal-range flags live in columns named `<param>NR` with values
+> "high"/"normal"/"low" — the convention its `ends_with("NR")` rules rely on.
 
 ## How examples are organised
 
@@ -79,6 +83,10 @@ Every example follows the same structure:
 2.  **Spec-building pipeline** — the ksTFL calls that define the document (with
     inline comments explaining each step)
 3.  **Rendered output** — the resulting document embedded as PDF
+
+Example 7 adds a styling technique worth stealing on its own: paragraph
+borders (`pb`) instead of cell borders (`bt`/`bb`) under spanning headers,
+built by combining atoms with `f_combine()`.
 
 A shared **session setup** block at the top configures page headers, footers,
 and output defaults so the examples can stay focused on their unique logic.
@@ -93,7 +101,6 @@ Related reading:
   [Advanced StyleRows](Advanced_StyleRows.html) when you need styling or row
   action details.
 
---------------------------------------------------------------------------------
 
 ## Session setup (shared across examples)
 
@@ -116,7 +123,6 @@ tfl_set_options(
 )
 ```
 
---------------------------------------------------------------------------------
 
 ## Example 1 — Demographics table with conditional formatting {#example-01}
 
@@ -138,7 +144,7 @@ techniques demonstrated here are:
     from the hidden `SECTION` column.
 -   **`c_merge()` + `c_glue()`** — on p-value rows the treatment columns
     merge into one cell and the p-value is appended, giving the familiar
-    “p = 0.041” display.
+    centered p-value cell spanning both arms (bare value, e.g. 0.041).
 -   **Inline markup** — `<sup>a</sup>` renders the footnote reference
     marker on the population line, inside the text passed to `add_title()`.
 -   **`c_pageBreak()`** — forces a break before the last section so the
@@ -221,7 +227,8 @@ The resulting frame:
 # is declared from here on, never baked into the data.
 spec <- create_table(raw) %>%
 # Multi-line title: table number on line 1, description on line 2.
-# toclevel = 1 makes the entry appear in the report's Table of Contents.
+# toclevel = 1 tags the title for a Table of Contents (the TOC page is
+# written when write_doc(toc = TRUE) is used — see Example 4).
   add_title(
     c("Table S1", "Demographic and Baseline Characteristics"),
     toclevel = 1
@@ -266,7 +273,7 @@ spec <- create_table(raw) %>%
 # 2. p-value rows, three actions in one rule, evaluated left to right:
 #    merge DrugX+Placebo into one centered italic cell with a thin top
 #    border, italicise the statistic label, then glue the p-value text
-#    after the merged cell - the familiar "p = 0.041" display.
+#    after the merged cell - the centered "0.041" display.
   compute_cols(
     !is.na(MODELVAL),
     c_merge(c(DRUGX, PLCB), styleRef = f_combine("text_center", "bt_th", "i")),
@@ -345,7 +352,7 @@ colours, and borders, identical content and structure:
     pagination and whitespace.
 -   **Template switching** re-skins the whole output via one option.
 
-## Example 2 — Demographics table (UTF-8 encoding support)
+## Example 2 — Demographics table (UTF-8 encoding support) {#example-02}
 
 Clinical trials run in many countries, and regulatory submissions often require
 documents in local languages. ksTFL has full UTF-8 support — titles, footnotes,
@@ -382,7 +389,7 @@ row transforms → document settings. Reading the inline comments below alongsid
 Example 1 will help you see the one-to-one correspondence:
 
 ```{r example_02_render, eval = FALSE}
-### Build the specification object
+# --- Build the specification object ---
 
 drg_N   <- 16
 plcb_N  <- 17
@@ -432,8 +439,9 @@ spec_dm_01 <- create_table(data) %>%
                 paste0('Плацебо', '<br>(N=', plcb_N, ')'),
                 paste0('Всего', '<br>(N=', total_N, ')')
               ),
-              # indent numbers from cell borders
-              valueStyleRef = 'indent_1',
+              # center arms; the everything() pass below layers 8 pt on
+              # top of these styles without touching alignment
+              valueStyleRef = 'text_center',
               colWidth = '15%'
   ) %>% 
   define_cols(everything(), valueStyleRef = 'fs_8') %>% 
@@ -498,7 +506,7 @@ This example demonstrates:
 ### Input data
 
 ```         
-# A tibble: 18 × 17
+# A tibble: 18 × 17  (print truncated — the frame also carries GRAND_N, GRAND_E)
    SOC_GROUP SOC_PT  SEVERITY TRT_N TRT_E FU_0_6_N FU_0_6_E FU_GT6_N FU_GT6_E FU_0_8_N FU_0_8_E FU_GT8_N FU_GT8_E FU_TOTAL_N FU_TOTAL_E
    <chr>     <chr>   <chr>    <chr> <chr> <chr>    <chr>    <chr>    <chr>    <chr>    <chr>    <chr>    <chr>    <chr>      <chr>     
  1 Any AE    "Any A… ""       142 … 327   56 (31.… 71       93 (51.… 122      77 (42.… 103      75 (41.… 90       121 (67.2) 193       
@@ -525,6 +533,9 @@ This example demonstrates:
 
 ```{r example_03_render, eval = FALSE}
 # --- Build the table specification ---
+# N = total subjects in the arm (define it wherever you keep study constants;
+# the example uses the artifact value 180)
+N <- 180
 spec <- create_table(tbl) %>%
 
   # --- Custom styles ---
@@ -597,8 +608,9 @@ spec <- create_table(tbl) %>%
       FU_TOTAL_N, FU_TOTAL_E,
       GRAND_N, GRAND_E
     ),
-    label = rep(c("n (%)", "E"), 7),
-    #labelStyleRef = f_combine("text_center","to_90"),
+    label = rep(c("n (%)", "E"), 7),   # each metric pair: count(%) + events
+    # Rotate labels with f_combine("text_center", "to_90") if the page gets
+    # tight (see Example 4); this table fits without rotation.
     labelStyleRef = "text_center",
     valueStyleRef = f_combine("text_center", "font_small"),
     colWidth = "4.3%"
@@ -679,8 +691,8 @@ spec <- create_table(tbl) %>%
     SOC_GROUP == "SOC1" & firstOf(SOC_GROUP),
     c_pageBreak()
   ) %>%
-  # Bold the SOC-level totals: rows where SEVERITY is blank represent
-  # the overall count for that SOC (not broken down by severity grade).
+  # Bold the SOC-level totals: rows where SEVERITY is blank are the
+  # SOC total across all grades (not broken down by severity).
   compute_cols(
     SEVERITY == "",
     c_style(c(SOC_PT, SEVERITY), styleRef = "font_bold")
@@ -698,7 +710,7 @@ create_report(spec) %>% write_doc("example_03_ae")
 
 <iframe src="example_03_ae.pdf" title="example_03_ae.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
-## Example 4 — Data listing with automatic two-level TOC
+## Example 4 — Data listing with automatic two-level TOC {#example-04}
 
 Data listings present individual patient records with minimal aggregation. They
 often run to hundreds of pages, so navigation features become essential. This
@@ -712,8 +724,9 @@ example demonstrates:
     M, Age (years): 26" automatically.
 -   **Two-level TOC** — the title and subtitle together create a nested TOC:
     listing title at level 1, per-subject entries at level 2.
--   **Value-dependent formatting** — `compute_cols()` flags pH values above 5.5
-    in red with a checkmark symbol.
+-   **Value-dependent formatting** — `compute_cols()` reads the hidden
+    `<param>NR` flag columns and appends a green superscript L or red
+    superscript H to out-of-range results.
 -   **Rotated column labels** — `to_90` rotates headers 90° to save horizontal
     space for the many narrow lab-parameter columns.
 
@@ -797,43 +810,43 @@ spec_lbl_01 <- create_table(lab_listing) %>%
 	# Flag abnormal ALT values: if ALTNR is Low append 'L' to the value, 
 	#                           if is High append 'H' to the value
 	compute_cols(
-			(ALTNR == 'low') %>% replace_na(FALSE),
+			!is.na(ALTNR) & ALTNR == 'low',
 			c_style(ALT, styleRef = 'fc_green'),
 			c_glue(ALT, 'after', text = '<sup>L</sup>')
 	) %>%
 	compute_cols(
-			(ALTNR == 'high') %>% replace_na(FALSE),
+			!is.na(ALTNR) & ALTNR == 'high',
 			c_style(ALT, styleRef = 'fc_red'),
 			c_glue(ALT, 'after', text = '<sup>H</sup>')
 		) %>%
 	# Repeat the same trick with other result 
 	compute_cols(
-		(ASTNR == 'low') %>% replace_na(FALSE),
+		!is.na(ASTNR) & ASTNR == 'low',
 		c_style(AST, styleRef = 'fc_green'),
 		c_glue(AST, 'after', text = '<sup>L</sup>')
 	) %>%
 	compute_cols(
-		(ASTNR == 'high') %>% replace_na(FALSE),
+		!is.na(ASTNR) & ASTNR == 'high',
 		c_style(AST, styleRef = 'fc_red'),
 		c_glue(AST, 'after', text = '<sup>H</sup>')
 	) %>%
 	compute_cols(
-		(HGBNR == 'low') %>% replace_na(FALSE),
+		!is.na(HGBNR) & HGBNR == 'low',
 		c_style(HGB, styleRef = 'fc_green'),
 		c_glue(HGB, 'after', text = '<sup>L</sup>')
 	) %>%
 	compute_cols(
-		(HGBNR == 'high') %>% replace_na(FALSE),
+		!is.na(HGBNR) & HGBNR == 'high',
 		c_style(HGB, styleRef = 'fc_red'),
 		c_glue(HGB, 'after', text = '<sup>H</sup>')
 	) %>%
 	compute_cols(
-		(BILINR == 'low') %>% replace_na(FALSE),
+		!is.na(BILINR) & BILINR == 'low',
 		c_style(BILI, styleRef = 'fc_green'),
 		c_glue(BILI, 'after', text = '<sup>L</sup>')
 	) %>%
 	compute_cols(
-		(BILINR == 'high') %>% replace_na(FALSE),
+		!is.na(BILINR) & BILINR == 'high',
 		c_style(BILI, styleRef = 'fc_red'),
 		c_glue(BILI, 'after', text = '<sup>H</sup>')
 	) %>% 
@@ -864,9 +877,10 @@ split the columns across multiple pages. The `isColBreak` parameter on
 marked with `isID = TRUE` repeat on every column-page, ensuring the reader
 always sees the identifying context.
 
-For example, adding a column break at `PH` splits the listing into two column
-groups — Bilirubin through Nitrites on the first page, and pH through White
-Blood Cells on the second:
+For example, adding a column break at `PH` splits the listing into two
+column groups: the first page carries the identifying context (Treatment,
+Visit, Date) with ALT, AST, Bilirubin and Hemoglobin, the second continues
+with pH, Leukocytes and the urine panel:
 
 ```{r example_04_colbreak, eval = FALSE}
 spec_lbl_02 <- spec_lbl_01 %>%
@@ -883,7 +897,7 @@ create_report(spec_lbl_02) %>% write_doc("example_04_list_colbr", toc = TRUE)
 
 <iframe src="example_04_list_colbr.pdf" title="example_04_list_colbr.pdf preview" width="100%" height="600px" style="border: 1px solid #ccc;"></iframe>
 
-## Example 5 — Figures and combined multi-spec reports with TOC
+## Example 5 — Figures and combined multi-spec reports with TOC {#example-05}
 
 ksTFL is not limited to tables. The `create_figure()` function wraps a ggplot2
 object (or an image file path) into a `TFL_spec`, which can then receive titles,
@@ -1028,9 +1042,10 @@ parameters. Two specs (figure + table) merge into a single report;
   footnotes, so the Table of Contents can list both entries.
 - **Continuous flow** — both specs carry `continuousSection = TRUE`, so
   the table follows the figure on the same landscape sheet.
-- **Sizing** — `figureHeight` is dialed so figure + table + titles +
-  footnote all fit; without the flag Word breaks to a new page once the
-  combined height exceeds one sheet.
+- **Sizing** — `figureHeight = "3.2in"` was dialed for this landscape
+  sheet so figure + table + titles + footnote fit one page; on a different
+  template or orientation, remeasure — Word breaks to a fresh sheet when
+  the combined height exceeds one page.
 - **`<br>` in column labels** — `Cmax (ng/mL)<br>mean (SD)` stacks the
   statistic over the unit for a compact header.
 
@@ -1207,9 +1222,11 @@ spec <- create_table(demo_data) |>
   ) %>% 
   define_cols(PARAM, dedupe = T) %>% 
 # Two disjoint bands: 'Group 1' over the first arm pair, 'Group 2' over
-# the second. Their column sets never overlap, so the lattice stays flat.
+# the second. Explicit stubOrder = 1 on BOTH keeps them on one header row
+# (omitting it would auto-increment and stack a staircase). Column sets
+# are disjoint, so sharing the row is legal.
   ### Spanning headers
-  add_span_header(c(TRT_A1, TRT_B1), 'Group 1') %>% 
+  add_span_header(c(TRT_A1, TRT_B1), 'Group 1', stubOrder = 1) %>% 
   add_span_header(c(TRT_A2, TRT_B2), 'Group 2', stubOrder = 1) 
 ```
 
@@ -1402,12 +1419,12 @@ create_report(spec) %>% write_doc('example_08_forest')
 Exposure and discontinuation summaries are natural neighbors in a CSR —
 both describe *how long, and why,* subjects stayed on treatment. This
 example renders them as one continuous page: two complete table specs, each
-with its own span lattice, subtitle, and footnote, merged through
+with its own spanning-header bands, subtitle, and footnote, merged through
 continuous-section pagination control.
 
 Demonstrated here:
 
--   **Two span lattices in one document** — “Subjects” and
+-   **Two spanning-header bandss in one document** — “Subjects” and
     “Exposure on treatment” banners in Table S9.1; four arm banners plus a
     “Treatment Arm” umbrella in Table S9.2 (siblings share `stubOrder`, the
     umbrella sits one level above).
@@ -1417,6 +1434,8 @@ Demonstrated here:
     the first ends instead of on a new page.
 -   **`<br>` in span labels** — arm names stack over their `(N = ...)`
     line inside a spanning header.
+
+All three reports (Examples 8-10) describe the same study and cohort.
 
 ### Data
 
@@ -1530,10 +1549,13 @@ re-skins everything.
 
 Demonstrated here:
 
--   **Conditions on the formatted text itself** — `as.numeric(sub(...))`
-    inside `compute_cols()` pulls the percentage out of “4 (18.2%)” strings
-    and fires `c_style(f_combine("fc_rust", "b"))` once the threshold is
-    crossed. Rules read the displayed value, not a hidden helper column.
+-   **Conditions over formatted input** — the input frame itself stores
+    pre-formatted strings, and `as.numeric(sub(...))` inside
+    `compute_cols()` parses the percentage out of “4 (18.2%)” at rule time.
+    Conditions always read the RAW data — here the raw data are already
+    formatted, and no helper column is needed. The rule spans the whole
+    column, so percentages inside mean (SD) rows can trip it too; add
+    `& DIRECTION == ...` to restrict it to rate rows if that matters.
 -   **Parameter section headers** — `firstOf(PARAM)` on the hidden `PARAM`
     column, the invisible-column pattern of Example 1 at another scale.
 -   **`docTemplate = "Navy_Pro"`** — navy header bands and different
@@ -1589,11 +1611,11 @@ spec <- create_table(lab_shifts) %>%
 # group start, straight from the hidden column.
   compute_cols(firstOf(PARAM),
                c_addrow("above", value_from = PARAM, styleRef = "font_bold")) %>%
-# The interesting part: the condition PARSES THE DISPLAYED STRING -
-# pulls the percentage out of "4 (18.2%)" and fires rust-bold when a
-# prespecified threshold is crossed. Rules read the printed value,
-# so they survive re-formatting without helper columns. Two arms,
-# two thresholds, two rules.
+# The interesting part: the condition PARSES THE FORMATTED INPUT -
+# pulls the percentage out of "4 (18.2%)" and fires rust-bold above the
+# threshold. Conditions read raw column values; here the raw values are
+# analyst-formatted strings, so no hidden flag column is needed. Two
+# arms, two thresholds, two rules.
   compute_cols(as.numeric(sub("%", "", sub(".*\\((.*)\\).*", "\\1", D100))) >= 13,
                c_style(D100, styleRef = f_combine("fc_rust", "b"))) %>%
   compute_cols(as.numeric(sub("%", "", sub(".*\\((.*)\\).*", "\\1", D50))) >= 10,
@@ -1603,7 +1625,7 @@ spec <- create_table(lab_shifts) %>%
 # footnote below - inline markup works across titles alike.
   add_title(c("Table S10.1", "Shifts in Clinical Laboratory Values"), toclevel = 1) %>%
   add_subtitle("Safety population; values in SI units<sup>a</sup>", styleRef = "i") %>%
-  add_footnote("<sup>a</sup> Red: >= 10% of subjects with confirmed central-lab abnormalities in the corresponding arm. ULN/LLN per site local ranges, re-read centrally.",
+  add_footnote("<sup>a</sup> Red: >= 13% (Drug X 100 mg) or >= 10% (Drug X 50 mg) of subjects with confirmed central-lab abnormalities in the corresponding arm. ULN/LLN per site local ranges, re-read centrally.",
                styleRef = f_combine("fs_8", "fc_gray")) %>%
   set_page_style(page = p_page(size = "A4", orientation = "landscape",
                   margins = p_margins(top = "0.6in", bottom = "0.6in",

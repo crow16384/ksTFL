@@ -33,17 +33,17 @@ options(pkgdown.internet = FALSE)
 
 This guide covers the complete styling system in ksTFL:
 
-\- **Style primitives** (`s_*` helpers) for fonts, paragraphs, spacing,
+- **Style primitives** (`s_*` helpers) for fonts, paragraphs, spacing,
 indentation, tables, and borders
 
-\- **Declaring named styles** with `add_style()`
+- **Declaring named styles** with `add_style()`
 
-\- **Referencing and combining styles** with style references and
+- **Referencing and combining styles** with style references and
 `f_combine()`
 
-\- **Applying styles** to columns, labels, stubs, and content
+- **Applying styles** to columns, labels, stubs, and content
 
-\- **Best practices** for maintainable, reusable style systems
+- **Best practices** for maintainable, reusable style systems
 
 For runnable reporting examples integrating styles see [Reporting
 Examples](Reporting_Examples_with_ksTFL.html). For a quick start see
@@ -61,22 +61,13 @@ maintainable conventions.
 
 ### Why declarative styles?
 
-Professional clinical documents require:
-
-- **Consistency**: common elements should render the same way everywhere.
-
-- **Maintainability**: one style change should update every reference.
-
-\- **Composability**: Build complex styles from simple building blocks
-(font + paragraph alignment + table background)
-
-\- **Separation of concerns**: Define styles once, apply them many times
-without repeating details
-
-ksTFL uses a **named style system**: you declare styles with
-`add_style()` giving each an `id`, then reference them by name where
-needed. Styles are composable (`f_combine()`) and consolidated
-automatically when you build reports.
+Clinical documents live or die on consistency: one font decision,
+applied everywhere. ksTFL uses a named style system — declare styles
+once with `add_style()`, reference them by id, compose with
+`f_combine()`, and let `create_report()` consolidate the combinations
+into final render-time styles. One definition change updates every
+reference, and complex looks (font + alignment + background) are
+assembled from small blocks rather than hand-written per table.
 
 ### Best practices workflow
 
@@ -97,9 +88,14 @@ automatically when you build reports.
 
 ## Style primitives (s\_\* helpers)
 
-All style primitives begin with `s_` and must be used **only inside
-`add_style()`**. The helpers validate parameter names and values,
-raising informative errors if used incorrectly.
+Style primitives begin with `s_`. `s_font()`, `s_paragraph()` and
+`s_table_style()` go directly inside `add_style()`; `s_spacing()`,
+`s_indents()`, `s_borders()` and `s_border()` nest one level deeper
+(inside `s_paragraph()`/`s_table_style()`, or inside `s_borders()`).
+Calling any of them outside its context aborts with a clear message.
+They validate parameter values (colors, enums, length units) and abort
+with the allowed set in the message. Template JSON keys, by contrast,
+are silently ignored when unknown — check spelling there yourself.
 
 ### `s_font()` — Font properties
 
@@ -107,20 +103,17 @@ Control font appearance (name, size, weight, color, decorations).
 
 **Parameters**:
 
-\- `font_name`: Font family (e.g., "Arial", "Courier New", "Times New
-Roman", "Georgia")
-
-\- `font_size`: Size with units (e.g., "12pt", "11pt") - `bold`: Logical
-(TRUE/FALSE)
-
-\- `italic`: Logical (TRUE/FALSE)
-
-\- `underline`: Logical (TRUE/FALSE)
-
-\- `color`: Color as hex code (e.g., "#000000", "#FF0000") or color name
-(e.g., "red", "black", "blue")
-
-\- `highlight`: Background highlight color as hex code or color name
+- `font_name`: Font family — one of the seven allowed names: "Arial",
+  "Times New Roman", "Courier New", "Georgia", "Verdana", "Trebuchet MS",
+  "Liberation Sans" (see Font Management)
+- `font_size`: Size with units (e.g., "12pt", "11pt")
+- `bold`: Logical (TRUE/FALSE)
+- `italic`: Logical (TRUE/FALSE)
+- `underline`: Logical (TRUE/FALSE)
+- `strikethrough`: Logical (TRUE/FALSE)
+- `color`: Color as hex code (e.g., "#000000", "#FF0000") or color name
+  (e.g., "red", "black", "blue")
+- `highlight`: Background highlight color as hex code or color name
 
 **Example**:
 
@@ -147,13 +140,16 @@ indentation.
 
 **Parameters**:
 
-\- `alignment`: Text alignment — "left", "right", "center", "justify",
-"distributed"
-
-\- `spacing`: Spacing before/after (use `s_spacing(...)`)
-
-\- `indents`: Left/right indentation, first-line indent (use
-`s_indents(...)`)
+- `alignment`: Text alignment — "left", "right", "center", "justify",
+  "distributed"
+- `spacing`: Spacing before/after (use `s_spacing(...)`)
+- `indents`: Left/right indentation, first-line indent (use
+  `s_indents(...)`)
+- `word_style`: base Word style to inherit from ("Normal", "Heading 1",
+  "Heading 2", "Title", "Subtitle", "No Spacing", "Strong", "Quote",
+  "Intense Quote")
+- `borders`: paragraph-level borders via `s_borders(...)` (see
+  Paragraph-level borders below)
 
 **Example**:
 
@@ -178,11 +174,11 @@ Controls spacing **before** a paragraph, **after** a paragraph, and
 
 **Parameters**:
 
-\- `before`: Space before paragraph (e.g., "6pt", "12pt")
+- `before`: Space before paragraph (e.g., "6pt", "12pt")
 
-\- `after`: Space after paragraph (e.g., "6pt", "12pt")
+- `after`: Space after paragraph (e.g., "6pt", "12pt")
 
-\- `line_spacing`: Line spacing multiplier (e.g., 1.0, 1.5, 2.0 for
+- `line_spacing`: Line spacing multiplier (e.g., 1.0, 1.5, 2.0 for
 single/1.5-line/double spacing)
 
 **Note**: `s_spacing()` is always used **inside `s_paragraph()`**, never
@@ -205,11 +201,11 @@ paragraph.
 
 **Parameters**:
 
-\- `left`: Left indent (e.g., "10pt", "1cm")
+- `left`: Left indent (e.g., "10pt", "1cm")
 
-\- `right`: Right indent (e.g., "10pt")
+- `right`: Right indent (e.g., "10pt")
 
-\- `first_line`: First-line indent (e.g., "20pt" for hanging indent)
+- `first_line`: First-line indent (e.g., "20pt" for hanging indent)
 
 **Note**: `s_indents()` is always used **inside `s_paragraph()`**, never
 standalone.
@@ -235,21 +231,21 @@ orientation, and borders.
 
 **Parameters**:
 
-\- `background_color`: Cell background color (hex, e.g., "#E8E8E8")
+- `background_color`: Cell background color (hex, e.g., "#E8E8E8")
 
-\- `row_height`: Height of table row (e.g., "25pt")
+- `row_height`: Height of table row (e.g., "25pt")
 
-\- `topEmptyLine`: Optional empty spacer row after header (e.g., "6pt",
+- `topEmptyLine`: Optional empty spacer row after header (e.g., "6pt",
 use `NULL` or `0pt` to disable)
 
-\- `bottomEmptyLine`: Optional empty spacer row before the bottom border
+- `bottomEmptyLine`: Optional empty spacer row before the bottom border
 (e.g., "6pt", use `NULL` or `0pt` to disable)
 
-\- `vertical_alignment`: "top", "center", "bottom"
+- `vertical_alignment`: "top", "center", "bottom"
 
-\- `text_orientation`: "horizontal", "vertical_90", "vertical_270"
+- `text_orientation`: "horizontal", "vertical_90", "vertical_270"
 
-\- `borders`: Border specification (use `s_borders(...)`)
+- `borders`: Border specification (use `s_borders(...)`)
 
 **Example**:
 
@@ -281,13 +277,13 @@ Define borders for all four sides of a cell. Each side takes
 
 **Parameters** (each side):
 
-\- `top`: Top border (use `s_border(...)`)
+- `top`: Top border (use `s_border(...)`)
 
-\- `bottom`: Bottom border (use `s_border(...)`)
+- `bottom`: Bottom border (use `s_border(...)`)
 
-\- `left`: Left border (use `s_border(...)`)
+- `left`: Left border (use `s_border(...)`)
 
-\- `right`: Right border (use `s_border(...)`)
+- `right`: Right border (use `s_border(...)`)
 
 **Note**: `s_borders()` can be used **inside `s_table_style()`** for
 cell-level borders, or **inside `s_paragraph()`** for paragraph-level
@@ -299,12 +295,12 @@ Defines a single border line with style, width, and color.
 
 **Parameters**:
 
-\- `color`: Color as hex code (e.g., "#000000") or color name (e.g.,
+- `color`: Color as hex code (e.g., "#000000") or color name (e.g.,
 "black", "red")
 
-\- `width`: Line width (e.g., "1pt", "2pt", "0.5pt")
+- `width`: Line width (e.g., "1pt", "2pt", "0.5pt")
 
-\- `line_style`: "single", "double", "dashed", "dotted", "thick", "none"
+- `line_style`: "single", "double", "dashed", "dotted", "thick", "none"
 
 **Example**:
 
@@ -365,22 +361,27 @@ spec <- add_style(spec, id = "span_underline",
 spec <- add_span_header(spec,
   cols = c("trt_a", "trt_b"),
   label = "Treatment Arms",
+  stubOrder = 1,
   labelStyleRef = "span_underline"
 )
 
 # Combine paragraph border atom with other styles
+# (disjoint column set, so it can share stubOrder = 1 with the band above)
 spec <- add_span_header(spec,
   cols = c("age", "sex"),
   label = "Demographics",
+  stubOrder = 1,
   labelStyleRef = f_combine("b", "ac", "pb_th")
 )
 ```
 
-**Key difference**: structural borders (`header_top_border`,
-`header_bottom_border`) override cell-level borders on header rows but
-cannot affect paragraph borders. This makes paragraph borders useful
-when you need visual separators independent of the table's structural
-framing.
+**Key difference**: structural borders — template keys
+`tableStyle.structural.header_top_border` / `header_bottom_border` —
+replace the header row's CELL borders outright and always win over
+`labelStyleRef` cell-border atoms. Paragraph borders (the `pb`/`pb_th`
+atoms, OOXML `<w:pBdr>`) live in the paragraph itself and are untouched
+by that override, which is why the spanning-header underline trick above
+survives templates with bold header rules.
 
 ------------------------------------------------------------------------
 
@@ -403,12 +404,12 @@ spec <- add_style(spec, id = "style_name",
 
 **Parameters**:
 
-\- `spec`: A `TFL_spec` object
+- `spec`: A `TFL_spec` object
 
-\- `id`: Unique name for the style (e.g., "header_bold",
+- `id`: Unique name for the style (e.g., "header_bold",
 "numeric_right")
 
-\- `...`: One or more style primitives (`s_font()`, `s_paragraph()`,
+- `...`: One or more style primitives (`s_font()`, `s_paragraph()`,
 `s_table_style()`, etc.)
 
 ### Example: Define a complete style
@@ -437,7 +438,9 @@ spec <- add_style(spec, id = "id_bold",
 ### Multiple calls merge with last-win strategy
 
 Calling `add_style()` multiple times with the same `id` merges the
-styles (last-win semantics):
+styles: a later call overrides only the properties it sets — everything
+else is preserved. For conflict resolution inside `f_combine()`, see
+below.
 
 ```{r add_style_merge, eval = FALSE}
 spec <- create_table(mtcars)
@@ -527,7 +530,9 @@ spec <- add_title(spec, "Motor Trends Analysis", styleRef = "title_style")
 ## Combining styles with `f_combine()`
 
 `f_combine()` lets you apply multiple styles to a single element without
-pre-defining a combined style.
+pre-defining a combined style. When two combined styles set the same
+property, the LAST argument wins — so `f_combine("b", "nrm")` is not
+bold, and `f_combine("nrm", "b")` is. Argument order is semantic.
 
 ### Basic usage
 
@@ -580,18 +585,31 @@ spec <- define_cols(spec, c(mpg, cyl, hp),
 
 ## Allowed values (enumerations)
 
+### Length units by parameter family
+
+| Parameter family                                    | Accepted units          |
+| --------------------------------------------------- | ----------------------- |
+| Font size (`s_font(font_size = ...)`)               | `pt` only               |
+| Border width (`s_border(width = ...)`)              | `pt` only               |
+| Paragraph spacing (`s_spacing`)                     | `pt`, `cm`, `in`, `mm`  |
+| Indents (`s_indents`), margins (`p_margins`)        | `in`, `cm`, `mm`, `pt`  |
+| Row height (`row_height`)                           | `pt`, `in`, `cm`, `mm`, or `"auto"` |
+| Spacer rows (`topEmptyLine`/`bottomEmptyLine`)      | `pt`, `in`, `cm`, `mm`  |
+| Column widths (`colWidth`), content width (`contentWidth`) | `%`, `in`, `cm`   |
+| Figure sizes (`figureWidth`/`figureHeight`)         | `%`, `in`, `cm`, `mm`, `pt` |
+
 ### Color names
 
 Color parameters accept both **hex codes** (e.g., `"#FF0000"`) and
 **named colors**:
 
 **Basic colors**: black, white, red, green, blue, yellow, orange,
-purple, pink, brown, cyan, magenta, navy, teal, lime, maroon, olive,
-silver, gold, coral, salmon, turquoise, violet, indigo, khaki, lavender,
-plum, tan
+purple, pink, brown, gray/grey (medium, #808080), cyan, magenta, navy,
+teal, lightblue, lightgreen, lightred, lime, maroon, olive, silver,
+gold, coral, salmon, turquoise, violet, indigo, khaki, lavender, plum,
+tan
 
-**Grayscale**: grey10, grey20, grey30, grey40, grey60, grey70, grey80,
-grey90 (or gray with 'a')
+**Grayscale**: grey10 through grey90 in steps of 10 (or gray with 'a')
 
 ### Font names (common)
 
@@ -706,7 +724,8 @@ spec <- add_style(spec, id = "level2_stub",
   s_font(bold = TRUE, font_size = "11pt"),
   s_table_style(background_color = "#CCCCCC", vertical_alignment = "center"))
 
-# Wider banner gets the higher order -> renders ABOVE the sub-group band
+# The umbrella band gets the HIGHER stubOrder -> renders above the sub-group
+# band (stacking order decides, not column width)
 spec <- add_span_header(spec, cols = c("var1", "var2"), label = "Safety",
   stubOrder = 1, labelStyleRef = "level2_stub")
 
@@ -767,11 +786,15 @@ write_doc(report, name = "out", outDir = "./output", metaPath = tempdir())
 
 ### Styles looking different in renderer than expected
 
-**Problem**: Renderer may override or ignore certain style properties
-based on its own template system.
+**Problem**: the same property is set at several layers and a higher
+layer wins.
 
-**Solution**: Test with simple styles first, then incrementally add
-properties. Contact your renderer maintainer for constraints.
+**Solution**: check the cascade — for one property, the row action
+(`c_style`) beats your `styleRef`, which beats the template row defaults,
+which beat the region style. Structural header borders always win over
+cell-border atoms on header rows; switch to the paragraph atoms (`pb`,
+`pb_th`) instead. When a property still will not move, `save_report()`
+the spec and inspect the resolved style JSON.
 
 ------------------------------------------------------------------------
 
@@ -796,15 +819,12 @@ consolidation is automatic and transparent.
 
 ### Style reference resolution
 
-Style references are resolved in this order:
-
-1\. **Named styles** defined in the same spec with `add_style()`
-
-2\. **Built-in style atoms** shipped with the package (e.g., `"b"`,
-`"tw_80"`, `"grp_hdr"`)
-
-3\. **Error**: If reference not found, `create_report()` will error with
-an informative message
+Every style name — whether you passed an id to `add_style()` or an atom
+like `"b"`, `"tw_80"`, `"grp_hdr"` — resolves against the spec's single
+style table, which starts pre-populated with the built-in atoms. Defining
+`add_style()` with an atom's name shadows the built-in. An unresolved
+name, user style or atom alike, aborts `create_report()` with
+"Referenced styles not found in spec" and lists the missing ids.
 
 ------------------------------------------------------------------------
 
@@ -839,7 +859,7 @@ tfl_print_style_atoms()
 | `font_verdana`                                                     | Set `font_name = "Verdana"`                                               |
 | `font_trebuchet_ms`                                                | Set `font_name = "Trebuchet MS"`                                          |
 | **Font — size**                                                    |                                                                           |
-| `fs_7` … `fs_11`                                                   | Font size 7 pt … 11 pt                                                    |
+| `fs_7` … `fs_12`                                                   | Font size 7 pt … 12 pt                                                    |
 | **Font — colour**                                                  |                                                                           |
 | `fc_black`, `fc_red`, `fc_blue`, `fc_green`                        | Pure text colours                                                         |
 | `fc_gray` / `fc_grey`                                              | Secondary / reference text (#595959)                                      |
