@@ -34,6 +34,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Advanced</h6></li>
     <li><a class="dropdown-item" href="../articles/Advanced_StyleRows.html">Advanced StyleRows and Conditional Formatting in ksTFL</a></li>
+    <li><a class="dropdown-item" href="../articles/Condition_Helpers_with_ksTFL.html">Condition Helpers: The Small Verbs Behind compute_cols()</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Internals</h6></li>
     <li><a class="dropdown-item" href="../articles/Rendering_Pipeline.html">Rendering Pipeline and Full C++ Architecture in ksTFL</a></li>
@@ -290,7 +291,7 @@
 <li>
 <strong>Eliminated redundant string lowering</strong> (<code>font_cache.cpp</code>, <code>font_scanner.cpp</code>): <code>font_name_to_stem_hint()</code> already returns a lowercase string, so the second <code>to_lower</code> pass in <code>find_font_file()</code> was removed. <code>TargetFallback</code> structs now pre-compute a <code>target_lower</code> field so per-call lowering inside <code>get_fallback_family()</code> is avoided entirely.</li>
 <li>
-<strong>In-place style cascade application</strong> (<code>style_resolver.h</code>, <code>style_resolver.cpp</code>): new <code>apply_style_ref_inplace(StyleDef &amp;, const   std::string &amp;)</code> mutates the target directly instead of copy-merge-return. All callers in <code>resolve_header_cell_style()</code>, <code>resolve_body_cell_style()</code>, <code>resolve_content_style()</code>, <code>resolve_body_text_style()</code> and <code>resolve_figure_caption_style()</code> converted to the in-place variant, eliminating one <code>StyleDef</code> copy per style-ref application.</li>
+<strong>In-place style cascade application</strong> (<code>style_resolver.h</code>, <code>style_resolver.cpp</code>): new <code>apply_style_ref_inplace(StyleDef &amp;, const std::string &amp;)</code> mutates the target directly instead of copy-merge-return. All callers in <code>resolve_header_cell_style()</code>, <code>resolve_body_cell_style()</code>, <code>resolve_content_style()</code>, <code>resolve_body_text_style()</code> and <code>resolve_figure_caption_style()</code> converted to the in-place variant, eliminating one <code>StyleDef</code> copy per style-ref application.</li>
 <li>
 <strong>Per-column base-style caches in paginator</strong> (<code>paginator.cpp</code>): the row loop in <code>compute_row_heights_impl</code> now pre-computes <code>base_style_cache</code> and <code>addrow_style_cache</code> (indexed by column index) <em>before</em> iterating over rows, cutting repeated template-cascade merges (steps 1–5) to a one-time cost. A <code>style_ref_cache</code> (<code>std::unordered_map&lt;std::string, const StyleDef*&gt;</code>) is built once per segment to cache <code>find_style()</code> pointer lookups. A <code>requires std::invocable&lt;…&gt;</code> constraint was added to the template for earlier type-checking.</li>
 <li>

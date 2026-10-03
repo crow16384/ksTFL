@@ -25,6 +25,7 @@ License: GPL-3 + file LICENSE
 URL: https://crow16384.github.io/ksTFL/,  https://crow16384.r-universe.dev/ksTFL
 BugReports: https://github.com/crow16384/ksTFL/issues
 Encoding: UTF-8
+Depends: R (>= 4.5)
 Imports:
     cli,
     checkmate,

@@ -70,6 +70,7 @@ articles:
     navbar: Advanced
     contents:
       - Advanced_StyleRows
+      - Condition_Helpers_with_ksTFL
   - title: Internals
     navbar: Internals
     contents:

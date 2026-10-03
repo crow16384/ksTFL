@@ -66,7 +66,7 @@ session with ksTFL loaded and the session setup above applied (the examples
 use the magrittr pipe `%>%`, so attach `dplyr` or `magrittr` as in the setup
 block).
 
-> **Data note**: Examples 1, 5, 8 and 10 build their input completely in the
+> **Data note**: Examples 1, 5, 6, 8 and 10 build their input completely in the
 > shown code (Example 5 runs on `mtcars`). In the other examples the input
 > frame (`data`, `tbl`, `demo_data`, `lab_listing`) is displayed
 > as printed output only — it stands for the result of upstream analysis
@@ -1045,81 +1045,120 @@ parameters. Two specs (figure + table) merge into a single report;
   footnotes, so the Table of Contents can list both entries.
 - **Continuous flow** — both specs carry `continuousSection = TRUE`, so
   the table follows the figure on the same landscape sheet.
-- **Sizing** — `figureHeight = "3.2in"` was dialed for this landscape
-  sheet so figure + table + titles + footnote fit one page; on a different
-  template or orientation, remeasure — Word breaks to a fresh sheet when
-  the combined height exceeds one page.
+- **Sizing** — ksTFL has two independent knobs: the global
+  `figureWidth`/`figureHeight` options set the ggplot master's export size
+  when `create_figure()` runs; `set_document(figureWidth = , figureHeight = )`
+  sizes the embed box. Setting both to the same 7.2 x 2.9 in lands the image
+  1:1 — no stretch, and the sheet keeps room for table + titles + footnote.
+  On a different template or orientation, remeasure.
 - **`<br>` in column labels** — `Cmax (ng/mL)<br>mean (SD)` stacks the
   statistic over the unit for a compact header.
 
 ### Data
 
 ```{r example_06_data, eval = FALSE}
-# --- Simulated single-dose PK profile ---
-# Nine sampling times over 24 h for four treatment arms.
+# --- Simulated single-dose PK profile (three dose arms) ---
+# Twelve virtual subjects per arm drawn from a Bateman absorption/elimination
+# curve with subject-level variability in exposure (log-normal scale) and in
+# elimination rate; the figure plots arm means with +/-1 SD ribbons. Nine
+# sampling times over 24 h. Concentrations start at zero and stay >= 0 by
+# construction - the subject factors only scale the curve.
 times <- c(0, 0.5, 1, 2, 4, 6, 8, 12, 24)
-pk <- do.call(rbind, lapply(c("Placebo", "Drug X 50 mg", "Drug X 100 mg", "Drug X 200 mg"), function(trt) {
-# Dose-proportional expected Cmax per arm; placebo carries only assay
-# background noise.
-  peak <- switch(trt, "Placebo" = 0, "Drug X 50 mg" = 21, "Drug X 100 mg" = 43, "Drug X 200 mg" = 66)
-# Classic absorption/elimination curve (rates ka and ke) plus small
-# normally distributed measurement error - a believable profile shape.
-  ka <- 1.35; ke <- 0.16
-  data.frame(TRT = trt, TIME = times,
-             CONC = if (peak == 0) round(runif(length(times), 0.4, 1.4), 1)
-                    else round(peak * (ke/(ka-ke)) * (exp(-ke*times) - exp(-ka*times)) * 6.2 +
-                               rnorm(length(times), 0, 1.6), 1),
+peaks <- c("Drug A 50 mg" = 21, "Drug A 100 mg" = 42, "Drug A 200 mg" = 63)
+ka <- 1.35; ke <- 0.16
+# Scale each arm so the theoretical peak of the typical curve hits the target.
+tmax_theo <- log(ka / ke) / (ka - ke)
+fmax <- exp(-ke * tmax_theo) - exp(-ka * tmax_theo)
+
+set.seed(7L)
+curves <- list(); ke_i_all <- list()
+for (trt in names(peaks)) {
+  scale <- peaks[[trt]] / fmax
+  s_i <- rlnorm(12, log(scale), 0.25)          # between-subject exposure
+  ke_i <- rlnorm(12, log(ke), 0.12)            # between-subject elimination
+  m <- vapply(seq_len(12), function(j)         # one column = one subject
+    s_i[j] * (exp(-ke_i[j] * times) - exp(-ka * times)), numeric(9))
+  curves[[trt]] <- m; ke_i_all[[trt]] <- ke_i
+}
+
+# The plotting frame: one row per (arm x time) with mean and SD across subjects.
+pk <- do.call(rbind, lapply(names(peaks), function(trt) {
+  m <- rowMeans(curves[[trt]]); sdv <- apply(curves[[trt]], 1, sd)
+  data.frame(TIME = times, TRT = trt, CONC = round(m, 1),
+             LO = round(pmax(0, m - sdv), 1), HI = round(m + sdv, 1),
              stringsAsFactors = FALSE)
 }))
-# Factor levels fix the plotting and legend order once, here,
-# instead of being fought over downstream.
-pk$TRT <- factor(pk$TRT, levels = c("Placebo", "Drug X 50 mg", "Drug X 100 mg", "Drug X 200 mg"))
+# Factor levels fix the plotting, table and legend order once, here.
+pk$TRT <- factor(pk$TRT, levels = names(peaks))
 
-# The figure is an ordinary ggplot object - ksTFL embeds it directly,
-# brand palette included: Lapis blues with rust for the top dose.
-p6 <- ggplot(pk, aes(TIME, CONC, colour = TRT)) +
-  geom_hline(yintercept = 0, colour = "grey70") +
-  geom_line(linewidth = 0.7) +
-  geom_point(size = 1.7) +
-  scale_colour_manual(values = c("grey55", "#74A7CF", "#2166AC", "#B2182B"), name = NULL) +
-  scale_x_continuous(breaks = times, name = "Time after dose, hours") +
-  scale_y_continuous(name = "Plasma concentration, ng/mL") +
+p6 <- ggplot(pk, aes(TIME, CONC, colour = TRT, fill = TRT)) +
+  # +/-1 SD band per arm: same hue, alpha-faded, no outline - the auxiliary
+  # construction stays lighter than the data line it supports
+  geom_ribbon(aes(ymin = LO, ymax = HI), linewidth = 0, alpha = 0.12) +
+  geom_hline(yintercept = 0, colour = "grey75", linewidth = 0.3) +
+  geom_line(linewidth = 0.5) +
+  geom_point(size = 1.5) +
+  # dose-proportional palette: light lapis -> deep blue -> rust
+  scale_colour_manual(values = c("#74A7CF", "#2166AC", "#B2182B"), name = NULL) +
+  scale_fill_manual(values = c("#74A7CF", "#2166AC", "#B2182B"), guide = "none") +
+  # every sampling time gets a minor tick; only the rounded subset carries
+  # labels, so tick text never competes for the same horizontal space
+  scale_x_continuous(breaks = c(0, 2, 4, 6, 8, 12, 24), minor_breaks = times,
+                     limits = c(0, 24), expand = expansion(mult = c(0.02, 0.04)),
+                     name = "Time after dose, hours") +
+  scale_y_continuous(name = "Plasma concentration, ng/mL",
+                     expand = expansion(mult = c(0, 0.08))) +
   theme_bw(base_size = 9) +
-  theme(panel.grid.minor = element_blank(), legend.position = "right",
-        legend.text = element_text(size = 7.2), axis.text = element_text(size = 7.5))
+  theme(panel.grid.minor = element_blank(),
+        # one horizontal legend row under the panel: a side legend would
+        # squeeze the wide+flat profile
+        legend.position = "bottom",
+        legend.text = element_text(size = 8),
+        axis.text = element_text(size = 8),
+        plot.margin = margin(5, 8, 3, 5))
 
-# Derived NCA parameters, presented under the figure as a separate
-# table spec - the classic CSR "figure + numbers" page.
-summary_tbl <- data.frame(
-  TRT = levels(pk$TRT),
-  CMAX = c("1.1 (0.4)", "21.6 (3.2)", "43.2 (5.8)", "65.9 (8.4)"),
-  TMAX = c("4.0", "1.0", "1.0", "1.0"),
-  AUC  = c("16.8 (6.1)", "151.2 (24.6)", "302.4 (41.9)", "463.1 (58.2)"),
-  HL   = c("-", "5.2 (0.9)", "4.9 (0.8)", "5.1 (1.1)"),
-  stringsAsFactors = FALSE)
+# Derived NCA parameters, presented under the figure as a separate table
+# spec - the classic CSR "figure + numbers" page. Every statistic is computed
+# from the same subject curves the figure is built on: per-subject Cmax and
+# trapezoidal AUC0-24, half-lives as 0.693/ke_i, reported as mean (SD).
+auc_of <- function(c) sum(diff(times) * (head(c, -1) + tail(c, -1)) / 2)
+summary_tbl <- do.call(rbind, lapply(names(peaks), function(trt) {
+  cm <- apply(curves[[trt]], 2, max); hl <- 0.693 / ke_i_all[[trt]]
+  data.frame(
+    TRT  = trt,
+    CMAX = sprintf("%.1f (%.1f)", mean(cm), sd(cm)),
+    TMAX = sprintf("%.1f", times[which.max(rowMeans(curves[[trt]]))]),
+    AUC  = sprintf("%.0f (%.0f)", mean(apply(curves[[trt]], 2, auc_of)),
+                   sd(apply(curves[[trt]], 2, auc_of))),
+    HL   = sprintf("%.1f (%.1f)", mean(hl), sd(hl)),
+    stringsAsFactors = FALSE)
+}))
 ```
 
-The generated concentration data (36 rows; `TRT` has four levels):
+The generated profile frame (27 rows; mean, -1 SD, +1 SD per arm and time):
 
 ```
-   TIME TRT              CONC
-1   0.0 Placebo           0.6
-2   0.5 Placebo           0.6
-3   1.0 Placebo           0.7
+   TIME          TRT CONC   LO   HI
+1   0.0 Drug A 50 mg  0.0  0.0  0.0
+2   0.5 Drug A 50 mg 15.0  9.3 20.6
+3   1.0 Drug A 50 mg 21.3 13.3 29.4
 ...
-10  0.0 Drug X 50 mg      0.9
-11  0.5 Drug X 50 mg      7.0
-12  1.0 Drug X 50 mg     10.7
-...
-28  0.0 Drug X 200 mg     0.1
-29  0.5 Drug X 200 mg    22.3
-30  1.0 Drug X 200 mg    33.6
+19  0.0 Drug A 200 mg  0.0  0.0  0.0
+20  0.5 Drug A 200 mg 41.4 33.1 49.8
+21  1.0 Drug A 200 mg 59.1 47.3 71.0
 ```
 
 ### Code
 
 ```{r example_06_spec, eval = FALSE}
 # --- Figure spec ---
+# ksTFL has TWO sizing knobs: the global figureWidth/figureHeight options
+# decide the ggplot master's export size at create_figure() time, while
+# set_document(figureWidth/figureHeight) sizes the EMBED box on the page.
+# Exporting the master and embedding at the SAME 7.2 x 2.9 in lands the
+# image 1:1 - no stretch, so line widths and tick text stay exactly where
+# the theme put them.
+tfl_set_options(figureWidth = "7.2in", figureHeight = "2.9in")
 # A figure is a first-class TFL spec: titles, subtitles and footnotes
 # attach exactly like on tables, so figure pages follow the same
 # document style. toclevel = 1 lists the figure in the ToC.
@@ -1131,9 +1170,10 @@ spec_fig <- create_figure(p6) %>%
                   margins = p_margins(top = "0.6in", bottom = "0.6in",
                                       left = "0.55in", right = "0.55in"))) %>%
 # The two-line magic: continuousSection = TRUE lets the parameter
-# table flow onto the SAME page, and figureHeight is dialed so
-# figure + table + titles + footnote all fit the sheet.
-  set_document(continuousSection = TRUE, figureHeight = "3.2in")
+# table flow onto the SAME page; 2.9in of figure leaves the rest of
+# the landscape sheet for titles, table and footnote.
+  set_document(continuousSection = TRUE,
+               figureWidth = "7.2in", figureHeight = "2.9in")
 
 # --- Table spec ---
 # Second document of the same report; standard define_cols + footnote
@@ -1144,9 +1184,10 @@ spec_tbl <- create_table(summary_tbl) %>%
 # <br> stacks units over statistic names for a compact two-line
 # header ("Cmax (ng/mL)" over "mean (SD)").
   define_cols(c(CMAX, TMAX, AUC, HL),
-              label = c("Cmax (ng/mL)<br>mean (SD)", "Tmax (h)", "AUC0-24<br>mean (SD)", "t1/2 (h)<br>mean (SD)"),
+              label = c("Cmax (ng/mL)<br>mean (SD)", "Tmax (h)",
+                        "AUC0-24<br>mean (SD)", "t1/2 (h)<br>mean (SD)"),
               valueStyleRef = "text_center") %>%
-  add_footnote("Non-compartmental analysis; placebo values include assay background.",
+  add_footnote("Non-compartmental analysis; 12 subjects per dose. Ribbons show +/- 1 SD around the mean profile.",
                styleRef = "fc_gray") %>%
 # The paired flag: this spec also keeps flowing instead of starting
 # a new page.
