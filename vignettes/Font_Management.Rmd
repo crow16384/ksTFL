@@ -23,10 +23,10 @@ knitr::opts_chunk$set(
 ## Overview
 
 ksTFL renders DOCX documents using a C++ engine that requires TrueType/OpenType
-font files for text measurement and pagination. Starting with version 0.7.0,
-the package **automatically discovers fonts installed on the operating system**
-at load time. If a required font is not available on the system, a metrically
-compatible open-source fallback is used.
+font files for text measurement and pagination. The package automatically
+discovers fonts installed on the operating system at load time. If a required
+font is not available on the system, a metrically compatible open-source
+fallback is used.
 
 This guide explains how font discovery works, which fallback fonts are
 bundled, and how to configure custom font directories.
@@ -35,9 +35,11 @@ bundled, and how to configure custom font directories.
 
 When ksTFL is loaded, it performs four steps:
 
-1. **Scan system directories.** The C++ font scanner inspects
-  platform-specific directories and reads family names and style flags from
-  `.ttf`, `.otf`, and `.ttc` files.
+1. **Scan system directories.** The C++ font scanner walks the
+  platform-specific directories recursively and reads family names and style
+  flags from `.ttf`, `.otf`, and `.ttc` files. For a given family and style
+  the first file found wins, which is why earlier-scanned directories take
+  priority.
 
 2. **Scan user directories.** If the R option `ksTFL.font_dirs` is set, those
   directories are scanned as well.
@@ -58,9 +60,9 @@ The scanner inspects the following directories by default:
 
 | Platform    | Directories                                                                                              |
 | ----------- | -------------------------------------------------------------------------------------------------------- |
-| **Linux**   | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.local/share/fonts`, `~/.fonts`, plus any XDG data dirs |
-| **macOS**   | `/System/Library/Fonts`, `/Library/Fonts`, `~/Library/Fonts`                                             |
-| **Windows** | System fonts directory (from registry), plus user fonts in `%LOCALAPPDATA%\Microsoft\Windows\Fonts`      |
+| **Linux**   | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.local/share/fonts`, `~/.fonts`, plus the `fonts/` subdirectory of each `$XDG_DATA_DIRS` entry |
+| **macOS**   | `/System/Library/Fonts`, `/System/Library/Fonts/Supplemental`, `/Library/Fonts`, `~/Library/Fonts`      |
+| **Windows** | System fonts directory (from the OS API; typically `C:\Windows\Fonts`), plus user fonts in `%LOCALAPPDATA%\Microsoft\Windows\Fonts` |
 
 ## Target Fonts and Fallbacks
 
@@ -79,15 +81,17 @@ the package:
 
 All bundled fonts are licensed under the SIL Open Font License 1.1.
 
-If a font family requested in a spec (via `s_font(font_name = "...")`) is not a
-target font and is not found on the system, the engine falls back to Liberation
-Sans as the last resort.
+The R layer accepts only these seven families in `s_font(font_name = ...)`:
+the six targets above plus `Liberation Sans`. If the renderer encounters a
+family it cannot resolve on disk (possible only in a hand-edited spec or
+template JSON), it falls back to the bundled Liberation Sans.
 
-For convenience, ksTFL also ships built-in style atoms for the target font
+For convenience, ksTFL also registers built-in style names for the target
 families: `font_arial`, `font_courier_new`, `font_times_new_roman`,
-`font_georgia`, `font_verdana`, and `font_trebuchet_ms`. These atoms set only
-`font_name`, so they can be safely combined with size, colour, alignment, and
-other style atoms via `f_combine()`.
+`font_georgia`, `font_verdana`, and `font_trebuchet_ms`. These are strings you
+pass to style slots (`labelStyleRef`, `valueStyleRef`, `styleRef`) or to
+`f_combine()`; each sets only `font_name`, so they combine safely with size,
+colour, alignment, and other style atoms.
 
 ## Checking Font Status
 
@@ -107,12 +111,18 @@ tfl_font_status()
 #>   Scanned 5 directories
 ```
 
+The counts depend on which proprietary fonts are installed and how many
+font directories exist on your machine; the report always lists all six
+targets with their resolution.
+
 **Reading the output:**
 
 - **`[ok]`** — The target font was found on the system and will be used
   directly.
 - **`[fallback]`** — The target font was not found; the bundled fallback is
   used instead.
+- **`(not found)`** — Neither the family nor its fallback resolved on disk
+  (rare; usually a broken or unreadable font file).
 
 ## Adding Custom Font Directories
 
@@ -126,6 +136,9 @@ to those directories **before** loading the package, or rescan afterwards:
 options(ksTFL.font_dirs = c("/opt/company-fonts", "/mnt/shared/fonts"))
 library(ksTFL)
 ```
+
+This works only when the option is set before ksTFL is first loaded in the
+session; if the package is already loaded, use Option B.
 
 ### Option B: Set and rescan after loading
 
@@ -149,15 +162,19 @@ Call `tfl_rescan_fonts()` after:
 ```r
 # Install Georgia to /usr/local/share/fonts/georgia/ ... then:
 tfl_rescan_fonts()
-#> ksTFL font scan: 6 target(s) resolved, 0 using fallback
-#>   [ok]       Arial                -> Arial
-#>   [ok]       Times New Roman      -> Times New Roman
-#>   [ok]       Courier New          -> Courier New
+#> ksTFL font scan: 1 target(s) resolved, 5 using fallback
+#>   [fallback] Arial                -> Liberation Sans
+#>   [fallback] Times New Roman      -> Liberation Serif
+#>   [fallback] Courier New          -> Liberation Mono
 #>   [ok]       Georgia              -> Georgia
-#>   [ok]       Verdana              -> Verdana
-#>   [ok]       Trebuchet MS         -> Trebuchet MS
-#>   Scanned 5 directories
+#>   [fallback] Verdana              -> Liberation Sans
+#>   [fallback] Trebuchet MS         -> Liberation Sans
+#>   Scanned 6 directories
 ```
+
+A machine shows all six `[ok]` only when every proprietary family is actually
+installed (Windows workstations typically are; bare Linux servers typically
+are not).
 
 ## Startup Messages
 
@@ -165,7 +182,7 @@ When the package is attached, it prints a concise summary if any target fonts
 are using fallbacks:
 
 ```
-ksTFL v0.7.0 - Clinical TFL Framework
+ksTFL v0.12.0 - Clinical TFL Framework
 For help, type: ??ksTFL
 Note: 3 font(s) using fallback: Georgia, Verdana, Trebuchet MS
 Run tfl_font_status() for details.
@@ -175,9 +192,8 @@ If all target fonts are found on the system, no font-related message is shown.
 
 ## Interaction with `write_doc()`
 
-The `write_doc()` function (and `replay_report()`) automatically uses the font
-directories from the scanner cache. You can still pass additional per-call
-directories via the `font_dirs` argument:
+`write_doc()` uses the font directories from the scanner cache. You can pass
+additional per-call directories via its `font_dirs` argument:
 
 ```r
 write_doc(report, name = "output",
@@ -187,7 +203,9 @@ write_doc(report, name = "output",
 ```
 
 Per-call directories are appended to the scanner's cached list for that render
-only — they do not modify the global font registry.
+only — they do not modify the global font registry. `replay_report()` uses the
+same cache but has no `font_dirs` argument; register extra directories with
+`options(ksTFL.font_dirs = ...)` plus `tfl_rescan_fonts()` before replaying.
 
 ## FAQ
 
@@ -203,10 +221,13 @@ tfl_rescan_fonts()
 
 ### Q: Can I use custom fonts not in the target list?
 
-Yes. Any font found during scanning is available to the renderer. Use the
-family name as it appears in the font's metadata (e.g.,
-`s_font(font_name = "Fira Sans")`). If the font is in a non-standard directory,
-add that directory to `ksTFL.font_dirs`.
+Not in `s_font()`. The R layer accepts exactly seven families: Arial,
+Courier New, Times New Roman, Georgia, Verdana, Trebuchet MS, and
+Liberation Sans. Fonts the scanner discovers outside this set are visible to
+the internal resolver but cannot be named in a spec — pick the closest allowed
+family. The scanning directories still matter for the six target families:
+if one of them lives in a non-standard directory, add that directory to
+`ksTFL.font_dirs` so the resolver finds the real font instead of the fallback.
 
 ### Q: Will documents look different on systems without the proprietary fonts?
 

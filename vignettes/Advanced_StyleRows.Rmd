@@ -34,10 +34,11 @@ options(pkgdown.internet = FALSE)
 
 ## Overview
 
-This vignette explains the powerful conditional row styling system in
-ksTFL, centered around `compute_cols()` and its action functions:
-`c_style()`, `c_merge()`, and `c_addrow()`. These tools enable
-sophisticated data-driven formatting without manual post-processing.
+This vignette covers conditional row formatting in ksTFL:
+`compute_cols()` and its six action functions — `c_style()`, `c_merge()`,
+`c_addrow()`, `c_glue()`, `c_clear()`, and `c_pageBreak()`. Rules are
+declared against the data and applied at render; no post-processing pass
+is needed.
 
 ## Category and prerequisites
 
@@ -60,7 +61,7 @@ as quosures, stores them in the spec metadata, and evaluates them later during
 3.  **Clean staging**: you specify rules first and execute them later,
   which keeps the build pipeline easier to inspect.
 
-## The Three Action Functions
+## Action Functions
 
 ### `c_style()`: Conditional Styling
 
@@ -93,8 +94,8 @@ spec <- spec |>
   )
 ```
 
-**Result:** Rows where `response == "CR"` show green bold text; rows
-where `response == "PD"` show red bold text:
+**Result:** The `response` cell shows green bold text on `CR` rows and
+red bold text on `PD` rows; other columns are untouched:
 
 ![style conditional green red response](images/style-conditional-green-red-response.png)
 
@@ -112,22 +113,22 @@ data_groups <- data.frame(
 
 spec <- create_table(data_groups) |>
   compute_cols(
-    !firstOf(group),  # Not the first occurrence of this group value
+    !firstOf(group),  # not the first row of each run of this group value
     c_merge(c(group, visit))
   )
 ```
 
 **Result:** When consecutive rows have the same `group`, their `group`
-and `visit` cells merge into one display cell showing the `group` value
-(the merged cell always keeps the text of the FIRST column in `cols`;
-the other columns' values are not shown).
+and `visit` cells merge into one display cell showing the `group` value.
+The merged cell keeps the text of the leftmost column in the merged range
+(report column order), regardless of the order in which columns are
+listed in `cols`; the other columns' values are not shown.
 
 ![merge group visit cells](images/merge-group-visit-cells.png)
 
 **Note:** The `cols` argument to `c_merge()` must resolve to at least
-two **consecutive** columns in the final report column order. The value
-shown in the merged cell is taken **from the first** column in the
-`cols` sequence.
+two **consecutive** columns in the final report column order. Overlapping
+merges are not allowed: the second one is dropped with a warning.
 
 ### `c_addrow()`: Conditional Row Insertion
 
@@ -141,10 +142,11 @@ spec <- create_table(data_groups) |>
   )
 ```
 
-**Result:** An empty separator row is inserted above each new group. To
-copy a single column's value into the inserted row use `value_from` (see
-later examples). Use `pos = "below"` to insert after the matching row
-instead.
+**Result:** The inserted row is one full-width cell: empty text without
+`value_from`, styled by `styleRef` — with a style it reads as a band or
+section header. To copy a single column's value into the inserted row use
+`value_from` (see later examples). Use `pos = "below"` to insert after
+the matching row instead.
 
 ![addrow separator above groups](images/addrow-separator-above-groups.png)
 
@@ -162,7 +164,9 @@ spec <- create_table(data_groups) |>
 ```
 
 **Result:** The renderer will start a new page at rows matching the
-condition:
+condition. Each break ends the current table segment and the next segment
+repeats the column-header row. A match on the very first data row changes
+nothing — that row already starts the page.
 
 ![pagebreak at group start](images/pagebreak-at-group-start.png)
 
@@ -183,6 +187,12 @@ contains:
 > exported functions** — you cannot call them outside of
 > `compute_cols()`.
 
+Style references passed to actions can also name built-in atoms (`b`,
+`i`, `ar`, `indent_1`, `bg_mint`, `bt_th`, ...; full catalog via
+`tfl_print_style_atoms()` and in the
+[Styling Guide](Styling_Guide_with_ksTFL.html)); `f_combine()` merges
+several atoms into one reference.
+
 ```{r data-env-example}
 # You can reference any column directly in conditions
 spec <- create_table(data) |>
@@ -199,16 +209,21 @@ spec <- create_table(data) |>
 The following helpers are available exclusively inside `compute_cols()`
 conditions:
 
--   **`firstOf(...)`**: Logical vector marking first occurrence of each
-    value combination in specified columns
--   **`lastOf(...)`**: Logical vector marking last occurrence of each
-    value combination in specified columns
+-   **`firstOf(...)`**: Logical vector TRUE at the first row of each
+    RUN of equal values in the specified columns (run-length semantics).
+    Sort the data upstream so each logical group is contiguous — a value
+    that re-appears later starts a new run and matches again.
+-   **`lastOf(...)`**: The same, TRUE at the last row of each run.
 -   **`firstRow()`**: Logical vector TRUE only at first row
 -   **`lastRow()`**: Logical vector TRUE only at last row
 -   **`rowNumber()`**: Integer vector of row numbers (1-based)
--   **`everyNth(n)`**: Logical vector TRUE at every nth row
--   **`firstOfBlock(col, n, offset)`**: Returns logical vector marking
-    first row of every n-th block defined by `col`
+-   **`everyNth(n)`**: Logical vector TRUE at every nth row starting from
+    row 1 (so `everyNth(2)` marks odd rows 1, 3, 5, ...; use
+    `rowNumber() %% 2 == 0` for the even rows)
+-   **`firstOfBlock(col, n = 1, offset = 0)`**: TRUE at the first row of
+    every n-th RUN of `col` values, excluding the first run — `n = 1`
+    marks the start of runs 2, 3, 4, ...; `n = 2` marks runs 3, 5, ...
+    Same sort precondition as `firstOf()`.
 
 ```{r helpers-example}
 # Highlight first and last rows using helper functions
@@ -234,7 +249,7 @@ spec <- create_table(data_groups) |>
 spec <- create_table(data) |>
   add_style(id = "gray_bg", s_table_style(background_color = "#F5F5F5")) |>
   compute_cols(
-    everyNth(2),  # Every 2nd row starting from row 1
+    everyNth(2),  # marks odd rows: 1, 3, 5, ...
     c_style(everything(), styleRef = "gray_bg")
   )
 ```
@@ -332,8 +347,6 @@ spec <- create_table(data_nested) |>
 ```
 
 ![merge multi column grouping](images/merge-multi-column-grouping.png)
-
-### Conditional Display Column Content
 
 ### Merging with Styling
 
@@ -475,20 +488,21 @@ markers, or building composite labels without creating extra columns.
 
 **Parameters:**
 
-\- `cols`: columns to modify (tidyselect)
+- `cols`: columns to modify (tidyselect)
+- `position`: `"before"` or `"after"` — where to attach the text
+- `glue_col`: unquoted name of a data column whose value to attach
+- `text`: a literal string (single value) to attach
+- `separator`: string inserted between original value and the glued
+  text (default `""`)
 
-\- `position`: `"before"` or `"after"` — where to attach the text
+Provide exactly one of `glue_col` / `text`. If both appear in a
+`compute_cols()` call, the parser warns and keeps `glue_col`, ignoring
+`text`.
 
-\- `glue_col`: unquoted name of a data column whose value to attach
-
-\- `text`: a literal string (single value) to attach
-
-Exactly one of `glue_col` / `text` must be provided: calling `c_glue()`
-directly with both is an error, and inside `compute_cols()` the parser
-keeps `glue_col` and silently drops `text` — supply one or the other.
-
-\- `separator`: string inserted between original value and the glued
-text (default `NULL`)
+Glue lands on the raw cell text: a cell suppressed by `dedupe` or merged
+as a non-leader renders blank and the glued part is skipped — target the
+merge leader. `cols` must match visible report columns; `glue_col` may
+reference a hidden one.
 
 ```{r c-glue-basic}
 data_units <- data.frame(
@@ -512,13 +526,11 @@ spec <- create_table(data_units) |>
 `c_glue()` is fully compatible with `c_style()` and `c_merge()` in the
 same `compute_cols()` call.
 
-------------------------------------------------------------------------
-
 ## `c_clear()`: Blank Cell Content in Matching Rows
 
 `c_clear()` renders specified cells as empty (blank) in matching rows
 without removing the column or affecting layout. Useful for conditional
-deduplication, when a `dedupe` parameter of `define_col()` is not
+deduplication, when the `dedupe` parameter of `define_cols()` is not
 enough.
 
 ```{r c-clear-basic}
@@ -544,8 +556,6 @@ underlying data value is still available for conditions in other
 before `c_glue()` in the same call turns the glue into a full cell
 replacement, while `c_glue()` before `c_clear()` erases the glued
 result.
-
-------------------------------------------------------------------------
 
 ## Combining Actions Together
 
@@ -648,26 +658,13 @@ spec <- create_table(data) |>
   )
 ```
 
-### 3. Pre-Filter Data When Possible
+### 3. Tighten Conditions, Do Not Split Tables
 
-If conditions apply to a small subset, consider filtering data upfront:
-
-```{r perf-prefilter}
-# If only 5% of rows need special formatting:
-# Consider creating separate tables and combining in report
-
-data_outliers <- subset(data, age > 80)
-data_normal <- subset(data, age <= 80)
-
-spec_outliers <- create_table(data_outliers) |>
-  add_style(id = "outlier", s_font(color = "#FF0000", bold = TRUE)) |>
-  compute_cols(TRUE, c_style(everything(), styleRef = "outlier"))
-
-spec_normal <- create_table(data_normal)
-
-# Combine in report
-report <- create_report(spec_normal, spec_outliers)
-```
+Conditions are evaluated vectorized, one pass per block over whole
+columns — there is no per-row cost to optimize. If only a few rows need
+styling, make the condition selective (e.g. `age > 80`), not the data:
+do not split one logical table across two specs for formatting reasons,
+because each spec becomes its own Word table in the report.
 
 ### 4. Style Consolidation
 
@@ -752,14 +749,14 @@ spec <- create_table(data) |>
   )
 ```
 
-### Pattern 2: Grouped Section Headers with Merging
+### Pattern 2: Group Separator Bands with Cell Merging
 
 ```{r pattern-grouped}
 spec <- create_table(data_groups) |>
   add_style(id = "group_header",
             s_font(bold = TRUE, font_size = "11pt"),
             s_table_style(background_color = "#D0D0D0")) |>
-  # Insert header row before each new group
+  # Insert a styled band row above each new group
   compute_cols(
     firstOf(group),
     c_addrow(pos = "above", styleRef = "group_header")
@@ -795,13 +792,24 @@ spec <- create_table(data_lab) |>
 ### Pattern 4: Summary Rows with Totals
 
 ```{r pattern-totals}
-spec <- create_table(data_sales) |>
+# The analyst frame carries a pre-computed per-region total in `total`
+# (same value repeated on every row of the region).
+data_totals <- data.frame(
+  region  = rep(c("North", "South"), each = 2),
+  product = rep(c("A", "B"), 2),
+  revenue = c(100, 150, 200, 120),
+  total   = c(250, 250, 320, 320)
+)
+
+spec <- create_table(data_totals) |>
   add_style(id = "total_row",
             s_font(bold = TRUE),
             s_table_style(background_color = "#FFD700")) |>
+  define_cols(total, isVisible = FALSE) |>
   compute_cols(
     lastOf(region),  # Last row of each region
-    c_addrow(pos = "below", styleRef = "total_row")
+    # copy the region total into a full-width row below it
+    c_addrow(pos = "below", value_from = total, styleRef = "total_row")
   )
 ```
 
@@ -966,12 +974,15 @@ report <- create_report(spec1, spec2)
 -   **`c_merge()`**: Merge cells across columns based on conditions
 -   **`c_addrow()`**: Insert new rows dynamically (`pos = "above"` or
     `"below"`)
+-   **`c_glue()`**: Append or prepend a string or another column's value
+    to the display text of matching cells
 -   **`c_pageBreak()`**: Insert a page break at the matching row
 -   **`c_clear()`**: Blank the rendered display text of specified cells
     in matching rows (deduplication)
--   **Evaluation context**: Data environment with helper functions
-    (`firstOf()`, `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`,
-    `everyNth()`, `firstOfBlock()`)
+-   **Evaluation context**: condition-only helpers (`firstOf()`,
+    `lastOf()`, `firstRow()`, `lastRow()`, `rowNumber()`, `everyNth()`,
+    `firstOfBlock()`) resolved inside the spec data environment — not
+    exported functions
 -   **Performance**: Minimize calls, use vectorized operations,
     consolidate styles
 -   **Debugging**: Inspect metadata, test conditions manually, build

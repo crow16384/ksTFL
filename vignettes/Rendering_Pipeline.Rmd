@@ -16,14 +16,15 @@ editor_options:
     wrap: 80
 ---
 
-This document describes the complete C++ renderer architecture used by
-ksTFL to convert JSON report specifications into deterministic DOCX
-output.
+ksTFL converts JSON report specifications into deterministic DOCX output
+with a C++ renderer. This document maps its modules, pipeline phases, and
+data structures.
 
 ## 1. End-to-End Architecture
 
-```         
+```
 R API
+  -> R layer serializes spec/template/data to JSON (jsonlite)
   -> src/rcpp_bindings.cpp
   -> kstfl::Renderer
 
@@ -32,6 +33,8 @@ Renderer pipeline
 
 Core modules
   json_parser.cpp      : spec/template/data parsing
+  units.cpp            : Length parsing and EMU/dxa conversion backbone
+  style_types.cpp      : style-merge machinery + OOXML enum lookup tables
   style_resolver.cpp   : style cascade + page/width resolution
   logical_table.cpp    : header grid + logical row stream + styleRows actions
   font_scanner.cpp     : system font discovery + fallback resolution
@@ -51,6 +54,9 @@ Core modules
 -   src/kstfl/renderer.cpp
     -   Renderer::render()
     -   Renderer::render_from_strings()
+-   src/cpp_tests.cpp
+    -   In-package C++ self-tests (units, inline_parser, xml_writer,
+        format validator), driven from testthat via `.Call`
 
 ### 2.2 Parsing and schema model
 
@@ -72,17 +78,20 @@ Core modules
 -   src/kstfl/logical_table.cpp
     -   LogicalTableBuilder::build()
     -   build_header_grid(), build_data_rows()
-    -   apply_dedupe(), apply_style_rows(), detect_grouping_boundaries()
+    -   apply_dedupe() runs as its own pass; apply_style_rows() then
+        interleaves c_clear, c_glue, c_merge, c_style, c_addrow, and
+        c_pageBreak by sequence number; detect_grouping_boundaries()
 -   src/kstfl/inline_parser.cpp
-    -   inline markup extraction (`<b> <i> <u> <br> <sup> <sub>` etc.)
-        feeding vertAlign/bold/italic runs to the emitter
+    -   inline markup extraction (`<b> <i> <u> <s> <br> <sup> <sub> <p>`)
+        feeding vertAlign/bold/italic/strike runs to the emitter
 
 ### 2.4 Font discovery, measurement, and pagination
 
 -   src/kstfl/font_scanner.cpp
     -   Platform-specific system font directory enumeration
     -   FreeType-based font family/style classification
-    -   Global font path map (populated once at package load)
+    -   Global font path map (populated at package load, re-populated by
+        tfl_rescan_fonts())
     -   Target font resolution with fallback assignment
 -   src/kstfl/font_cache.cpp
     -   FreeType/HarfBuzz font loading + metrics cache
@@ -98,16 +107,21 @@ Core modules
 
 ### 2.5 DOCX emission and packaging
 
--   src/kstfl/docx_emitter.cpp (top-level emission)
--   src/kstfl/docx_document.cpp, docx_page.cpp, docx_table.cpp,
-    docx_styles.cpp, docx_rels.cpp, docx_content_types.cpp,
-    docx_media.cpp, docx_toc.cpp
+-   src/kstfl/docx_emitter.cpp (top-level emission orchestration)
+-   Document parts: src/kstfl/docx_document.cpp, docx_content.cpp,
+    docx_page.cpp, docx_table.cpp, docx_styles.cpp, docx_sections.cpp,
+    docx_layout.cpp, docx_drawing.cpp, docx_toc.cpp
+-   src/kstfl/docx_metadata.cpp
+    -   [Content_Types].xml, .rels, document rels, font table, settings
+-   src/kstfl/docx_packager.cpp
+    -   Assembles and writes all parts through ZipWriter (media files
+        included)
 -   src/kstfl/xml_writer.cpp
 -   src/kstfl/zip_writer.cpp
 
 ## 3. Detailed Rendering Pipeline
 
-```         
+```
 ┌───────────────────────────────────────────────────────────────────────┐
 │ Phase 1: Parse                                                        │
 │   parse_template_bundle()                                             │
@@ -139,37 +153,38 @@ Core modules
 │   3b) Model                                                           │
 │      LogicalTableBuilder::build()                                     │
 │      - header grid + vMerge metadata                                  │
-│      - logical data rows                                               │
-│      - styleRows actions (c_style, c_clear, c_merge, c_glue,          │
-│        c_addrow, c_pageBreak)                                         │
+│      - logical data rows                                              │
+│      - dedupe pass, then styleRows actions in sequence order:         │
+│        c_clear, c_glue, c_merge, c_style, c_addrow, c_pageBreak       │
 │                                                                       │
 │   3c) Measure                                                         │
 │      Header rows: vMerge-aware 2-pass height balancing                │
 │      Body cells: TextMeasurer::measure_plain()                        │
-│      - inline markup parsing                                           │
-│      - HarfBuzz shaping                                                │
+│      - inline markup parsing                                          │
+│      - HarfBuzz shaping                                               │
 │      - deterministic wrapping and line-height math                    │
 │                                                                       │
 │   3d) Paginate                                                        │
 │      Paginator::paginate()                                            │
-│      - build_segments(): split by isColBreak, repeat isID columns     │
+│      - build_segments(): split before isColBreak columns, drop        │
+│        invisible columns, repeat isID columns in every segment        │
 │      - compute_row_heights(): baseline full-table heights             │
-│      - compute_segment_column_widths(): segment width scaling          │
+│      - compute_segment_column_widths(): segment width scaling         │
 │      - compute_segment_row_heights(): per-segment row heights         │
 │      - compute static blocks: titles/subtitles/header/footer/notes    │
 │      - vertical fill + LastPage post-pass (deterministic mode only)   │
-│      - row-break mode keeps natural flow; no LastPage reshuffling      │
+│      - row-break mode keeps natural flow; no LastPage reshuffling     │
 │                                                                       │
-│   3e) Dedupe restoration                                               │
+│   3e) Dedupe restoration                                              │
 │      Restore deduped values at page boundaries                        │
 └───────────────────────────────────────────────────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────┐
 │ Phase 4: Emit and package DOCX                                        │
-│   DocxEmitter::emit()                                                  │
+│   DocxEmitter::emit()                                                 │
 │   - document.xml, styles.xml, rels, header/footer parts               │
-│   - page/section assembly, table/header/body emission                  │
-│   - optional TOC                                                       │
+│   - page/section assembly, table/header/body emission                 │
+│   - optional TOC                                                      │
 │   ZipWriter: package all OOXML parts into .docx                       │
 └───────────────────────────────────────────────────────────────────────┘
 ```
@@ -178,7 +193,8 @@ Core modules
 
 Defined primarily in src/kstfl/types.h.
 
--   **Units and geometry**: `Length`, `PageConfig`, `Margins`
+-   **Units and geometry**: `Length`, `PageConfig`, `PageMargins`,
+    `PageMarginsOverride`
 -   **Style system**: `FontProps`, `ParagraphProps`, `TableCellProps`,
     `StyleDef`, `StylesTemplate`
 -   **Table model**: `ColumnSpec`, `StubColumn`, `TextGroup`,
@@ -213,11 +229,14 @@ Defined primarily in src/kstfl/types.h.
     segment-specific level so emitted `trHeight` values remain exact.
 -   Warning thresholds compare against the physical page body height, while
     pagination still uses a safety margin for conservative fitting.
+-   Page totals returned to R subtract one page per continuousSection seam,
+    since a joined spec does not start a new page.
 
 ## 7. Style Resolution Cascade
 
-The renderer applies styles in this effective order (later layers
-override earlier ones unless marked structural/non-overridable):
+The renderer applies styles in this effective order. Every later layer
+overrides earlier ones field-by-field — including the structural layer,
+which is applied early in the merge chain rather than enforced last:
 
 1.  Template default text style
 2.  Region style (tableHeader, tableBody, titles, subtitles, footnotes)
@@ -227,12 +246,22 @@ override earlier ones unless marked structural/non-overridable):
 6.  Row action style (styleRows c_style)
 7.  Merge/action style overrides
 8.  AddRow style overrides
+9.  tableStyle.cellDefaults.vertical_alignment — fills vertical alignment
+    only when no higher layer set it (lowest precedence)
+
+Inline markup (`<b>`, `<i>`, `<sup>`, ...) applies as run-level overrides
+at emission, on top of the resolved cell style.
 
 ## 8. R/C++ Integration
 
 -   Exported functions in src/rcpp_bindings.cpp
     -   render_docx_impl(...)
     -   render_docx_from_strings_impl(...)
+    -   init_font_registry_impl(fallback_font_dir, extra_dirs) — scans
+        font directories and fills the global path map; called at package
+        load (.onLoad) and by tfl_rescan_fonts()
+    -   get_font_dirs_impl() — returns the directories found by the last
+        scan
 -   Registration in src/init.cpp and src/RcppExports.cpp.
 -   Error propagation uses RenderError and Rcpp::stop().
 
@@ -242,12 +271,16 @@ override earlier ones unless marked structural/non-overridable):
 -   C++20 features used:
     -   `operator<=>` (three-way comparison) for `Length`
     -   Concepts (`Mergeable`) constraining style merge templates
+        (style_types.cpp)
     -   `constexpr std::array` lookup tables for OOXML enum conversions
+        (style_types.cpp)
     -   `std::ranges::sort`, `std::ranges::any_of`,
         `std::ranges::transform`
     -   `using enum` in switch statements
     -   `std::to_chars` for double formatting
-    -   `[[nodiscard]]` on all pure/value-returning functions
+    -   `[[nodiscard]]` on value-returning functions in the layout/style
+        core (style_resolver.h, text_measurer.h, types.h); not applied
+        uniformly across every header yet
 -   Core dependencies:
     -   HarfBuzz (vendored source)
     -   FreeType2 (vendored source)
@@ -259,13 +292,20 @@ override earlier ones unless marked structural/non-overridable):
     -   src/Makevars
     -   src/Makevars.win
 -   Linux build model:
-    -   `src/Makevars` always compiles vendored HarfBuzz, FreeType, and minizip sources under `src/vendor/`
+    -   `src/Makevars` always compiles vendored HarfBuzz, FreeType, and
+        minizip sources under `src/vendor/`
+    -   Vendored libraries build as single-compilation-unit wrappers
+        (`ft_all.c`, the `harfbuzz.cc` amalgamation, `mz_all.c`);
+        HarfBuzz is trimmed with HB_NO_SUBSET/HB_NO_COLOR/HB_NO_PAINT/
+        HB_NO_STYLE and compiled as C++17
+    -   nlohmann/json is header-only, pulled in via the vendor include
+        path
     -   No `pkg-config` probe or system-library fallback is used on Linux
     -   Windows continues to use `src/Makevars.win` with Rtools-provided static libraries
 
 ## 10. Practical Trace (One Table Spec)
 
-```         
+```
 spec json + data json + template json
   -> Renderer::render_from_strings()
   -> StyleResolver::resolve_*()

@@ -49,8 +49,7 @@ widths are calculated:
     -   Participate in width calculations
     -   This is the default state for all columns
 2.  **LOCKED Columns** (width explicitly set via `colWidth`)
-    -   Maintain their exact specified width (any unit: %, cm, in, mm,
-        pt)
+    -   Maintain their exact specified width (unit: %, cm, or in)
     -   Fixed during automatic recalculation
     -   Can use relative (%) or absolute (cm, in) units
 3.  **UNLOCKED Columns** (no `colWidth` set)
@@ -69,12 +68,15 @@ widths are calculated:
 When you create a table, ksTFL automatically:
 
 1.  Analyzes each column's data type and content
-2.  Estimates visual width based on:
-    -   Maximum value length
-    -   Column name length
-    -   Label length (if provided)
+2.  Estimates visual width from the widest rendered cell (numeric values
+    measured after the auto-guessed `%d` / `%.df` format), the longest
+    line of the column name, and of the label — whichever is longest.
+    Frames over 10,000 rows are deterministically sampled for the
+    measurement.
 3.  Distributes widths proportionally so they sum to 100%
-4.  Applies minimum width constraints (0.5% for relative widths)
+4.  Clamps each column to the 5%–60% band, renormalizes to 100%, and
+    rounds to one decimal with drift correction (the largest column
+    absorbs the rounding remainder)
 
 ```{r initial-widths}
 library(ksTFL)
@@ -96,11 +98,12 @@ print(spec)  # Shows auto-calculated widths for all columns
 ### The `autoColWidth` Option
 
 The `autoColWidth` option (default: `TRUE`) controls whether widths are
-automatically recalculated when you lock columns:
+automatically recalculated when you lock a column or change a column's
+visibility:
 
 ```{r autocol-option}
 # Check current setting
-tfl_get_option("autoColWidth")  # TRUE by default
+print(tfl_get_option("autoColWidth"))  # TRUE by default
 
 # Disable for manual width management
 tfl_set_options(autoColWidth = FALSE)
@@ -143,23 +146,32 @@ spec <- create_table(data) |>
 # - age, weight_kg: share remaining 45% proportionally
 ```
 
+Flag columns (`isPaging`, `isGrouping`, `isColBreak`) recalculate like any
+other unlocked column — lock their widths if size matters. In column-break
+segments, ID columns keep their width while the remaining segment columns
+are rescaled to fill the segment.
+
 ### Mixing Relative and Absolute Units
 
 You can mix percentage widths with absolute units:
 
 ```{r mixed-units}
 spec <- create_table(data) |>
-  define_cols(id, colWidth = "2.5cm") |>      # Fixed width (doesn't reduce % space)
-  define_cols(patient_id, colWidth = "20%")   # Takes 20% of available
+  define_cols(id, colWidth = "2.5cm") |>      # Fixed width, kept exactly
+  define_cols(patient_id, colWidth = "20%")   # 20% of the space left over
 
 # Result:
 # - id: 2.5cm (LOCKED, absolute)
 # - patient_id: 20% (LOCKED, relative)
-# - Other columns: share remaining 80% proportionally
+# - Other columns: share the remaining percentage pool proportionally
 ```
 
-**Important:** Fixed-unit columns (cm, in, mm, pt) don't reduce the
-available percentage space—only locked percentage columns do.
+**Important:** Fixed-unit columns (cm, in) keep their exact width at
+render. They do not shrink the percentage pool that the R-layer
+recalculation works with, but the renderer resolves every percentage
+column against the space left *after* the fixed columns are placed —
+a percentage width is a share of the remaining area, not of the full
+page.
 
 ## Width Recalculation Algorithm
 
@@ -174,19 +186,26 @@ When `autoColWidth = TRUE` and you lock a column, ksTFL:
 
 ### Example Walkthrough
 
+With the sample data above (100 rows), `create_table()` measures the
+content and produces this distribution:
+
 ```{r recalc-example}
-# Initial auto-distribution (example values):
-# id: 15%, patient_id: 25%, age: 20%, weight_kg: 20%, treatment_group: 20%
+# Initial auto-distribution (measured for this dataset):
+# id: 7.5%, patient_id: 25.0%, age: 7.5%, weight_kg: 22.5%, treatment_group: 37.5%
 
 spec <- create_table(data) |>
   define_cols(id, colWidth = "10%")
   
 # After locking id at 10%:
 # - Available space: 100% - 10% = 90%
-# - Unlocked weights: patient_id=25, age=20, weight_kg=20, treatment_group=20 (sum=85)
-# - Normalized: patient_id=26.5%, age=21.2%, weight_kg=21.2%, treatment_group=21.2%
-# - Result sums to 100.1% (rounding), drift corrected to largest column
+# - Unlocked weights: patient_id=25.0, age=7.5, weight_kg=22.5, treatment_group=37.5 (sum=92.5)
+# - Normalized into 90%: patient_id=24.3%, age=7.3%, weight_kg=21.9%, treatment_group=36.5%
+# - Total is exactly 100.0% after drift correction
 ```
+
+Note how content-aware the initial split is: the narrow numeric `id`
+and `age` columns keep 7.5%, while the long text column
+`treatment_group` takes 37.5%.
 
 ### Drift Correction
 
@@ -196,7 +215,7 @@ To ensure widths sum exactly to 100%, ksTFL applies drift correction:
 -   Calculates total rounding error (drift)
 -   Adds/subtracts drift from the largest unlocked column
 
-This guarantees valid output while maintaining proportions.
+The sum is exact; the largest unlocked column absorbs the correction.
 
 ## Invisible Columns
 
@@ -222,8 +241,10 @@ spec <- create_table(data) |>
 spec <- create_table(data) |>
   define_cols(id, isVisible = FALSE, colWidth = "15%")
   
-# Error message:
-# "Cannot set colWidth for invisible column 'id'"
+# Error message (verbatim):
+# Cannot set `colWidth` for invisible column "id"
+# x Column "id" has `isVisible = FALSE`
+# i Invisible columns automatically have `colWidth = "0.0cm"`
 ```
 
 **Why?** Invisible columns are always "0.0cm"—setting a width would be
@@ -231,7 +252,7 @@ contradictory.
 
 ### Using Invisible Columns for Logic
 
-Invisible columns are perfect for conditional formatting:
+Invisible columns exist mainly for this: driving conditional formatting.
 
 ```{r invisible-logic}
 spec <- create_table(data) |>
@@ -278,54 +299,77 @@ tfl_set_options(autoColWidth = TRUE)
 
 ## Validation and Constraints
 
-### Minimum Width Thresholds
+### Width Floors and the Unlocked Reserve
 
-ksTFL enforces minimum widths to prevent unreadable columns:
+Two different constants apply to widths:
 
-**Relative widths (%):** - Minimum: 0.5%
-
-**Absolute widths (cm, in, mm, pt):** - Minimum: 0.2cm (\~0.08in)
+- Relative widths (%) you set yourself: minimum 0.5%
+- Absolute widths (cm, in) you set yourself: minimum 0.2cm (~0.08in)
+- `minColWidth` (default 0.5%): the space the validator reserves for each
+  column that stays UNLOCKED when you lock another one
 
 ```{r min-width-error, error=TRUE}
 # This will error:
 spec <- create_table(data) |>
-  define_cols(id, colWidth = "0.1%")  # Below 0.5% minimum
+  define_cols(id, colWidth = "0.1%")  # Below the fixed 0.5% floor
   
-# Error: "Column width '0.1%' is below minimum allowed"
+# Error message (verbatim):
+# Column width "0.1%" is below minimum allowed
+# x Relative widths must be at least 0.5%
+# i Proposed: 0.1%
 ```
+
+The floor for a width you type is fixed at 0.5% — `minColWidth` does not
+lower it. What `minColWidth` controls is the space check below.
 
 ### Space Constraint Validation
 
 ksTFL prevents you from locking widths that leave insufficient space for
-other columns:
+the columns that stay unlocked:
 
 ```{r space-constraint-error, error=TRUE}
-# 5 columns with minColWidth = 0.5% (default)
-# Minimum space needed for 4 unlocked columns: 4 × 0.5% = 2%
+# 5 columns, minColWidth = 0.5% (default):
+# the 4 unlocked columns need 4 x 0.5% = 2% of the space.
 
 # This will error:
 spec <- create_table(data) |>
   define_cols(id, colWidth = "99%")  # Leaves only 1% for 4 columns
   
-# Error: "Cannot set column 'id' to '99%'"
-# "This would leave insufficient space for the remaining 4 unlocked columns"
-# "Maximum allowed relative width for id: 98.0%"
+# Error message (verbatim):
+# Cannot set column `id` to "99%"
+# x This would leave insufficient space for the remaining 4 unlocked
+#   columns to meet the minimum width of 0.5%.
+# i After this change, 4 columns need 2% total. Remaining space available: 1%.
+# i Maximum allowed relative width for `id`: 98.0%
+# i Reduce the proposed width or adjust other locked widths
 ```
 
-### Adjusting Minimum Width
+Rule of thumb: while any column stays unlocked, locked relative widths
+must sum to at most 99.5% — the validator keeps the `minColWidth`
+reserve for the last unlocked column, and the error names your exact
+allowed maximum.
 
-You can customize the minimum width threshold:
+### Using `minColWidth`
+
+Raise or lower the per-unlocked-column reserve to trade strictness
+against layout freedom:
 
 ```{r custom-min}
-# Allow tighter columns (use with caution)
-tfl_set_options(minColWidth = 0.3)
+# A 12-column frame: locking one column at 95% would leave 5% for 11
+# unlocked columns, each needing 0.5% (5.5% total) — rejected.
+wide_data <- as.data.frame(replicate(12, sample(100:999, 10)))
+names(wide_data) <- paste0("COL", 1:12)
 
-# Now you can use narrower relative widths
-spec <- create_table(data) |>
-  define_cols(id, colWidth = "95%")  # More space for this column
-
-# Reset to default
 tfl_set_options(minColWidth = 0.5)
+spec <- create_table(wide_data) |>
+  define_cols(COL1, colWidth = "95%")  # errors: max allowed is 94.5%
+
+# Relax the reserve and the same lock goes through:
+tfl_set_options(minColWidth = 0.3)
+spec <- create_table(wide_data) |>
+  define_cols(COL1, colWidth = "95%")  # OK
+
+tfl_set_options(minColWidth = 0.5)  # restore default
 ```
 
 ## Common Patterns
@@ -359,7 +403,7 @@ tfl_set_options(autoColWidth = FALSE)
 spec <- create_table(data) |>
   define_cols(
     c(id, patient_id, age, weight_kg, treatment_group),
-    colWidth = c("8%", "22%", "15%", "18%", "37%")
+    colWidth = c("10%", "25%", "20%", "20%", "25%")
   )  # Sum = 100% exactly
 
 tfl_set_options(autoColWidth = TRUE)
@@ -385,35 +429,45 @@ print(spec)  # See after second lock
 
 ### Issue: "Insufficient space for remaining columns"
 
-**Cause:** Locked columns leave \< `minColWidth` % per unlocked column
+**Cause:** A locked width leaves less than `minColWidth` % for each
+column that stays unlocked.
 
-**Solutions:** 1. Reduce the locked width you're trying to set 2. Lower
-`minColWidth` via `tfl_set_options(minColWidth = 0.3)` 3. Lock more
-columns explicitly to reduce unlocked count 4. Make some columns
-invisible to exclude them
+**Solutions:**
 
-### Issue: Widths don't sum to exactly 100%
+1. Reduce the locked width you're trying to set
+2. Lower `minColWidth` via `tfl_set_options(minColWidth = 0.3)`
+3. Lock more columns explicitly to reduce the unlocked count
 
-**Cause:** Rounding errors from drift correction
+Invisibility does not help here — the reserve counts every column in the
+spec, visible or not.
 
-**Solution:** This is expected and handled automatically. Drift is
-always ≤ 0.1% and applied to the largest column. The rendered output
-will be correct.
+### Issue: A width shifts by more than a tenth of a percent after recalculation
+
+**Cause:** Drift correction. The largest unlocked column absorbs the
+whole rounding correction so the total stays exactly 100%; with many
+unlocked columns that correction can exceed 0.1% on one column.
+
+**Solution:** This is expected and handled automatically. The rendered
+output is correct.
 
 ### Issue: Can't set width for invisible column
 
 **Cause:** Trying to use `colWidth` with `isVisible = FALSE`
 
-**Solution:** Remove `colWidth` parameter—invisible columns are always
-"0.0cm"
+**Solution:** Remove the `colWidth` argument — an invisible column is
+rendered at "0.0cm" and takes no space, so a width on it would be
+meaningless.
 
 ### Issue: Widths change unexpectedly after define_cols()
 
-**Cause:** Auto-recalculation triggered by locking a column
+**Cause:** Auto-recalculation triggered by locking a width or toggling a
+column's visibility.
 
-**Solution:** - This is expected behavior when `autoColWidth = TRUE` -
-Disable with `tfl_set_options(autoColWidth = FALSE)` for manual
-control - Or lock all columns explicitly
+**Solution:**
+
+- This is expected behavior when `autoColWidth = TRUE`
+- Disable with `tfl_set_options(autoColWidth = FALSE)` for manual control
+- Or lock all columns explicitly
 
 ## Advanced: Width Metadata
 
@@ -422,9 +476,12 @@ control - Or lock all columns explicitly
 > for all user-facing width inspection and control.
 
 ksTFL stores width metadata internally in `spec$.metadata$colWidths`.
-This is used by the package itself to: - Recalculate widths without
-re-parsing width strings - Track which columns are locked vs. unlocked -
-Preserve initial proportions for normalization
+This is used by the package itself to:
+
+- Keep the numeric unit, value, lock flag, and initial weight per
+  column so renormalization runs from metadata rather than display strings
+- Track which columns are locked vs. unlocked
+- Preserve initial proportions for normalization
 
 You do not need to read or write this field directly. Use `print(spec)`
 to inspect current widths and `define_cols(spec, col, colWidth = ...)`
