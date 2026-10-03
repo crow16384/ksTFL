@@ -461,7 +461,7 @@ spec <- add_style(spec, id = "emphasis", s_paragraph(alignment = "center"))
 Once you declare styles with `add_style()`, reference them by id in
 various places:
 
-### 1. Column labels — `labelStyleRef` in `define_cols()`
+### Column labels — `labelStyleRef` in `define_cols()`
 
 Apply styles to **column header labels**:
 
@@ -483,7 +483,7 @@ spec <- define_cols(spec, c(mpg, hp),
   labelStyleRef = c("header_bold", "header_italic"))
 ```
 
-### 2. Column values — `valueStyleRef` in `define_cols()`
+### Column values — `valueStyleRef` in `define_cols()`
 
 Apply styles to **data values** in a column:
 
@@ -496,7 +496,7 @@ spec <- add_style(spec, id = "numeric_right", s_paragraph(alignment = "right"))
 spec <- define_cols(spec, mpg, type = "numeric", valueStyleRef = "numeric_right")
 ```
 
-### 3. Spanning headers — `labelStyleRef` in `add_span_header()`
+### Spanning headers — `labelStyleRef` in `add_span_header()`
 
 Apply styles to **stub (spanning header) labels**:
 
@@ -511,7 +511,7 @@ spec <- add_span_header(spec, cols = c("mpg", "cyl"), label = "Engine",
   labelStyleRef = "stub_label")
 ```
 
-### 4. Content — `styleRef` in `add_title()`, `add_footnote()`
+### Content — `styleRef` in `add_title()`, `add_footnote()`
 
 Apply styles to titles, subtitles, footnotes:
 

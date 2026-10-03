@@ -20,6 +20,8 @@ ksTFL converts JSON report specifications into deterministic DOCX output
 with a C++ renderer. This document maps its modules, pipeline phases, and
 data structures.
 
+<div class="self-numbered" aria-hidden="true"></div>
+
 ## 1. End-to-End Architecture
 
 ```

@@ -735,7 +735,7 @@ actions to build a fully formatted table:</p>
 <h2 id="performance-tips">Performance Tips<a class="anchor" aria-label="anchor" href="#performance-tips"></a>
 </h2>
 <div class="section level3">
-<h3 id="one-condition-block-per-rule">1. One condition block per rule<a class="anchor" aria-label="anchor" href="#one-condition-block-per-rule"></a>
+<h3 id="one-condition-block-per-rule">One condition block per rule<a class="anchor" aria-label="anchor" href="#one-condition-block-per-rule"></a>
 </h3>
 <p>Every <code><a href="../reference/compute_cols.html">compute_cols()</a></code> block adds one condition/action
 group to the spec and one resolution pass at
@@ -759,7 +759,7 @@ they apply together, and keep style lookups cheap by reusing ids:</p>
 <span>  <span class="fu"><a href="../reference/compute_cols.html">compute_cols</a></span><span class="op">(</span><span class="va">age</span> <span class="op">&lt;</span> <span class="fl">25</span> <span class="op">|</span> <span class="va">age</span> <span class="op">&gt;=</span> <span class="fl">65</span>, <span class="fu"><a href="../reference/c_style.html">c_style</a></span><span class="op">(</span><span class="va">age</span>, styleRef <span class="op">=</span> <span class="st">"extreme"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="use-vectorized-conditions">2. Use Vectorized Conditions<a class="anchor" aria-label="anchor" href="#use-vectorized-conditions"></a>
+<h3 id="use-vectorized-conditions">Use Vectorized Conditions<a class="anchor" aria-label="anchor" href="#use-vectorized-conditions"></a>
 </h3>
 <p>Avoid row-by-row operations in custom functions:</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
@@ -780,7 +780,7 @@ they apply together, and keep style lookups cheap by reusing ids:</p>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="tighten-conditions-do-not-split-tables">3. Tighten Conditions, Do Not Split Tables<a class="anchor" aria-label="anchor" href="#tighten-conditions-do-not-split-tables"></a>
+<h3 id="tighten-conditions-do-not-split-tables">Tighten Conditions, Do Not Split Tables<a class="anchor" aria-label="anchor" href="#tighten-conditions-do-not-split-tables"></a>
 </h3>
 <p>Conditions are evaluated vectorized, one pass per block over whole
 columns — there is no per-row cost to optimize. If only a few rows need
@@ -790,7 +790,7 @@ formatting reasons, because each spec becomes its own Word table in the
 report.</p>
 </div>
 <div class="section level3">
-<h3 id="style-consolidation">4. Style Consolidation<a class="anchor" aria-label="anchor" href="#style-consolidation"></a>
+<h3 id="style-consolidation">Style Consolidation<a class="anchor" aria-label="anchor" href="#style-consolidation"></a>
 </h3>
 <p>ksTFL automatically consolidates identical styles, but you can help
 by reusing style references:</p>

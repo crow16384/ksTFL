@@ -50,8 +50,11 @@ div.sourceCode pre code {
 }
 
 /* ── Document identity: serif headings + numbered sections ─
- * Articles read like a report: H2 gets "n.", H3 gets "n.m" —
- * via CSS counters, so nothing in the vignette sources changes. */
+ * Articles read like a report: H2 gets "n.", H3 gets "n.m" via CSS
+ * counters. Vignettes that carry their OWN numbering in the headings
+ * (FAQ question ids, Getting Started steps, Example/section numbers —
+ * all referenced from prose and kept stable across builds) opt out with
+ * a .self-numbered marker element at the top of the article body. */
 main#main h2,
 main#main h3,
 main#main h4 {
@@ -122,6 +125,13 @@ main#main h4 {
 
 .template-news main#main h3 {
     counter-increment: none;
+}
+
+/* Pages whose sources number their own headings: no CSS prefixes.
+ * Specificity must reach main#main (id) to beat the base ::before rules. */
+main#main:has(.self-numbered) h2::before,
+main#main:has(.self-numbered) h3::before {
+    content: none;
 }
 
 /* ── Sidebar TOC ────────────────────────────────────────── */

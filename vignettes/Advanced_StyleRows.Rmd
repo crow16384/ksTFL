@@ -612,7 +612,7 @@ become a production ready table:\
 
 ## Performance Tips
 
-### 1. One condition block per rule
+### One condition block per rule
 
 Every `compute_cols()` block adds one condition/action group to the spec
 and one resolution pass at `create_report()`. There is no `case_when`
@@ -636,7 +636,7 @@ spec <- create_table(data) |>
   compute_cols(age < 25 | age >= 65, c_style(age, styleRef = "extreme"))
 ```
 
-### 2. Use Vectorized Conditions
+### Use Vectorized Conditions
 
 Avoid row-by-row operations in custom functions:
 
@@ -658,7 +658,7 @@ spec <- create_table(data) |>
   )
 ```
 
-### 3. Tighten Conditions, Do Not Split Tables
+### Tighten Conditions, Do Not Split Tables
 
 Conditions are evaluated vectorized, one pass per block over whole
 columns — there is no per-row cost to optimize. If only a few rows need
@@ -666,7 +666,7 @@ styling, make the condition selective (e.g. `age > 80`), not the data:
 do not split one logical table across two specs for formatting reasons,
 because each spec becomes its own Word table in the report.
 
-### 4. Style Consolidation
+### Style Consolidation
 
 ksTFL automatically consolidates identical styles, but you can help by
 reusing style references:

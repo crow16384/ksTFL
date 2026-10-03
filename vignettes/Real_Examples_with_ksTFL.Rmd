@@ -42,6 +42,9 @@ options(pkgdown.internet = FALSE)
 
 <img src="figures/ksTFL-logo-hero.gif" alt="ksTFL logo" width="700"/>
 
+<div class="self-numbered" aria-hidden="true"></div>
+
+
 ## Purpose
 
 This vignette presents real-world clinical reporting examples built with ksTFL.
